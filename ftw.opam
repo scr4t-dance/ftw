@@ -1,0 +1,36 @@
+# For The Win, dancing competition software
+opam-version: "2.2"
+name: "ftw"
+version: "dev"
+authors: "Guillaume Bury <guillaume.bury@gmail.com>"
+maintainer: "Guillaume Bury <guillaume.bury@gmail.com>"
+license: "GPL-3.0-or-later"
+build: [
+  ["dune" "subst"] {pinned}
+  ["dune" "build" "-p" name "-j" jobs]
+]
+depends: [
+  "ocaml" {>="4.04.0"}
+  "dune"
+  "dream"
+  "crunch"
+  "cmdliner"
+  "sqlite3"
+  "sqlite3_utils"
+  "containers"
+  "logs"
+  "fmt"
+]
+homepage: "https://github.com/scr4t-dance/ftw"
+dev-repo: "git+https://github.com/scr4t-dance/ftw.git"
+bug-reports: "git+https://github.com/scr4t-dance/ftw/issues"
+
+synopsis: "For The Win: a dance competition software"
+description:
+"For The Win is a web server meant to help organize dance competitions, and archive their results.
+
+It offers a web interface allowing competition organizer to create competitions,
+register participants, generated pools of dancers according to configurable parameters,
+register judges notes or rankings, and computes the ranking for each rounds of a competition.
+Finally, the web interface also show results of past competitions, and handles a point and
+divisions system."

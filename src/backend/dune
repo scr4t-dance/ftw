@@ -1,0 +1,15 @@
+
+(executable
+  (name         main)
+  (public_name  ftw)
+  (preprocess (pps lwt_ppx))
+  (libraries ftw fmt dream cmdliner containers)
+)
+
+; crunch static files
+(rule
+  (target static.ml)
+  (deps (source_tree static))
+  (action (with-stdout-to %{null}
+   (run ocaml-crunch -m plain static -o %{target}))))
+

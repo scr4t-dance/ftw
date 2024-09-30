@@ -1,0 +1,9 @@
+(library
+  (name             ftw)
+  (public_name      ftw)
+
+ ; deps
+  (libraries
+    fmt logs containers sqlite3 sqlite3_utils
+  )
+)

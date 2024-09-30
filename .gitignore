@@ -1,0 +1,11 @@
+# build-generated files
+_build/
+.merlin
+*.install
+
+# swap files
+.*.swp
+
+# local opam switch
+_opam
+
