@@ -1,0 +1,7 @@
+(library
+  (name             ftw_utils)
+  (public_name      ftw.utils)
+
+ ; deps
+  (libraries)
+)
