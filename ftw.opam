@@ -1,5 +1,5 @@
 # For The Win, dancing competition software
-opam-version: "2.2"
+opam-version: "2.0"
 name: "ftw"
 version: "dev"
 authors: "Guillaume Bury <guillaume.bury@gmail.com>"

@@ -5,22 +5,27 @@ BINDIR=_build/install/default/bin
 
 all: build
 
-watch:
-	dune build $(FLAGS) -w @check
+conf:
+	cd src/frontend && npm install
 
-build:
+build: frontend backend
+
+frontend:
+	cd src/frontend && npm run build
+
+backend:
 	dune build $(FLAGS) @install
+
+test: frontend
+	dune exec -- ftw --db=test/temp.db
+
+clean:
+	dune clean
 
 top:
 	dune utop
 
 doc:
 	dune build $(FLAGS) @doc
-
-test:
-	dune exec -- ftw --db=test/temp.db
-
-clean:
-	dune clean
 
 .PHONY: all watch build top doc test clean
