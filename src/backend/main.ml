@@ -22,6 +22,6 @@ let () =
   @@ State.init ~path:options.db_path
   @@ Dream.router [
     (* static content *)
-    Dream.get "/static/**" (Dream.static ~loader "")
+    Dream.get "/**" (Dream.static ~loader "")
   ]
 

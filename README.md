@@ -20,6 +20,7 @@ the OCaml dependencies, which can be done using the following command:
 
 ```sh
 opam install . --deps-only
+cd src/frontend && npm install
 ```
 
 ### Building and Running
