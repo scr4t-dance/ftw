@@ -23,6 +23,16 @@ opam install . --deps-only
 cd src/frontend && npm install
 ```
 
+You also need to install the various npm dependencies, you can do so with
+```sh
+cd src/frontend && npm install
+```
+
+A convenient makefile target to do all of the instructions above is:
+```sh
+make configure
+```
+
 ### Building and Running
 
 Once all dependencies have been installed, you can build the project with the

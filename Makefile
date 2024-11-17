@@ -5,10 +5,11 @@ BINDIR=_build/install/default/bin
 
 all: build
 
-conf:
-	cd src/frontend && npm install
-
 build: frontend backend
+
+configure:
+	opam install . --deps-only
+	cd src/frontend && npm install
 
 frontend:
 	cd src/frontend && npm run build
