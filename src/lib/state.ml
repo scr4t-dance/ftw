@@ -48,7 +48,10 @@ let query_list_where ~p ~conv ~st sql =
 let query_one_where ~p ~conv ~st sql =
   let Conv.Conv (res, f_conv) = conv in
   let open Sqlite3_utils in
-  exec_exn st sql
+  try
+    exec_exn st sql
     ~ty:(p, res, f_conv)
     ~f:(Sqlite3_utils.Cursor.get_one_exn)
+  with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
+    raise Not_found
 
