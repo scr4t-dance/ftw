@@ -21,7 +21,7 @@ let rec routes router =
         ];
     ]
   (* Event query *)
-  |> Router.get "/api/event/{id}" get_event
+  |> Router.get "/api/event/:id" get_event
     ~tags:["event"]
     ~summary:"Get the details of a single Event"
     ~parameters:[
@@ -105,8 +105,13 @@ and create_event =
     ~of_yojson:Types.Event.of_yojson
     ~to_yojson:Types.EventId.to_yojson
     (fun _req st (event : Types.Event.t) ->
-       let start_date = assert false in
-       let end_date = assert false in
+       let start_date = Ftw.Date.mk ~day:1 ~month:1 ~year:2025 in
+       let end_date = Ftw.Date.mk ~day:1 ~month:1 ~year:2025 in
+       let+ () =
+         if Ftw.Date.compare start_date end_date <= 0
+         then Ok ()
+         else Error.(mk @@ bad_event_dates ~start_date ~end_date)
+       in
        let id = Ftw.Event.create st event.name ~start_date ~end_date in
        Ok id)
 

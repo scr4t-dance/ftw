@@ -39,7 +39,7 @@ let () =
         CREATE TABLE IF NOT EXISTS events (
           id INTEGER PRIMARY KEY,
           name TEXT,
-          start_date TEXT
+          start_date TEXT,
           end_date TEXT
         )
       |})

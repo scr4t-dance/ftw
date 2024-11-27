@@ -20,6 +20,7 @@ type err =
   | Incorrect_query_int of { id : string; payload : string; }
   | Incorrect_param_int of { param: string; payload : string; }
   | Invalid_json_body of { msg : string; }
+  | Bad_event_dates of { start_date : Ftw.Date.t; end_date : Ftw.Date.t; }
 
 let mk err = Error err
 
@@ -40,6 +41,8 @@ let incorrect_query_int ~id ~payload =
 let invalid_json_body msg =
   Invalid_json_body { msg; }
 
+let bad_event_dates ~start_date ~end_date =
+  Bad_event_dates { start_date; end_date; }
 
 (* Error status *)
 (* ************************************************************************* *)
@@ -54,6 +57,7 @@ let err_status err : [< Dream.status ] =
   | Incorrect_param_int _
   | Incorrect_query_int _
   | Invalid_json_body _
+  | Bad_event_dates _
     -> `Bad_Request
 
 (* Error messages *)
@@ -76,6 +80,10 @@ let err_msg = function
   | Invalid_json_body { msg; } ->
     Format.asprintf
       "Error while parsing json body: %s" msg
+  | Bad_event_dates { start_date; end_date; } ->
+    Format.asprintf
+      "Invalid Event dates: %s - %s"
+      (Ftw.Date.to_string start_date) (Ftw.Date.to_string end_date)
 
 
 
