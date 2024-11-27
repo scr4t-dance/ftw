@@ -53,13 +53,12 @@ let schemas, make_schema =
   schemas, make_schema
 
 
-(* Schemas & conversions definitions *)
+(* Common schemas *)
 (* ************************************************************************* *)
 
 (* Errors *)
 module Error = struct
-
-  type t = Error.t = {
+  type t = {
     message : string;
   } [@@deriving yojson]
 
@@ -72,20 +71,46 @@ module Error = struct
           ~typ:string
           ~examples:[`String "Event not found"]
       ]
+end
 
+module Date = struct
+  type t = {
+    day : int;
+    month : int;
+    year : int;
+  } [@@deriving show, yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Date"
+      ~typ:object_
+      ~properties:[
+        "day", obj @@ S.make_schema ()
+          ~typ:int
+          ~examples:[`Int 1; `Int 31];
+        "month", obj @@ S.make_schema ()
+          ~typ:int
+          ~examples:[`Int 1; `Int 12];
+        "year", obj @@ S.make_schema ()
+          ~typ:int
+          ~examples:[`Int 2019; `Int 2024];
+      ]
 
 end
 
+
+(* Events *)
+(* ************************************************************************* *)
+
+
 (* Event Ids *)
 module EventId = struct
-
   type t = Ftw.Event.id [@@deriving yojson]
 
   let ref, schema =
     make_schema ()
       ~name:"EventId"
       ~typ:int
-      ~format:"int64"
       ~examples:[`Int 42]
 end
 
@@ -110,6 +135,8 @@ end
 module Event = struct
   type t = {
     name : string;
+    start_date : Date.t;
+    end_date : Date.t;
   } [@@deriving yojson]
 
   let ref, schema =
@@ -120,6 +147,8 @@ module Event = struct
         "name", obj @@ S.make_schema ()
           ~typ:string
           ~examples:[`String "P4T"];
+        "start_date", ref Date.ref;
+        "end_date", ref Date.ref;
       ]
 end
 

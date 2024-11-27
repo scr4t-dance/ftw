@@ -13,7 +13,7 @@ module Syntax = struct
 
 end
 
-(* Utility functions *)
+(* Url params/queries *)
 (* ************************************************************************* *)
 
 let int_param req id =
@@ -33,4 +33,15 @@ let int_query req id =
     end
   | None -> Error.(mk @@ missing_query ~id)
 
+(* Dates *)
+(* ************************************************************************* *)
 
+let export_date (date : Ftw.Date.t) : Types.Date.t =
+  { day = Ftw.Date.day date;
+    month = Ftw.Date.month date;
+    year = Ftw.Date.year date; }
+
+let import_date (date : Types.Date.t) =
+  try Ok (Ftw.Date.mk ~day:date.day ~month:date.month ~year:date.year)
+  with Ftw.Date.Invalid_date _ ->
+    Error.(mk @@ invalid_date date)

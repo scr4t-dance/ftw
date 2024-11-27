@@ -93,6 +93,8 @@ and get_event =
        in
        let ret : Types.Event.t = {
          name = Ftw.Event.name event;
+         start_date = Utils.export_date @@ Ftw.Event.start_date event;
+         end_date = Utils.export_date @@ Ftw.Event.end_date event;
        } in
        Ok ret
     )
@@ -105,8 +107,8 @@ and create_event =
     ~of_yojson:Types.Event.of_yojson
     ~to_yojson:Types.EventId.to_yojson
     (fun _req st (event : Types.Event.t) ->
-       let start_date = Ftw.Date.mk ~day:1 ~month:1 ~year:2025 in
-       let end_date = Ftw.Date.mk ~day:1 ~month:1 ~year:2025 in
+       let+ start_date = Utils.import_date event.start_date in
+       let+ end_date = Utils.import_date event.end_date in
        let+ () =
          if Ftw.Date.compare start_date end_date <= 0
          then Ok ()
