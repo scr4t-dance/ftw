@@ -4,7 +4,7 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type id = Id.t
+type id = Id.t [@@deriving yojson]
 
 type t = {
   id : id;
@@ -39,7 +39,7 @@ let () =
         CREATE TABLE IF NOT EXISTS events (
           id INTEGER PRIMARY KEY,
           name TEXT,
-          start_date TEXT
+          start_date TEXT,
           end_date TEXT
         )
       |})

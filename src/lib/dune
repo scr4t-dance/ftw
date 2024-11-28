@@ -2,7 +2,10 @@
   (name             ftw)
   (public_name      ftw)
 
- ; deps
+  ; ppxs
+  (preprocess (pps ppx_deriving_yojson))
+
+  ; deps
   (libraries
     fmt logs containers sqlite3 sqlite3_utils
   )
