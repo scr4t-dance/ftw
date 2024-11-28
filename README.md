@@ -45,7 +45,7 @@ make
 And you can run a test instance of the server using the following command:
 
 ```sh
-make test
+make run
 ```
 
 ### Installation
