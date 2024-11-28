@@ -31,6 +31,9 @@ run: backend
 tests: backend
 	dune runtest
 
+promote:
+	dune promote
+
 clean:
 	dune clean
 	rm -rf $(FRONTEND_TARGET)
@@ -41,4 +44,4 @@ top:
 doc:
 	dune build $(FLAGS) @doc
 
-.PHONY: all watch build top doc run tests clean
+.PHONY: all build top doc run tests promote clean
