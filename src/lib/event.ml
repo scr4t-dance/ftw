@@ -63,7 +63,7 @@ let get st id =
 let create st name ~start_date ~end_date : Id.t =
   let open Sqlite3_utils.Ty in
   State.insert ~st ~ty:[ text; text; text; ]
-    {| INSERT INTO events (name, date) VALUES (?,?,?) |}
+    {| INSERT INTO events (name, start_date, end_date) VALUES (?,?,?) |}
     name (Date.to_string start_date) (Date.to_string end_date);
   (* TODO: try and get the id of the new event from the insert statement above,
      rather than using a new query *)

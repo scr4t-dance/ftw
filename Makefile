@@ -17,11 +17,15 @@ frontend:
 backend:
 	dune build $(FLAGS) @install
 
-test: frontend
-	dune exec -- ftw --db=test/temp.db
+run: frontend
+	dune exec -- ftw --db=tests/test.db
+
+tests:
+	dune runtest
 
 clean:
 	dune clean
+	rm -rf src/frontend/build/*
 
 top:
 	dune utop
@@ -29,4 +33,4 @@ top:
 doc:
 	dune build $(FLAGS) @doc
 
-.PHONY: all watch build top doc test clean
+.PHONY: all watch build top doc run tests clean
