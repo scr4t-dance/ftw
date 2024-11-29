@@ -20,6 +20,9 @@ depends: [
   "containers"
   "logs"
   "fmt"
+  "openapi_router"
+  "ppx_deriving"
+  "ppx_deriving_yojson"
 ]
 homepage: "https://github.com/scr4t-dance/ftw"
 dev-repo: "git+https://github.com/scr4t-dance/ftw.git"
