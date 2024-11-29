@@ -1,43 +1,44 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+(* Divisions:
+
+   These are the competitive divisions that are defined by the SCR4T *)
+
 (* Type definitions *)
 (* ************************************************************************* *)
 
 type t =
-  | Routine
-  | Strictly
-  | JJ_Strictly
-  | Jack_and_Jill
+  | Novice
+  | Intermediate
+  | Advanced
 [@@deriving yojson]
 
 (* DB interaction *)
 (* ************************************************************************* *)
 
 let to_int = function
-  | Routine -> 3
-  | Strictly -> 2
-  | JJ_Strictly -> 1
-  | Jack_and_Jill -> 0
+  | Novice -> 1
+  | Intermediate -> 2
+  | Advanced -> 3
 
 let of_int = function
-  | 3 -> Routine
-  | 2 -> Strictly
-  | 1 -> JJ_Strictly
-  | 0 -> Jack_and_Jill
-  | _ -> assert false
+  | 1 -> Novice
+  | 2 -> Intermediate
+  | 3 -> Advanced
+  | d -> failwith (Format.asprintf "%d is not a valid division" d)
 
 let p = Sqlite3_utils.Ty.([int])
 let conv = Conv.mk p of_int
 
 
-(* Usual functions *)
+(* Common functions *)
 (* ************************************************************************* *)
 
-let compare k k' =
-  Stdlib.compare (to_int k) (to_int k')
+let compare d d' =
+  CCOrd.int (to_int d') (to_int d)
 
-let equal k k' = compare k k' = 0
+let equal d d' = compare d d' = 0
 
 module Aux = struct
   type nonrec t = t
