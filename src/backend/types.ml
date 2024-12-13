@@ -73,6 +73,7 @@ module Error = struct
       ]
 end
 
+(* Dates, identifying a day. *)
 module Date = struct
   type t = {
     day : int;
@@ -95,13 +96,103 @@ module Date = struct
           ~typ:int
           ~examples:[`Int 2019; `Int 2024];
       ]
+end
 
+(* Competition Kinds *)
+module Kind = struct
+  type t = Ftw.Kind.t =
+    | Routine
+    | Strictly
+    | JJ_Strictly
+    | Jack_and_Jill
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Kind"
+      ~typ:array
+      ~items:(
+        obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[
+            `String "Routine";
+            `String "Strictly";
+            `String "JJ_Strictly";
+            `String "Jack_and_Jill";
+          ])
+end
+
+(* Competition Division *)
+module Division = struct
+  type t = Ftw.Division.t =
+    | Novice
+    | Intermediate
+    | Advanced
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Division"
+      ~typ:array
+      ~items:(
+        obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[
+            `String "Novice";
+            `String "Intermediate";
+            `String "Advanced";
+          ])
+end
+
+(* Competition Category *)
+module Category = struct
+  type t =
+    | Novice
+    | Intermediate
+    | Advanced
+    | Regular
+    | Qualifying
+    | Invited
+  [@@deriving yojson]
+
+  let of_ftw cat : t =
+    match (cat : Ftw.Category.t) with
+    | Competitive Novice -> Novice
+    | Competitive Intermediate -> Intermediate
+    | Competitive Advanced -> Advanced
+    | Non_competitive Regular -> Regular
+    | Non_competitive Qualifying -> Qualifying
+    | Non_competitive Invited -> Invited
+
+  let to_ftw cat : Ftw.Category.t =
+    match cat with
+    | Novice -> Competitive Novice
+    | Intermediate -> Competitive Intermediate
+    | Advanced -> Competitive Advanced
+    | Regular -> Non_competitive Regular
+    | Qualifying -> Non_competitive Qualifying
+    | Invited -> Non_competitive Invited
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Category"
+      ~typ:array
+      ~items:(
+        obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[
+            `String "Novice";
+            `String "Intermediate";
+            `String "Advanced";
+            `String "Regular";
+            `String "Qualifying";
+            `String "Invited";
+          ])
 end
 
 
 (* Events *)
 (* ************************************************************************* *)
-
 
 (* Event Ids *)
 module EventId = struct
@@ -117,7 +208,7 @@ end
 (* Event Id list *)
 module EventIdList = struct
   type t = {
-    events : Ftw.Event.id list;
+    events : EventId.t list;
   } [@@deriving yojson]
 
   let ref, schema =
@@ -149,6 +240,60 @@ module Event = struct
           ~examples:[`String "P4T"];
         "start_date", ref Date.ref;
         "end_date", ref Date.ref;
+      ]
+end
+
+(* Competitions *)
+(* ************************************************************************* *)
+
+(* Event Ids *)
+module CompetitionId = struct
+  type t = Ftw.Competition.id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"CompetitionId"
+      ~typ:int
+      ~examples:[`Int 42]
+end
+
+(* Event Id list *)
+module CompetitionIdList = struct
+  type t = {
+    comps : CompetitionId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"CompetitionIdList"
+      ~typ:object_
+      ~properties:[
+        "events", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref CompetitionId.ref);
+      ]
+end
+
+(* Competition specification *)
+module Competition = struct
+  type t = {
+    event : EventId.t;
+    name : string;
+    kind : Kind.t;
+    category : Category.t;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Competition"
+      ~typ:(Obj Object)
+      ~properties:[
+        "event", ref EventId.ref;
+        "name", obj @@ S.make_schema ()
+          ~typ:string
+          ~examples:[`String "P4T"];
+        "kind", ref Kind.ref;
+        "category", ref Category.ref;
       ]
 end
 

@@ -40,6 +40,9 @@ val get : State.t -> id -> t
 val from_event : State.t -> Event.id -> t list
 (** Get the list of all competitions that belong to a given event. *)
 
+val ids_from_event : State.t -> Event.id -> id list
+(** Get the list of all competitions that belong to a given event. *)
+
 val create : State.t -> Event.id -> string -> Kind.t -> Category.t -> id
 (** Create a new competition *)
 

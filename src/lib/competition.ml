@@ -52,6 +52,10 @@ let get st id =
   State.query_one_where ~p:Id.p ~conv ~st
     {| SELECT * FROM competitions WHERE id = ? |} id
 
+let ids_from_event st event_id =
+  State.query_list_where ~p:Id.p ~conv:Id.conv ~st
+    {| SELECT id FROM competitions WHERE event = ? |} event_id
+
 let from_event st event_id =
   State.query_list_where ~p:Id.p ~conv ~st
     {| SELECT * FROM competitions WHERE event = ? |} event_id
