@@ -53,7 +53,7 @@ let of_int ~kind v =
   let decode_int v i =
     if i = 0 then v else v asr i
   in
-  (* constant-size YAN encoded using the [i] and [i+1) least significant bits. *)
+  (* constant-size YAN encoded using the [i] and [i+1] least significant bits. *)
   let decode_yan v i =
     if Misc.Bit.is_set ~index:i v then
       if Misc.Bit.is_set ~index:(i + 1) v then
@@ -66,16 +66,13 @@ let of_int ~kind v =
   match (kind : kind) with
   | Bonus -> Bonus v
   | Ranking -> Rank v
-
   | Yes_Alt_No Single ->
     let yan = decode_yan v 0 in
     Yan (Single { yan; })
-
   | Yes_Alt_No With_bonus ->
     let yan = decode_yan v 0 in
     let bonus = decode_int v 2 in
     Yan (With_bonus { yan; bonus; })
-
   | Yes_Alt_No List { criterion; } ->
     let rec aux v i = function
       | [] -> []
