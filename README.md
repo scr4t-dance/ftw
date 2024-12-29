@@ -15,10 +15,12 @@ OCaml and Opam, you can follow the following instructions:
 - For Windows : https://ocaml.org/install#windows
 - For Linux, MacOS, and BSD: https://ocaml.org/install#linux_mac_bsd
 
+It is recommanded to use ocaml 5.0.0 (see issue #10).
+
 Once you have a working ocaml environment, 
 run the following commands to create a switch and activate it.
 ```
-opam switch create scrat_ftw_switch 5.1.0
+opam switch create scrat_ftw_switch 5.0.0
 eval $(opam env)
 ```
 
