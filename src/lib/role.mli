@@ -22,10 +22,10 @@ val of_int : int -> t
     @raise Failure _ if the int is out of range *)
 
 val p : (int -> 'a, 'a) Sqlite3_utils.Ty.t
-(** Sqlite query "type" for identifiers *)
+(** Sqlite query "type" for roles *)
 
 val conv : t Conv.t
-(** Converter for identifiers *)
+(** Converter for roles *)
 
 
 (* Usual functions *)
