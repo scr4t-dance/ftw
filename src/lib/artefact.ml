@@ -43,8 +43,19 @@ type t =
 
 (* Int encoding schema:
 
-   An integer encoding an artefact can only be decoded if the kind of the
-   artefact is provided (i.e. it is a tagless encoding). *)
+   The FTW db will store a very large number of artefacts (in the order of a
+   few thousands for each competition). Therefore the encoding of artefacts is
+   designed to take as little space as possible. This is possible because
+   SQlite stores integers using between 1 and 8 bytes depending on the
+   magnitude of the stored integers. In other words, small enough integers are
+   stored using less space.
+
+   Since each competition phase has in its configuration a description of the
+   stored (and expected) artefacts, we can also require the description of an
+   artefact in order to decode it (i.e. use a tagless encoding), saving a
+   precious few bits, and ensure that almost always, an encoded artefact can
+   fit in a single byte. *)
+
 
 let of_int ~descr v =
   (* constant-size YAN encoded using the [i] and [i+1] least significant bits. *)
