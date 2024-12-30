@@ -246,7 +246,7 @@ end
 (* Competitions *)
 (* ************************************************************************* *)
 
-(* Event Ids *)
+(* Competition Ids *)
 module CompetitionId = struct
   type t = Ftw.Competition.id [@@deriving yojson]
 
@@ -257,7 +257,7 @@ module CompetitionId = struct
       ~examples:[`Int 42]
 end
 
-(* Event Id list *)
+(* Competition Id list *)
 module CompetitionIdList = struct
   type t = {
     comps : CompetitionId.t list;

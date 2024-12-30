@@ -48,7 +48,7 @@ division of P4T, or the single (strictly) division of Switch4Us
 - A name
 - Its parent Event
 - Its kind: Jack&Jill, Strictly, Routine
-- An (optional) division
+- An (optional) category. It can be a competitive `Division` or a non competitive category.
 - A list of phases
 
 
