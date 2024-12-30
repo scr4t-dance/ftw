@@ -41,23 +41,6 @@ let mk ~day ~month ~year =
   if month <= 0 || month > 12 then raise (Invalid_date `Month);
   { day; month; year; }
 
-(*
-let month_name t =
-  match t.month with
-  | 1 -> "Janvier"
-  | 2 -> "Février"
-  | 3 -> "Mars"
-  | 4 -> "Avril"
-  | 5 -> "Mai"
-  | 6 -> "Juin"
-  | 7 -> "Juillet"
-  | 8 -> "Août"
-  | 9 -> "Septembre"
-  | 10 -> "Octobre"
-  | 11 -> "Novembre"
-  | 12 -> "Décembre"
-  | i -> failwith (Format.asprintf "%d is not a valid month" i)
-*)
 
 (* DB interactions *)
 (* ************************************************************************* *)
