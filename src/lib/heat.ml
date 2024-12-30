@@ -1,4 +1,25 @@
 
+(* This file is free software, part of FTW. See file "LICENSE" for more information *)
+
+(* Type definitions *)
+(* ************************************************************************* *)
+
+type passage =
+  | Only
+  | Multiple of { nth : int; }
+
+type pool =
+  | Couples of {
+      couples : unit;
+    }
+  | Split of {
+      leaders : unit;
+      follows : unit;
+      passages : unit;
+    }
+
+(* Original Pool file
+
 type passage = Only | Multiple of int
 
 type aux = {
@@ -130,6 +151,26 @@ let regen_pools_aux ~min ~max t =
   compute_passages pools;
   { t with pools; }
 
+let regen_pools_aux_strictly ~pairing ~min ~max t =
+  let leaders = Id.Set.elements t.all_dancers.leaders |> Array.of_list in
+  let n_leaders = Array.length leaders in
+  let follows = Id.Set.elements t.all_dancers.follows |> Array.of_list in
+  let n_follows = Array.length follows in
+  assert (n_leaders = n_follows);
+  let leader_pools = Misc.Split.split_array ~min ~max leaders in
+  let pools = Array.map (fun leaders ->
+      let follows = Array.map (fun leader ->
+          (List.find (fun pairing -> pairing.Pairings.leader = leader) pairing).Pairings.follow
+        ) leaders
+      in
+      { leaders = Array.to_seq leaders |> Id.Set.of_seq;
+        follows = Array.to_seq follows |> Id.Set.of_seq;
+        passages = Id.Map.empty; }) leader_pools
+  in
+  compute_passages pools;
+  { t with pools; }
+
+
 let check_forbidden_pairs pairs t =
   Array.for_all (fun pool ->
       List.for_all (fun (leader_bib, follow_bib) ->
@@ -170,6 +211,20 @@ let regen_pools ?(tries=100) st ?(early=(0, [])) ?(late=(0, [])) ~min ~max t =
       else begin
         aux (n - 1)
       end
+    end
+  in
+  aux tries
+
+let regen_strictly_pools ?(tries=100) ?(early=(0, [])) ?(late=(0, [])) ~pairing ~min ~max t =
+  let rec aux n =
+    if n <= 0 then failwith "could not generate new pools"
+    else begin
+      Logs.info (fun k->k "Generating new pools with pairing(%d)" (List.length pairing));
+      let res = regen_pools_aux_strictly ~pairing ~min ~max t in
+      if check_early early res && check_late late res then
+        res
+      else
+        aux (n - 1)
     end
   in
   aux tries
@@ -272,4 +327,4 @@ let clear st phase =
   reset st t.phase;
   Id.Set.iter (add st ~phase:t.phase ~pool:0 ~role:Leader) t.all_dancers.leaders;
   Id.Set.iter (add st ~phase:t.phase ~pool:0 ~role:Follower) t.all_dancers.follows
-
+*)

@@ -1,7 +1,16 @@
 
+(* This file is free software, part of FTW. See file "LICENSE" for more information *)
+
+(* Type definitions *)
+(* ************************************************************************* *)
+
 type t =
   | Leader
   | Follower
+  [@@deriving yojson]
+
+(* DB interaction *)
+(* ************************************************************************* *)
 
 let to_int = function
   | Leader -> 0
@@ -12,24 +21,18 @@ let of_int = function
   | 1 -> Follower
   | d -> failwith (Format.asprintf "%d is not a valid role" d)
 
-let short = function
-  | Leader -> "L"
-  | Follower -> "F"
-
-let to_string = function
-  | Leader -> "Leader"
-  | Follower -> "Follower"
-
-let parse = function
-  | "L" -> Leader
-  | "F" -> Follower
-  | _ -> assert false
 
 let p = Sqlite3_utils.Ty.([int])
 let conv = Conv.mk p of_int
 
+
+(* Usual functions *)
+(* ************************************************************************* *)
+
 let compare r r' =
   Stdlib.compare (to_int r) (to_int r')
+
+let equal r r' = compare r r' = 0
 
 module Aux = struct
   type nonrec t = t

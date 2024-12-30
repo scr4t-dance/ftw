@@ -1,90 +1,97 @@
 
+(* This file is free software, part of FTW. See file "LICENSE" for more information *)
+
+(* Artefact descriptions *)
+(* ************************************************************************* *)
+
+module Descr = struct
+
+  type t =
+    | Bonus
+    | Ranking
+    | Yans of { criterion : string list; }
+
+  let bonus = Bonus
+  let ranking = Ranking
+  let yans criterion = Yans { criterion; }
+
+end
+
+(* Artefact values *)
+(* ************************************************************************* *)
+
+type bonus = int
+(* Bonus value *)
+
+type yan =
+  | Yes
+  | Alt
+  | No (**)
+(* Yes/Alt/No *)
+
 type t =
-  | Rank of int
-  | Note of {
-      technique : int;
-      musicality : int;
-      teamwork : int;
-    }
-  | Single_note of int
+  | Bonus of bonus
+  | Rank of Rank.t
+  | Yans of yan list
 
-let to_string = function
-  | Rank i -> string_of_int i
-  | Single_note i -> Format.asprintf "%d-" i
-  | Note { technique; musicality; teamwork; } ->
-    Format.asprintf "%d-%d-%d" technique musicality teamwork
 
-let of_string s =
-  match int_of_string s with
-  | res -> Rank res
-  | exception Failure _ ->
-    begin match String.split_on_char '-' s with
-      | [note; _] ->
-        Single_note (int_of_string note)
-      | [technique; musicality; teamwork] ->
-        Note {
-          technique = int_of_string technique;
-          musicality = int_of_string musicality;
-          teamwork = int_of_string teamwork;
-        }
-      | _ -> failwith "bad encoded artefact"
-    end
+(* DB interaction *)
+(* ************************************************************************* *)
 
-let () =
-  State.add_init (fun st ->
-      Sqlite3_utils.exec0_exn st {|
-        CREATE TABLE IF NOT EXISTS judgements (
-          phase INTEGER,
-          judge INTEGER,
-          target TEXT,
-          artefact TEXT,
-        CONSTRAINT unicity
-          UNIQUE (phase, judge, target)
-          ON CONFLICT REPLACE
-        )
-      |})
+(* Int encoding schema:
 
-let conv =
-  Conv.mk Sqlite3_utils.Ty.[text] of_string
+   The FTW db will store a very large number of artefacts (in the order of a
+   few thousands for each competition). Therefore the encoding of artefacts is
+   designed to take as little space as possible. This is possible because
+   SQlite stores integers using between 1 and 8 bytes depending on the
+   magnitude of the stored integers. In other words, small enough integers are
+   stored using less space.
 
-let get st ~phase ~judge ~target : t option =
-  let open Sqlite3_utils.Ty in
-  try
-    Some (State.query_one_where ~st ~conv ~p:[int; int; text]
-            {|SELECT artefact FROM judgements WHERE phase = ? AND judge = ? AND target = ?|}
-            phase judge (Target.to_string target))
-  with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND -> None
+   Since each competition phase has in its configuration a description of the
+   stored (and expected) artefacts, we can also require the description of an
+   artefact in order to decode it (i.e. use a tagless encoding), saving a
+   precious few bits, and ensure that almost always, an encoded artefact can
+   fit in a single byte. *)
 
-let set st ~phase ~judge ~target = function
-  | None ->
-    let open Sqlite3_utils.Ty in
-    State.insert ~st ~ty:[int; int; text]
-      {|DELETE FROM judgements WHERE phase = ? AND judge = ? AND target = ?|}
-      phase judge (Target.to_string target)
-  | Some artefact ->
-    let open Sqlite3_utils.Ty in
-    State.insert ~st ~ty:[int; int; text; text]
-      {|INSERT INTO judgements(phase,judge,target,artefact) VALUES (?,?,?,?)|}
-      phase judge (Target.to_string target) (to_string artefact)
 
-let list st ~phase ~judge =
-  let open Sqlite3_utils.Ty in
-  let conv =
-    Conv.mk [text; text]
-      (fun target artefact -> (Target.of_string target, of_string artefact))
+let of_int ~descr v =
+  (* constant-size YAN encoded using the [i] and [i+1] least significant bits. *)
+  let[@inline] decode_yan v i =
+    if Misc.Bit.is_set ~index:i v then
+      if Misc.Bit.is_set ~index:(i + 1) v then
+        Yes
+      else
+        Alt
+    else
+      No
   in
-  State.query_list_where ~st ~conv ~p:[int; int]
-    {|SELECT target, artefact FROM judgements WHERE phase = ? AND judge = ?|}
-    phase judge
+  match (descr : Descr.t) with
+  | Bonus -> Bonus v
+  | Ranking -> Rank v
+  | Yans { criterion; } ->
+    let rec aux v i = function
+      | [] -> []
+      | _ :: r -> decode_yan v i :: aux v (i + 2) r
+    in
+    let yans = (aux[@unrolled 4]) v 0 criterion in
+    Yans yans
 
-let targets st ~phase =
-  State.query_list_where ~st ~conv:Target.conv ~p:Id.p
-    {|SELECT target FROM judgements WHERE phase = ?|} phase
+let to_int t =
+  let encode_yan v i y =
+    assert (not (Misc.Bit.is_set ~index:i v) &&
+            not (Misc.Bit.is_set ~index:(i + 1) v));
+    match y with
+    | Yes -> v |> Misc.Bit.set ~index:i |> Misc.Bit.set ~index:(i + 1)
+    | Alt -> v |> Misc.Bit.set ~index:i
+    | No -> v
+  in
+  match (t : t) with
+  | Bonus b -> b
+  | Rank r -> r
+  | Yans l ->
+    fst @@ List.fold_left
+      (fun (v, i) y -> (encode_yan v i y, i + 2)) (0, 0) l
 
-let find_follower st ~phase leader =
-  let l = targets st ~phase in
-  List.find_map (function
-      | Target.Couple (l, f) when l = leader -> Some (f)
-      | _ -> None
-    ) l
+let p = Sqlite3_utils.Ty.([int])
+let conv ~descr = Conv.mk p (of_int ~descr)
 

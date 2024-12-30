@@ -43,6 +43,25 @@ let rec routes router =
       "404", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Event not found";
     ]
+  (* Event comps query *)
+  |> Router.get "/api/event/:id/comps" get_comps
+    ~tags:["event"; "competition"]
+    ~summary:"Get the list of competitions of an Event"
+    ~parameters:[
+      Types.obj @@ Spec.make_parameter_object ()
+        ~name:"id" ~in_:Path
+        ~description:"Id of the queried Event"
+        ~required:true
+        ~schema:Types.(ref EventId.ref)
+    ]
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Successful operation"
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref CompetitionIdList.ref));
+        ];
+    ]
   (* Event creation *)
   |> Router.put "/api/event" create_event
     ~tags:["event"]
@@ -97,6 +116,16 @@ and get_event =
          end_date = Utils.export_date @@ Ftw.Event.end_date event;
        } in
        Ok ret
+    )
+
+and get_comps =
+  Api.get
+    ~to_yojson:Types.CompetitionIdList.to_yojson
+    (fun req st ->
+       let+ id = Utils.int_param req "id" in
+       let comps = Ftw.Competition.ids_from_event st id in
+       let res : Types.CompetitionIdList.t = { comps; } in
+       Ok res
     )
 
 (* Event creation *)

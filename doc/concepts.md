@@ -48,8 +48,39 @@ division of P4T, or the single (strictly) division of Switch4Us
 - A name
 - Its parent Event
 - Its kind: Jack&Jill, Strictly, Routine
-- An (optional) division
+- A category.
 - A list of phases
+
+Division
+--------
+
+The SCR4T defines a few divisions: `Initié`, `Inter` and `Avancé`. Each dancer
+accumulates points for each of these divisions (and for each of the dancing roles),
+and depending on their points can participate (or not) in some competitions.
+
+Since the codebase is in english, it uses a english verison of these division names,
+namely: `Novice`, `Intermediate`, and `Advanced`. Note however, that these names
+are purely internal (and could have as well been named `Division1`, `Division2`,
+and `Division3`, but that would have been anooying to work with).
+
+
+Category
+--------
+
+Competitions belong to a category, which mostly denotes whether or not they
+give points to their competitors (depending on their ranking), and if so
+to which division these points belong.
+
+Current categories are:
+- Competitive with an associated division, for competitions that give
+  (and sometime) require points
+- Non_competitive, with a few variants:
+  - invited (used only for the establishment of SCR4T, these do not give points,
+    but dancers that have been invited to these must participate in `Inter`)
+  - qualifying (used only for the establishment of SCR4T, these do not give points,
+    but finalists of these competitions must participate in `Inter`).
+  - regular (for all other competitions, such as strictly, routines, etc..)
+
 
 
 Phase

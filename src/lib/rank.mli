@@ -4,14 +4,15 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type t = int [@@deriving yojson]
-(** A generic type for identifiers, using integers *)
+type t = int
+(** A rank is represented as an integer. [1] represents first place,
+    [2] second palce, and so on... *)
 
 
 (* DB interaction *)
 (* ************************************************************************* *)
 
-val p : (t -> 'a, 'a) Sqlite3_utils.Ty.t
+val p : (int -> 'a, 'a) Sqlite3_utils.Ty.t
 (** Sqlite query "type" for identifiers *)
 
 val conv : t Conv.t

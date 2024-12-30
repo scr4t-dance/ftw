@@ -4,18 +4,28 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type t = int [@@deriving yojson]
-(** A generic type for identifiers, using integers *)
+type t =
+  | Leader
+  | Follower
+[@@deriving yojson]
+(** Type for dancer roles of competitions. *)
 
 
 (* DB interaction *)
 (* ************************************************************************* *)
 
-val p : (t -> 'a, 'a) Sqlite3_utils.Ty.t
-(** Sqlite query "type" for identifiers *)
+val to_int : t -> int
+(** Conversion to integer. *)
+
+val of_int : int -> t
+(** Conversion from integer.
+    @raise Failure _ if the int is out of range *)
+
+val p : (int -> 'a, 'a) Sqlite3_utils.Ty.t
+(** Sqlite query "type" for roles *)
 
 val conv : t Conv.t
-(** Converter for identifiers *)
+(** Converter for roles *)
 
 
 (* Usual functions *)
