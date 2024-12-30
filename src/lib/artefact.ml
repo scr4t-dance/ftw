@@ -23,9 +23,6 @@ end
 type bonus = int
 (* Bonus value *)
 
-type rank = int
-(* ranks, from 1 to <n> (for some <n>) *)
-
 type yan =
   | Yes
   | Alt

@@ -23,9 +23,6 @@ end
 type bonus = int
 (* Bonus value *)
 
-type rank = int
-(* ranks, from 1 to <n> (for some <n>) *)
-
 type yan =
   | Yes
   | Alt
@@ -34,7 +31,7 @@ type yan =
 
 type t =
   | Bonus of bonus
-  | Rank of rank
+  | Rank of Rank.t
   | Yans of yan list
 
 (* DB Interaction *)
