@@ -59,14 +59,40 @@ Get the ids of competitions we created, and check their details
   $ curl -s localhost:8080/api/comp/2
   {"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Intermediate"]}
 
+
+Phase Management
+----------------
+
+Create some phase
+
+  $ curl -s -X PUT localhost:8080/api/phase \
+  > -H "Content-Type: application/json" \
+  > -d '{"name":"","competition":2,"order":"Prelim","judge_artefact":"","head_judge_artefact":"","ranking_alogrithm":""}'
+
+  $ curl -s -X PUT localhost:8080/api/phase \
+  > -H "Content-Type: application/json" \
+  > -d '{"name":"","competition":2,"order":"Finals","judge_artefact":"","head_judge_artefact":"","ranking_alogrithm":""}'
+
+Get the ids of phase we created, and check their details
+
+  $ curl -s localhost:8080/api/comp/2/phases
+  {"phases":[1,2]}
+
+  $ curl -s localhost:8080/api/phase/1
+
+  $ curl -s localhost:8080/api/phase/2
+
 Miscellanous data
+-----------------
 
   $ curl -s localhost:8080/api/kinds
   {"kinds":[["Routine"],["Strictly"],["JJ_Strictly"],["Jack_and_Jill"]]}
 
-
   $ curl -s localhost:8080/api/categories
   {"categories":[["Novice"],["Intermediate"],["Advanced"],["Regular"],["Qualifying"],["Invited"]]}
+
+  $ curl -s localhost:8080/api/divisions
+  {"divisions":[["Novice"],["Intermediate"],["Advanced"]]}
 
 End & Cleanup
 -------------

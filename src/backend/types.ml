@@ -125,7 +125,7 @@ module Kind = struct
 end
 
 
-(* Category list *)
+(* Kind list *)
 module KindList = struct
   type t = {
     kinds : Kind.t list;
@@ -148,7 +148,9 @@ module Division = struct
     | Novice
     | Intermediate
     | Advanced
-  [@@deriving yojson]
+  [@@deriving yojson, enum, show]
+
+  let all = List.filter_map of_enum (List.init (to_enum Advanced + 1) Fun.id)
 
   let ref, schema =
     make_schema ()
@@ -162,6 +164,23 @@ module Division = struct
             `String "Intermediate";
             `String "Advanced";
           ])
+end
+
+(* Division list *)
+module DivisionList = struct
+  type t = {
+    divisions : Division.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"DivisionList"
+      ~typ:object_
+      ~properties:[
+        "divisions", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref Division.ref);
+      ]
 end
 
 (* Competition Category *)
@@ -306,7 +325,7 @@ module CompetitionIdList = struct
       ~name:"CompetitionIdList"
       ~typ:object_
       ~properties:[
-        "events", obj @@ S.make_schema ()
+        "comps", obj @@ S.make_schema ()
           ~typ:array
           ~items:(ref CompetitionId.ref);
       ]
@@ -335,3 +354,77 @@ module Competition = struct
       ]
 end
 
+
+(* Phases *)
+(* ************************************************************************* *)
+
+(* Phase Ids *)
+module PhaseId = struct
+  type t = Ftw.Phase.id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"PhaseId"
+      ~typ:int
+      ~examples:[`Int 42]
+end
+
+(* Phase Id list *)
+module PhaseIdList = struct
+  type t = {
+    comps : PhaseId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"PhaseIdList"
+      ~typ:object_
+      ~properties:[
+        "events", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref PhaseId.ref);
+      ]
+end
+
+(* Phase specification *)
+module Phase = struct
+  type t = {
+    name : string;
+    competition : CompetitionId.t;
+    order : string;
+    judge_artefact : string;
+    head_judge_artefact : string;
+    ranking_algorithm : string;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Phase"
+      ~typ:(Obj Object)
+      ~properties:[
+        "name", obj @@ S.make_schema ()
+          ~typ:string
+          ~examples:[`String "P4T"];
+        "competition", ref CompetitionId.ref;
+        "order", obj @@ S.make_schema ()
+        ~typ:string
+        ~examples:[`String "Prelim"];
+        "judge_artefact", obj @@ S.make_schema ()
+          ~typ:string
+          ~examples:[
+            `String "Rank";
+            `String "Note";
+            `String "Single_note";
+          ];
+        "head_judge_artefact", obj @@ S.make_schema ()
+        ~typ:string
+        ~examples:[
+          `String "Rank";
+          `String "Note";
+          `String "Single_note";
+        ];
+        "ranking_algorithm", obj @@ S.make_schema ()
+          ~typ:string
+          ~examples:[`String "RPSS"];
+      ]
+end
