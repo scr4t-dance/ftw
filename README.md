@@ -15,12 +15,17 @@ OCaml and Opam, you can follow the following instructions:
 - For Windows : https://ocaml.org/install#windows
 - For Linux, MacOS, and BSD: https://ocaml.org/install#linux_mac_bsd
 
+Install dev packages
+
+```sh
+opam install ocaml-lsp-server ocamlformat
+```
+
 Once you have a working OCaml and Opam installation, you'll need to install
 the OCaml dependencies, which can be done using the following command:
 
 ```sh
 opam install . --deps-only
-cd src/frontend && npm install
 ```
 
 You also need to install the various npm dependencies, you can do so with
@@ -48,6 +53,20 @@ And you can run a test instance of the server using the following command:
 make run
 ```
 
-### Installation
+Deploy
+------
+
+### Deploy locally
 
 TODO
+
+### Deploy on a server
+
+TODO
+
+Develop
+-------
+
+Read the [documentation about concepts](doc/concepts.md) to know what should be developped.
+Then read how to [add a new concept](doc/coding_a_concept.md).
+
