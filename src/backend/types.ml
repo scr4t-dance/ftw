@@ -372,7 +372,7 @@ end
 (* Phase Id list *)
 module PhaseIdList = struct
   type t = {
-    comps : PhaseId.t list;
+    phases : PhaseId.t list;
   } [@@deriving yojson]
 
   let ref, schema =
@@ -380,7 +380,7 @@ module PhaseIdList = struct
       ~name:"PhaseIdList"
       ~typ:object_
       ~properties:[
-        "events", obj @@ S.make_schema ()
+        "phases", obj @@ S.make_schema ()
           ~typ:array
           ~items:(ref PhaseId.ref);
       ]
