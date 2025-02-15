@@ -190,6 +190,22 @@ module Category = struct
           ])
 end
 
+(* Event Id list *)
+module CategoryList = struct
+  type t = {
+    events : Category.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"CategoryList"
+      ~typ:object_
+      ~properties:[
+        "categories", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref Category.ref);
+      ]
+end
 
 (* Events *)
 (* ************************************************************************* *)
