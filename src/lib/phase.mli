@@ -23,8 +23,8 @@ val name : t -> string
 val competition : t -> Competition.id
 (** Parent competition for the phase. *)
 
-val phase_order : t -> string
-(** phase_order (prelim/semi/final) of the phase *)
+val round : t -> string
+(** round (prelim/semi/final) of the phase *)
 
 val judge_artefact : t -> string
 (** Type of artefact for judges of the phase *)

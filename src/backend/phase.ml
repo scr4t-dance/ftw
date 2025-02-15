@@ -69,7 +69,7 @@ and get_phase =
        let ret : Types.Phase.t = {
          name = Ftw.Phase.name phase;
          competition = Ftw.Phase.competition phase;
-         phase_order = Ftw.Phase.phase_order phase;
+         round = Ftw.Phase.round phase;
          judge_artefact = Ftw.Phase.judge_artefact phase;
          head_judge_artefact = Ftw.Phase.head_judge_artefact phase;
          ranking_algorithm = Ftw.Phase.ranking_algorithm phase;
@@ -86,7 +86,7 @@ and create_phase =
     ~to_yojson:Types.PhaseId.to_yojson
     (fun _req st (phase : Types.Phase.t) ->
        let id =
-         Ftw.Phase.create st phase.name phase.competition phase.phase_order 
+         Ftw.Phase.create st phase.name phase.competition phase.round 
          phase.judge_artefact phase.head_judge_artefact phase.ranking_algorithm
        in
        Ok id)

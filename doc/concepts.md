@@ -102,7 +102,7 @@ Prelims (of the Initié division of the P4T), Semifinal, Finals
 ### Data
 
 - Parent competition
-- Phase order: Finals, Semifinals, quarter-finals, preliminaries, ...
+- Round: Finals, Semifinals, quarter-finals, preliminaries, ...
 - Artefact kind for judges
   + artefact kinds for head judge
   + ranking algorithm

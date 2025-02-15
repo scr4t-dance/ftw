@@ -10,7 +10,7 @@ type t = {
   id : id;
   name : string;
   competition : Competition.id;
-  phase_order : string;
+  round : string;
   judge_artefact : string;
   head_judge_artefact : string;
   ranking_algorithm : string;
@@ -27,7 +27,7 @@ type t = {
 let id { id; _ } = id
 let name { name; _ } = name
 let competition { competition; _ } = competition
-let phase_order { phase_order; _ } = phase_order
+let round { round; _ } = round
 (*let judges { judges; _ } = judges *)
 let judge_artefact { judge_artefact; _ } = judge_artefact
 (*let head_judge { head_judge; _ } = head_judge *)
@@ -46,7 +46,7 @@ let () =
           id INTEGER PRIMARY KEY
         , name TEXT
         , competition INT
-        , phase_order TEXT
+        , round TEXT
         , judge_artefact TEXT
         , head_judge_artefact TEXT
         , ranking_algorithm TEXT
@@ -56,8 +56,8 @@ let () =
 let conv =
   Conv.mk
     Sqlite3_utils.Ty.[int; text; int; text; text; text; text]
-    (fun id name competition phase_order judge_artefact head_judge_artefact ranking_algorithm ->
-        { id; name; competition; phase_order; judge_artefact; head_judge_artefact; ranking_algorithm })
+    (fun id name competition round judge_artefact head_judge_artefact ranking_algorithm ->
+        { id; name; competition; round; judge_artefact; head_judge_artefact; ranking_algorithm })
 
 
 
@@ -76,10 +76,10 @@ let from_competition st competition_id =
   State.query_list_where ~p:Id.p ~conv ~st
     {| SELECT * FROM phases WHERE competition = ? |} competition_id
 
-let create st name competition phase_order judge_artefact head_judge_artefact ranking_algorithm =
+let create st name competition round judge_artefact head_judge_artefact ranking_algorithm =
   let open Sqlite3_utils.Ty in
   State.insert ~st ~ty:[text; int; text; text; text; text]
-    {|INSERT INTO phases (name,competition,phase_order,judge_artefact,head_judge_artefact,ranking_algorithm) VALUES (?,?,?,?,?,?)|} name competition phase_order judge_artefact head_judge_artefact ranking_algorithm;
+    {|INSERT INTO phases (name,competition,round,judge_artefact,head_judge_artefact,ranking_algorithm) VALUES (?,?,?,?,?,?)|} name competition round judge_artefact head_judge_artefact ranking_algorithm;
   let t = State.query_one_where ~st ~conv 
     ~p:[text; int; text; text; text; text]
     {| SELECT *
@@ -87,9 +87,9 @@ let create st name competition phase_order judge_artefact head_judge_artefact ra
     WHERE 0=0
     AND name=?
     AND competition=?
-    AND phase_order=?
+    AND round=?
     AND judge_artefact=?
     AND head_judge_artefact=?
     AND ranking_algorithm=? |} 
-    name competition phase_order judge_artefact head_judge_artefact ranking_algorithm in
+    name competition round judge_artefact head_judge_artefact ranking_algorithm in
   t.id
