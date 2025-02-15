@@ -63,6 +63,8 @@ namely: `Novice`, `Intermediate`, and `Advanced`. Note however, that these names
 are purely internal (and could have as well been named `Division1`, `Division2`,
 and `Division3`, but that would have been anooying to work with).
 
+Divisions are a subset of competition categories.
+
 
 Category
 --------
