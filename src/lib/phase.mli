@@ -37,6 +37,8 @@ val ranking_algorithm : t -> Ranking.Algorithm.t
 (* DB interaction *)
 (* ************************************************************************* *)
 
+val list : State.t -> t list
+
 val get : State.t -> id -> t
 (** Get an event from its id.
     @raise Not_found if the phase is not found. *)
