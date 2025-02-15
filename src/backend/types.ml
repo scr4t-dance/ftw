@@ -391,7 +391,7 @@ module Phase = struct
   type t = {
     name : string;
     competition : CompetitionId.t;
-    order : string;
+    phase_order : string;
     judge_artefact : string;
     head_judge_artefact : string;
     ranking_algorithm : string;
@@ -406,7 +406,7 @@ module Phase = struct
           ~typ:string
           ~examples:[`String "P4T"];
         "competition", ref CompetitionId.ref;
-        "order", obj @@ S.make_schema ()
+        "phase_order", obj @@ S.make_schema ()
         ~typ:string
         ~examples:[`String "Prelim"];
         "judge_artefact", obj @@ S.make_schema ()
