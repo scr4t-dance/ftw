@@ -67,11 +67,13 @@ Create some phase
 
   $ curl -s -X PUT localhost:8080/api/phase \
   > -H "Content-Type: application/json" \
-  > -d '{"name":"","competition":2,"order":"Prelim","judge_artefact":"","head_judge_artefact":"","ranking_alogrithm":""}'
+  > -d '{"name":"p","competition":2,"phase_order":"Prelim","judge_artefact":"","head_judge_artefact":"","ranking_algorithm":""}'
+  1
 
   $ curl -s -X PUT localhost:8080/api/phase \
   > -H "Content-Type: application/json" \
-  > -d '{"name":"","competition":2,"order":"Finals","judge_artefact":"","head_judge_artefact":"","ranking_alogrithm":""}'
+  > -d '{"name":"q","competition":2,"phase_order":"Finals","judge_artefact":"","head_judge_artefact":"","ranking_algorithm":""}'
+  2
 
 Get the ids of phase we created, and check their details
 
@@ -79,8 +81,10 @@ Get the ids of phase we created, and check their details
   {"phases":[1,2]}
 
   $ curl -s localhost:8080/api/phase/1
+  {"name":"p","competition":2,"phase_order":"Prelim","judge_artefact":"","head_judge_artefact":"","ranking_algorithm":""}
 
   $ curl -s localhost:8080/api/phase/2
+  {"name":"q","competition":2,"phase_order":"Finals","judge_artefact":"","head_judge_artefact":"","ranking_algorithm":""}
 
 Miscellanous data
 -----------------
