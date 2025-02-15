@@ -62,11 +62,11 @@ Get the ids of competitions we created, and check their details
 Miscellanous data
 
   $ curl -s localhost:8080/api/kinds
-  {"kind":["Jack_and_Jill", "Strictly", "Routine"]}
+  {"kinds":[["Routine"],["Strictly"],["JJ_Strictly"],["Jack_and_Jill"]]}
 
 
   $ curl -s localhost:8080/api/categories
-  {"category":["Novice", "Intermediate", "Advandced"]}
+  {"categories":[["Novice"],["Intermediate"],["Advanced"],["Regular"],["Qualifying"],["Invited"]]}
 
 End & Cleanup
 -------------
