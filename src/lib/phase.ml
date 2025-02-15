@@ -11,14 +11,14 @@ type t = {
   name : string;
   competition : Competition.id;
   order : string;
-  (* judges : string list; *)
   judge_artefact : string;
-  (* head_judge : string; *)
   head_judge_artefact : string;
   ranking_algorithm : string;
-  (* targets *)
-  (* artefacts *)
 } [@@deriving yojson]
+(* judges : string list; *)
+(* head_judge : string; *)
+(* targets *)
+(* artefacts *)
 
 
 (* Common functions *)
@@ -69,11 +69,11 @@ let get st id =
 
 let ids_from_competition st competition_id =
   State.query_list_where ~p:Id.p ~conv:Id.conv ~st
-    {| SELECT id FROM competitions WHERE competition = ? |} competition_id
+    {| SELECT id FROM phases WHERE competition = ? |} competition_id
 
 let from_competition st competition_id =
   State.query_list_where ~p:Id.p ~conv ~st
-    {| SELECT * FROM competitions WHERE competition = ? |} competition_id
+    {| SELECT * FROM phases WHERE competition = ? |} competition_id
 
 let create st name competition order judge_artefact head_judge_artefact ranking_algorithm =
   let open Sqlite3_utils.Ty in
