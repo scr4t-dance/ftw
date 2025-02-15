@@ -51,6 +51,8 @@ let () =
     |> Competition.routes
     |> Category.routes
     |> Kind.routes
+    |> Division.routes
+    |> Phase.routes
   in
   (* Define CORS middleware manually *)
   let cors_middleware handler request =

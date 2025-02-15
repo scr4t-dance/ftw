@@ -64,6 +64,10 @@ let conv =
         judge_artefact_descr; head_judge_artefact_descr;
       })
 
+
+let list st =
+  State.query_list ~st ~conv {|SELECT * FROM phases|}
+
 let get st id =
   State.query_one_where ~st ~conv ~p:Id.p
     {|SELECT * FROM phases WHERE id=?|} id
