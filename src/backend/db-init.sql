@@ -20,7 +20,7 @@ DROP TABLE
 
 BEGIN;
 
-CREATE TABLE events (
+CREATE TABLE IF NOT EXISTS events (
   id INTEGER PRIMARY KEY,
   name TEXT,
   start_date TEXT,
@@ -28,18 +28,18 @@ CREATE TABLE events (
 );
 
 
-CREATE TABLE competition_kinds ( -- JnJ, Strictly, Routime, …
+CREATE TABLE IF NOT EXISTS competition_kinds ( -- JnJ, Strictly, Routime, …
   id INTEGER PRIMARY KEY,
   name TEXT UNIQUE
 );
 
-CREATE TABLE competition_categories ( -- division (initie, inter, advanced, …) or not scr4t (invit, …)
+CREATE TABLE IF NOT EXISTS competition_categories ( -- division (initie, inter, advanced, …) or not scr4t (invit, …)
   id INTEGER PRIMARY KEY,
   name TEXT UNIQUE
 );
 
 
-CREATE TABLE competitions (
+CREATE TABLE IF NOT EXISTS competitions (
   id INTEGER PRIMARY KEY,
   event INTEGER REFERENCES events(id),
   name TEXT,
@@ -48,10 +48,10 @@ CREATE TABLE competitions (
 );
 
 
-CREATE TABLE divisions (
+CREATE TABLE IF NOT EXISTS divisions (
     id INTEGER PRIMARY KEY,
     name TEXT UNIQUE
-)
+);
 
 CREATE TABLE IF NOT EXISTS dancers (
     id INTEGER PRIMARY KEY,
@@ -64,37 +64,27 @@ CREATE TABLE IF NOT EXISTS dancers (
 );
 
 
-CREATE TABLE IF NOT EXISTS single_bibs (
+CREATE TABLE IF NOT EXISTS bibs (
     dancer_id INTEGER  REFERENCES dancers(id),
     competition_id INTEGER REFERENCES competitions(id),
+    -- in case of couple, give them both the same bib
     bid_id INTEGER NOT NULL,
     role TEXT NOT NULL,
 
-    PRIMARY KEY(bid_id, competition_id, role), -- allow to work with eitehr same bid for dancer as lead and follorw, or different bibs
-);
-
--- TODO: could we spare couple_bibs by just inserting the same bib 2 times for both dancers above ?
-CREATE TABLE IF NOT EXISTS couple_bibs (
-    leader_dancer_id INTEGER REFERENCES dancers(id),
-    follower_dancer_id INTEGER REFERENCES dancers(id),
-    competition_id INTEGER REFERENCES competitions(id),
-    bid_id INTEGER NOT NULL,
-
-    PRIMARY KEY(bid_id, competition_id),
-    UNIQUE(leader_dancer_id, follower_dancer_id, competition_id)
+    PRIMARY KEY(bid_id, competition_id, role) -- allow to work with either same bid for dancer as lead and follorw, or different bibs
 );
 
 
-CREATE TABLE judging_types (
+CREATE TABLE IF NOT EXISTS judging_types (
     id PRIMARY KEY,
     judging_type TEXT UNIQUE -- head or lead or follow or couple
-)
+);
 
 CREATE TABLE IF NOT EXISTS judges (
     judge_id INTEGER REFERENCES dancers(id),
     phase_id INTEGER REFERENCES phases(id),
     judging INTEGER REFERENCES judging_types(id),
-    PRIMARY KEY(dancer_id, phase_id)
+    PRIMARY KEY(judge_id, phase_id)
 );
 
 CREATE TABLE if not EXISTS round_types (
@@ -113,24 +103,22 @@ CREATE TABLE IF NOT EXISTS phases (
 );
 
 
--- single case
-CREATE TABLE IF NOT EXISTS single_heats (
+CREATE TABLE IF NOT EXISTS heats (
     id INTEGER PRIMARY KEY, -- = target id of judgement
     phase_id INTEGER REFERENCES phases(id),
     heat_number INTEGER NOT NULL,
-    dancer_id INTEGER REFERENCES dancers(id),
-    role INTEGER NOT NULL --lead or follow
+    bib_id INTEGER
 );
 
-CREATE TABLE IF NOT EXISTS single_artifacts (
-    target_id INTEGER REFERENCES single_heats(id), -- = target id of judgement
+CREATE TABLE IF NOT EXISTS artifacts (
+    target_id INTEGER REFERENCES heats(id), -- = target id of judgement
     judge INTEGER REFERENCES dancers(id),
     artifact INTEGER NOT NULL, -- encoding of judgements
     PRIMARY KEY(target_id, judge)
 );
 
-CREATE TABLE IF NOT EXISTS single_bonus_artifacts (
-    target_id INTEGER REFERENCES single_heats(id), -- = target id of judgement
+CREATE TABLE IF NOT EXISTS bonus_artifacts (
+    target_id INTEGER REFERENCES heats(id), -- = target id of judgement
     bonus INTEGER NOT NULL, -- encoding of bonus
     PRIMARY KEY(target_id)
 );
