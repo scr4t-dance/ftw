@@ -19,18 +19,24 @@ const EventComponent = () => {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
+
+  console.log(data);
+  console.log(error);
+  console.log(loading);
+  
+  console.log("finished getting all events");
+
   return (
     <div>
       <h1>Event Details</h1>
       {data && (
-        <div>
-          {data.map((event) => (
-            <div key={event.id}>
-              <h2>{event.name}</h2>
-              <button onClick={() => getEventDetails(event.id)}>Get Details</button>
-              <button onClick={() => getEventComps(event.id)}>Get Competitions</button>
+        <div> ok
+          {data.events.map((event_id) => (
+            <div>
+            {event_id}
             </div>
           ))}
+
         </div>
       )}
     </div>
