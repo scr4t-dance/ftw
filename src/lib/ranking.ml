@@ -42,17 +42,18 @@ type evaluated_target = {
   artefact : Artefact.t;
 }
 
-
+(*
 let group_by_target = List.fold_left (fun acc { target; artefact } ->
   match List.assoc_opt target acc with
   | Some values -> (target, artefact :: values) :: List.remove_assoc target acc
   | None -> (target, [artefact]) :: acc
 ) []
 
-let default_yan_to_int = function
+ let default_yan_to_int = function
   | Yes -> 3
   | Alt -> 2
   | No -> 1
+
 
 let to_total_score ~yan_to_int = function
   | Artefact.Bonus n -> n
@@ -73,5 +74,5 @@ let compute_rank ~ranking_algorithm ~artefact_list =
     | RPSS -> score_rpss artefact_list
     | Yes_Alt_No -> score_yes_alt_no ~yan_to_int: artefact_list
 
-
+*)
 
