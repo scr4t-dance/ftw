@@ -1,7 +1,6 @@
 import { useState } from 'react';
 
-// Define the base URL for API requests
-const BASE_URL = 'localhost:8080';
+const BASE_URL = 'https://corsproxy.io/?url=https://localhost:8080';
 
 const useEventApi = () => {
   const [data, setData] = useState(null);
