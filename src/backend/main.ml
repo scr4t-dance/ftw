@@ -48,6 +48,7 @@ let () =
   Dream.run
     ~interface:"0.0.0.0"
     ~port:options.server_port
+    ~tls:true
   @@ Dream.logger
   @@ Dream.memory_sessions
   @@ State.init ~path:options.db_path
