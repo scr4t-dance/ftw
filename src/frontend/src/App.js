@@ -1,13 +1,13 @@
 import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 
-import Accueil from './components/Accueil';
+import HomePage from './components/HomePage';
 import EventList from './components/EventList';
 
 const App = () => {
 	return (
 		<Router>
 			<Routes>
-				<Route path="/" element={<Accueil />}/>
+				<Route path="/" element={<HomePage />}/>
 				<Route path="/events" element={<EventList />}/>
 			</Routes>
 		</Router>
