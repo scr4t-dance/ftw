@@ -20,6 +20,10 @@ Run a query to init database
   $ curl -s http://localhost:8082/api/events
   {"events":[]}
 
+  $ sqlite3 test.db 'SELECT name FROM DATABASE_VERSION;'
+  Error: in prepare, no such table: DATABASE_VERSION
+  [1]
+
 Print schema
 If the definition changes
 * bump version number in src/lib/state.ml
