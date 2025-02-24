@@ -1,0 +1,108 @@
+
+body {
+    width:70%;
+    margin: 0 auto;
+}
+
+@media screen and (max-width: 1000px) {
+    body {
+        width: 90%;
+    }
+}
+
+
+/*=========================================+
+|                  COLORS                  |
++=========================================*/
+
+:root {
+	--link-color: #3182ce;
+	--link-color-hover: #2c5282;
+}
+
+
+/*=========================================+
+|                  TITLES                  |
++=========================================*/
+
+h1 {
+    margin: 1.5rem 0 1rem 0;
+
+    font-size: 2.5rem;
+    font-weight: 500;
+
+    text-align: left;
+}
+
+h2 {
+    font-size: 1.875rem;
+    font-weight: bold;
+}
+
+
+/*=========================================+
+|                   TEXT                   |
++=========================================*/
+
+* {
+    font-size: 1.04rem;
+}
+
+.link {
+    text-decoration: underline;
+    color: var(--link-color); /* text-blue-600 */
+}
+
+.link:hover {
+    color: var(--link-color-hover); /* hover:text-blue-800 */
+}
+
+ul li {
+    margin-left: 2.5rem;
+    list-style-type: disc;
+}
+
+
+/*=========================================+
+|                CONTAINERS                |
++=========================================*/
+
+.content-container {
+    display: flex;
+    flex-direction: column;
+}
+
+
+/*=========================================+
+|                  TABLES                  |
++=========================================*/
+
+table {
+    width: 100%;
+    background-color: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+table tr {
+    text-align: left;
+}
+
+table td, table th {
+    padding: 0.5rem 1rem;
+}
+
+table th {
+    border-bottom: solid 3px;
+}
+
+/* Lignes paires */
+.even-row {
+    background-color: #f1f5f7;
+}
+
+/* Lignes impaires */
+.odd-row {
+    background-color: white;
+}
