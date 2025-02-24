@@ -92,10 +92,12 @@ nav ul li a:hover {
     }
 
     .logo {
+        margin-bottom: 0.5rem;
         justify-content: center;
     }
 
     .contact-button {
+        margin-top: 0.5rem;
         justify-content: center;
     }
 }
