@@ -1,6 +1,8 @@
-import "../styles/ContentStyle.css"
+import "../styles/ContentStyle.css";
 
-import Header from "./Header"
+import PageTitle from "./PageTitle";
+import Header from "./Header";
+import Footer from "./Footer";
 
 const eventListlink = "events/"
 // TEMPORAIRE
@@ -54,13 +56,14 @@ const events = [
 
 function EventList() {
     return (
-        <div>
+        <>
+            <PageTitle title="Événements" />
             <Header />
             <div className="content-container">
                 <h1>Événements partenaires</h1>
                 <ul>
                     {eventsPartners.map(({name, link}, index) => (
-                        <li key={index}><a className="link" target="_blank" href={link}>{name}</a></li>
+                        <li key={index}><a target="_blank" href={link}>{name}</a></li>
                     ))}
                 </ul>
 
@@ -76,7 +79,7 @@ function EventList() {
                             <tr key={id} 
                                 className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
                                 <td>
-                                    <a href={`${eventListlink}${id}`} className="link">
+                                    <a href={`${eventListlink}${id}`}>
                                         {name}
                                     </a>
                                 </td>
@@ -87,7 +90,8 @@ function EventList() {
                     </tbody>
                 </table>
             </div>
-        </div>
+            <Footer />
+        </>
     );
 }
 
