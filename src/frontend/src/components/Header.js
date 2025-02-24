@@ -10,17 +10,17 @@ function Header() {
 
             <nav>
                 <ul>
-                    <li><a href="#">Page d'accueil</a></li>
-                    <li><a href="#">Événements</a></li>
-                    <li><a href="#">Compétiteurs</a></li>
-                    <li><a href="#">Règles</a></li>
-                    <li><a href="#">FAQ</a></li>
-                    <li><a href="#">À propos</a></li>
+                    <li><a href="/">Page d'accueil</a></li>
+                    <li><a href="/events">Événements</a></li>
+                    <li><a href="/dancers">Compétiteurs</a></li>
+                    <li><a href="/rules">Règles</a></li>
+                    <li><a href="/faq">FAQ</a></li>
+                    <li><a href="/about">À propos</a></li>
                 </ul>
             </nav>
 
             <div className="contact-button">
-                <a href="#" className="btn">Nous contacter</a>
+                <a href="mailto:scr4t.danse@gmail.com" className="btn">Nous contacter</a>
             </div>
         </header>
     );

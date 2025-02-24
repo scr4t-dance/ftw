@@ -1,5 +1,7 @@
 import "../styles/ContentStyle.css"
 
+import Header from "./Header"
+
 const eventListlink = "events/"
 // TEMPORAIRE
 const eventsPartners = [
@@ -52,38 +54,41 @@ const events = [
 
 function EventList() {
     return (
-        <div className="content-container">
-            <h1>Événements partenaires</h1>
-            <ul>
-                {eventsPartners.map(({name, link}, index) => (
-                    <li key={index}><a className="link" target="_blank" href={link}>{name}</a></li>
-                ))}
-            </ul>
-
-            <h1>Liste chronologique</h1>
-            <table>
-                <tbody>
-                    <tr>
-                        <th>Nom de l'événement</th>
-                        <th>Mois</th>
-                        <th>Année</th>
-                    </tr>
-                    {events.map(({id, name, month, year}, index) => (
-                        <tr key={id} 
-                            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
-                            <td>
-                                <a href={`${eventListlink}${id}`} className="link">
-                                    {name}
-                                </a>
-                            </td>
-                            <td>{month}</td>
-                            <td>{year}</td>
-                        </tr>
+        <div>
+            <Header />
+            <div className="content-container">
+                <h1>Événements partenaires</h1>
+                <ul>
+                    {eventsPartners.map(({name, link}, index) => (
+                        <li key={index}><a className="link" target="_blank" href={link}>{name}</a></li>
                     ))}
-                </tbody>
-            </table>
+                </ul>
+
+                <h1>Liste chronologique</h1>
+                <table>
+                    <tbody>
+                        <tr>
+                            <th>Nom de l'événement</th>
+                            <th>Mois</th>
+                            <th>Année</th>
+                        </tr>
+                        {events.map(({id, name, month, year}, index) => (
+                            <tr key={id} 
+                                className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+                                <td>
+                                    <a href={`${eventListlink}${id}`} className="link">
+                                        {name}
+                                    </a>
+                                </td>
+                                <td>{month}</td>
+                                <td>{year}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }
 
-export default EventList
+export default EventList;

@@ -1,12 +1,16 @@
-import Header from "./components/Header"
-import EventList from "./components/EventList";
+import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 
-function App() {
+import Accueil from './components/Accueil';
+import EventList from './components/EventList';
+
+const App = () => {
 	return (
-		<div className="App">
-			<Header />
-			<EventList />
-		</div>
+		<Router>
+			<Routes>
+				<Route path="/" element={<Accueil />}/>
+				<Route path="/events" element={<EventList />}/>
+			</Routes>
+		</Router>
 	);
 }
 
