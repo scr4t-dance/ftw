@@ -1,9 +1,10 @@
+import Header from "./components/Header"
 import EventList from "./components/EventList";
 
 function App() {
 	return (
 		<div className="App">
-			<div>HEADER HERE</div>
+			<Header />
 			<EventList />
 		</div>
 	);
