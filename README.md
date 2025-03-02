@@ -15,14 +15,6 @@ OCaml and Opam, you can follow the following instructions:
 - For Windows : https://ocaml.org/install#windows
 - For Linux, MacOS, and BSD: https://ocaml.org/install#linux_mac_bsd
 
-### Dev Dependencies
-
-Here are some common and useful development dependencies (these are mainly useful for vscode, other setups may need different deps).
-
-```sh
-opam install ocaml-lsp-server ocamlformat
-```
-
 It is recommanded to use ocaml 5.0.0 (see issue #10).
 
 Once you have a working ocaml environment, 

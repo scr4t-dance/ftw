@@ -20,7 +20,7 @@ configure:
 	cd src/frontend && npm install
 
 $(FRONTEND_TARGET): $(FRONTEND_DEPS)
-	cd ./src/frontend && npm run build && cd ../..
+	cd src/frontend && npm run build
 
 backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
