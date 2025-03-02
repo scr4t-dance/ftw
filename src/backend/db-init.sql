@@ -1,21 +1,21 @@
-
-DROP TABLE
-    events,
-    competition_kinds,
-    competition_categories,
-    competitions,
-    dancers,
-    single_bibs,
-    couple_bibs,
-    judging_types,
-    judges,
-    phases,
-    single_heats,
-    couple_heats,
-    single_artifacts,
-    single_bonus_artifacts,
-    double_artifacts,
-    double_bonus_artifacts;
+DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS competition_kinds;
+DROP TABLE IF EXISTS competition_categories;
+DROP TABLE IF EXISTS competitions;
+DROP TABLE IF EXISTS dancers;
+DROP TABLE IF EXISTS bibs;
+DROP TABLE IF EXISTS judging_types;
+DROP TABLE IF EXISTS judges;
+DROP TABLE IF EXISTS phases;
+DROP TABLE IF EXISTS round_types;
+DROP TABLE IF EXISTS heats;
+DROP TABLE IF EXISTS couple_heats;
+DROP TABLE IF EXISTS artifacts;
+DROP TABLE IF EXISTS bonus_artifacts;
+DROP TABLE IF EXISTS couple_artifacts;
+DROP TABLE IF EXISTS couple_bonus_artifacts;
+DROP TABLE IF EXISTS divisions;
+DROP TABLE IF EXISTS couple_bonus_artifacts;
 
 
 BEGIN;
