@@ -33,23 +33,25 @@ To validate that NPM is correctly configured, you can run the following command 
 npm --version
 ```
 
+### Dev Dependencies
+
+Here are some common and useful development dependencies (these are mainly useful for vscode, other setups may need different deps).
+
+```sh
+opam install ocaml-lsp-server ocamlformat
+```
+
+
 ### Installation
 
 Once you have a working OCaml and NPM installations, you'll need to install
 the OCaml dependencies, as well as the project's npm depencies.
 It can be done using the following command:
-
-```sh
-opam install . --deps-only
-cd src/frontend && npm install
-```
-
-A convenient makefile target to do all of the instructions above is:
 ```sh
 make configure
 ```
 
-### Building and Running
+### Building
 
 Once all dependencies have been installed, you can build the project with the
 following command:
@@ -58,9 +60,41 @@ following command:
 make
 ```
 
-And you can run a test instance of the server using the following command:
+With this command, frontend code will be compacted in a production-ready form 
+and stored in `src/frontend/build` (symlinked to `src/backend/static`).
+Ocaml code will be compiled and ready to be deployed.
+
+Run
+---
+
+### Deploy locally
+
+you can run a test instance of the server using the following command:
 
 ```sh
 make run
 ```
+
+To test a change, save changes, stop the server and run `make run` again.
+
+For faster feedback loops on frontend code, it is possible to use `hot module reloading`. It should be possible to deploy an ocaml backend against `src/frontend/src` instead of `src/frontend/build`, but it is developped yet.
+
+To deploy a frontend dev server with hot module reloading, run
+```bash
+cd src/frontend/src && npm start
+```
+
+Npm server will be deployed on `localhost:3000`, with no access to api or ocaml backend.
+See doc in in https://github.com/facebook/create-react-app/blob/main/packages/cra-template/template/README.md
+
+
+### Deploy on a server
+
+TODO
+
+Develop
+-------
+
+Read the [documentation about concepts](doc/concepts.md) to know what should be developped.
+Then read how to [add a new concept](doc/coding_a_concept.md).
 
