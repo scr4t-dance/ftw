@@ -95,11 +95,11 @@ CREATE TABLE round_types (
 CREATE TABLE phases (
     id INTEGER PRIMARY KEY,
     competition_id INTEGER REFERENCES competitions(id),
-    round INTEGER REFERENCES round_types(id),
-    artifact_description_juges TEXT,
-    artifact_description_head_juge TEXT,
+    round_type INTEGER REFERENCES round_types(id),
+    artifact_description_judges TEXT,
+    artifact_description_head_judge TEXT,
     ranking_algorithm TEXT, -- don't ref to algorithm types because can includes parameters
-    UNIQUE(competition_id, round)
+    UNIQUE(competition_id, round_type)
 );
 
 
