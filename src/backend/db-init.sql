@@ -20,7 +20,7 @@ DROP TABLE IF EXISTS couple_bonus_artifacts;
 
 BEGIN;
 
-CREATE TABLE IF NOT EXISTS events (
+CREATE TABLE events (
   id INTEGER PRIMARY KEY,
   name TEXT,
   start_date TEXT,
@@ -28,18 +28,18 @@ CREATE TABLE IF NOT EXISTS events (
 );
 
 
-CREATE TABLE IF NOT EXISTS competition_kinds ( -- JnJ, Strictly, Routime, …
+CREATE TABLE competition_kinds ( -- JnJ, Strictly, Routime, …
   id INTEGER PRIMARY KEY,
   name TEXT UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS competition_categories ( -- division (initie, inter, advanced, …) or not scr4t (invit, …)
+CREATE TABLE competition_categories ( -- division (initie, inter, advanced, …) or not scr4t (invit, …)
   id INTEGER PRIMARY KEY,
   name TEXT UNIQUE
 );
 
 
-CREATE TABLE IF NOT EXISTS competitions (
+CREATE TABLE competitions (
   id INTEGER PRIMARY KEY,
   event INTEGER REFERENCES events(id),
   name TEXT,
@@ -48,12 +48,12 @@ CREATE TABLE IF NOT EXISTS competitions (
 );
 
 
-CREATE TABLE IF NOT EXISTS divisions (
+CREATE TABLE divisions (
     id INTEGER PRIMARY KEY,
     name TEXT UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS dancers (
+CREATE TABLE dancers (
     id INTEGER PRIMARY KEY,
     birthday TEXT,
     last_name TEXT,
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS dancers (
 );
 
 
-CREATE TABLE IF NOT EXISTS bibs (
+CREATE TABLE bibs (
     dancer_id INTEGER  REFERENCES dancers(id),
     competition_id INTEGER REFERENCES competitions(id),
     -- in case of couple, give them both the same bib
@@ -75,24 +75,24 @@ CREATE TABLE IF NOT EXISTS bibs (
 );
 
 
-CREATE TABLE IF NOT EXISTS judging_types (
+CREATE TABLE judging_types (
     id PRIMARY KEY,
     judging_type TEXT UNIQUE -- head or lead or follow or couple
 );
 
-CREATE TABLE IF NOT EXISTS judges (
+CREATE TABLE judges (
     judge_id INTEGER REFERENCES dancers(id),
     phase_id INTEGER REFERENCES phases(id),
     judging INTEGER REFERENCES judging_types(id),
     PRIMARY KEY(judge_id, phase_id)
 );
 
-CREATE TABLE if not EXISTS round_types (
+CREATE TABLE round_types (
     id INTEGER PRIMARY KEY, -- 0 = finale, 1 = prelim, 2 = semi, …
     name TEXT UNIQUE -- finale, prelim, semi, quarter, …
 );
 
-CREATE TABLE IF NOT EXISTS phases (
+CREATE TABLE phases (
     id INTEGER PRIMARY KEY,
     competition_id INTEGER REFERENCES competitions(id),
     round INTEGER REFERENCES round_types(id),
@@ -103,21 +103,21 @@ CREATE TABLE IF NOT EXISTS phases (
 );
 
 
-CREATE TABLE IF NOT EXISTS heats (
+CREATE TABLE heats (
     id INTEGER PRIMARY KEY, -- = target id of judgement
     phase_id INTEGER REFERENCES phases(id),
     heat_number INTEGER NOT NULL,
     bib_id INTEGER
 );
 
-CREATE TABLE IF NOT EXISTS artifacts (
+CREATE TABLE artifacts (
     target_id INTEGER REFERENCES heats(id), -- = target id of judgement
     judge INTEGER REFERENCES dancers(id),
     artifact INTEGER NOT NULL, -- encoding of judgements
     PRIMARY KEY(target_id, judge)
 );
 
-CREATE TABLE IF NOT EXISTS bonus_artifacts (
+CREATE TABLE bonus_artifacts (
     target_id INTEGER REFERENCES heats(id), -- = target id of judgement
     bonus INTEGER NOT NULL, -- encoding of bonus
     PRIMARY KEY(target_id)
@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS bonus_artifacts (
 
 
 -- TODO: could we spare couple tables with the same bid for both dancers in bib
-CREATE TABLE IF NOT EXISTS couple_heats (
+CREATE TABLE couple_heats (
     id INTEGER PRIMARY KEY, -- = target id of judgement
     phase_id INTEGER REFERENCES phases(id),
     heat_number INTEGER NOT NULL,
@@ -134,14 +134,14 @@ CREATE TABLE IF NOT EXISTS couple_heats (
     UNIQUE(phase_id, heat_number, lead_dancer_id, follow_dancer_id)
 );
 
-CREATE TABLE IF NOT EXISTS couple_artifacts (
+CREATE TABLE couple_artifacts (
     target_id INTEGER REFERENCES couple_heats(id), -- = target id of judgement
     judge INTEGER REFERENCES dancers(id),
     artifact INTEGER NOT NULL, -- encoding of judgements
     PRIMARY KEY(target_id, judge)
 );
 
-CREATE TABLE IF NOT EXISTS couple_bonus_artifacts (
+CREATE TABLE couple_bonus_artifacts (
     target_id INTEGER REFERENCES couple_heats(id), -- = target id of judgement
     bonus INTEGER NOT NULL, -- encoding of bonus
     PRIMARY KEY(target_id)
