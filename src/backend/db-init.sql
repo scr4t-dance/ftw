@@ -10,12 +10,12 @@ DROP TABLE IF EXISTS phases;
 DROP TABLE IF EXISTS round_types;
 DROP TABLE IF EXISTS heats;
 DROP TABLE IF EXISTS couple_heats;
-DROP TABLE IF EXISTS artifacts;
-DROP TABLE IF EXISTS bonus_artifacts;
-DROP TABLE IF EXISTS couple_artifacts;
-DROP TABLE IF EXISTS couple_bonus_artifacts;
+DROP TABLE IF EXISTS artefacts;
+DROP TABLE IF EXISTS bonus_artefacts;
+DROP TABLE IF EXISTS couple_artefacts;
+DROP TABLE IF EXISTS couple_bonus_artefacts;
 DROP TABLE IF EXISTS divisions;
-DROP TABLE IF EXISTS couple_bonus_artifacts;
+DROP TABLE IF EXISTS couple_bonus_artefacts;
 
 
 BEGIN;
@@ -96,8 +96,8 @@ CREATE TABLE phases (
     id INTEGER PRIMARY KEY,
     competition_id INTEGER REFERENCES competitions(id),
     round_type INTEGER REFERENCES round_types(id),
-    artifact_description_judges TEXT,
-    artifact_description_head_judge TEXT,
+    artefact_description_judges TEXT,
+    artefact_description_head_judge TEXT,
     ranking_algorithm TEXT, -- don't ref to algorithm types because can includes parameters
     UNIQUE(competition_id, round_type)
 );
@@ -110,14 +110,14 @@ CREATE TABLE heats (
     bib_id INTEGER
 );
 
-CREATE TABLE artifacts (
+CREATE TABLE artefacts (
     target_id INTEGER REFERENCES heats(id), -- = target id of judgement
     judge INTEGER REFERENCES dancers(id),
-    artifact INTEGER NOT NULL, -- encoding of judgements
+    artefact INTEGER NOT NULL, -- encoding of judgements
     PRIMARY KEY(target_id, judge)
 );
 
-CREATE TABLE bonus_artifacts (
+CREATE TABLE bonus_artefacts (
     target_id INTEGER REFERENCES heats(id), -- = target id of judgement
     bonus INTEGER NOT NULL, -- encoding of bonus
     PRIMARY KEY(target_id)
@@ -134,14 +134,14 @@ CREATE TABLE couple_heats (
     UNIQUE(phase_id, heat_number, lead_dancer_id, follow_dancer_id)
 );
 
-CREATE TABLE couple_artifacts (
+CREATE TABLE couple_artefacts (
     target_id INTEGER REFERENCES couple_heats(id), -- = target id of judgement
     judge INTEGER REFERENCES dancers(id),
-    artifact INTEGER NOT NULL, -- encoding of judgements
+    artefact INTEGER NOT NULL, -- encoding of judgements
     PRIMARY KEY(target_id, judge)
 );
 
-CREATE TABLE couple_bonus_artifacts (
+CREATE TABLE couple_bonus_artefacts (
     target_id INTEGER REFERENCES couple_heats(id), -- = target id of judgement
     bonus INTEGER NOT NULL, -- encoding of bonus
     PRIMARY KEY(target_id)
