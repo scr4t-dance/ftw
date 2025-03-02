@@ -42,7 +42,7 @@ opam install ocaml-lsp-server ocamlformat
 ```
 
 
-### Installation
+### Dependencies Installation
 
 Once you have a working OCaml and NPM installations, you'll need to install
 the OCaml dependencies, as well as the project's npm depencies.
