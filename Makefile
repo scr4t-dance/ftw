@@ -8,8 +8,9 @@ FRONTEND_TARGET=src/frontend/build
 FRONTEND_DEPS=\
 	src/frontend/package.json \
 	src/frontend/package-lock.json \
-	src/frontend/public \
-	src/frontend/src
+	src/frontend/public/* \
+	src/frontend/src/* \
+	src/frontend/src/components/*
 
 all: build
 

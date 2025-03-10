@@ -1,13 +1,6 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-(* Helper functions *)
-(* ************************************************************************* *)
-
-let loader _root path _request =
-  match Static.read path with
-  | None -> Dream.empty `Not_Found
-  | Some asset -> Dream.respond asset
 
 (* Main entrypoint *)
 (* ************************************************************************* *)
@@ -25,7 +18,8 @@ let () =
   in
   (* Defaul routes to serve the clients files (pages, scripts and css) *)
   let default_routes = [
-    Dream.get "/**" (Dream.static ~loader "")
+    Dream.get "/static/**" @@ Dream.static "src/backend/static";
+    Dream.get "**" (Dream.from_filesystem "src/backend/static" "index.html");
   ] in
   (* Setup the router with the base information for openapi *)
   let router =
