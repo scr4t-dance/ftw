@@ -3,6 +3,8 @@ import {createBrowserRouter, RouterProvider} from 'react-router-dom';
 import HomePage from './components/HomePage';
 import EventList from './components/EventList';
 
+import NewEventForm from './components/NewEventForm';
+
 const router = createBrowserRouter([
 	{
 	  path: "/",
@@ -15,6 +17,10 @@ const router = createBrowserRouter([
 	{
 	  path: "/events",
 	  element: <EventList />,
+	},
+	{
+	  path: "/new/event",
+	  element: <NewEventForm />,
 	},
   ]);
 
