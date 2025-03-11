@@ -1,5 +1,8 @@
 import "../styles/ContentStyle.css";
 
+import React, { useEffect } from 'react';
+import useEventApi from '../hooks/useEventApi'; 
+
 import PageTitle from "./PageTitle";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -55,6 +58,30 @@ const events = [
 ]
 
 function EventList() {
+
+    const {
+        data,
+        error,
+        loading,
+        createEvent,
+        getEventDetails,
+        getEventComps,
+        getAllEvents,
+    } = useEventApi();
+
+    useEffect(() => {
+        getAllEvents(); // Fetch all events when the component mounts
+    }, []);
+
+    // MESSAGES DE CHARGEMENT & ERREUR TO DO
+    // if (loading) return <div>Loading...</div>;
+    //if (error) return <div>Error: {error}</div>;
+
+    console.log("data:",data);
+    console.log("error:",error);
+    console.log("loading:",loading);
+    console.log("Finished getting all events");
+
     return (
         <>
             <PageTitle title="Événements" />

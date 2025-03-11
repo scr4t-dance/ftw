@@ -1,13 +1,6 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-(* Helper functions *)
-(* ************************************************************************* *)
-
-let loader _root path _request =
-  match Static.read path with
-  | None -> Dream.empty `Not_Found
-  | Some asset -> Dream.respond asset
 
 (* Main entrypoint *)
 (* ************************************************************************* *)
@@ -25,7 +18,8 @@ let () =
   in
   (* Defaul routes to serve the clients files (pages, scripts and css) *)
   let default_routes = [
-    Dream.get "/**" (Dream.static ~loader "")
+    Dream.get "/static/**" @@ Dream.static options.static_path;
+    Dream.get "**" (Dream.from_filesystem options.static_path "index.html");
   ] in
   (* Setup the router with the base information for openapi *)
   let router =
@@ -44,13 +38,28 @@ let () =
     |> Event.routes
     |> Competition.routes
   in
+  (* Define CORS middleware manually *)
+  (*let cors_middleware handler request =
+    match Dream.method_ request with
+    | `OPTIONS ->
+      Dream.respond ~headers:[
+        ("Access-Control-Allow-Origin", "*");
+        ("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        ("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      ] ~status:`No_Content ""
+      | _ ->
+        let%lwt response = handler request in
+        Dream.add_header response "Access-Control-Allow-Origin" "*";
+        Dream.add_header response "Access-Control-Allow-Headers" "Content-Type, Authorization";
+        Lwt.return response
+  in *)
   (* Setup the dream server and run it *)
   Dream.run
     ~interface:"0.0.0.0"
     ~port:options.server_port
-    ~tls:true
-  @@ Dream.logger
+    ~tls:false
+  @@ Dream.logger  
+  (*@@ cors_middleware*)
   @@ Dream.memory_sessions
   @@ State.init ~path:options.db_path
   @@ Router.build ~default_routes router
-

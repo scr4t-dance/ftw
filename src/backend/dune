@@ -2,7 +2,7 @@
 ; main server binary
 (executable
   (name         main)
-  (public_name  ftw)
+  (public_name  ftw_backend)
   (preprocess (pps lwt_ppx ppx_deriving.show ppx_deriving_yojson))
   (libraries
      ftw
