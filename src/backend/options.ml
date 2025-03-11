@@ -9,6 +9,7 @@ open Cmdliner
 type server = {
   db_path : string;
   server_port : int;
+  static_path : string;
 }
 
 type openapi = {
@@ -151,4 +152,3 @@ let export =
   setup_bt bt;
   setup_log logs_style logs_level;
   Export { db_path; out_path; ev_id; }
-
