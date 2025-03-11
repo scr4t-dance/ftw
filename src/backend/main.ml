@@ -18,8 +18,8 @@ let () =
   in
   (* Defaul routes to serve the clients files (pages, scripts and css) *)
   let default_routes = [
-    Dream.get "/static/**" @@ Dream.static "src/backend/static";
-    Dream.get "**" (Dream.from_filesystem "src/backend/static" "index.html");
+    Dream.get "/static/**" @@ Dream.static options.static_path;
+    Dream.get "**" (Dream.from_filesystem options.static_path "index.html");
   ] in
   (* Setup the router with the base information for openapi *)
   let router =
@@ -39,7 +39,7 @@ let () =
     |> Competition.routes
   in
   (* Define CORS middleware manually *)
-  let cors_middleware handler request =
+  (*let cors_middleware handler request =
     match Dream.method_ request with
     | `OPTIONS ->
       Dream.respond ~headers:[
@@ -52,14 +52,14 @@ let () =
         Dream.add_header response "Access-Control-Allow-Origin" "*";
         Dream.add_header response "Access-Control-Allow-Headers" "Content-Type, Authorization";
         Lwt.return response
-  in
+  in *)
   (* Setup the dream server and run it *)
   Dream.run
     ~interface:"0.0.0.0"
     ~port:options.server_port
-    ~tls:true
+    ~tls:false
   @@ Dream.logger  
-  @@ cors_middleware
+  (*@@ cors_middleware*)
   @@ Dream.memory_sessions
   @@ State.init ~path:options.db_path
   @@ Router.build ~default_routes router

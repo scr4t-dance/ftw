@@ -27,7 +27,11 @@ backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
 
 run: backend
-	dune exec -- ftw --db=tests/test.db
+	dune exec -- ftw_backend --db=tests/test.db
+
+frontend_dev: backend
+	dune exec -- ftw_backend --db=tests/test.db &
+	cd src/frontend && npm start
 
 tests: backend
 	dune runtest
@@ -45,4 +49,4 @@ top:
 doc:
 	dune build $(FLAGS) @doc
 
-.PHONY: all build top doc run tests promote clean
+.PHONY: all build top doc run frontend_dev tests promote clean
