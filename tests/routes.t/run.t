@@ -31,7 +31,6 @@ to respond to requests
   $ sleep 1
 
 Launch the FTW server in the background
-$ ftw --db=":memory" > /dev/null 2>&1 &
   $ ftw_backend --db=":memory" --static="../../src/backend/static" > /dev/null 2>&1 &
 
 Sleep a bit to ensure that the server had had time to initialize and is ready
