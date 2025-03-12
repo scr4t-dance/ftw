@@ -18,6 +18,11 @@ body {
 :root {
 	--link-color: #3182ce;
 	--link-color-hover: #2c5282;
+
+    --button: #617489;
+    --button-hover: #4a5c6e;
+
+    --error-background: rgb(251, 218, 218);
 }
 
 
@@ -55,11 +60,11 @@ p {
 
 a {
     text-decoration: underline;
-    color: var(--link-color); /* text-blue-600 */
+    color: var(--link-color);
 }
 
 a:hover {
-    color: var(--link-color-hover); /* hover:text-blue-800 */
+    color: var(--link-color-hover);
 }
 
 ul {
@@ -107,12 +112,60 @@ table th {
     border-bottom: solid 3px;
 }
 
-/* Lignes paires */
 .even-row {
     background-color: #f1f5f7;
 }
 
-/* Lignes impaires */
 .odd-row {
     background-color: white;
+}
+
+
+/*=========================================+
+|                   FORMS                  |
++=========================================*/
+
+form {
+    max-width: 30rem;
+    width: 90%;
+}
+
+.form_subelem {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.6rem;
+}
+
+form input {
+    padding: 0.2rem 0.4rem;
+    background-color: #f4f5f8;
+
+    border: solid 1px #b2b6c2;
+    border-radius: 0.2rem;
+    outline: none;
+}
+
+form button[type="submit"] {
+    cursor: pointer;
+    margin-top: 0.8rem;
+    padding: 0.5rem 1rem;
+
+    color: white;
+    background-color: var(--button);
+
+    border: none;
+    border-radius: 0.2rem;
+
+    transition: background-color 0.3s ease;
+}
+
+form button[type="submit"]:hover {
+    background-color: var(--button-hover);
+}
+
+form .error_message {
+    padding: 0.2rem 0.5rem;
+    background-color: var(--error-background);
+    border: none;
+    border-radius: 0.2rem;
 }
