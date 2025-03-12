@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { data, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import Header from "./Header";
 import Footer from "./Footer";
@@ -26,9 +26,11 @@ function NewEventForm() {
 
         } else {
             const dataToSend = JSON.stringify(formData);
-            // TODO
+            // TODO -> call à l'API
             console.log("data:",dataToSend);
             alert(`${dataToSend}`)
+
+            // redirection ?
         }
     }
 

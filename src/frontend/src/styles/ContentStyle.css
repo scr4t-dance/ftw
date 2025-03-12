@@ -45,6 +45,15 @@ h2 {
     font-weight: 400;
 }
 
+h3 {
+    margin: 1rem 0 0.8rem 0;
+
+    font-size: 1.8rem;
+    font-weight: 500;
+
+    text-align: left;
+}
+
 
 /*=========================================+
 |                   TEXT                   |
@@ -56,6 +65,7 @@ h2 {
 
 p {
     margin-top: 0;
+    line-height: 1.6rem;
 }
 
 a {
@@ -72,8 +82,9 @@ ul {
 }
 
 ul li {
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.5rem;
     list-style-type: disc;
+    line-height: 1.6rem;
 }
 
 

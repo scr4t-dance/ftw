@@ -4,6 +4,7 @@ import HomePage from './components/HomePage';
 import EventList from './components/EventList';
 
 import NewEventForm from './components/NewEventForm';
+import About from './components/About';
 
 const router = createBrowserRouter([
 	{
@@ -17,6 +18,10 @@ const router = createBrowserRouter([
 	{
 	  path: "/events",
 	  element: <EventList />,
+	},
+	{
+	  path: "/about",
+	  element: <About />,
 	},
 	{
 	  path: "/new/event",
