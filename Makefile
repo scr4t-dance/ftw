@@ -7,8 +7,6 @@ BINDIR=_build/install/default/bin
 
 # Some variables for the frontend build
 FRONTEND_TARGET=src/frontend/build
-FRONTEND_INSTALL=\
-	src/frontend/package.json
 FRONTEND_DEPS=\
 	src/hookgen/package.json \
 	src/hookgen/package-lock.json \
