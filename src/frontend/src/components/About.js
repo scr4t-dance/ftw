@@ -49,7 +49,6 @@ function About() {
 
                 <h3>Les administrateurs</h3>
                 <p>Le SCR4T est administré par des volontaires qui ont participé à sa conception : Léa Cimelli, Guillaume de Longuemar et Guillaume Bury.</p>
-
             </div>
             <Footer />
         </>
