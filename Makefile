@@ -5,9 +5,8 @@ BINDIR=_build/install/default/bin
 
 # Some variables for the frontend build
 FRONTEND_TARGET=src/frontend/build
-FRONTEND_INSTALL=\
-	src/frontend/package.json
 FRONTEND_DEPS=\
+	src/frontend/package.json \
 	src/frontend/package-lock.json \
 	src/frontend/public/* \
 	src/frontend/src/* \
@@ -17,26 +16,28 @@ all: build
 
 build: backend
 
-configure: $(FRONTEND_INSTALL) ftw.opam
+configure: ftw.opam
 	opam install . --deps-only
 	cd src/frontend && npm install
 
-$(FRONTEND_TARGET): configure $(FRONTEND_DEPS)
+$(FRONTEND_TARGET): $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
 
 backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
 
-run: backend
+stop:
+	killall ftw_backend 2>/dev/null || true
+
+run: backend stop
 	dune exec -- ftw_backend --db=tests/test.db
 
-frontend_dev: configure $(FRONTEND_DEPS)
-	killall ftw_backend 2>/dev/null || true
+frontend_dev: $(FRONTEND_DEPS) stop
 	dune build $(FLAGS) @install
 	dune exec -- ftw_backend --db=tests/test.db > ftw_backend.log 2>&1 &
 	cd src/frontend && npm start
 
-tests: backend
+tests: backend stop
 	dune runtest
 
 promote:
@@ -52,4 +53,4 @@ top:
 doc:
 	dune build $(FLAGS) @doc
 
-.PHONY: all build top doc run frontend_dev tests promote clean
+.PHONY: all build stop top doc run frontend_dev tests promote clean
