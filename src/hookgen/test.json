@@ -1,0 +1,350 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "FTW",
+        "description": "Api for the FTW dance competition scoring software",
+        "license": {
+            "name": "GPL 3.0",
+            "url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
+        },
+        "version": "1.0.1"
+    },
+    "paths": {
+        "/api/comp": {
+            "put": {
+                "tags": [
+                    "competition"
+                ],
+                "summary": "Create a new competition",
+                "parameters": [],
+                "requestBody": {
+                    "description": "Details of the Competition to create",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "Competition"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {}
+            }
+        },
+        "/api/comp/{id}": {
+            "get": {
+                "tags": [
+                    "competition"
+                ],
+                "summary": "Get the details of a Competition",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the queried competition",
+                        "required": true,
+                        "schema": {
+                            "$ref": "CompetitionId"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/event": {
+            "put": {
+                "tags": [
+                    "event"
+                ],
+                "summary": "Create a new event",
+                "parameters": [],
+                "requestBody": {
+                    "description": "Details of the Event to create",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "Event"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "EventId"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/event/{id}/comps": {
+            "get": {
+                "tags": [
+                    "event",
+                    "competition"
+                ],
+                "summary": "Get the list of competitions of an Event",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the queried Event",
+                        "required": true,
+                        "schema": {
+                            "$ref": "EventId"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "CompetitionIdList"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/event/{id}": {
+            "get": {
+                "tags": [
+                    "event"
+                ],
+                "summary": "Get the details of a single Event",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the queried event",
+                        "required": true,
+                        "schema": {
+                            "$ref": "EventId"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "Event"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Id supplied",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Event not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/events": {
+            "get": {
+                "tags": [
+                    "event"
+                ],
+                "summary": "Get the list of Events",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Succesful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "EventIdList"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Error": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "examples": [
+                            "Event not found"
+                        ],
+                        "type": "string"
+                    }
+                }
+            },
+            "Date": {
+                "type": "object",
+                "properties": {
+                    "day": {
+                        "examples": [
+                            1,
+                            31
+                        ],
+                        "type": "integer"
+                    },
+                    "month": {
+                        "examples": [
+                            1,
+                            12
+                        ],
+                        "type": "integer"
+                    },
+                    "year": {
+                        "examples": [
+                            2019,
+                            2024
+                        ],
+                        "type": "integer"
+                    }
+                }
+            },
+            "Kind": {
+                "type": "array",
+                "items": {
+                    "type": "string",
+                    "enum": [
+                        "Routine",
+                        "Strictly",
+                        "JJ_Strictly",
+                        "Jack_and_Jill"
+                    ]
+                }
+            },
+            "Division": {
+                "type": "array",
+                "items": {
+                    "type": "string",
+                    "enum": [
+                        "Novice",
+                        "Intermediate",
+                        "Advanced"
+                    ]
+                }
+            },
+            "Category": {
+                "type": "array",
+                "items": {
+                    "type": "string",
+                    "enum": [
+                        "Novice",
+                        "Intermediate",
+                        "Advanced",
+                        "Regular",
+                        "Qualifying",
+                        "Invited"
+                    ]
+                }
+            },
+            "EventId": {
+                "examples": [
+                    42
+                ],
+                "type": "integer"
+            },
+            "EventIdList": {
+                "type": "object",
+                "properties": {
+                    "events": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "EventId"
+                        }
+                    }
+                }
+            },
+            "Event": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "examples": [
+                            "P4T"
+                        ],
+                        "type": "string"
+                    },
+                    "start_date": {
+                        "$ref": "Date"
+                    },
+                    "end_date": {
+                        "$ref": "Date"
+                    }
+                }
+            },
+            "CompetitionId": {
+                "examples": [
+                    42
+                ],
+                "type": "integer"
+            },
+            "CompetitionIdList": {
+                "type": "object",
+                "properties": {
+                    "events": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "CompetitionId"
+                        }
+                    }
+                }
+            },
+            "Competition": {
+                "type": "object",
+                "properties": {
+                    "event": {
+                        "$ref": "EventId"
+                    },
+                    "name": {
+                        "examples": [
+                            "P4T"
+                        ],
+                        "type": "string"
+                    },
+                    "kind": {
+                        "$ref": "Kind"
+                    },
+                    "category": {
+                        "$ref": "Category"
+                    }
+                }
+            }
+        }
+    }
+}
