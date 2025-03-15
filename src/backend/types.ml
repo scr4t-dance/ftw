@@ -7,7 +7,7 @@ module S = Openapi_router.Json_Schema
 (* ************************************************************************* *)
 
 let obj o = S.Obj o
-let ref name = S.Ref name
+let ref name = S.Ref ("#/components/schemas/" ^ name)
 
 let int = obj S.Integer
 let array = obj S.Array

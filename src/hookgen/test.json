@@ -22,7 +22,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "Competition"
+                                "$ref": "#/components/schemas/Competition"
                             }
                         }
                     },
@@ -44,7 +44,7 @@
                         "description": "Id of the queried competition",
                         "required": true,
                         "schema": {
-                            "$ref": "CompetitionId"
+                            "$ref": "#/components/schemas/CompetitionId"
                         }
                     }
                 ],
@@ -63,7 +63,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "Event"
+                                "$ref": "#/components/schemas/Event"
                             }
                         }
                     },
@@ -75,7 +75,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "EventId"
+                                    "$ref": "#/components/schemas/EventId"
                                 }
                             }
                         }
@@ -85,7 +85,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "Error"
+                                    "$ref": "#/components/schemas/Error"
                                 }
                             }
                         }
@@ -107,7 +107,7 @@
                         "description": "Id of the queried Event",
                         "required": true,
                         "schema": {
-                            "$ref": "EventId"
+                            "$ref": "#/components/schemas/EventId"
                         }
                     }
                 ],
@@ -117,7 +117,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "CompetitionIdList"
+                                    "$ref": "#/components/schemas/CompetitionIdList"
                                 }
                             }
                         }
@@ -138,7 +138,7 @@
                         "description": "Id of the queried event",
                         "required": true,
                         "schema": {
-                            "$ref": "EventId"
+                            "$ref": "#/components/schemas/EventId"
                         }
                     }
                 ],
@@ -148,7 +148,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "Event"
+                                    "$ref": "#/components/schemas/Event"
                                 }
                             }
                         }
@@ -158,7 +158,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "Error"
+                                    "$ref": "#/components/schemas/Error"
                                 }
                             }
                         }
@@ -168,7 +168,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "Error"
+                                    "$ref": "#/components/schemas/Error"
                                 }
                             }
                         }
@@ -189,7 +189,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "EventIdList"
+                                    "$ref": "#/components/schemas/EventIdList"
                                 }
                             }
                         }
@@ -204,9 +204,6 @@
                 "type": "object",
                 "properties": {
                     "message": {
-                        "examples": [
-                            "Event not found"
-                        ],
                         "type": "string"
                     }
                 }
@@ -215,24 +212,12 @@
                 "type": "object",
                 "properties": {
                     "day": {
-                        "examples": [
-                            1,
-                            31
-                        ],
                         "type": "integer"
                     },
                     "month": {
-                        "examples": [
-                            1,
-                            12
-                        ],
                         "type": "integer"
                     },
                     "year": {
-                        "examples": [
-                            2019,
-                            2024
-                        ],
                         "type": "integer"
                     }
                 }
@@ -275,9 +260,6 @@
                 }
             },
             "EventId": {
-                "examples": [
-                    42
-                ],
                 "type": "integer"
             },
             "EventIdList": {
@@ -286,7 +268,7 @@
                     "events": {
                         "type": "array",
                         "items": {
-                            "$ref": "EventId"
+                            "$ref": "#/components/schemas/EventId"
                         }
                     }
                 }
@@ -295,23 +277,17 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "examples": [
-                            "P4T"
-                        ],
                         "type": "string"
                     },
                     "start_date": {
-                        "$ref": "Date"
+                        "$ref": "#/components/schemas/Date"
                     },
                     "end_date": {
-                        "$ref": "Date"
+                        "$ref": "#/components/schemas/Date"
                     }
                 }
             },
             "CompetitionId": {
-                "examples": [
-                    42
-                ],
                 "type": "integer"
             },
             "CompetitionIdList": {
@@ -320,7 +296,7 @@
                     "events": {
                         "type": "array",
                         "items": {
-                            "$ref": "CompetitionId"
+                            "$ref": "#/components/schemas/CompetitionId"
                         }
                     }
                 }
@@ -329,19 +305,16 @@
                 "type": "object",
                 "properties": {
                     "event": {
-                        "$ref": "EventId"
+                        "$ref": "#/components/schemas/EventId"
                     },
                     "name": {
-                        "examples": [
-                            "P4T"
-                        ],
                         "type": "string"
                     },
                     "kind": {
-                        "$ref": "Kind"
+                        "$ref": "#/components/schemas/Kind"
                     },
                     "category": {
-                        "$ref": "Category"
+                        "$ref": "#/components/schemas/Category"
                     }
                 }
             }
