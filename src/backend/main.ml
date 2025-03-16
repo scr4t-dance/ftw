@@ -49,9 +49,6 @@ let () =
     router
     |> Event.routes
     |> Competition.routes
-    |> Category.routes
-    |> Kind.routes
-    |> Division.routes
     |> Phase.routes
   in
   (* Define CORS middleware manually *)

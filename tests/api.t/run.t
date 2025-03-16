@@ -86,18 +86,6 @@ Get the ids of phase we created, and check their details
   $ curl -s localhost:8080/api/phase/2
   {"name":"q","competition":2,"phase_order":"Finals","judge_artefact":"","head_judge_artefact":"","ranking_algorithm":""}
 
-Miscellanous data
------------------
-
-  $ curl -s localhost:8080/api/kinds
-  {"kinds":[["Routine"],["Strictly"],["JJ_Strictly"],["Jack_and_Jill"]]}
-
-  $ curl -s localhost:8080/api/categories
-  {"categories":[["Novice"],["Intermediate"],["Advanced"],["Regular"],["Qualifying"],["Invited"]]}
-
-  $ curl -s localhost:8080/api/divisions
-  {"divisions":[["Novice"],["Intermediate"],["Advanced"]]}
-
 End & Cleanup
 -------------
 

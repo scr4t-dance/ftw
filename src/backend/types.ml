@@ -105,9 +105,7 @@ module Kind = struct
     | Strictly
     | JJ_Strictly
     | Jack_and_Jill
-  [@@deriving yojson, enum, show]
-
-  let all = List.filter_map of_enum (List.init (to_enum Jack_and_Jill + 1) Fun.id)
+  [@@deriving yojson]
 
   let ref, schema =
     make_schema ()
@@ -122,24 +120,6 @@ module Kind = struct
             `String "JJ_Strictly";
             `String "Jack_and_Jill";
           ])
-end
-
-
-(* Kind list *)
-module KindList = struct
-  type t = {
-    kinds : Kind.t list;
-  } [@@deriving yojson]
-
-  let ref, schema =
-    make_schema ()
-      ~name:"KindList"
-      ~typ:object_
-      ~properties:[
-        "kinds", obj @@ S.make_schema ()
-          ~typ:array
-          ~items:(ref Kind.ref);
-      ]
 end
 
 (* Competition Division *)
@@ -192,9 +172,7 @@ module Category = struct
     | Regular
     | Qualifying
     | Invited
-  [@@deriving yojson, enum]
-
-  let all = List.filter_map of_enum (List.init (to_enum Invited + 1) Fun.id)
+  [@@deriving yojson]
 
   let of_ftw cat : t =
     match (cat : Ftw.Category.t) with
@@ -231,22 +209,6 @@ module Category = struct
           ])
 end
 
-(* Category list *)
-module CategoryList = struct
-  type t = {
-    categories : Category.t list;
-  } [@@deriving yojson]
-
-  let ref, schema =
-    make_schema ()
-      ~name:"CategoryList"
-      ~typ:object_
-      ~properties:[
-        "categories", obj @@ S.make_schema ()
-          ~typ:array
-          ~items:(ref Category.ref);
-      ]
-end
 
 (* Events *)
 (* ************************************************************************* *)
