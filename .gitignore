@@ -9,3 +9,5 @@ _build/
 # local opam switch
 _opam
 
+# vscode
+.vscode
