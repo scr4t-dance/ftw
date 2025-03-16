@@ -59,15 +59,6 @@ Get the ids of competitions we created, and check their details
   $ curl -s localhost:8080/api/comp/2
   {"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Intermediate"]}
 
-Miscellanous data
-
-  $ curl -s localhost:8080/api/kinds
-  {"kinds":[["Routine"],["Strictly"],["JJ_Strictly"],["Jack_and_Jill"]]}
-
-
-  $ curl -s localhost:8080/api/categories
-  {"categories":[["Novice"],["Intermediate"],["Advanced"],["Regular"],["Qualifying"],["Invited"]]}
-
 End & Cleanup
 -------------
 

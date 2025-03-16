@@ -43,8 +43,6 @@ let () =
     router
     |> Event.routes
     |> Competition.routes
-    |> Category.routes
-    |> Kind.routes
   in
   (* Setup the dream server and run it *)
   Dream.run
