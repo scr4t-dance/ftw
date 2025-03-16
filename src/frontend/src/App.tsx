@@ -21,6 +21,10 @@ const router = createBrowserRouter([
 	  element: <EventList />,
 	},
 	{
+	  path: "/event",
+	  element: <NewEventForm />,
+	},
+	{
 	  path: "/about",
 	  element: <About />,
 	},

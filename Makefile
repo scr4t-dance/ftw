@@ -10,8 +10,7 @@ FRONTEND_DEPS=\
 	src/frontend/package-lock.json \
 	src/frontend/public/* \
 	src/frontend/src/* \
-	src/frontend/src/components/* \
-	src/frontend/src/hooks/*
+	src/frontend/src/components/*
 
 all: build
 

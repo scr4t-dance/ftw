@@ -71,6 +71,10 @@ function EventList() {
             <PageTitle title="Événements" />
             <Header />
             <div className="content-container">
+
+                <Link to={`/event`}>
+                    Créer un nouvel événement
+                </Link>
                 <h1>Événements partenaires</h1>
                 <ul>
                     {eventsPartners.map(({name, link}, index) => (
