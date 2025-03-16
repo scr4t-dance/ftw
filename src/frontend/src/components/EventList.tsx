@@ -1,7 +1,7 @@
 import "../styles/ContentStyle.css";
 
 import React from 'react';
-import {useGetApiEvents, useGetApiEventId} from '../hookgen/event/event';
+import {useGetApiEvents, useGetApiEventId, getGetApiEventIdQueryKey} from '../hookgen/event/event';
 
 import PageTitle from "./PageTitle";
 import Header from "./Header";
@@ -112,7 +112,6 @@ function EventList() {
                             <th>Mois</th>
                             <th>Année</th>
                         </tr>
-
                         {data?.data.events?.map((eventId, index) => (
                             <EventDetails key={eventId} id={eventId} index={index}/>
                         ))}
@@ -146,7 +145,6 @@ function EventDetails({ id, index }: { id: EventId, index: number }) {
         <td>{month}</td>
         <td>{year}</td>
     </tr>
-
   );
 }
 
