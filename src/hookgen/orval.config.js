@@ -1,18 +1,19 @@
 /* curl -s http://localhost:8080/openapi.json -o openapi.json */
-/* node test_orval.js */
-/* npm run orval --config ./orval.config.js */
+/* node pretty_print_openapi_json.js */
+/* ./node_modules/.bin/orval --config ./orval.config.js */
 module.exports = {
     'ftw': {
         input: {
-            target: './test.json',
+            target: './openapi.json',
             validation: false,
         },
         output: {
             mode: 'tags-split',
-            target: './src/ftw.ts',
-            schemas: './src/model',
+            target: '../frontend/src/hookgen/ftw.ts',
+            schemas: '../frontend/src/hookgen/model',
             client: 'react-query',
             mock: true,
+            baseUrl: 'http://localhost:8080',
         },
     },
 };

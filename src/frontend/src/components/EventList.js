@@ -2,6 +2,7 @@ import "../styles/ContentStyle.css";
 
 import React, { useEffect } from 'react';
 import useEventApi from '../hooks/useEventApi'; 
+import useGetApiEvents from '../hookgen/event/event'; 
 
 import PageTitle from "./PageTitle";
 import Header from "./Header";

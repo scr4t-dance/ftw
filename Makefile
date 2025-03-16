@@ -36,6 +36,10 @@ run: backend stop
 frontend_dev: $(FRONTEND_DEPS) stop
 	dune build $(FLAGS) @install
 	dune exec -- ftw_backend --db=tests/test.db > ftw_backend.log 2>&1 &
+	sleep 1
+	curl -s http://localhost:8080/openapi.json -o src/hookgen/raw_openapi.json
+	cd src/hookgen && node pretty_print_openapi_json.js
+	cd src/hookgen && ./node_modules/.bin/orval --config ./orval.config.js
 	cd src/frontend && npm start
 
 tests: backend stop
