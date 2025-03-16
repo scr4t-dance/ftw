@@ -5,6 +5,7 @@ import EventList from './components/EventList';
 
 import NewEventForm from './components/NewEventForm';
 import About from './components/About';
+import React from 'react';
 
 const router = createBrowserRouter([
 	{

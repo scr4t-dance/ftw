@@ -18,7 +18,7 @@ function NewEventForm() {
 
     const [error, setError] = useState('');
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
 
         if (formData.date_debut > formData.date_fin) {
