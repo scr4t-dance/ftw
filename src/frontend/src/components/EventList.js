@@ -76,7 +76,7 @@ function EventList() {
                             <th>Année</th>
                         </tr>
                         {events.map(({id, name, month, year}, index) => (
-                            <tr key={id} 
+                            <tr key={id}
                                 className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
                                 <td>
                                     <a href={`${eventListlink}${id}`}>
