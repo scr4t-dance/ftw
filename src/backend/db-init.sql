@@ -7,7 +7,7 @@ DROP TABLE IF EXISTS bibs;
 DROP TABLE IF EXISTS judging_types;
 DROP TABLE IF EXISTS judges;
 DROP TABLE IF EXISTS phases;
-DROP TABLE IF EXISTS round_types;
+DROP TABLE IF EXISTS rounds;
 DROP TABLE IF EXISTS heats;
 DROP TABLE IF EXISTS couple_heats;
 DROP TABLE IF EXISTS artefacts;
@@ -71,7 +71,10 @@ CREATE TABLE bibs (
     bid_id INTEGER NOT NULL,
     role TEXT NOT NULL,
 
-    PRIMARY KEY(bid_id, competition_id, role) -- allow to work with either same bid for dancer as lead and follorw, or different bibs
+    PRIMARY KEY(bid_id, competition_id, role)
+    -- allow to work with either 
+    -- * same bib for dancer as lead and follow
+    -- * different bibs for leaders and followers
 );
 
 
@@ -87,7 +90,7 @@ CREATE TABLE judges (
     PRIMARY KEY(judge_id, phase_id)
 );
 
-CREATE TABLE round_types (
+CREATE TABLE rounds (
     id INTEGER PRIMARY KEY, -- 0 = finale, 1 = prelim, 2 = semi, …
     name TEXT UNIQUE -- finale, prelim, semi, quarter, …
 );
@@ -95,7 +98,7 @@ CREATE TABLE round_types (
 CREATE TABLE phases (
     id INTEGER PRIMARY KEY,
     competition_id INTEGER REFERENCES competitions(id),
-    round INTEGER REFERENCES round_types(id),
+    round INTEGER REFERENCES rounds(id),
     artefact_description_judges TEXT,
     artefact_description_head_judge TEXT,
     ranking_algorithm TEXT, -- don't ref to algorithm types because can includes parameters
@@ -108,6 +111,8 @@ CREATE TABLE heats (
     phase_id INTEGER REFERENCES phases(id),
     heat_number INTEGER NOT NULL,
     bib_id INTEGER
+    -- no unique constraint because a dancer can be in several heats
+    -- some of them without being scored
 );
 
 CREATE TABLE artefacts (
