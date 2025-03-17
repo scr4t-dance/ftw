@@ -61,10 +61,43 @@ The `:id` in the `GET` request for competition `2` must also be mapped to an Oca
 The `Types.CompetitionId` type is declared in `src/backend/types.ml`. 
 It is mapped to a database definition by `Ftw.Competition.id`.
 
+Add the API routes for competitions to the router variable in `src/backend/main.ml`.
+```ocaml
+let router =
+    router
+    |> Event.routes
+    (* add the next line *)
+    |> Competition.routes
+```
+Test interactively that it works by running it manually from terminals
+```sh
+# in a first terminal
+make run
+# in a second terminal
+curl -s localhost:8080/api/comp/2
+```
+
 
 ## tests/api.t directory
 
-The `run.t` file will do some automated tests on the API.
-It initialise a new database, create an event, create two competition and check that the data is correctly defined.
+The `run.t` file will do some automated tests on the API with [Cram tests](https://dune.readthedocs.io/en/stable/reference/cram.html).
+It initialises a new database, create an event, create two competition and check that the data is correctly defined.
 
+Automate your tests here by adding the following lines.
+
+```cram
+create a competition
+  $ curl -s -X PUT localhost:8080/api/comp \
+  > -H "Content-Type: application/json" \
+  > -d '{"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Intermediate"]}'
+
+consult data for a competition
+  $ curl -s localhost:8080/api/comp/2
+```
+
+Analyse the diff and iterate until you get what you expect. 
+Then run the following command to store it in the `run.t` file.
+```sh
+dune promote
+```
 
