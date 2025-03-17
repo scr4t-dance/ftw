@@ -18,7 +18,6 @@ let static_loader _root path _request =
 (* ************************************************************************* *)
 
 let () =
-  Dream.initialize_log ~level:`Debug ();
   (* Parse CLI options *)
   let info = Cmdliner.Cmd.info ~version:"dev" "fourever" in
   let cmd = Cmdliner.Cmd.v info Options.t in
