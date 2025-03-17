@@ -8,11 +8,10 @@ type id = Id.t [@@deriving yojson]
 
 type t = {
   id : id;
-  name : string;
   competition : Competition.id;
-  round : string;
-  judge_artefact : string;
-  head_judge_artefact : string;
+  round : Round.t;
+  judge_artefact_description : Artefact.Descr.t;
+  head_judge_artefact_description : Artefact.Descr.t;
   ranking_algorithm : string;
 } [@@deriving yojson]
 (* judges : string list; *)
@@ -25,13 +24,12 @@ type t = {
 (* ************************************************************************* *)
 
 let id { id; _ } = id
-let name { name; _ } = name
 let competition { competition; _ } = competition
 let round { round; _ } = round
 (*let judges { judges; _ } = judges *)
-let judge_artefact { judge_artefact; _ } = judge_artefact
+let judge_artefact_description { judge_artefact_description; _ } = judge_artefact_description
 (*let head_judge { head_judge; _ } = head_judge *)
-let head_judge_artefact { judge_artefact; _ } = judge_artefact
+let head_judge_artefact_description { judge_artefact_description; _ } = judge_artefact_description
 let ranking_algorithm { ranking_algorithm; _ } = ranking_algorithm
 
 
@@ -44,20 +42,24 @@ let () =
       Sqlite3_utils.exec0_exn st {|
         CREATE TABLE IF NOT EXISTS phases (
           id INTEGER PRIMARY KEY
-        , name TEXT
         , competition INT
-        , round TEXT
-        , judge_artefact TEXT
-        , head_judge_artefact TEXT
+        , round INT
+        , judge_artefact_string TEXT
+        , head_judge_artefact_string TEXT
         , ranking_algorithm TEXT
         )
       |})
 
 let conv =
   Conv.mk
-    Sqlite3_utils.Ty.[int; text; int; text; text; text; text]
-    (fun id name competition round judge_artefact head_judge_artefact ranking_algorithm ->
-        { id; name; competition; round; judge_artefact; head_judge_artefact; ranking_algorithm })
+    Sqlite3_utils.Ty.[int; int; int; text; text; text]
+    (fun id competition round 
+        judge_artefact_string head_judge_artefact_string 
+        ranking_algorithm ->
+          let judge_artefact_description = Artefact.Descr.of_string judge_artefact_string in
+          let head_judge_artefact_description = Artefact.Descr.of_string head_judge_artefact_string in
+          let round = Round.of_int round in
+          { id; competition; round; judge_artefact_description; head_judge_artefact_description; ranking_algorithm })
 
 
 
@@ -76,20 +78,23 @@ let from_competition st competition_id =
   State.query_list_where ~p:Id.p ~conv ~st
     {| SELECT * FROM phases WHERE competition = ? |} competition_id
 
-let create st name competition round judge_artefact head_judge_artefact ranking_algorithm =
+let create st competition round judge_artefact_description head_judge_artefact_description ranking_algorithm =
+  let round = Round.to_int round in
+  let judge_artefact_string = Artefact.Descr.to_string judge_artefact_description in
+  let head_judge_artefact_string = Artefact.Descr.to_string head_judge_artefact_description in
   let open Sqlite3_utils.Ty in
-  State.insert ~st ~ty:[text; int; text; text; text; text]
-    {|INSERT INTO phases (name,competition,round,judge_artefact,head_judge_artefact,ranking_algorithm) VALUES (?,?,?,?,?,?)|} name competition round judge_artefact head_judge_artefact ranking_algorithm;
+  State.insert ~st ~ty:[int; int; text; text; text]
+    {|INSERT INTO phases (competition,round,judge_artefact_string,head_judge_artefact_string,ranking_algorithm) VALUES (?,?,?,?,?)|}
+    competition round judge_artefact_string head_judge_artefact_string ranking_algorithm;
   let t = State.query_one_where ~st ~conv 
-    ~p:[text; int; text; text; text; text]
+    ~p:[int; int; text; text; text]
     {| SELECT *
     FROM phases
     WHERE 0=0
-    AND name=?
     AND competition=?
     AND round=?
-    AND judge_artefact=?
-    AND head_judge_artefact=?
+    AND judge_artefact_string=?
+    AND head_judge_artefact_string=?
     AND ranking_algorithm=? |} 
-    name competition round judge_artefact head_judge_artefact ranking_algorithm in
+    competition round judge_artefact_string head_judge_artefact_string ranking_algorithm in
   t.id

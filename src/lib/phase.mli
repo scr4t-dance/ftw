@@ -17,19 +17,16 @@ type t
 val id : t -> id
 (** Unique id for the phase. *)
 
-val name : t -> string
-(** Name of the phase *)
-
 val competition : t -> Competition.id
 (** Parent competition for the phase. *)
 
-val round : t -> string
+val round : t -> Round.t
 (** round (prelim/semi/final) of the phase *)
 
-val judge_artefact : t -> string
+val judge_artefact_description : t -> Artefact.Descr.t
 (** Type of artefact for judges of the phase *)
 
-val head_judge_artefact : t -> string
+val head_judge_artefact_description : t -> Artefact.Descr.t
 (** Type of artefact for head judge of the phase *)
 
 val ranking_algorithm : t -> string
@@ -53,6 +50,6 @@ val from_competition : State.t -> Competition.id -> t list
 val ids_from_competition : State.t -> Competition.id -> id list
 (** Get the list of all phases id that belong to a given competition. *)
 
-val create : State.t -> string -> Competition.id -> string -> string -> string -> string -> id
+val create : State.t -> Competition.id -> Round.t -> Artefact.Descr.t -> Artefact.Descr.t -> string -> id
 (** Create a new phase *)
 

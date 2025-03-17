@@ -67,11 +67,10 @@ and get_phase =
          with Not_found -> Error.(mk @@ not_found "Phase")
        in
        let ret : Types.Phase.t = {
-         name = Ftw.Phase.name phase;
          competition = Ftw.Phase.competition phase;
          round = Ftw.Phase.round phase;
-         judge_artefact = Ftw.Phase.judge_artefact phase;
-         head_judge_artefact = Ftw.Phase.head_judge_artefact phase;
+         judge_artefact_description = Ftw.Artefact.Descr.to_string @@ Ftw.Phase.judge_artefact_description phase;
+         head_judge_artefact_description = Ftw.Artefact.Descr.to_string @@ Ftw.Phase.head_judge_artefact_description phase;
          ranking_algorithm = Ftw.Phase.ranking_algorithm phase;
        } in
        Ok ret
@@ -86,8 +85,10 @@ and create_phase =
     ~to_yojson:Types.PhaseId.to_yojson
     (fun _req st (phase : Types.Phase.t) ->
        let id =
-         Ftw.Phase.create st phase.name phase.competition phase.round 
-         phase.judge_artefact phase.head_judge_artefact phase.ranking_algorithm
+        let judge_artefact_description = Ftw.Artefact.Descr.of_string phase.judge_artefact_description in
+        let head_judge_artefact_description = Ftw.Artefact.Descr.of_string phase.head_judge_artefact_description in
+        Ftw.Phase.create st phase.competition phase.round 
+        judge_artefact_description head_judge_artefact_description phase.ranking_algorithm
        in
        Ok id)
 
