@@ -4,15 +4,21 @@
 (* Helper functions *)
 (* ************************************************************************* *)
 
-let rec loader _root path _request =
+let index_loader _root _path _request =
+  match Static.read "index.html" with
+  | Some index -> Dream.html index
+  | None -> Dream.respond ~status:`Not_Found "Index file not found"
+
+let static_loader _root path _request =
   match Static.read path with
-  | None -> loader _root "index.html" _request
+  | None -> Dream.empty `Not_Found
   | Some asset -> Dream.respond asset
 
 (* Main entrypoint *)
 (* ************************************************************************* *)
 
 let () =
+  Dream.initialize_log ~level:`Debug ();
   (* Parse CLI options *)
   let info = Cmdliner.Cmd.info ~version:"dev" "fourever" in
   let cmd = Cmdliner.Cmd.v info Options.t in
@@ -25,7 +31,9 @@ let () =
   in
   (* Defaul routes to serve the clients files (pages, scripts and css) *)
   let default_routes = [
-    Dream.get "/**" (Dream.static ~loader "")
+    Dream.get "/" (index_loader "" "");
+    Dream.get "/static/**" (Dream.static ~loader:static_loader "");
+    Dream.get "/**" (Dream.static ~loader:index_loader "");
   ] in
   (* Setup the router with the base information for openapi *)
   let router =
