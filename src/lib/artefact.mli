@@ -10,10 +10,21 @@ module Descr : sig
     | Ranking
     | Yans of { criterion : string list; }
   [@@deriving yojson]
+  (** Description of artefact types.
+      Enable reading of artefacts.*)  
 
   val ranking : t
   val yans : string list -> t
-
+  val of_string : string -> t
+  (** Conversion from string.
+      @raise Failure _ if the string does not match spec *)
+  val to_string : t -> string
+  (** Conversion to string. *)
+  val p : (string -> 'a, 'a) Sqlite3_utils.Ty.t
+  (** Sqlite query "type" for identifiers *)
+  
+  val conv : t Conv.t
+  (** Converter for identifiers *)
 end
 
 (* Artefact type *)

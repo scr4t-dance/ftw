@@ -105,7 +105,9 @@ module Kind = struct
     | Strictly
     | JJ_Strictly
     | Jack_and_Jill
-  [@@deriving yojson]
+  [@@deriving yojson, enum, show]
+
+  let all = List.filter_map of_enum (List.init (to_enum Jack_and_Jill + 1) Fun.id)
 
   let ref, schema =
     make_schema ()
@@ -114,12 +116,11 @@ module Kind = struct
       ~items:(
         obj @@ S.make_schema ()
           ~typ:string
-          ~enum:[
-            `String "Routine";
-            `String "Strictly";
-            `String "JJ_Strictly";
-            `String "Jack_and_Jill";
-          ])
+          ~enum:(List.map 
+          (fun kind -> `String (show kind)) 
+          all
+        )
+      )
 end
 
 (* Competition Division *)
@@ -139,28 +140,11 @@ module Division = struct
       ~items:(
         obj @@ S.make_schema ()
           ~typ:string
-          ~enum:[
-            `String "Novice";
-            `String "Intermediate";
-            `String "Advanced";
-          ])
-end
-
-(* Division list *)
-module DivisionList = struct
-  type t = {
-    divisions : Division.t list;
-  } [@@deriving yojson]
-
-  let ref, schema =
-    make_schema ()
-      ~name:"DivisionList"
-      ~typ:object_
-      ~properties:[
-        "divisions", obj @@ S.make_schema ()
-          ~typ:array
-          ~items:(ref Division.ref);
-      ]
+          ~enum:(List.map 
+            (fun division -> `String (show division)) 
+            all
+          )
+        )
 end
 
 (* Competition Category *)
@@ -172,7 +156,9 @@ module Category = struct
     | Regular
     | Qualifying
     | Invited
-  [@@deriving yojson]
+  [@@deriving yojson, enum, show]
+
+  let all = List.filter_map of_enum (List.init (to_enum Invited + 1) Fun.id)
 
   let of_ftw cat : t =
     match (cat : Ftw.Category.t) with
@@ -199,15 +185,48 @@ module Category = struct
       ~items:(
         obj @@ S.make_schema ()
           ~typ:string
-          ~enum:[
-            `String "Novice";
-            `String "Intermediate";
-            `String "Advanced";
-            `String "Regular";
-            `String "Qualifying";
-            `String "Invited";
-          ])
+          ~enum:(List.map 
+            (fun cat -> `String (show cat)) 
+            all
+          )
+      )
 end
+
+(* Round *)
+module Round = struct
+  type t = Ftw.Round.t =
+    | Prelims
+    | Octofinals
+    | Quarterfinals
+    | Semifinals
+    | Finals
+  [@@deriving yojson, enum, show]
+
+  let all = List.filter_map of_enum (List.init (to_enum Finals + 1) Fun.id)
+
+  let of_string s =
+    match String.lowercase_ascii s with
+    | "prelims" -> Prelims
+    | "octofinals" -> Octofinals
+    | "quarterfinals" -> Quarterfinals
+    | "semifinals" -> Semifinals
+    | "finals" -> Finals
+    | _ -> raise (Invalid_argument ("Invalid round type: " ^ s))
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Round"
+      ~typ:array
+      ~items:(
+        obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:(List.map 
+          (fun round -> `String (show round)) 
+          all
+        )
+      )
+end
+
 
 
 (* Events *)
@@ -351,11 +370,10 @@ end
 (* Phase specification *)
 module Phase = struct
   type t = {
-    name : string;
     competition : CompetitionId.t;
-    round : string;
-    judge_artefact : string;
-    head_judge_artefact : string;
+    round : Round.t;
+    judge_artefact_description : string;
+    head_judge_artefact_description : string;
     ranking_algorithm : string;
   } [@@deriving yojson]
 
@@ -364,21 +382,16 @@ module Phase = struct
       ~name:"Phase"
       ~typ:(Obj Object)
       ~properties:[
-        "name", obj @@ S.make_schema ()
-          ~typ:string
-          ~examples:[`String "P4T"];
         "competition", ref CompetitionId.ref;
-        "round", obj @@ S.make_schema ()
-        ~typ:string
-        ~examples:[`String "Prelim"];
-        "judge_artefact", obj @@ S.make_schema ()
+        "round", ref Round.ref;
+        "judge_artefact_description", obj @@ S.make_schema ()
           ~typ:string
           ~examples:[
             `String "Rank";
             `String "Note";
             `String "Single_note";
           ];
-        "head_judge_artefact", obj @@ S.make_schema ()
+        "head_judge_artefact_description", obj @@ S.make_schema ()
         ~typ:string
         ~examples:[
           `String "Rank";

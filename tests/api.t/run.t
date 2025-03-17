@@ -67,12 +67,12 @@ Create some phase
 
   $ curl -s -X PUT localhost:8080/api/phase \
   > -H "Content-Type: application/json" \
-  > -d '{"name":"p","competition":2,"round":"Prelim","judge_artefact":"","head_judge_artefact":"","ranking_algorithm":""}'
+  > -d '{"competition":2,"round":["Prelims"],"judge_artefact_description":"yans:musicalite,technique,teamwork","head_judge_artefact_description":"bonus","ranking_algorithm":"RPSS"}'
   1
 
   $ curl -s -X PUT localhost:8080/api/phase \
   > -H "Content-Type: application/json" \
-  > -d '{"name":"q","competition":2,"round":"Finals","judge_artefact":"","head_judge_artefact":"","ranking_algorithm":""}'
+  > -d '{"competition":2,"round":["Finals"],"judge_artefact_description":"ranking","head_judge_artefact_description":"bonus","ranking_algorithm":"RPSS"}'
   2
 
 Get the ids of phase we created, and check their details
@@ -81,10 +81,10 @@ Get the ids of phase we created, and check their details
   {"phases":[1,2]}
 
   $ curl -s localhost:8080/api/phase/1
-  {"name":"p","competition":2,"round":"Prelim","judge_artefact":"","head_judge_artefact":"","ranking_algorithm":""}
+  {"competition":2,"round":["Prelims"],"judge_artefact_description":"yans:musicalite,technique,teamwork","head_judge_artefact_description":"yans:musicalite,technique,teamwork","ranking_algorithm":"RPSS"}
 
   $ curl -s localhost:8080/api/phase/2
-  {"name":"q","competition":2,"round":"Finals","judge_artefact":"","head_judge_artefact":"","ranking_algorithm":""}
+  {"competition":2,"round":["Finals"],"judge_artefact_description":"ranking","head_judge_artefact_description":"ranking","ranking_algorithm":"RPSS"}
 
 End & Cleanup
 -------------

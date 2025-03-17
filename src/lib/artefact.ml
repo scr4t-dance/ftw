@@ -10,10 +10,25 @@ module Descr = struct
     | Ranking
     | Yans of { criterion : string list; }
   [@@deriving yojson]
+    let of_string s =
+      match s with
+      | "bonus" -> Bonus
+      | "ranking" -> Ranking
+      | _ -> match CCString.chop_prefix ~pre:"yans:" s with
+        | Some criterion_list -> Yans { criterion = String.split_on_char ',' criterion_list }
+        | None -> raise (Invalid_argument ("Invalid t type: " ^ s))
 
+  let to_string = function
+    | Bonus -> "bonus"
+    | Ranking -> "ranking"
+    | Yans { criterion } -> 
+        "yans:" ^ String.concat "," criterion
+  let bonus = Bonus
   let ranking = Ranking
   let yans criterion = Yans { criterion; }
 
+  let p = Sqlite3_utils.Ty.([text])
+  let conv = Conv.mk p of_string
 end
 
 (* Artefact values *)
