@@ -204,15 +204,6 @@ module Round = struct
 
   let all = List.filter_map of_enum (List.init (to_enum Finals + 1) Fun.id)
 
-  let of_string s =
-    match String.lowercase_ascii s with
-    | "prelims" -> Prelims
-    | "octofinals" -> Octofinals
-    | "quarterfinals" -> Quarterfinals
-    | "semifinals" -> Semifinals
-    | "finals" -> Finals
-    | _ -> raise (Invalid_argument ("Invalid round type: " ^ s))
-
   let ref, schema =
     make_schema ()
       ~name:"Round"
