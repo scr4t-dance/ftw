@@ -14,10 +14,6 @@ type t = {
   head_judge_artefact_description : Artefact.Descr.t;
   ranking_algorithm : string;
 } [@@deriving yojson]
-(* judges : string list; *)
-(* head_judge : string; *)
-(* targets *)
-(* artefacts *)
 
 
 (* Common functions *)
@@ -26,9 +22,7 @@ type t = {
 let id { id; _ } = id
 let competition { competition; _ } = competition
 let round { round; _ } = round
-(*let judges { judges; _ } = judges *)
 let judge_artefact_description { judge_artefact_description; _ } = judge_artefact_description
-(*let head_judge { head_judge; _ } = head_judge *)
 let head_judge_artefact_description { judge_artefact_description; _ } = judge_artefact_description
 let ranking_algorithm { ranking_algorithm; _ } = ranking_algorithm
 
@@ -42,11 +36,12 @@ let () =
       Sqlite3_utils.exec0_exn st {|
         CREATE TABLE IF NOT EXISTS phases (
           id INTEGER PRIMARY KEY
-        , competition INT
+        , competition INT REFERENCES competitions(id)
         , round INT
         , judge_artefact_string TEXT
         , head_judge_artefact_string TEXT
-        , ranking_algorithm TEXT
+        , ranking_algorithm TEXT -- don't ref to algorithm types because can includes parameters
+        , UNIQUE(competition_id, round)
         )
       |})
 

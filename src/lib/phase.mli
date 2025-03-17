@@ -8,7 +8,12 @@ type id = Id.t [@@deriving yojson]
 (** Ids for phases *)
 
 type t
-(** Phases *)
+(** Phases.
+    This type describe a phase of a competition.
+    Only one phase of a specific round is allowed per competition.
+    This table is the reference for the list of judges, the head judge,
+    table of heats (artefacts' targets) and couple_heats.
+    *)
 
 
 (* Common functions *)
