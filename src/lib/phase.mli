@@ -58,3 +58,5 @@ val ids_from_competition : State.t -> Competition.id -> id list
 val create : State.t -> Competition.id -> Round.t -> Artefact.Descr.t -> Artefact.Descr.t -> string -> id
 (** Create a new phase *)
 
+val update :  State.t -> id -> Round.t -> Artefact.Descr.t -> Artefact.Descr.t -> string -> id
+
