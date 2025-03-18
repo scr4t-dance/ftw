@@ -52,6 +52,37 @@ let rec routes router =
       "400", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Invalid input";
     ]
+  |> Router.patch "/api/phase/:id" update_phase
+    ~tags:["phase"]
+    ~summary:"Get the details of a Phase"
+    ~parameters:[
+      Types.obj @@ Spec.make_parameter_object ()
+        ~name:"id" ~in_:Path
+        ~description:"Id of the queried phase"
+        ~required:true
+        ~schema:Types.(ref PhaseId.ref)
+    ]
+    ~request_body:(
+      Types.obj @@ Spec.make_request_body_object ()
+        ~description:"Details of the Phase to update, cannot update competition. Beware when updating round !"
+        ~required:true
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref Phase.ref));
+        ]
+    )
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Successful operation"
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref Phase.ref));
+        ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid Id supplied";
+      "404", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Phase not found";
+    ]
 
 
 (* Phase query *)
@@ -92,3 +123,19 @@ and create_phase =
        in
        Ok id)
 
+and update_phase = 
+  Api.patch
+    ~of_yojson:Types.Phase.of_yojson
+    ~to_yojson:Types.PhaseId.to_yojson
+    (
+      fun req st (phase : Types.Phase.t) ->
+        let+ id_phase = Utils.int_param req "id" in
+        let id =
+          let judge_artefact_description = 
+            Ftw.Artefact.Descr.of_string phase.judge_artefact_description in
+          let head_judge_artefact_description = 
+            Ftw.Artefact.Descr.of_string phase.head_judge_artefact_description in
+          Ftw.Phase.update st id_phase phase.round judge_artefact_description 
+            head_judge_artefact_description phase.ranking_algorithm in
+        Ok id
+    )
