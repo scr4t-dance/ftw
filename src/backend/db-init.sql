@@ -48,7 +48,7 @@ CREATE TABLE competitions (
 );
 
 
-CREATE TABLE divisions (
+CREATE TABLE division_names (
     id INTEGER PRIMARY KEY,
     name TEXT UNIQUE
 );
@@ -95,7 +95,7 @@ CREATE TABLE round_types (
 CREATE TABLE phases (
     id INTEGER PRIMARY KEY,
     competition_id INTEGER REFERENCES competitions(id),
-    round_type INTEGER REFERENCES round_types(id),
+    round INTEGER REFERENCES round_types(id),
     artefact_description_judges TEXT,
     artefact_description_head_judge TEXT,
     ranking_algorithm TEXT, -- don't ref to algorithm types because can includes parameters

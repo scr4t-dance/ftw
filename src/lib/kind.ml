@@ -30,6 +30,15 @@ let of_int = function
 let p = Sqlite3_utils.Ty.([int])
 let conv = Conv.mk p of_int
 
+let () =
+  State.add_init_descr_table
+    ~table_name:"division_names" ~to_int
+    ~values:[
+      Routine, "Routine";
+      Strictly, "Strictly";
+      JJ_Strictly, "JJ_Strictly";
+      Jack_and_Jill, "Jack_and_Jill";
+    ]
 
 (* Usual functions *)
 (* ************************************************************************* *)

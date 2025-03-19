@@ -7,11 +7,10 @@
 module Descr : sig
 
   type t =
-    | Bonus
     | Ranking
     | Yans of { criterion : string list; }
+  [@@deriving yojson]
 
-  val bonus : t
   val ranking : t
   val yans : string list -> t
 
@@ -20,9 +19,6 @@ end
 (* Artefact type *)
 (* ************************************************************************* *)
 
-type bonus = int
-(* Bonus value *)
-
 type yan =
   | Yes
   | Alt
@@ -30,24 +26,35 @@ type yan =
 (* Yes/Alt/No *)
 
 type t =
-  | Bonus of bonus
   | Rank of Rank.t
   | Yans of yan list
 
 (* DB Interaction *)
 (* ************************************************************************* *)
 
-val to_int : t -> int
-(** Conversion to integer. *)
+val get_regular :
+  st:State.t ->
+  judge:Judge.id ->
+  target:Id.t ->
+  descr:Descr.t ->
+  t
 
-val of_int : descr:Descr.t -> int -> t
-(** Conversion from integer.
-    @raise Failure _ if the int is out of range *)
+val set_regular :
+  st:State.t ->
+  judge:Judge.id ->
+  target:Id.t ->
+  t -> unit
 
-val p : (int -> 'a, 'a) Sqlite3_utils.Ty.t
-(** Sqlite query "type" for identifiers *)
+val get_jack_strictly :
+  st:State.t ->
+  judge:Judge.id ->
+  target:Id.t ->
+  descr:Descr.t ->
+  t
 
-val conv : descr:Descr.t -> t Conv.t
-(** Converter for identifiers *)
-
+val set_jack_strictly :
+  st:State.t ->
+  judge:Judge.id ->
+  target:Id.t ->
+  t -> unit
 
