@@ -33,12 +33,12 @@ let () =
       Sqlite3_utils.exec0_exn st {|
         CREATE TABLE IF NOT EXISTS competitions (
           id INTEGER PRIMARY KEY,
-          event INTEGER,
+          event INTEGER REFERENCES events(id),
           name TEXT,
-          kind INTEGER,
-          category INTEGER
+          kind INTEGER REFERENCES competition_kinds(id),
+          category INTEGER REFERENCES competition_categories(id)
         )
-        |})
+    |})
 
 let conv =
   Conv.mk

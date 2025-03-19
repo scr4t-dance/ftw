@@ -10,6 +10,7 @@ module Descr = struct
     | Bonus
     | Ranking
     | Yans of { criterion : string list; }
+  [@@deriving yojson]
 
   let bonus = Bonus
   let ranking = Ranking
@@ -35,7 +36,7 @@ type t =
   | Yans of yan list
 
 
-(* DB interaction *)
+(* Encoding and decoding *)
 (* ************************************************************************* *)
 
 (* Int encoding schema:
@@ -92,6 +93,58 @@ let to_int t =
     fst @@ List.fold_left
       (fun (v, i) y -> (encode_yan v i y, i + 2)) (0, 0) l
 
+
+(* DB interaction *)
+(* ************************************************************************* *)
+
 let p = Sqlite3_utils.Ty.([int])
 let conv ~descr = Conv.mk p (of_int ~descr)
+
+(* Artefacts for J&J and Strictly *)
+let () =
+  State.add_init (fun st ->
+      Sqlite3_utils.exec0_exn st {|
+        CREATE TABLE IF NOT EXISTS regular_artefacts (
+          target_id INTEGER REFERENCES regular_heats(id),
+          judge INTEGER REFERNECES dancers(id),
+          artefact INTEGER NOT NULL
+          PRIMARY KEY(target_id,judge)
+        )
+      |})
+
+let get_regular ~st ~judge ~target ~descr =
+  let open Sqlite3_utils.Ty in
+  State.query_one_where ~st ~p:[int;int] ~conv:(conv ~descr)
+    {| SELECT artefact FROM regular_artefacts WHERE target_id = ? AND judge = ? |}
+    target judge
+
+let set_regular ~st ~judge ~target t =
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[int;int;int]
+    {| INSERT INTO regular_artefacts(target_id,judge,artefact) VALUES (?,?,?) |}
+    target judge (to_int t)
+
+(* Artefacts for Jakc&Strictlys *)
+let () =
+  State.add_init (fun st ->
+      Sqlite3_utils.exec0_exn st {|
+        CREATE TABLE IF NOT EXISTS jack_strictly_artefacts (
+          target_id INTEGER REFERENCES jack_strictly_heats(id),
+          judge INTEGER REFERNECES dancers(id),
+          artefact INTEGER NOT NULL
+          PRIMARY KEY(target_id,judge)
+        )
+      |})
+
+let get_jack_strictly ~st ~judge ~target ~descr =
+  let open Sqlite3_utils.Ty in
+  State.query_one_where ~st ~p:[int;int] ~conv:(conv ~descr)
+    {| SELECT artefact FROM jack_strictly_artefacts WHERE target_id = ? AND judge = ? |}
+    target judge
+
+let set_jack_strictly ~st ~judge ~target t =
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[int;int;int]
+    {| INSERT INTO jack_strictly_artefacts(target_id,judge,artefact) VALUES (?,?,?) |}
+    target judge (to_int t)
 

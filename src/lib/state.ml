@@ -15,6 +15,10 @@ let mk path =
 
 let atomically = Sqlite3_utils.atomically
 
+let exec ~st sql =
+  let open Sqlite3_utils in
+  exec0_exn st sql
+
 let insert ~ty ~st sql =
   let open Sqlite3_utils in
   exec_no_cursor_exn st sql ~ty
@@ -55,3 +59,24 @@ let query_one_where ~p ~conv ~st sql =
   with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
     raise Not_found
 
+(* Helper for intializing tables that are mainly here so that the DB can
+   be (more or less) self-describing, or at least a bit more readable
+   without context. *)
+let add_init_descr_table ~table_name ~to_int ~values =
+  let aux st =
+    (* create table *)
+    exec ~st (Format.asprintf {|
+      CREATE TABLE IF NOT EXISTS %s (
+        id INTEGER PRIMARY KEY,
+        name TEXT UNIQUE)
+      |} table_name);
+    (* Add all values *)
+    List.iter (fun (value, name) ->
+      let open Sqlite3_utils.Ty in
+      insert ~st ~ty:[ int; text; ]
+        (Format.asprintf
+           {| INSERT OR IGNORE INTO %s (id, name) VALUES (?,?) |} table_name)
+        (to_int value) name
+      ) values
+  in
+  add_init aux

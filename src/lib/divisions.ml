@@ -4,66 +4,51 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type main =
+type t =
+  | None
   | Novice
   | Novice_Intermediate
   | Intermediate
   | Intermediate_Advanced
-  | Advanced
+  | Advanced (**)
+(** This represents the divisions accessible to a given dancer.
+    See comment in the interface. *)
 
-type t = {
-  main : main option;
-}
-(** This is basically a {Division.Set.t} but since there are very few
-    divisions, this way is easier and simpler. *)
+
+(* Usual functions *)
+(* ************************************************************************* *)
 
 let equal = Stdlib.(=)
 let compare = Stdlib.compare
 
-
-(* Conversions *)
-(* ************************************************************************* *)
-
-let print_main fmt = function
+let print fmt = function
+  | None -> Format.fprintf fmt "N/A"
   | Novice -> Format.fprintf fmt "novice"
   | Novice_Intermediate -> Format.fprintf fmt "novice/inter"
   | Intermediate -> Format.fprintf fmt "intermediate"
   | Intermediate_Advanced -> Format.fprintf fmt "inter/adv"
   | Advanced -> Format.fprintf fmt "advanced"
 
-let print fmt { main } =
-  match main with
-  | None -> Format.fprintf fmt "N/A"
-  | Some main -> print_main fmt main
-
 
 (* Conversions *)
 (* ************************************************************************* *)
 
-let to_int { main; } =
-  let i =
-    match main with
-    | None -> 0
-    | Some Novice -> 1
-    | Some Novice_Intermediate -> 1
-    | Some Intermediate -> 3
-    | Some Intermediate_Advanced -> 4
-    | Some Advanced -> 5
-  in
-  i
+let to_int = function
+  | None -> 0
+  | Novice -> 1
+  | Novice_Intermediate -> 2
+  | Intermediate -> 3
+  | Intermediate_Advanced -> 4
+  | Advanced -> 5
 
-let of_int i =
-  let main =
-    match i with
-    | 0 -> None
-    | 1 -> Some Novice
-    | 2 -> Some Novice_Intermediate
-    | 3 -> Some Intermediate
-    | 4 -> Some Intermediate_Advanced
-    | 5 -> Some Advanced
-    | _ -> failwith (Format.asprintf "%d is not a valid divisions" i)
-  in
-  { main; }
+let of_int = function
+  | 0 -> None
+  | 1 -> Novice
+  | 2 -> Novice_Intermediate
+  | 3 -> Intermediate
+  | 4 -> Intermediate_Advanced
+  | 5 -> Advanced
+  | i -> failwith (Format.asprintf "%d is not a valid divisions" i)
 
 let p = Sqlite3_utils.Ty.([int])
 let conv = Conv.mk p of_int

@@ -40,7 +40,7 @@ let to_int = function
 let of_int = function
   | 0 -> Non_competitive Regular
   | 1 -> Competitive Novice
-  | 2 ->Competitive Intermediate
+  | 2 -> Competitive Intermediate
   | 3 -> Competitive Advanced
   | 6 -> Non_competitive Qualifying
   | 7 -> Non_competitive Invited
@@ -49,8 +49,19 @@ let of_int = function
 let p = Sqlite3_utils.Ty.([int])
 let conv = Conv.mk p of_int
 
+let () =
+  State.add_init_descr_table
+    ~table_name:"competition_categories" ~to_int
+    ~values:[
+      Non_competitive Regular, "Regular";
+      Competitive Novice, "SCR4T - Novice";
+      Competitive Intermediate, "SCR4T - Inter";
+      Competitive Advanced, "SCR4T - Advanced";
+      Non_competitive Qualifying, "Qualifying";
+      Non_competitive Invited, "Invited"
+    ]
 
-(* DB Interaction *)
+(* Usual functions *)
 (* ************************************************************************* *)
 
 let compare d d' =
