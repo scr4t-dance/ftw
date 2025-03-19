@@ -14,6 +14,13 @@ type t =
     There cannot be two phases with the same round type in a competition. *)
 
 
+(* Serialization *)
+(* ************************************************************************* *)
+
+val toml_key : t -> string
+(** Suitable key for toml *)
+
+
 (* DB interaction *)
 (* ************************************************************************* *)
 

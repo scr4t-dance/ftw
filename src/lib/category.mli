@@ -22,6 +22,17 @@ type t =
     that mostly makes sense for the creation of the SCR4T point system). *)
 
 
+(* Serialization *)
+(* ************************************************************************* *)
+
+val to_toml : t -> Otoml.t
+(** Serialization to string for a (mostly) human readable format. *)
+
+val of_toml : Otoml.t -> t
+(** Deserialization from string
+    @raise Otoml.Type_error *)
+
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
@@ -41,6 +52,9 @@ val conv : t Conv.t
 
 (* Usual functions *)
 (* ************************************************************************* *)
+
+val print : Format.formatter -> t -> unit
+(** Printing function (note: for debug only). *)
 
 val equal : t -> t -> bool
 (** Equality function *)

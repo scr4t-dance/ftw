@@ -1,7 +1,7 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-(* Helper functions *)
+(* Main Server *)
 (* ************************************************************************* *)
 
 let loader _root path _request =
@@ -14,20 +14,7 @@ let loader _root path _request =
         end
     | Some asset -> Dream.respond asset
 
-(* Main entrypoint *)
-(* ************************************************************************* *)
-
-let () =
-  (* Parse CLI options *)
-  let info = Cmdliner.Cmd.info ~version:"dev" "fourever" in
-  let cmd = Cmdliner.Cmd.v info Options.t in
-  let options =
-    match Cmdliner.Cmd.eval_value cmd with
-    | Ok `Ok options -> options
-    | Ok (`Help | `Version) -> exit 0
-    | Error `Parse -> exit Cmdliner.Cmd.Exit.cli_error
-    | Error (`Term | `Exn) -> exit Cmdliner.Cmd.Exit.internal_error
-  in
+let server (options : Options.server) =
   (* Defaul routes to serve the clients files (pages, scripts and css) *)
   let default_routes = [
     Dream.get "/" (loader "" "");
@@ -75,3 +62,52 @@ let () =
   @@ Dream.memory_sessions
   @@ State.init ~path:options.db_path
   @@ Router.build ~default_routes router
+
+(* Event Import *)
+(* ************************************************************************* *)
+
+let import (options : Options.import) =
+  Ftw.State.atomically (Ftw.State.mk options.db_path)
+    ~f:(fun st ->
+        match Ftw.Import.from_file st options.ev_path with
+        | Ok () -> ()
+        | Error msg ->
+          Logs.app (fun k->k "Import failed: %s" msg);
+          exit 1
+      )
+
+(* Event Export *)
+(* ************************************************************************* *)
+
+let export (options : Options.export) =
+  Ftw.State.atomically (Ftw.State.mk options.db_path)
+    ~f:(fun st ->
+        match Ftw.Export.to_file ~st options.out_path options.ev_id with
+        | Ok _ -> ()
+        | Error () -> exit 1
+      )
+
+(* Main entrypoint *)
+(* ************************************************************************* *)
+
+let () =
+  (* Parse CLI options *)
+  let info = Cmdliner.Cmd.info ~version:"dev" "ftw" in
+  let cmd =
+    let open Cmdliner in
+    Cmd.group ~default:Options.server info [
+      Cmd.v (Cmd.info "import") Options.import;
+      Cmd.v (Cmd.info "export") Options.export;
+    ]
+  in
+  match Cmdliner.Cmd.eval_value cmd with
+  (* Errors *)
+  | Error `Parse -> exit Cmdliner.Cmd.Exit.cli_error
+  | Error (`Term | `Exn) -> exit Cmdliner.Cmd.Exit.internal_error
+  (* Help / Version *)
+  | Ok (`Help | `Version) -> exit 0
+  (* Options parsed, run the code *)
+  | Ok `Ok Options.Server options -> server options
+  | Ok `Ok Options.Import options -> import options
+  | Ok `Ok Options.Export options -> export options
+

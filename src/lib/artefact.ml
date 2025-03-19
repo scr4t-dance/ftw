@@ -14,6 +14,24 @@ module Descr = struct
   let ranking = Ranking
   let yans criterion = Yans { criterion; }
 
+  let to_toml = function
+    | Ranking ->
+      Otoml.array [ Otoml.string "Ranking" ]
+    | Yans { criterion } ->
+      Otoml.array (
+        Otoml.string "Yans" ::
+        List.map Otoml.string criterion)
+
+  let of_toml t =
+    match Otoml.(get_array get_value) t with
+    | [ t' ] when Otoml.(get_opt get_string) t' = Some "Ranking" ->
+      Ranking
+    | t' :: r when Otoml.(get_opt get_string) t' = Some "Yans" ->
+      let criterion = List.map Otoml.get_string r in
+      Yans { criterion }
+    | _ ->
+      raise (Otoml.Type_error "Incorrect encoding of Artefact.Descr.t")
+
 end
 
 (* Artefact values *)
@@ -114,4 +132,32 @@ let set ~st ~judge ~target t =
   State.insert ~st ~ty:[int;int;int]
     {| INSERT INTO artefacts(target_id,judge,artefact) VALUES (?,?,?) |}
     target judge (to_int t)
+
+
+(* Serialization *)
+(* ************************************************************************* *)
+
+let yan_to_toml = function
+  | Yes -> Otoml.integer 3
+  | Alt -> Otoml.integer 2
+  | No -> Otoml.integer 1
+
+let yan_of_toml t =
+  match Otoml.get_integer t with
+  | 1 -> No
+  | 2 -> Alt
+  | 3 -> Yes
+  | i -> raise (Otoml.Type_error ("Not a Yan: " ^ (string_of_int i)))
+
+let yans_to_toml l = Otoml.array (List.map yan_to_toml l)
+let yans_of_toml t = Otoml.get_array yan_of_toml t
+
+let to_toml = function
+  | Rank i -> Rank.to_toml i
+  | Yans l -> yans_to_toml l
+
+let of_toml ~descr t =
+  match (descr : Descr.t) with
+  | Ranking -> Rank (Rank.of_toml t)
+  | Yans _ -> Yans (yans_of_toml t)
 

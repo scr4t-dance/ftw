@@ -61,13 +61,20 @@ let from_event st event_id =
     {| SELECT * FROM competitions WHERE event = ? |} event_id
 
 let create st event_id name kind category : Id.t =
+  Logs.debug ~src:State.src (fun k->
+      k "@[<hv 2>Creating new competition with@ event_id: %d / name: %s@ kind: %a (%d)@ category: %a(%d)@]"
+        event_id name Kind.print kind (Kind.to_int kind) Category.print category (Category.to_int category));
   let open Sqlite3_utils.Ty in
   State.insert ~st ~ty:[ int; text; int; int ]
     {| INSERT INTO competitions (event, name, kind, category) VALUES (?,?,?,?) |}
     event_id name (Kind.to_int kind) (Category.to_int category);
   (* TODO: try and get the id of the new competition from the insert statement above,
      rather than using a new query *)
-  State.query_one_where ~p:[ int; text; int; int ] ~conv:Id.conv ~st
-    {| SELECT id FROM competition WHERE event = ? AND name=? AND kind=? AND category=? |}
-    event_id name (Kind.to_int kind) (Category.to_int category);
+  let id =
+    State.query_one_where ~p:[ int; text; int; int ] ~conv:Id.conv ~st
+      {| SELECT id FROM competitions WHERE event=? AND name=? AND kind=? AND category=? |}
+      event_id name (Kind.to_int kind) (Category.to_int category)
+  in
+  Logs.debug ~src:State.src (fun k->k "Competition created with id %d" id);
+  id
 

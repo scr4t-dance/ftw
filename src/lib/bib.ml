@@ -95,4 +95,3 @@ let set ~st ~competition ~target ~bib =
   | Any Couple { leader; follower; } ->
     set_aux ~st ~bib ~competition ~dancer:leader ~role:Leader;
     set_aux ~st ~bib ~competition ~dancer:follower ~role:Follower
-

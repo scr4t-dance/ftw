@@ -1,7 +1,7 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-(* Type & usual functions *)
+(* Type definition *)
 (* ************************************************************************* *)
 
 type t = {
@@ -9,6 +9,13 @@ type t = {
   month : int;
   year : int;
 } [@@deriving yojson]
+
+
+(* Helper functions *)
+(* ************************************************************************* *)
+
+let print fmt { day; month; year; } =
+  Format.fprintf fmt "%02d/%02d/%04d" day month year
 
 let compare d d' =
   let open CCOrd in
@@ -59,4 +66,14 @@ let of_string s =
 
 let p = Sqlite3_utils.Ty.([text])
 let conv = Conv.mk p of_string
+
+
+(* Serialization *)
+(* ************************************************************************* *)
+
+let to_toml t =
+  Otoml.string (to_string t)
+
+let of_toml t =
+  of_string (Otoml.get_string t)
 

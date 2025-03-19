@@ -1,6 +1,31 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+(* Common Errors *)
+(* ************************************************************************* *)
+
+module Error : sig
+
+  exception Deserialization_error of {
+      payload : string;
+      expected : string;
+    }
+  (** Exception for errors during deserialization. *)
+
+  val deserialization : payload:string -> expected:string -> _
+  (** Raise a deserialization exception. *)
+
+end
+
+(* Result monadic operators *)
+(* ************************************************************************* *)
+
+module Result : sig
+
+  val (let+) : ('a, 'b) result -> ('a -> ('c, 'b) result) -> ('c, 'b) result
+
+end
+
 (* Bitwise manipulations *)
 (* ************************************************************************* *)
 
