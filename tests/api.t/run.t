@@ -96,6 +96,51 @@ Update a phase
   $ curl -s localhost:8080/api/phase/2
   {"competition":2,"round":["Finals"],"judge_artefact_description":"yans:full","head_judge_artefact_description":"yans:head","ranking_algorithm":"Condorcet"}
 
+Dancer Management
+----------------
+
+Create some dancers
+
+  $ curl -s -X PUT localhost:8080/api/dancer \
+  > -H "Content-Type: application/json" \
+  > -d '{"birthday":{"day":1,"month":1,"year":1900}, "last_name":"Bury", "first_name":"Guillaume", "email":"email@email.email", "as_leader":["Novice"], "as_follower":["Novice"]}'
+  1
+
+  $ curl -s -X PUT localhost:8080/api/dancer \
+  > -H "Content-Type: application/json" \
+  > -d '{"birthday":{"day":1,"month":1,"year":1900},"last_name":"Last","first_name":"FirstName","email":"email@email.email","as_leader":["Novice"],"as_follower":["Intermediate_Advanced"]}'
+  2
+
+Get the ids of phase we created, and check their details
+
+  $ curl -s localhost:8080/api/dancer/1
+  {"birthday":{"day":1,"month":1,"year":1900},"last_name":"Bury","first_name":"Guillaume","email":"email@email.email","as_leader":["Novice"],"as_follower":["Novice"]}
+
+  $ curl -s localhost:8080/api/dancer/2
+  {"birthday":{"day":1,"month":1,"year":1900},"last_name":"Last","first_name":"FirstName","email":"email@email.email","as_leader":["Novice"],"as_follower":["Intermediate_Advanced"]}
+
+  $ curl -s localhost:8080/api/phase/1/dancers
+
+Update a phase
+
+  $ curl -s -X PATCH localhost:8080/api/dancer/2/as_leader \
+  > -H "Content-Type: application/json" \
+  > -d '["Intermediate"]'
+  2
+
+  $ curl -s localhost:8080/api/dancer/2
+  {"birthday":{"day":1,"month":1,"year":1900},"last_name":"Last","first_name":"FirstName","email":"email@email.email","as_leader":["Intermediate"],"as_follower":["Intermediate_Advanced"]}
+
+
+  $ curl -s -X PATCH localhost:8080/api/dancer/2/as_folower \
+  > -H "Content-Type: application/json" \
+  > -d '["Novice_Intermediate"]'
+  2
+
+  $ curl -s localhost:8080/api/dancer/2
+  {"birthday":{"day":1,"month":1,"year":1900},"last_name":"Last","first_name":"FirstName","email":"email@email.email","as_leader":["Intermediate"],"as_follower":["Novice_Intermediate"]}
+
+
 End & Cleanup
 -------------
 
