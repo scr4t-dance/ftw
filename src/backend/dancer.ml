@@ -167,7 +167,7 @@ and create_dancer =
 
 and update_division_as_follower = 
   Api.patch
-  ~of_yojson:Types.DancerDivision.of_yojson
+    ~of_yojson:Types.DancerDivision.of_yojson
     ~to_yojson:Types.DancerId.to_yojson
     (
       fun req st dancer_division ->

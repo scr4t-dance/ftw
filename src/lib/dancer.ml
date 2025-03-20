@@ -89,13 +89,16 @@ let update_leader_division st id_dancer new_leader_division =
     SET
     as_leader = ?
     WHERE id=? |} 
-    id_dancer as_leader;
+    as_leader id_dancer;
   let t = State.query_one_where ~st ~conv ~p:Id.p
     {|SELECT * FROM dancers WHERE id=?|} id_dancer in
   t.id
 
 
 let update_follower_division st id_dancer new_follower_division =
+  (* Debug print after updating *)
+  Format.printf "Updated dancer division as leader: %d@."
+  (Divisions.to_int new_follower_division);
   let open Sqlite3_utils.Ty in
   let as_follower = Divisions.to_int new_follower_division in
   State.insert ~st ~ty:[int; int]
@@ -103,7 +106,7 @@ let update_follower_division st id_dancer new_follower_division =
     SET
     as_follower = ?
     WHERE id=? |} 
-  id_dancer as_follower;
+    as_follower id_dancer;
   let t = State.query_one_where ~st ~conv ~p:Id.p
     {|SELECT * FROM dancers WHERE id=?|} id_dancer in
   t.id

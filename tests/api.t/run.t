@@ -111,7 +111,7 @@ Create some dancers
   > -d '{"birthday":{"day":1,"month":1,"year":1900},"last_name":"Last","first_name":"FirstName","email":"email@email.email","as_leader":["Novice"],"as_follower":["Intermediate_Advanced"]}'
   2
 
-Get the ids of phase we created, and check their details
+Get the ids of dancers we created, and check their details
 
   $ curl -s localhost:8080/api/dancer/1
   {"birthday":{"day":1,"month":1,"year":1900},"last_name":"Bury","first_name":"Guillaume","email":"email@email.email","as_leader":["Novice"],"as_follower":["Novice"]}
@@ -132,7 +132,7 @@ Update a phase
   {"birthday":{"day":1,"month":1,"year":1900},"last_name":"Last","first_name":"FirstName","email":"email@email.email","as_leader":["Intermediate"],"as_follower":["Intermediate_Advanced"]}
 
 
-  $ curl -s -X PATCH localhost:8080/api/dancer/2/as_folower \
+  $ curl -s -X PATCH localhost:8080/api/dancer/2/as_follower \
   > -H "Content-Type: application/json" \
   > -d '["Novice_Intermediate"]'
   2
