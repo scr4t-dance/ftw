@@ -27,18 +27,18 @@ $(FRONTEND_TARGET): $(FRONTEND_DEPS)
 backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
 
-stop:
-	killall ftw_backend 2>/dev/null || true
+run: backend
+	dune exec -- ftw --db=tests/test.db
 
-run: backend stop
-	dune exec -- ftw_backend --db=tests/test.db
+frontend_dev: backend
+	@(dune exec -- ftw --db=tests/test.db > ftw.log 2>&1 & echo $$! > ftw.pid; \
+	  trap 'kill -TERM `cat ftw.pid` 2>/dev/null; echo "Stopped ftw task"; rm -f ftw.pid' INT TERM EXIT; \
+	  echo "Running frontend server..."; \
+	  (cd src/frontend && npm start); \
+	)
+	@echo "Ftw backend server killed."
 
-frontend_dev: $(FRONTEND_DEPS) stop
-	dune build $(FLAGS) @install
-	dune exec -- ftw_backend --db=tests/test.db > ftw_backend.log 2>&1 &
-	cd src/frontend && npm start
-
-tests: backend stop
+tests: backend
 	dune runtest
 
 promote:
@@ -54,4 +54,4 @@ top:
 doc:
 	dune build $(FLAGS) @doc
 
-.PHONY: all build stop top doc run frontend_dev tests promote clean
+.PHONY: all build top doc run frontend_dev tests promote clean

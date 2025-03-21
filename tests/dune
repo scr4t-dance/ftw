@@ -1,4 +1,3 @@
 (cram
   (deps %{bin:ftw} (file ../src/backend/db-init.sql))
-  (locks test_server)
 )
