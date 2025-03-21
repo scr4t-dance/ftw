@@ -1,0 +1,15 @@
+/*=========================================+
+|                  FOOTER                  |
++=========================================*/
+
+footer {
+    display: flex; 
+    justify-content: flex-end;
+    flex-wrap: wrap;
+
+    margin: 2rem 0;
+    padding: 1rem 0;
+
+    color: rgb(120, 120, 120);
+    border-top: solid 2px rgb(223, 223, 223);
+}
