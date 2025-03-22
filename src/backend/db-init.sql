@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS competition_kinds;
 DROP TABLE IF EXISTS competition_categories;
 DROP TABLE IF EXISTS competitions;
 DROP TABLE IF EXISTS dancers;
-DROP TABLE IF EXISTS bibs;
+DROP TABLE IF EXISTS competitors;
 DROP TABLE IF EXISTS judging_types;
 DROP TABLE IF EXISTS judges;
 DROP TABLE IF EXISTS phases;
@@ -64,17 +64,19 @@ CREATE TABLE dancers (
 );
 
 
-CREATE TABLE bibs (
-    dancer_id INTEGER  REFERENCES dancers(id),
-    competition_id INTEGER REFERENCES competitions(id),
+CREATE TABLE competitors (
+    id PRIMARY KEY
+    dancer INTEGER  REFERENCES dancers(id),
+    competition INTEGER REFERENCES competitions(id),
     -- in case of couple, give them both the same bib
-    bid_id INTEGER NOT NULL,
+    bib INTEGER NOT NULL,
     role TEXT NOT NULL,
 
-    PRIMARY KEY(bid_id, competition_id, role)
+    UNIQUE(dancer, competition, role),
     -- allow to work with either 
     -- * same bib for dancer as lead and follow
     -- * different bibs for leaders and followers
+    UNIQUE(bid, competition, role),
 );
 
 
@@ -113,6 +115,8 @@ CREATE TABLE heats (
     bib_id INTEGER
     -- no unique constraint because a dancer can be in several heats
     -- some of them without being scored
+    -- (heat_number, bib_id) should be used to check for uniqueness
+    -- It is not enforced to allow for edge cases. 
 );
 
 CREATE TABLE artefacts (

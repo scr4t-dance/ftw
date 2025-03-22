@@ -121,7 +121,7 @@ Get the ids of dancers we created, and check their details
 
   $ curl -s localhost:8080/api/phase/1/dancers
 
-Update a phase
+Update a dancer divisions
 
   $ curl -s -X PATCH localhost:8080/api/dancer/2/as_leader \
   > -H "Content-Type: application/json" \

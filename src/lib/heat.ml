@@ -4,19 +4,28 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
+type couple = {leader : Competitor.t ; follower : Competitor.t}
+
 type passage =
   | Only
   | Multiple of { nth : int; }
 
 type pool =
   | Couples of {
-      couples : unit;
+      couples : couple list;
     }
   | Split of {
-      leaders : unit;
-      follows : unit;
-      passages : unit;
+      leaders : Competitor.t list;
+      follows : Competitor.t list;
+      passages : passage list;
     }
+
+type t = {
+  id: Id.t;
+  phase_id : Phase.id;
+  all_dancers : pool;
+  pools : pool array;
+}
 
 (* Original Pool file
 
