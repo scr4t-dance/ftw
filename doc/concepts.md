@@ -63,6 +63,8 @@ namely: `Novice`, `Intermediate`, and `Advanced`. Note however, that these names
 are purely internal (and could have as well been named `Division1`, `Division2`,
 and `Division3`, but that would have been anooying to work with).
 
+Divisions are a subset of competition categories.
+
 
 Category
 --------
@@ -100,13 +102,26 @@ Prelims (of the Initié division of the P4T), Semifinal, Finals
 ### Data
 
 - Parent competition
-- Phase order: Finals, Semifinals, quarter-finals, preliminaries, ...
+- Round: Finals, Semifinals, quarter-finals, preliminaries, ...
 - Artefact kind for judges
   + artefact kinds for head judge
   + ranking algorithm
 - List of Judges (judges for leaders, for follows, for couples + head judge)
 - List of competitors/targets (cf pairings)
 - Associated artefacts (for each pair judge/target) and ranking of targets
+
+
+Round
+-----
+
+Since competitions can have several phases / rounds,
+the round concept is used to describe the level of the phase.
+* The last phase will always be a Finals round.
+* When there are two phases or more, the first phase is called Prelims.
+* When there are three phases or more, the second to last phase is called SemiFinals
+* When there are four phases or more, the third to last phase is called QuarterFinals
+* When there are five phases or more, the second to last phase is called OctoFinals
+
 
 
 Pairing
@@ -180,13 +195,17 @@ Accepted ranking algorithm:
 Note: new ranking method may be added from time to time, though less often
 than new artefact kinds/formats.
 
-Target
-------
+Target / Heat
+-------------
 
 ### Descr
 
 A competition phase aims at ranking a set of targets. These targets are the subject
 of artefacts emitted by judges.
+A heat is a set of dancers that will dance and be judged at the same time. 
+It is expected that a dancer only participate once per heat. This can be false in some edge cases.
+A dancer can sometimes participate in two heats, to balance the number of dancers per role.
+The concepts of target and heat can be stored in the same data structure.
 
 ### Examples
 
@@ -198,6 +217,7 @@ or All-In).
 A target is either:
 - an individual dancer
 - a couple of dancers (leader-follower)
+- a couple of dancers (two switchers)
 
 
 Judge
