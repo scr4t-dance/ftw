@@ -65,18 +65,17 @@ CREATE TABLE dancers (
 
 
 CREATE TABLE competitors (
-    id PRIMARY KEY
     dancer INTEGER  REFERENCES dancers(id),
     competition INTEGER REFERENCES competitions(id),
     -- in case of couple, give them both the same bib
     bib INTEGER NOT NULL,
     role TEXT NOT NULL,
 
-    UNIQUE(dancer, competition, role),
+    PRIMARY KEY(dancer, competition, role),
     -- allow to work with either 
     -- * same bib for dancer as lead and follow
     -- * different bibs for leaders and followers
-    UNIQUE(bid, competition, role),
+    UNIQUE(bib, competition, role),
 );
 
 
@@ -87,9 +86,9 @@ CREATE TABLE judging_types (
 
 CREATE TABLE judges (
     judge_id INTEGER REFERENCES dancers(id),
-    phase_id INTEGER REFERENCES phases(id),
+    phase INTEGER REFERENCES phases(id),
     judging INTEGER REFERENCES judging_types(id),
-    PRIMARY KEY(judge_id, phase_id)
+    PRIMARY KEY(judge_id, phase)
 );
 
 CREATE TABLE rounds (
@@ -110,9 +109,10 @@ CREATE TABLE phases (
 
 CREATE TABLE heats (
     id INTEGER PRIMARY KEY, -- = target id of judgement
-    phase_id INTEGER REFERENCES phases(id),
+    phase INTEGER REFERENCES phases(id),
     heat_number INTEGER NOT NULL,
-    bib_id INTEGER
+    dancer INTEGER,
+    role INTEGER
     -- no unique constraint because a dancer can be in several heats
     -- some of them without being scored
     -- (heat_number, bib_id) should be used to check for uniqueness
@@ -136,11 +136,11 @@ CREATE TABLE bonus_artefacts (
 -- TODO: could we spare couple tables with the same bid for both dancers in bib
 CREATE TABLE couple_heats (
     id INTEGER PRIMARY KEY, -- = target id of judgement
-    phase_id INTEGER REFERENCES phases(id),
+    phase INTEGER REFERENCES phases(id),
     heat_number INTEGER NOT NULL,
-    lead_dancer_id INTEGER REFERENCES dancers(id),
-    follow_dancer_id INTEGER REFERENCES dancers(id),
-    UNIQUE(phase_id, heat_number, lead_dancer_id, follow_dancer_id)
+    leader INTEGER REFERENCES dancers(id),
+    follower INTEGER REFERENCES dancers(id),
+    UNIQUE(phase, heat_number, leader, follower)
 );
 
 CREATE TABLE couple_artefacts (

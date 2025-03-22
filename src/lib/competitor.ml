@@ -27,12 +27,11 @@ let () =
   State.add_init (fun st ->
       Sqlite3_utils.exec0_exn st {|
         CREATE TABLE IF NOT EXISTS competitors (
-          id PRIMARY KEY
           dancer INTEGER,
           competition INTEGER,
           bib INTEGER NOT NULL,
           role TEXT NOT NULL,
-          UNIQUE(dancer, competition, role),
+          PRIMARY KEY(dancer, competition, role),
           UNIQUE(bid, competition, role),
         )
         |})
@@ -44,7 +43,7 @@ let conv =
        let role = Role.of_int role in
        { dancer; competition; bib; role; })
 
-let bib_from_dancer st dancer competition role =
+let bib_from_dancer_and_role st dancer competition role =
   let open Sqlite3_utils.Ty in
   State.query_one_where ~p:[int;int;int] ~conv ~st
     {| SELECT * 
@@ -55,7 +54,7 @@ let bib_from_dancer st dancer competition role =
        AND role = ?
       |} dancer competition role
 
-let dancer_from_bib st competition bib role =
+let dancer_from_bib_and_role st competition bib role =
   let open Sqlite3_utils.Ty in
   State.query_one_where ~p:[int;int;int] ~conv ~st
     {| SELECT * 
