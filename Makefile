@@ -17,7 +17,7 @@ all: build
 
 build: backend
 
-configure: ftw.opam
+configure:
 	opam install . --deps-only
 	cd src/frontend && npm install
 
