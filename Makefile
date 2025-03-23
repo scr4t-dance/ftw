@@ -31,12 +31,7 @@ run: backend
 	dune exec -- ftw --db=tests/test.db
 
 frontend_dev: backend
-	@(dune exec -- ftw --db=tests/test.db > ftw.log 2>&1 & echo $$! > ftw.pid; \
-	  trap 'kill -TERM `cat ftw.pid` 2>/dev/null; echo "Stopped ftw task"; rm -f ftw.pid' INT TERM EXIT; \
-	  echo "Running frontend server..."; \
-	  (cd src/frontend && npm start); \
-	)
-	@echo "Ftw backend server killed."
+	./deploy_frontend_dev.sh
 
 tests: backend
 	dune runtest
