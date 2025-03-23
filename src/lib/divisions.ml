@@ -10,10 +10,13 @@ type main =
   | Intermediate
   | Intermediate_Advanced
   | Advanced
+  [@@deriving show]
 
 type t = {
   main : main option;
 }
+[@@deriving show]
+
 (** This is basically a {Division.Set.t} but since there are very few
     divisions, this way is easier and simpler. *)
 
@@ -45,7 +48,7 @@ let to_int { main; } =
     match main with
     | None -> 0
     | Some Novice -> 1
-    | Some Novice_Intermediate -> 1
+    | Some Novice_Intermediate -> 2
     | Some Intermediate -> 3
     | Some Intermediate_Advanced -> 4
     | Some Advanced -> 5

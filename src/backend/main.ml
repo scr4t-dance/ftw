@@ -43,6 +43,8 @@ let () =
     router
     |> Event.routes
     |> Competition.routes
+    |> Phase.routes
+    |> Dancer.routes
   in
   (* Setup the dream server and run it *)
   Dream.run
