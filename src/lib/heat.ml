@@ -12,47 +12,39 @@ type passage_kind =
 
 (* Jack&Jill heats *)
 
-type jnj_single = {
+type single = {
   passage_id : passage_id;
-  bib : Bib.t;
+  dancer : Dancer.id;
 }
 
-type jnj_heat = {
-  leaders : jnj_single list;
-  followers : jnj_single list;
-  passages : passage_kind Bib.Map.t;
+type singles_heat = {
+  leaders : single list;
+  followers : single list;
+  passages : passage_kind Id.Map.t;
 }
 
-(* Jack&Strictly heats *)
+type singles_heats = {
+  singles_heats : singles_heat array;
+}
 
-type jns_couple = {
+(* Couples heats *)
+
+type couple = {
   passage_id : passage_id;
-  leader : Bib.t;
-  follower : Bib.t;
+  leader : Dancer.id;
+  follower : Dancer.id;
 }
 
-type jns_heat = {
-  couples : jns_couple list;
-  passages : passage_kind Bib.Map.t;
+type couples_heat = {
+  couples : couple list;
+  passages : passage_kind Id.Map.t;
 }
 
-(* Strictly heats *)
-
-type strictly_couple = {
-  passage_id : passage_id;
-  bib : Bib.t;
+type couples_heats = {
+  couples_heats : couples_heat array;
 }
 
-type strictly_heat = {
-  couples : strictly_couple list;
-}
 
-(* Heats *)
-
-type t =
-  | Jack_and_Jill of jnj_heat array
-  | Jack_and_Strictly of jns_heat array
-  | Strictly of strictly_heat array
 
 (* DB interaction - Regular table *)
 (* ************************************************************************* *)
@@ -76,34 +68,34 @@ let () =
 type row = {
   passage_id : passage_id;
   heat_number : int;
-  leader_bib : Bib.t option;
-  follow_bib : Bib.t option;
+  leader : Dancer.id option;
+  follow : Dancer.id option;
 }
 
 let conv =
   let open Sqlite3_utils.Ty in
   Conv.mk [int; int; nullable int; nullable int]
-    (fun passage_id heat_number leader_bib follow_bib ->
-       { passage_id; heat_number; leader_bib; follow_bib; })
+    (fun passage_id heat_number leader follow ->
+       { passage_id; heat_number; leader; follow; })
 
 let incr_passage map_ref bib =
     map_ref :=
-      Bib.Map.update bib (function
+      Id.Map.update bib (function
           | None -> Some 1
           | Some n -> Some (n + 1)
         ) !map_ref
 
 let update_heats ~f a l =
-  List.iter (fun { passage_id; heat_number; leader_bib; follow_bib } ->
+  List.iter (fun { passage_id; heat_number; leader; follow } ->
       let heat = a.(heat_number) in
-      a.(heat_number) <- f heat passage_id leader_bib follow_bib
+      a.(heat_number) <- f heat passage_id ~leader ~follow
     ) l
 
 
-(* Jack_and_Jill heats *)
-(* ******************* *)
+(* Singles heats *)
+(* ************* *)
 
-let mk_jnj l =
+let mk_singles l =
   (* Compute the number of heats *)
   let n =
     List.fold_left
@@ -112,84 +104,55 @@ let mk_jnj l =
   in
   (* Allocate the heats array and fill it.
      At the same time, compute the number of passages for each bib. *)
-  let a = Array.make n { leaders = []; followers = []; passages = Bib.Map.empty; } in
-  let num_total_passages = ref Bib.Map.empty in
+  let a = Array.make n { leaders = []; followers = []; passages = Id.Map.empty; } in
+  let num_total_passages = ref Id.Map.empty in
   update_heats a l
-    ~f:(fun heat passage_id leader_bib follow_bib ->
-      match leader_bib, follow_bib with
-      | Some bib, None ->
-        incr_passage num_total_passages bib;
-        { heat with leaders = { passage_id; bib; } :: heat.leaders; }
-      | None, Some bib ->
-        incr_passage num_total_passages bib;
-        { heat with followers = { passage_id; bib; } :: heat.followers; }
+    ~f:(fun heat passage_id ~leader ~follow ->
+      match leader, follow with
+      | Some dancer, None ->
+        incr_passage num_total_passages dancer;
+        { heat with leaders = { passage_id; dancer; } :: heat.leaders; }
+      | None, Some dancer ->
+        incr_passage num_total_passages dancer;
+        { heat with followers = { passage_id; dancer; } :: heat.followers; }
       | None, None | Some _, Some _ -> failwith "incorrect encoding for j&j heat"
     );
   (* Compute the passages *)
-  let seen = ref (Bib.Map.map (fun n ->
+  let seen = ref (Id.Map.map (fun n ->
       if n <= 1 then Only else Multiple { nth = 0; }
     ) !num_total_passages)
   in
   Array.iteri (fun i { leaders; followers; passages = _; } ->
-      let aux acc ({ bib; _ } : jnj_single) =
+      let aux acc ({ dancer; _ } : single) =
         let passage_kind =
-          match Bib.Map.find bib !seen with
+          match Id.Map.find dancer !seen with
           | Only -> Only
           | Multiple { nth; } ->
             let kind = Multiple { nth = nth + 1; } in
-            seen := Bib.Map.add bib kind !seen;
+            seen := Id.Map.add dancer kind !seen;
             kind
         in
-        Bib.Map.add bib passage_kind acc
+        Id.Map.add dancer passage_kind acc
       in
       let passages =
-        List.fold_left aux (List.fold_left aux Bib.Map.empty leaders) followers
+        List.fold_left aux (List.fold_left aux Id.Map.empty leaders) followers
       in
       a.(i) <- { leaders; followers; passages; }
     ) a;
   (* Return the result *)
-  Jack_and_Jill a
+  { singles_heats = a; }
 
-let get_jnj ~st ~phase =
-  mk_jnj @@
+let get_singles ~st ~phase =
+  mk_singles @@
   State.query_list_where ~st ~conv ~p:Id.p
     {| SELECT (id, heat_number, bib_id) FROM regular_heats WHERE phase_id = ? |}
     phase
 
 
-(* Strictly heats *)
-(* ************** *)
+(* Couples heats *)
+(* ************* *)
 
-let mk_strictly l =
-  (* Compute the number of heats *)
-  let n =
-    List.fold_left
-      (fun acc { heat_number; _ } -> max acc heat_number)
-      0 l
-  in
-  (* Allocate the heats array and fill it. *)
-  let a = Array.make n { couples = []; } in
-  update_heats a l
-    ~f:(fun heat passage_id leader_bib follow_bib ->
-      match leader_bib, follow_bib with
-      | Some bib, Some bib' when bib = bib' ->
-        { couples = { passage_id; bib; } :: heat.couples }
-      | _ -> failwith "incorrect encoding for strictly heat"
-    );
-  (* Return the result *)
-  Strictly a
-
-let get_strictly ~st ~phase =
-  mk_strictly @@
-  State.query_list_where ~st ~conv ~p:Id.p
-    {| SELECT (id, heat_number, bib_id) FROM regular_heats WHERE phase_id = ? |}
-    phase
-
-
-(* Jack_and_Strictly heats *)
-(* *********************** *)
-
-let mk_jack_strictly l =
+let mk_couples l =
   (* Compute the number of heats *)
   let n =
     List.fold_left
@@ -198,11 +161,11 @@ let mk_jack_strictly l =
   in
   (* Allocate the heats array and fill it.
      At the same time, compute the number of passages for each bib. *)
-  let a = Array.make n { couples = []; passages = Bib.Map.empty; } in
-  let num_total_passages = ref Bib.Map.empty in
+  let a = Array.make n { couples = []; passages = Id.Map.empty; } in
+  let num_total_passages = ref Id.Map.empty in
   update_heats a l
-    ~f:(fun (heat : jns_heat) passage_id leader_bib follow_bib ->
-      match leader_bib, follow_bib with
+    ~f:(fun (heat : couples_heat) passage_id ~leader ~follow ->
+      match leader, follow with
       | Some leader, Some follower ->
         incr_passage num_total_passages leader;
         incr_passage num_total_passages follower;
@@ -211,33 +174,33 @@ let mk_jack_strictly l =
         failwith "incorrect encoding of Jack&Strictly heat"
     );
   (* Compute the passages *)
-  let seen = ref (Bib.Map.map (fun n ->
+  let seen = ref (Id.Map.map (fun n ->
       if n <= 1 then Only else Multiple { nth = 0; }
     ) !num_total_passages)
   in
   Array.iteri (fun i { couples; passages = _; } ->
       let aux_bib acc bib =
         let passage_kind =
-          match Bib.Map.find bib !seen with
+          match Id.Map.find bib !seen with
           | Only -> Only
           | Multiple { nth; } ->
             let kind = Multiple { nth = nth + 1; } in
-            seen := Bib.Map.add bib kind !seen;
+            seen := Id.Map.add bib kind !seen;
             kind
         in
-        Bib.Map.add bib passage_kind acc
+        Id.Map.add bib passage_kind acc
       in
-      let aux acc ({ leader; follower; _ } : jns_couple) =
+      let aux acc ({ leader; follower; _ } : couple) =
         aux_bib (aux_bib acc follower) leader
       in
-      let passages = List.fold_left aux Bib.Map.empty couples in
+      let passages = List.fold_left aux Id.Map.empty couples in
       a.(i) <- { couples; passages; }
     ) a;
   (* Return the result *)
-  Jack_and_Strictly a
+  { couples_heats = a; }
 
-let get_jack_strictly ~st ~phase =
-  mk_jack_strictly @@
+let get_couples ~st ~phase =
+  mk_couples @@
   State.query_list_where ~st ~conv ~p:Id.p
     {| SELECT (id, heat_number, leader_id, follower_bib)
        FROM jack_strictly_heats WHERE phase_id = ? |}

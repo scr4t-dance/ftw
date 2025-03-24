@@ -12,55 +12,45 @@ type passage_kind =
 
 (* Jack&Jill heats *)
 
-type jnj_single = {
+type single = {
   passage_id : passage_id;
-  bib : Bib.t;
+  dancer : Dancer.id;
 }
 
-type jnj_heat = {
-  leaders : jnj_single list;
-  followers : jnj_single list;
-  passages : passage_kind Bib.Map.t;
+type singles_heat = {
+  leaders : single list;
+  followers : single list;
+  passages : passage_kind Id.Map.t;
 }
 
-(* Jack&Strictly heats *)
+type singles_heats = {
+  singles_heats : singles_heat array;
+}
 
-type jns_couple = {
+(* Couples heats *)
+
+type couple = {
   passage_id : passage_id;
-  leader : Bib.t;
-  follower : Bib.t;
+  leader : Dancer.id;
+  follower : Dancer.id;
 }
 
-type jns_heat = {
-  couples : jns_couple list;
-  passages : passage_kind Bib.Map.t;
+type couples_heat = {
+  couples : couple list;
+  passages : passage_kind Id.Map.t;
 }
 
-(* Strictly heats *)
-
-type strictly_couple = {
-  passage_id : passage_id;
-  bib : Bib.t;
+type couples_heats = {
+  couples_heats : couples_heat array;
 }
 
-type strictly_heat = {
-  couples : strictly_couple list;
-}
-
-(* Heats *)
-
-type t =
-  | Jack_and_Jill of jnj_heat array
-  | Jack_and_Strictly of jns_heat array
-  | Strictly of strictly_heat array
 
 
 (* DB interaction *)
 (* ************************************************************************* *)
 
-val get_jnj : st:State.t -> phase:Phase.id -> t
-val get_strictly : st:State.t -> phase:Phase.id -> t
-val get_jack_strictly : st:State.t -> phase:Phase.id -> t
+val get_singles : st:State.t -> phase:Phase.id -> singles_heats
+val get_couples : st:State.t -> phase:Phase.id -> couples_heats
 
 
 
