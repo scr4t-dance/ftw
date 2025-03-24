@@ -63,17 +63,16 @@ let get ~st ~competition ~bib =
   let open Sqlite3_utils.Ty in
   match
     State.query_list_where ~st ~conv ~p:[int;int]
-      {| SELECT * FROM bibs WHERE bib = ? AND competition_id = ?|}
+      {| SELECT * FROM bibs WHERE bib = ? AND competition_id = ? ORDER BY role |}
       bib competition
   with
   (* Single case *)
   | [ { dancer_id = target; role; _ } ] ->
     Some (Any (Single { target; role; }))
-  (* Couple cases *)
+  (* Couple cases;
+     the "ORDER BY" clause in the SQL query should ensure the order. *)
   | [ { dancer_id = leader; role = Leader; _ };
-      { dancer_id = follower; role = Follower; _ } ]
-  | [ { dancer_id = follower; role = Follower; _ };
-      { dancer_id = leader; role = Leader; _ } ] ->
+      { dancer_id = follower; role = Follower; _ } ] ->
     Some (Any (Couple { leader; follower; }))
   (* Not in database *)
   | [] -> raise Not_found
