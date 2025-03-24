@@ -15,7 +15,6 @@ type passage_kind =
 type jnj_single = {
   passage_id : passage_id;
   bib : Bib.t;
-  dancer : [`Single] Bib.target;
 }
 
 type jnj_heat = {
@@ -59,7 +58,7 @@ type t =
 (* DB interaction *)
 (* ************************************************************************* *)
 
-val get_jnj : st:State.t -> competition:Competition.id -> phase:Phase.id -> t
+val get_jnj : st:State.t -> phase:Phase.id -> t
 val get_strictly : st:State.t -> phase:Phase.id -> t
 val get_jack_strictly : st:State.t -> phase:Phase.id -> t
 

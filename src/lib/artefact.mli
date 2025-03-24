@@ -32,27 +32,14 @@ type t =
 (* DB Interaction *)
 (* ************************************************************************* *)
 
-val get_regular :
+val get :
   st:State.t ->
   judge:Judge.id ->
   target:Id.t ->
   descr:Descr.t ->
   t
 
-val set_regular :
-  st:State.t ->
-  judge:Judge.id ->
-  target:Id.t ->
-  t -> unit
-
-val get_jack_strictly :
-  st:State.t ->
-  judge:Judge.id ->
-  target:Id.t ->
-  descr:Descr.t ->
-  t
-
-val set_jack_strictly :
+val set :
   st:State.t ->
   judge:Judge.id ->
   target:Id.t ->

@@ -16,15 +16,9 @@ val p : (t -> 'a, 'a) Sqlite3_utils.Ty.t
 val conv : t Conv.t
 (** Converter for identifiers *)
 
-val get_regular : st:State.t -> target:Id.t -> int
+val get : st:State.t -> target:Id.t -> int
 (** Get the bonus for J&J and strictlys. *)
 
-val set_regular : st:State.t -> target:Id.t -> int -> unit
+val set : st:State.t -> target:Id.t -> int -> unit
 (** Set the bonus for J&J and strictlys. *)
-
-val get_jack_strictly : st:State.t -> target:Id.t -> int
-(** Get the bonus for Jack&Strictly. *)
-
-val set_jack_strictly : st:State.t -> target:Id.t -> int -> unit
-(** Set the bonus for J&Strictlys. *)
 

@@ -15,7 +15,6 @@ type passage_kind =
 type jnj_single = {
   passage_id : passage_id;
   bib : Bib.t;
-  dancer : [`Single] Bib.target;
 }
 
 type jnj_heat = {
@@ -55,49 +54,56 @@ type t =
   | Jack_and_Strictly of jns_heat array
   | Strictly of strictly_heat array
 
-(* Helper functions *)
-(* ************************************************************************* *)
-
-let incr_passage map_ref bib =
-  map_ref :=
-    Bib.Map.update bib (function
-        | None -> Some 1
-        | Some n -> Some (n + 1)
-      ) !map_ref
-
 (* DB interaction - Regular table *)
 (* ************************************************************************* *)
 
 let () =
   State.add_init (fun st ->
+      (* TODO: add a constraint the boths bibs can not be nulll
+         at the same time ? *)
       State.exec ~st {|
-        -- Table for JnJs and Strictlys
-        CREATE TABLE regular_heats (
+        CREATE TABLE heats (
           id INTEGER PRIMARY KEY, -- = target id of judgement
           phase_id INTEGER REFERENCES phases(id),
           heat_number INTEGER NOT NULL,
-          bib_id INTEGER
+          leader_bib INTEGER,
+          follower_bib INTEGER
         )
       |})
 
 (* Helpers *)
 
-type regular_row = {
+type row = {
   passage_id : passage_id;
   heat_number : int;
-  bib : Bib.t;
+  leader_bib : Bib.t option;
+  follow_bib : Bib.t option;
 }
 
-let regular_conv =
+let conv =
   let open Sqlite3_utils.Ty in
-  Conv.mk [int; int; int]
-    (fun passage_id heat_number bib ->
-       { passage_id; heat_number; bib; })
+  Conv.mk [int; int; nullable int; nullable int]
+    (fun passage_id heat_number leader_bib follow_bib ->
+       { passage_id; heat_number; leader_bib; follow_bib; })
+
+let incr_passage map_ref bib =
+    map_ref :=
+      Bib.Map.update bib (function
+          | None -> Some 1
+          | Some n -> Some (n + 1)
+        ) !map_ref
+
+let update_heats ~f a l =
+  List.iter (fun { passage_id; heat_number; leader_bib; follow_bib } ->
+      let heat = a.(heat_number) in
+      a.(heat_number) <- f heat passage_id leader_bib follow_bib
+    ) l
+
 
 (* Jack_and_Jill heats *)
 (* ******************* *)
 
-let mk_jnj ~st ~competition l =
+let mk_jnj l =
   (* Compute the number of heats *)
   let n =
     List.fold_left
@@ -108,18 +114,17 @@ let mk_jnj ~st ~competition l =
      At the same time, compute the number of passages for each bib. *)
   let a = Array.make n { leaders = []; followers = []; passages = Bib.Map.empty; } in
   let num_total_passages = ref Bib.Map.empty in
-  List.iter (fun { passage_id; heat_number; bib; } ->
-      incr_passage num_total_passages bib;
-      match Bib.get ~st ~competition ~bib with
-      | None -> failwith "missing bib number"
-      | Some Any Couple _ -> failwith "couple target for bib in a j&j"
-      | Some Any (Single { role = Leader; _ } as dancer) ->
-        let heat = a.(heat_number) in
-        a.(heat_number) <- { heat with leaders = { passage_id; bib; dancer; } :: heat.leaders; }
-      | Some Any (Single { role = Follower; _ } as dancer) ->
-        let heat = a.(heat_number) in
-        a.(heat_number) <- { heat with followers = { passage_id; bib; dancer; } :: heat.followers; }
-    ) l;
+  update_heats a l
+    ~f:(fun heat passage_id leader_bib follow_bib ->
+      match leader_bib, follow_bib with
+      | Some bib, None ->
+        incr_passage num_total_passages bib;
+        { heat with leaders = { passage_id; bib; } :: heat.leaders; }
+      | None, Some bib ->
+        incr_passage num_total_passages bib;
+        { heat with followers = { passage_id; bib; } :: heat.followers; }
+      | None, None | Some _, Some _ -> failwith "incorrect encoding for j&j heat"
+    );
   (* Compute the passages *)
   let seen = ref (Bib.Map.map (fun n ->
       if n <= 1 then Only else Multiple { nth = 0; }
@@ -145,13 +150,11 @@ let mk_jnj ~st ~competition l =
   (* Return the result *)
   Jack_and_Jill a
 
-let get_jnj ~st ~competition ~phase =
-  let l =
-    State.query_list_where ~st ~conv:regular_conv ~p:Id.p
-      {| SELECT (id, heat_number, bib_id) FROM regular_heats WHERE phase_id = ? |}
-      phase
-  in
-  mk_jnj ~st ~competition l
+let get_jnj ~st ~phase =
+  mk_jnj @@
+  State.query_list_where ~st ~conv ~p:Id.p
+    {| SELECT (id, heat_number, bib_id) FROM regular_heats WHERE phase_id = ? |}
+    phase
 
 
 (* Strictly heats *)
@@ -164,60 +167,24 @@ let mk_strictly l =
       (fun acc { heat_number; _ } -> max acc heat_number)
       0 l
   in
-  (* Allocate the heats array and fill it.
-     At the same time, compute the number of passages for each bib. *)
+  (* Allocate the heats array and fill it. *)
   let a = Array.make n { couples = []; } in
-  List.iter (fun { passage_id; heat_number; bib; } ->
-        let heat = a.(heat_number) in
-        a.(heat_number) <- { couples = { passage_id; bib; } :: heat.couples }
-    ) l;
+  update_heats a l
+    ~f:(fun heat passage_id leader_bib follow_bib ->
+      match leader_bib, follow_bib with
+      | Some bib, Some bib' when bib = bib' ->
+        { couples = { passage_id; bib; } :: heat.couples }
+      | _ -> failwith "incorrect encoding for strictly heat"
+    );
   (* Return the result *)
   Strictly a
 
 let get_strictly ~st ~phase =
-  let open Sqlite3_utils.Ty in
-  let conv = Conv.mk [int; int; int]
-      (fun passage_id heat_number bib ->
-         { passage_id; heat_number; bib; })
-  in
-  let l = State.query_list_where ~st ~conv ~p:Id.p
-      {| SELECT (id, heat_number, bib_id) FROM regular_heats WHERE phase_id = ? |}
-      phase
-  in
-  mk_strictly l
+  mk_strictly @@
+  State.query_list_where ~st ~conv ~p:Id.p
+    {| SELECT (id, heat_number, bib_id) FROM regular_heats WHERE phase_id = ? |}
+    phase
 
-
-(* DB interaction - Jack&Strictly table *)
-(* ************************************************************************* *)
-
-let () =
-  State.add_init (fun st ->
-      State.exec ~st {|
-        -- Table for Jack&Strictlys
-        CREATE TABLE jack_strictly_heats (
-          id INTEGER PRIMARY KEY, -- = target id of judgement
-          phase_id INTEGER REFERENCES phases(id),
-          heat_number INTEGER NOT NULL,
-          leader_bib INTEGER,
-          follower_bib INTEGER,
-          UNIQUE(phase_id, heat_number, leader_bib, follower_bib)
-        );
-      |})
-
-(* Helpers *)
-
-type jack_strictly_row = {
-  passage_id : passage_id;
-  heat_number : int;
-  leader : Bib.t;
-  follower : Bib.t;
-}
-
-let jack_strictly_conv =
-  let open Sqlite3_utils.Ty in
-  Conv.mk [int; int; int; int]
-    (fun passage_id heat_number leader follower ->
-       { passage_id; heat_number; leader; follower; })
 
 (* Jack_and_Strictly heats *)
 (* *********************** *)
@@ -233,12 +200,16 @@ let mk_jack_strictly l =
      At the same time, compute the number of passages for each bib. *)
   let a = Array.make n { couples = []; passages = Bib.Map.empty; } in
   let num_total_passages = ref Bib.Map.empty in
-  List.iter (fun { passage_id; heat_number; leader; follower; } ->
-      incr_passage num_total_passages leader;
-      incr_passage num_total_passages follower;
-      let heat = a.(heat_number) in
-      a.(heat_number) <- { heat with couples = { passage_id; leader; follower; } :: heat.couples; }
-    ) l;
+  update_heats a l
+    ~f:(fun (heat : jns_heat) passage_id leader_bib follow_bib ->
+      match leader_bib, follow_bib with
+      | Some leader, Some follower ->
+        incr_passage num_total_passages leader;
+        incr_passage num_total_passages follower;
+        { heat with couples = { passage_id; leader; follower; } :: heat.couples; }
+      | None, _ | _, None ->
+        failwith "incorrect encoding of Jack&Strictly heat"
+    );
   (* Compute the passages *)
   let seen = ref (Bib.Map.map (fun n ->
       if n <= 1 then Only else Multiple { nth = 0; }
@@ -266,13 +237,11 @@ let mk_jack_strictly l =
   Jack_and_Strictly a
 
 let get_jack_strictly ~st ~phase =
-  let l =
-    State.query_list_where ~st ~conv:jack_strictly_conv ~p:Id.p
-      {| SELECT (id, heat_number, leader_id, follower_bib)
-         FROM jack_strictly_heats WHERE phase_id = ? |}
-      phase
-  in
-  mk_jack_strictly l
+  mk_jack_strictly @@
+  State.query_list_where ~st ~conv ~p:Id.p
+    {| SELECT (id, heat_number, leader_id, follower_bib)
+       FROM jack_strictly_heats WHERE phase_id = ? |}
+    phase
 
 
 
