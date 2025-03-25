@@ -51,8 +51,6 @@ type couples_heats = {
 
 let () =
   State.add_init (fun st ->
-      (* TODO: add a constraint the boths bibs can not be nulll
-         at the same time ? *)
       State.exec ~st {|
         CREATE TABLE heats (
           id INTEGER PRIMARY KEY, -- = target id of judgement
