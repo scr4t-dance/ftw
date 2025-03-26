@@ -8,8 +8,10 @@ FRONTEND_TARGET=src/frontend/build
 FRONTEND_DEPS=\
 	src/frontend/package.json \
 	src/frontend/package-lock.json \
-	src/frontend/public \
-	src/frontend/src
+	src/frontend/public/* \
+	src/frontend/src/* \
+	src/frontend/src/components/* \
+	src/frontend/src/hooks/*
 
 all: build
 
@@ -28,6 +30,9 @@ backend: $(FRONTEND_TARGET)
 run: backend
 	dune exec -- ftw --db=tests/test.db
 
+frontend_dev: backend
+	./deploy_frontend_dev.sh
+
 tests: backend
 	dune runtest
 
@@ -44,4 +49,4 @@ top:
 doc:
 	dune build $(FLAGS) @doc
 
-.PHONY: all build top doc run tests promote clean
+.PHONY: all build top doc run frontend_dev tests promote clean
