@@ -60,6 +60,42 @@ Get the ids of competitions we created, and check their details
   {"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Intermediate"]}
 
 
+Phase Management
+----------------
+
+Create some phase
+
+  $ curl -s -X PUT localhost:8080/api/phase \
+  > -H "Content-Type: application/json" \
+  > -d '{"competition":2,"round":["Prelims"],"judge_artefact_description":"yans:musicalite,technique,teamwork","head_judge_artefact_description":"bonus","ranking_algorithm":"RPSS"}'
+  1
+
+  $ curl -s -X PUT localhost:8080/api/phase \
+  > -H "Content-Type: application/json" \
+  > -d '{"competition":2,"round":["Finals"],"judge_artefact_description":"ranking","head_judge_artefact_description":"bonus","ranking_algorithm":"RPSS"}'
+  2
+
+Get the ids of phase we created, and check their details
+
+  $ curl -s localhost:8080/api/comp/2/phases
+  {"phases":[1,2]}
+
+  $ curl -s localhost:8080/api/phase/1
+  {"competition":2,"round":["Prelims"],"judge_artefact_description":"yans:musicalite,technique,teamwork","head_judge_artefact_description":"bonus","ranking_algorithm":"RPSS"}
+
+  $ curl -s localhost:8080/api/phase/2
+  {"competition":2,"round":["Finals"],"judge_artefact_description":"ranking","head_judge_artefact_description":"bonus","ranking_algorithm":"RPSS"}
+
+Update a phase
+
+  $ curl -s -X PATCH localhost:8080/api/phase/2 \
+  > -H "Content-Type: application/json" \
+  > -d '{"competition":2,"round":["Finals"],"judge_artefact_description":"yans:full","head_judge_artefact_description":"yans:head","ranking_algorithm":"Condorcet"}'
+  2
+
+  $ curl -s localhost:8080/api/phase/2
+  {"competition":2,"round":["Finals"],"judge_artefact_description":"yans:full","head_judge_artefact_description":"yans:head","ranking_algorithm":"Condorcet"}
+
 End & Cleanup
 -------------
 

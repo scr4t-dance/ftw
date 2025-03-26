@@ -105,7 +105,9 @@ module Kind = struct
     | Strictly
     | JJ_Strictly
     | Jack_and_Jill
-  [@@deriving yojson]
+  [@@deriving yojson, enum, show]
+
+  let all = List.filter_map of_enum (List.init (to_enum Jack_and_Jill + 1) Fun.id)
 
   let ref, schema =
     make_schema ()
@@ -114,12 +116,11 @@ module Kind = struct
       ~items:(
         obj @@ S.make_schema ()
           ~typ:string
-          ~enum:[
-            `String "Routine";
-            `String "Strictly";
-            `String "JJ_Strictly";
-            `String "Jack_and_Jill";
-          ])
+          ~enum:(List.map 
+          (fun kind -> `String (show kind)) 
+          all
+        )
+      )
 end
 
 (* Competition Division *)
@@ -128,7 +129,9 @@ module Division = struct
     | Novice
     | Intermediate
     | Advanced
-  [@@deriving yojson]
+  [@@deriving yojson, enum, show]
+
+  let all = List.filter_map of_enum (List.init (to_enum Advanced + 1) Fun.id)
 
   let ref, schema =
     make_schema ()
@@ -137,11 +140,11 @@ module Division = struct
       ~items:(
         obj @@ S.make_schema ()
           ~typ:string
-          ~enum:[
-            `String "Novice";
-            `String "Intermediate";
-            `String "Advanced";
-          ])
+          ~enum:(List.map 
+            (fun division -> `String (show division)) 
+            all
+          )
+        )
 end
 
 (* Competition Category *)
@@ -153,7 +156,9 @@ module Category = struct
     | Regular
     | Qualifying
     | Invited
-  [@@deriving yojson]
+  [@@deriving yojson, enum, show]
+
+  let all = List.filter_map of_enum (List.init (to_enum Invited + 1) Fun.id)
 
   let of_ftw cat : t =
     match (cat : Ftw.Category.t) with
@@ -180,15 +185,39 @@ module Category = struct
       ~items:(
         obj @@ S.make_schema ()
           ~typ:string
-          ~enum:[
-            `String "Novice";
-            `String "Intermediate";
-            `String "Advanced";
-            `String "Regular";
-            `String "Qualifying";
-            `String "Invited";
-          ])
+          ~enum:(List.map 
+            (fun cat -> `String (show cat)) 
+            all
+          )
+      )
 end
+
+(* Round *)
+module Round = struct
+  type t = Ftw.Round.t =
+    | Prelims
+    | Octofinals
+    | Quarterfinals
+    | Semifinals
+    | Finals
+  [@@deriving yojson, enum, show]
+
+  let all = List.filter_map of_enum (List.init (to_enum Finals + 1) Fun.id)
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Round"
+      ~typ:array
+      ~items:(
+        obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:(List.map 
+          (fun round -> `String (show round)) 
+          all
+        )
+      )
+end
+
 
 
 (* Events *)
@@ -268,7 +297,7 @@ module CompetitionIdList = struct
       ~name:"CompetitionIdList"
       ~typ:object_
       ~properties:[
-        "events", obj @@ S.make_schema ()
+        "comps", obj @@ S.make_schema ()
           ~typ:array
           ~items:(ref CompetitionId.ref);
       ]
@@ -297,3 +326,71 @@ module Competition = struct
       ]
 end
 
+
+(* Phases *)
+(* ************************************************************************* *)
+
+(* Phase Ids *)
+module PhaseId = struct
+  type t = Ftw.Phase.id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"PhaseId"
+      ~typ:int
+      ~examples:[`Int 42]
+end
+
+(* Phase Id list *)
+module PhaseIdList = struct
+  type t = {
+    phases : PhaseId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"PhaseIdList"
+      ~typ:object_
+      ~properties:[
+        "phases", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref PhaseId.ref);
+      ]
+end
+
+(* Phase specification *)
+module Phase = struct
+  type t = {
+    competition : CompetitionId.t;
+    round : Round.t;
+    judge_artefact_description : string;
+    head_judge_artefact_description : string;
+    ranking_algorithm : string;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Phase"
+      ~typ:(Obj Object)
+      ~properties:[
+        "competition", ref CompetitionId.ref;
+        "round", ref Round.ref;
+        "judge_artefact_description", obj @@ S.make_schema ()
+          ~typ:string
+          ~examples:[
+            `String "Rank";
+            `String "Note";
+            `String "Single_note";
+          ];
+        "head_judge_artefact_description", obj @@ S.make_schema ()
+        ~typ:string
+        ~examples:[
+          `String "Rank";
+          `String "Note";
+          `String "Single_note";
+        ];
+        "ranking_algorithm", obj @@ S.make_schema ()
+          ~typ:string
+          ~examples:[`String "RPSS"];
+      ]
+end
