@@ -5,32 +5,51 @@
 (* ************************************************************************* *)
 
 type t =
-  | Leader
-  | Follower
-  [@@deriving yojson]
+  | Prelims
+  | Octofinals
+  | Quarterfinals
+  | Semifinals
+  | Finals
 
 (* DB interaction *)
 (* ************************************************************************* *)
 
 let to_int = function
-  | Leader -> 0
-  | Follower -> 1
+  | Finals -> 0
+  | Prelims -> 1
+  | Semifinals-> 2
+  | Quarterfinals -> 3
+  | Octofinals -> 4
 
 let of_int = function
-  | 0 -> Leader
-  | 1 -> Follower
-  | d -> failwith (Format.asprintf "%d is not a valid role" d)
+  | 0 -> Finals
+  | 1 -> Prelims
+  | 2 -> Semifinals
+  | 3 -> Quarterfinals
+  | 4 -> Octofinals
+  | _ -> assert false
 
 let p = Sqlite3_utils.Ty.([int])
 let conv = Conv.mk p of_int
 
+let () =
+  State.add_init_descr_table
+    ~table_name:"round_names" ~to_int
+    ~values:[
+      Prelims, "Prelims";
+      Finals, "Finals";
+      Semifinals, "Semifinals";
+      Quarterfinals, "Quarterfinals";
+      Octofinals, "Octofinals";
+    ]
+
 (* Usual functions *)
 (* ************************************************************************* *)
 
-let compare r r' =
-  Stdlib.compare (to_int r) (to_int r')
+let compare k k' =
+  Stdlib.compare (to_int k) (to_int k')
 
-let equal r r' = compare r r' = 0
+let equal k k' = compare k k' = 0
 
 module Aux = struct
   type nonrec t = t
@@ -39,5 +58,4 @@ end
 
 module Set = Set.Make(Aux)
 module Map = Map.Make(Aux)
-
 
