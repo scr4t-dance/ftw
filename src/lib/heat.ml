@@ -76,6 +76,12 @@ let conv =
     (fun passage_id heat_number leader follow ->
        { passage_id; heat_number; leader; follow; })
 
+let raw_get st ~phase =
+  State.query_list_where ~st ~conv ~p:Id.p
+    {| SELECT (id, heat_number, leader_bib, follower_bib)
+       FROM heats WHERE phase_id = ? |}
+    phase
+
 let incr_passage map_ref bib =
     map_ref :=
       Id.Map.update bib (function
@@ -141,10 +147,7 @@ let mk_singles l =
   { singles_heats = a; }
 
 let get_singles ~st ~phase =
-  mk_singles @@
-  State.query_list_where ~st ~conv ~p:Id.p
-    {| SELECT (id, heat_number, bib_id) FROM regular_heats WHERE phase_id = ? |}
-    phase
+  mk_singles @@ raw_get st ~phase
 
 
 (* Couples heats *)
@@ -198,11 +201,7 @@ let mk_couples l =
   { couples_heats = a; }
 
 let get_couples ~st ~phase =
-  mk_couples @@
-  State.query_list_where ~st ~conv ~p:Id.p
-    {| SELECT (id, heat_number, leader_id, follower_bib)
-       FROM jack_strictly_heats WHERE phase_id = ? |}
-    phase
+  mk_couples @@ raw_get st ~phase
 
 
 
