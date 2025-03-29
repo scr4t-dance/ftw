@@ -99,7 +99,7 @@ CREATE TABLE phases (
     artefact_description_judges TEXT,
     artefact_description_head_judge TEXT,
     ranking_algorithm TEXT, -- don't ref to algorithm types because can includes parameters
-    UNIQUE(competition_id, round_type)
+    UNIQUE(competition_id, round)
 );
 
 
