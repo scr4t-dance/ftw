@@ -10,6 +10,11 @@ type passage_kind =
   | Only
   | Multiple of { nth : int; }
 
+(* configuration for heat generation *)
+type conf = {
+  sizes : Misc.Split.conf;
+}
+
 (* Jack&Jill heats *)
 
 type single = {
@@ -203,6 +208,52 @@ let mk_couples l =
 let get_couples ~st ~phase =
   mk_couples @@ raw_get st ~phase
 
+
+(* Heat generation *)
+(* ************************************************************************* *)
+
+(* TODO: - write pools to DB
+         - check some criterion on generated heats and loop if not met
+           (e.g. same dancers not twice in the same pool, early/late dancers,
+           etc..) *)
+let regen_pool_singles ~conf t =
+  (* Collect the set of all leaders and follows *)
+  let all_leaders, all_follows =
+    Array.fold_left (fun (leaders, follows) heat ->
+        let aux set { dancer; _ } = Id.Set.add dancer set in
+        let leaders = List.fold_left aux leaders heat.leaders in
+        let follows = List.fold_left aux follows heat.followers in
+        leaders, follows
+      ) (Id.Set.empty, Id.Set.empty) t.singles_heats
+  in
+  (* Randomize the leaders *)
+  let leaders = Id.Set.elements all_leaders |> Array.of_list in
+  let n_leaders = Array.length leaders in
+  let leaders = Misc.Randomizer.apply (Misc.Randomizer.subst n_leaders) leaders in
+  (* Randomize the followers *)
+  let follows = Id.Set.elements all_follows |> Array.of_list in
+  let n_follows = Array.length follows in
+  let follows = Misc.Randomizer.apply (Misc.Randomizer.subst n_follows) follows in
+  (* Equalize the array of leaders and followers *)
+  let leaders, follows =
+    if n_leaders < n_follows then begin
+      let m = n_follows - n_leaders in
+      let a = Array.sub leaders 0 m in
+      Array.append leaders a, follows
+    end else if n_leaders > n_follows then begin
+      let m = n_leaders - n_follows in
+      let a = Array.sub follows 0 m in
+      leaders, Array.append follows a
+    end else begin
+      assert (n_leaders = n_follows);
+      leaders, follows
+    end
+  in
+  let dancers = Array.combine leaders follows in
+  (* Split the dancers into pools according to the split configuration. *)
+  Result.bind (Misc.Split.split ~conf (Array.length dancers)) (fun split ->
+      Ok (Misc.Split.apply_to_array ~split dancers)
+    )
 
 
 (* Original Pool file -- for future reuse of code for heat generation
