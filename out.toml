@@ -1,0 +1,17 @@
+
+[event]
+  name = "Foobar !"
+  start_date = "2025-01-13"
+  end_date = "2025-01-15"
+
+[event.comps]
+
+[event.comps.jj_novice]
+  name = ""
+  kind = "Jack_and_Jill"
+  category = "Novice"
+
+[event.comps.jj_inter]
+  name = ""
+  kind = "Jack_and_Jill"
+  category = "Intermediate"

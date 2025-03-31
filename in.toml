@@ -1,0 +1,49 @@
+# FTW Event Info
+
+[dancers]
+new = [
+  { id = 1, dob = "1992-01-13", first_name = "Guillaume", last_name = "Bury" },
+  { id = 2, dob = "1992-06-15", first_name = "Guillaume", last_name = "De Longuemar" },
+  { id = 3, dob = "1993-01-01", first_name = "Léa", last_name = "Cimelli" },
+  { id = 4, dob = "1994-01-01", first_name = "Valentine", last_name = "Lefrère" }
+]
+
+[event]
+name = "Foobar !"
+start_date  = "2025-01-13"
+end_date    = "2025-01-15"
+
+# J&J - Novices
+# -------------
+
+[event.comps.jj_novice]
+name = ""
+kind = "Jack_and_Jill"
+category = "Novice"
+
+# Prelims
+[event.comps.jj_novice.prelims]
+artefacs = [ "Yans", "technique", "musicality", "teamwork" ]
+head_artefacts = [ "Yans", "all" ]
+ranking_algorithm = [ "Yan_weighted",
+                      [ { yes = 3, alt = 2, no = 1 },
+                        { yes = 3, alt = 2, no = 1 },
+                        { yes = 3, alt = 2, no = 1 } ],
+                      [ { yes = 3, alt = 2, no = 1 } ] ]
+
+# Finals
+[event.comps.jj_novice.finals]
+artefacts = [ "Ranking" ]
+head_artefacts = [ "Ranking" ]
+ranking_algorithm = [ "RPSS" ]
+
+
+
+# J&J - Intermediates
+# -------------------
+
+[event.comps.jj_inter]
+name = ""
+kind = "Jack_and_Jill"
+category = "Intermediate"
+
