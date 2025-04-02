@@ -15,13 +15,18 @@ let initializers = ref []
 
 let mk path =
   let st = Sqlite3.db_open path in
-  List.iter (fun f ->
-      f st
+  Logs.debug ~src (fun k->k "Starting DB initialization");
+  List.iter (fun (name, f)->
+      try f st
+      with exn ->
+        Logs.err ~src (fun k->k "Failed initialization for %s" name);
+        raise exn
     ) (List.rev !initializers);
+  Logs.debug (fun k->k "Finished initialization of DB");
   st
 
-let add_init f =
-  initializers := f :: !initializers
+let add_init ~name f =
+  initializers := (name, f) :: !initializers
 
 (* Helper for intializing tables that are mainly here so that the DB can
    be (more or less) self-describing, or at least a bit more readable
@@ -44,7 +49,7 @@ let add_init_descr_table ~table_name ~to_int ~to_descr ~values =
         (to_int value) name
       ) values
   in
-  add_init aux
+  add_init ~name:table_name aux
 
 
 (* Helper/Wrapper functions *)

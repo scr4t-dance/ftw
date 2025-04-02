@@ -37,6 +37,9 @@ val equal : t -> t -> bool
 val compare : t -> t -> int
 (** Comparison function. *)
 
+val print_compact : Format.formatter -> t -> unit
+(** Compact printing. *)
+
 module Set : Set.S with type elt = t
 (** Sets for identifiers *)
 

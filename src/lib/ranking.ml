@@ -40,6 +40,29 @@ module Algorithm = struct
       }
   [@@deriving yojson]
 
+  (* Usual functions *)
+  (* *********************************************************************** *)
+
+  let print_yan_weight fmt { yes; alt; no; } =
+    Format.fprintf fmt "%d/%d/%d" yes alt no
+
+  let print_yan_weights fmt l =
+    match Misc.Lists.all_the_same ~eq:(=) l with
+    | Some t when List.length l > 1 ->
+      Format.fprintf fmt "@@(%a)" print_yan_weight t
+    | _ ->
+      let pp_sep fmt () = Format.fprintf fmt ",@ " in
+      Format.pp_print_list ~pp_sep print_yan_weight fmt l
+
+  let print fmt = function
+    | RPSS ->
+      Format.fprintf fmt "RPSS"
+    | Yan_weighted { weights; head_weights; } ->
+      Format.fprintf fmt "%a / %a"
+        print_yan_weights weights
+        print_yan_weights head_weights
+
+
   (* Algorithms Serialization *)
   (* *********************************************************************** *)
 

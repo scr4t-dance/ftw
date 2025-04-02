@@ -14,6 +14,14 @@ module Descr = struct
   let ranking = Ranking
   let yans criterion = Yans { criterion; }
 
+  let print fmt = function
+    | Ranking ->
+      Format.fprintf fmt "Ranking"
+    | Yans { criterion } ->
+      let pp_sep fmt () = Format.fprintf fmt ";@ " in
+      Format.fprintf fmt "Yans(@[<hov>%a@])"
+        (Format.pp_print_list ~pp_sep Format.pp_print_string) criterion
+
   let to_toml = function
     | Ranking ->
       Otoml.array [ Otoml.string "Ranking" ]
@@ -111,12 +119,12 @@ let p = Sqlite3_utils.Ty.([int])
 let conv ~descr = Conv.mk p (of_int ~descr)
 
 let () =
-  State.add_init (fun st ->
+  State.add_init ~name:"artefact" (fun st ->
       State.exec ~st {|
         CREATE TABLE IF NOT EXISTS artefacts (
           target_id INTEGER REFERENCES heats(id),
-          judge INTEGER REFERNECES dancers(id),
-          artefact INTEGER NOT NULL
+          judge INTEGER REFERENCES dancers(id),
+          artefact INTEGER NOT NULL,
           PRIMARY KEY(target_id,judge)
         )
       |})

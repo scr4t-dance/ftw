@@ -29,6 +29,9 @@ val end_date : t -> Date.t
 val compare : t -> t -> int
 (** Comparison function. Compares the date before *)
 
+val print_compact : Format.formatter -> t -> unit
+(** Compact printing. *)
+
 
 (* DB interaction *)
 (* ************************************************************************* *)

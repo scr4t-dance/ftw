@@ -1,17 +1,18 @@
 # FTW Event Info
 
 [dancers]
-new = [
-  { id = 1, dob = "1992-01-13", first_name = "Guillaume", last_name = "Bury" },
-  { id = 2, dob = "1992-06-15", first_name = "Guillaume", last_name = "De Longuemar" },
-  { id = 3, dob = "1993-01-01", first_name = "Léa", last_name = "Cimelli" },
-  { id = 4, dob = "1994-01-01", first_name = "Valentine", last_name = "Lefrère" }
+list = [
+  { id = 3, dob = 1992-01-13, first_name = "Guillaume", last_name = "Bury" },
+  { id = 4, dob = 1992-06-15, first_name = "Guillaume", last_name = "De Longuemar" },
+  { id = 5, dob = 1993-01-01, first_name = "Léa", last_name = "Cimelli" },
+  { id = 6, dob = 1994-01-01, first_name = "Valentine", last_name = "Lefrère" },
+  { id = 7, dob = 1997-01-01, first_name = "María", last_name = "Castro Scherianz" }
 ]
 
 [event]
 name = "Foobar !"
-start_date  = "2025-01-13"
-end_date    = "2025-01-15"
+start_date = 2025-01-13
+end_date = 2025-01-15
 
 # J&J - Novices
 # -------------
@@ -21,10 +22,13 @@ name = ""
 kind = "Jack_and_Jill"
 category = "Novice"
 
+[event.comps.jj_novice.results]
+csv = ""
+
 # Prelims
 [event.comps.jj_novice.prelims]
-artefacs = [ "Yans", "technique", "musicality", "teamwork" ]
-head_artefacts = [ "Yans", "all" ]
+judge_artefacts_descr = [ "Yans", "technique", "musicality", "teamwork" ]
+head_artefacts_descr = [ "Yans", "all" ]
 ranking_algorithm = [ "Yan_weighted",
                       [ { yes = 3, alt = 2, no = 1 },
                         { yes = 3, alt = 2, no = 1 },
@@ -33,11 +37,9 @@ ranking_algorithm = [ "Yan_weighted",
 
 # Finals
 [event.comps.jj_novice.finals]
-artefacts = [ "Ranking" ]
-head_artefacts = [ "Ranking" ]
+judge_artefacts_descr = [ "Ranking" ]
+head_artefacts_descr = [ "Ranking" ]
 ranking_algorithm = [ "RPSS" ]
-
-
 
 # J&J - Intermediates
 # -------------------
@@ -46,4 +48,26 @@ ranking_algorithm = [ "RPSS" ]
 name = ""
 kind = "Jack_and_Jill"
 category = "Intermediate"
+
+# Results
+[event.comps.jj_inter.results]
+csv="""
+1	L	De Longuemar	Guilaume	10
+1	F	Varieras	Mathilde	10
+
+2	L	Lopez	Yann	8
+2	F	Le	Ai-My	8
+
+3	L	Ziakovic	Théo	6
+3	F	Bivas	Irène	6
+
+4	L	Le	Huy Hoang	3
+4	F	Nguyen	Romy	3
+
+5	L	Guillochon	Romain	3
+5	F	Castro-Scherianz	Maria	3
+
+6	F	Cimelli	Lea	0
+6	L	Lefrere	Valentine	0
+"""
 

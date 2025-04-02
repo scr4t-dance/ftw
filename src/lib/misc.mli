@@ -1,6 +1,15 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+(* Result monadic operators *)
+(* ************************************************************************* *)
+
+module Result : sig
+
+  val (let+) : ('a, 'b) result -> ('a -> ('c, 'b) result) -> ('c, 'b) result
+
+end
+
 (* Common Errors *)
 (* ************************************************************************* *)
 
@@ -17,12 +26,14 @@ module Error : sig
 
 end
 
-(* Result monadic operators *)
+(* Lists *)
 (* ************************************************************************* *)
 
-module Result : sig
+module Lists : sig
 
-  val (let+) : ('a, 'b) result -> ('a -> ('c, 'b) result) -> ('c, 'b) result
+  val all_the_same : eq:('a -> 'a -> bool) -> 'a list -> 'a option
+  (** Returns [true] if all the elements of the list are equal
+      according to the equality function given. *)
 
 end
 

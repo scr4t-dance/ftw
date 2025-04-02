@@ -13,6 +13,10 @@ module Descr : sig
 
   val ranking : t
   val yans : string list -> t
+  (** Construction functions *)
+
+  val print : Format.formatter -> t -> unit
+  (** Printing. *)
 
   val to_toml : t -> Otoml.t
   (** Serialization to toml. *)

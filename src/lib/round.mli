@@ -41,6 +41,9 @@ val conv : t Conv.t
 (* Usual functions *)
 (* ************************************************************************* *)
 
+val print : Format.formatter -> t -> unit
+(** Printing *)
+
 val equal : t -> t -> bool
 (** Equality function *)
 

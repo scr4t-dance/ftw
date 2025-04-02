@@ -1,6 +1,15 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+(* Result monadic operators *)
+(* ************************************************************************* *)
+
+module Result = struct
+
+  let (let+) = Result.bind
+
+end
+
 (* Common Errors *)
 (* ************************************************************************* *)
 
@@ -16,12 +25,14 @@ module Error = struct
 
 end
 
-(* Result monadic operators *)
+(* Lists *)
 (* ************************************************************************* *)
 
-module Result = struct
+module Lists = struct
 
-  let (let+) = Result.bind
+  let all_the_same ~eq = function
+    | [] -> None
+    | h :: r -> if List.for_all (eq h) r then Some h else None
 
 end
 

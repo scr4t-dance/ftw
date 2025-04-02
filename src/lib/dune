@@ -7,8 +7,8 @@
 
   ; deps
   (libraries
-    fmt logs containers
+    unix fmt logs containers
     sqlite3 sqlite3_utils
-    otoml spelll
+    otoml spelll uutf uunf
   )
 )

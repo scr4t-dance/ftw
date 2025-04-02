@@ -31,18 +31,27 @@ let compare e e' =
   <?> (Date.compare, (end_date e), (end_date e'))
   <?> (int, e.id, e'.id)
 
+let print_compact fmt t =
+  let start_year = Date.year t.start_date in
+  let end_year = Date.year t.end_date in
+  if start_year = end_year then
+    Format.fprintf fmt "%s (%d)" t.name start_year
+  else
+    Format.fprintf fmt "%s (%d/%d)" t.name start_year end_year
+
 
 (* DB interaction *)
 (* ************************************************************************* *)
 
 let () =
-  State.add_init (fun st ->
+  State.add_init ~name:"event" (fun st ->
       Sqlite3_utils.exec0_exn st {|
         CREATE TABLE IF NOT EXISTS events (
           id INTEGER PRIMARY KEY,
           name TEXT,
           start_date TEXT,
-          end_date TEXT
+          end_date TEXT,
+          UNIQUE (name, start_date, end_date)
         )
       |})
 

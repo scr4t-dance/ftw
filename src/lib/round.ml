@@ -58,6 +58,9 @@ let () =
 (* Usual functions *)
 (* ************************************************************************* *)
 
+let print fmt t =
+  Format.fprintf fmt "%s" (to_string t)
+
 let compare k k' =
   Stdlib.compare (to_int k) (to_int k')
 

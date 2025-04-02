@@ -72,8 +72,8 @@ let conv = Conv.mk p of_string
 (* ************************************************************************* *)
 
 let to_toml t =
-  Otoml.string (to_string t)
+  Otoml.local_date (to_string t)
 
 let of_toml t =
-  of_string (Otoml.get_string t)
+  of_string (Otoml.get_local_date t)
 

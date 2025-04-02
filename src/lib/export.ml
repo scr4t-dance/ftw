@@ -11,8 +11,8 @@ let export_phase ~st:_ phase =
   let head_artefacts = Phase.head_judge_artefact_descr phase in
   let ranking_algorithm = Phase.ranking_algorithm phase in
   let t = Otoml.table [
-      "artefacts", Artefact.Descr.to_toml artefacts;
-      "head_artefacts", Artefact.Descr.to_toml head_artefacts;
+      "judge_artefacts_descr", Artefact.Descr.to_toml artefacts;
+      "head_artefacts_descr", Artefact.Descr.to_toml head_artefacts;
       "ranking_algorithm", Ranking.Algorithm.to_toml ranking_algorithm;
     ]
   in
@@ -85,7 +85,13 @@ let to_file ~st path event_id =
     let toml = export_event ~st event_id in
     Logs.debug ~src (fun k->k "Finished collating data, writing to file %s" path);
     let ch = open_out path in
-    Otoml.Printer.to_channel ch toml;
+    Otoml.Printer.to_channel ch toml
+      ~indent_width:2
+      ~indent_character:' '
+      ~indent_subtables:false
+      ~newline_before_table:true
+      ~force_table_arrays:false
+    ;
     close_out ch;
     Ok ()
   with exn ->

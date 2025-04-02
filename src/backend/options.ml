@@ -27,7 +27,7 @@ type t =
   | Import of import
   | Export of export
 
-(* Logs setup *)
+(* Logs & debugging *)
 (* ************************************************************************* *)
 
 let logs_level = Logs_cli.level ()
@@ -38,6 +38,17 @@ let setup_log style_renderer level =
   Fmt_tty.setup_std_outputs ?style_renderer ();
   Logs.set_level ~all:true level;
   Logs.set_reporter (Logs_fmt.reporter ())
+
+let bt =
+  let doc = "Enable backtraces" in
+  Arg.(value & flag & info ["b"] ~doc)
+
+let setup_bt bt =
+  if bt then begin
+    Sys.catch_break true;
+    Printexc.record_backtrace true
+  end;
+  ()
 
 
 (* Common args *)
@@ -53,11 +64,13 @@ let db_path =
 
 let server =
   let open Term.Syntax in
-  let+ db_path
+  let+ bt
+  and+ db_path
   and+ server_port =
     let doc = "Port to listen on" in
     Arg.(value & opt int 8080 & info ["p"; "port"] ~doc)
   in
+  setup_bt bt;
   Server { db_path; server_port; }
 
 
@@ -66,13 +79,15 @@ let server =
 
 let import =
   let open Term.Syntax in
-  let+ db_path
+  let+ bt
+  and+ db_path
   and+ logs_level
   and+ logs_style
   and+ ev_path =
     let doc = "Path of the serialized event to import" in
     Arg.(required & pos 0 (some non_dir_file) None & info [] ~doc ~docv:"FILE")
   in
+  setup_bt bt;
   setup_log logs_style logs_level;
   Import { db_path; ev_path; }
 
@@ -82,7 +97,8 @@ let import =
 
 let export =
   let open Term.Syntax in
-  let+ db_path
+  let+ bt
+  and+ db_path
   and+ logs_level
   and+ logs_style
   and+ out_path =
@@ -92,6 +108,7 @@ let export =
     let doc = "Id of the event to export" in
     Arg.(required & opt (some int) None & info ["id"] ~doc)
   in
+  setup_bt bt;
   setup_log logs_style logs_level;
   Export { db_path; out_path; ev_id; }
 

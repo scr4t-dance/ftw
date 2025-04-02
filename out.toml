@@ -11,6 +11,17 @@
   kind = "Jack_and_Jill"
   category = "Novice"
 
+[event.comps.jj_novice.finals]
+  judge_artefacts_descr = ["Ranking"]
+  head_artefacts_descr = ["Ranking"]
+  ranking_algorithm = ["RPSS"]
+
+[event.comps.jj_novice.prelims]
+  judge_artefacts_descr = ["Yans", "technique", "musicality", "teamwork"]
+  head_artefacts_descr = ["Yans", "all"]
+  ranking_algorithm = ["Yan_weighted", [{yes = 3, alt = 2, no = 1}, {yes = 3, alt = 2, no = 1}, {yes = 3, alt = 2, no = 1}], [{yes = 3, alt = 2, no = 1}]]
+
+
 [event.comps.jj_inter]
   name = ""
   kind = "Jack_and_Jill"
