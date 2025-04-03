@@ -5,7 +5,7 @@
 (* ************************************************************************* *)
 
 (* TODO: find a decent/better name for an occurrence of a dancer in a heat *)
-type passage_id = Id.t
+type passage_id = Id.t [@@deriving yojson]
 type passage_kind =
   | Only
   | Multiple of { nth : int; }
@@ -52,8 +52,8 @@ type couples_heats = {
 let () =
   State.add_init (4, fun st ->
       State.exec ~st {|
-        CREATE TABLE heats (
-          id INTEGER PRIMARY KEY, -- = target id of judgement
+        CREATE TABLE IF NOT EXISTS heats (
+          id INTEGER PRIMARY KEY,
           phase_id INTEGER REFERENCES phases(id),
           heat_number INTEGER NOT NULL,
           leader_bib INTEGER,

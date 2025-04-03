@@ -36,7 +36,7 @@ let () =
           competition_id INT REFERENCES competitions(id),
           round INTEGER REFERENCES round_names(id),
           judge_artefact_descr TEXT,
-          head_judge,artefact_descr TEXT,
+          head_judge_artefact_descr TEXT,
           ranking_algorithm TEXT,
           UNIQUE(competition_id, round)
         )
@@ -75,11 +75,11 @@ let get st id =
 
 let find_ids st competition_id =
   State.query_list_where ~p:Id.p ~conv:Id.conv ~st
-    {| SELECT id FROM phases WHERE competition = ? |} competition_id
+    {| SELECT id FROM phases WHERE competition_id = ? ORDER BY id |} competition_id
 
 let find st competition_id =
   State.query_list_where ~p:Id.p ~conv ~st
-    {| SELECT * FROM phases WHERE competition = ? |} competition_id
+    {| SELECT * FROM phases WHERE competition_id = ? ORDER BY id |} competition_id
 
 let build id_phase competition_id round judge_artefact_descr 
     head_judge_artefact_descr ranking_algorithm = {
@@ -120,7 +120,7 @@ let create
     head_judge_artefact_descr
     ranking_algorithm;
   State.query_one_where ~st ~conv:Id.conv ~p:[int; int]
-    {| SELECT id FROM phases WHERE competition=? AND round=? |}
+    {| SELECT id FROM phases WHERE competition_id=? AND round=? |}
     competition_id round
 
 let update st t =

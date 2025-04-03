@@ -4,7 +4,7 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type id = Id.t
+type id = Id.t [@@deriving yojson]
 (** Alias for ids *)
 
 type t

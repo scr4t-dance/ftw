@@ -14,6 +14,6 @@ test that database initialisation is reproducible
   bibs                    couple_bonus_artefacts  judges                
   bonus_artefacts         couple_heats            judging_types         
   competition_categories  dancers                 phases                
-  competition_kinds       divisions               rounds                
+  competition_kinds       division_names          rounds                
   competitions            events                
   $ rm backendexample.db

@@ -394,3 +394,69 @@ module Phase = struct
           ~examples:[`String "RPSS"];
       ]
 end
+
+
+(* Dancers *)
+(* ************************************************************************* *)
+
+(* Dancer Ids *)
+module DancerId = struct
+  type t = Ftw.Dancer.id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"DancerId"
+      ~typ:int
+      ~examples:[`Int 42]
+end
+
+(* Dancer Id list *)
+module DancerIdList = struct
+  type t = {
+    phases : DancerId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"DancerIdList"
+      ~typ:object_
+      ~properties:[
+        "dancers", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref DancerId.ref);
+      ]
+end
+
+
+
+(* Heats *)
+(* ************************************************************************* *)
+
+(* Heat Ids *)
+module HeatId = struct
+  type t = Ftw.Heat.passage_id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatId"
+      ~typ:int
+      ~examples:[`Int 42]
+end
+
+(* Heat Id list *)
+module HeatIdList = struct
+  type t = {
+    phases : HeatId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatIdList"
+      ~typ:object_
+      ~properties:[
+        "heats", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref HeatId.ref);
+      ]
+end
+

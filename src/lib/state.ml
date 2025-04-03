@@ -1,17 +1,22 @@
 
 type t = Sqlite3.db
 
-let initializers = ref [[]; []; []; [];[]; []; []]
+let initializers = ref [[]; []; []; [];[]; []; []; []]
 
 let add_init (priority, f) =
   initializers := List.mapi (fun i lst -> if i = priority then f :: lst else lst) !initializers
 
 let mk path =
   let st = Sqlite3.db_open path in
-  let iter_init init_list = List.iter (fun f ->
-      f st
-    ) (List.rev init_list) in
-  List.iter iter_init !initializers;
+  let iter_init i init_list = 
+    let log_channel = open_out_gen [Open_append] 0o644 "/home/but2ene/Documents/software/ocaml_projects/scrat/ftw/ftw.log" in
+    Printf.fprintf log_channel "boucle %d with %d elements\n" i (List.length init_list);
+    flush log_channel;
+    close_out log_channel;
+    List.iter (fun f ->
+        f st
+      ) (List.rev init_list) in
+  List.iteri iter_init !initializers;
   st
 
 let atomically = Sqlite3_utils.atomically
@@ -59,8 +64,8 @@ let query_one_where ~p ~conv ~st sql =
   let open Sqlite3_utils in
   try
     exec_exn st sql
-    ~ty:(p, res, f_conv)
-    ~f:(Sqlite3_utils.Cursor.get_one_exn)
+      ~ty:(p, res, f_conv)
+      ~f:(Sqlite3_utils.Cursor.get_one_exn)
   with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
     raise Not_found
 
@@ -77,11 +82,11 @@ let add_init_descr_table ~table_name ~to_int ~values =
       |} table_name);
     (* Add all values *)
     List.iter (fun (value, name) ->
-      let open Sqlite3_utils.Ty in
-      insert ~st ~ty:[ int; text; ]
-        (Format.asprintf
-           {| INSERT OR IGNORE INTO %s (id, name) VALUES (?,?) |} table_name)
-        (to_int value) name
+        let open Sqlite3_utils.Ty in
+        insert ~st ~ty:[ int; text; ]
+          (Format.asprintf
+             {| INSERT OR IGNORE INTO %s (id, name) VALUES (?,?) |} table_name)
+          (to_int value) name
       ) values
   in
   add_init (0, aux)
