@@ -21,6 +21,7 @@ depends: [
   "logs"
   "fmt"
   "uutf"
+  "uunf"
   "spelll"
   "otoml"
   "openapi_router"
