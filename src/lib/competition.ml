@@ -88,10 +88,12 @@ let create st event_id
         Kind.print kind (Kind.to_int kind) Category.print category (Category.to_int category)
         n_leaders n_follows check_divs);
   let open Sqlite3_utils.Ty in
-  State.insert ~st ~ty:[ int; text; int; int; int; int ]
-    {| INSERT INTO competitions (event, name, kind, category, num_leaders, num_follows)
-       VALUES (?,?,?,?,?,?) |}
-    event_id name (Kind.to_int kind) (Category.to_int category) n_leaders n_follows;
+  State.insert ~st ~ty:[ int; text; int; int; int; int; int ]
+    {| INSERT INTO competitions
+       (event, name, kind, category, num_leaders, num_followers,check_divs)
+       VALUES (?,?,?,?,?,?,?) |}
+    event_id name (Kind.to_int kind) (Category.to_int category)
+    n_leaders n_follows (Bool.to_int check_divs);
   (* TODO: try and get the id of the new competition from the insert statement above,
      rather than using a new query *)
   let t =

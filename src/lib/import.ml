@@ -78,6 +78,9 @@ let import_dancers ~st ~t =
   in
   Ok map
 
+let import_dancers_opt ~st = function
+  | None -> Ok Id.Map.empty
+  | Some t -> import_dancers ~st ~t
 
 (* Phases *)
 (* ************************************************************************* *)
@@ -153,7 +156,6 @@ let import_results_csv ~st ~competition t =
   (* *)
   let contents = Otoml.get_string t in
   let lines = String.split_on_char '\n' contents in
-  Logs.debug ~src (fun k->k "csv lines are split");
   let l =
     List.fold_left (fun acc line ->
         let line = String.trim line in
@@ -162,7 +164,6 @@ let import_results_csv ~st ~competition t =
           let r =
             match String.split_on_char '\t' line with
             | res :: role :: last_name :: first_name :: ([] | _ :: []) ->
-              Logs.debug ~src (fun k->k "new line result !");
               parse_row ~res ~role ~last_name ~first_name ()
             | _ ->
               Logs.err ~src (fun k->k "error in result !");
@@ -231,15 +232,16 @@ let import_event ~st ~subst ~t =
 (* File interaction *)
 (* ************************************************************************* *)
 
-let from_file st path =
+let from_file ~st path () =
   let+ t = Otoml.Parser.from_file_result path in
   try
-    Logs.app ~src (fun k->k "Read input file from %s" path);
+    Logs.info ~src (fun k->k "Read input file from %s" path);
     index := Dancer.Index.mk ~st;
-    let+ t_dancers = Otoml.find_result t Otoml.get_value ["dancers"] in
-    let+ subst = import_dancers ~st ~t:t_dancers in
+    let t_dancers = Otoml.find_opt t Otoml.get_value ["dancers"] in
+    let+ subst = import_dancers_opt ~st t_dancers in
     let+ t_ev = Otoml.find_result t Otoml.get_value ["event"] in
-    import_event ~st ~subst ~t:t_ev
+    let+ () = import_event ~st ~subst ~t:t_ev in
+    Ok ()
   with exn ->
     let bt = Printexc.get_backtrace () in
     Logs.err ~src (fun k->
@@ -247,5 +249,8 @@ let from_file st path =
           (Printexc.to_string exn) Format.pp_print_text bt
       );
     Error "Exception while importing"
+
+let import ~st path =
+  Bos.OS.Path.fold (from_file ~st) () [path]
 
 

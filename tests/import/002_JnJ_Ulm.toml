@@ -1,0 +1,25 @@
+# FTW Event Info
+
+[event]
+name = "Jack&Jill Ulm"
+start_date = 2017-06-01
+end_date = 2017-06-01
+
+[event.comps.jj]
+name = ""
+kind = "Jack_and_Jill"
+category = "Regular"
+leaders = 0
+follows = 0
+
+[event.comps.jj.results]
+csv = """
+1	L	Laurent	Théo
+1	F	Curchod	Hélène
+
+2	L	Monier	Ludovic
+2	F	Kopecz-Muller	Caroline
+
+3	L	Lamusse	Olivier
+3	F	Geneste-Samissof	Natacha
+"""

@@ -72,7 +72,7 @@ let import (options : Options.import) =
         match Ftw.Import.from_file st options.ev_path with
         | Ok () -> ()
         | Error msg ->
-          Logs.app (fun k->k "Import failed: %s" msg);
+          Logs.err (fun k->k "Import failed: %s" msg);
           exit 1
       )
 
