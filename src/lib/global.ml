@@ -6,8 +6,8 @@ type 'a t = {
 }
 
 let () =
-  State.add_init (fun st ->
-      Sqlite3_utils.exec0_exn st {|
+  State.add_init (1, fun st ->
+      State.exec ~st {|
         CREATE TABLE IF NOT EXISTS globals (
         name TEXT PRIMARY KEY,
         value TEXT
@@ -27,7 +27,7 @@ let set st t value =
 
 let mk name p conv default =
   let t = { name; p; conv; } in
-  let () = State.add_init (fun st ->
+  let () = State.add_init (2, fun st ->
       let open Sqlite3_utils.Ty in
       State.insert ~st ~ty:[text; p]
         {|INSERT OR IGNORE INTO globals (name,value) VALUES (?,?) |}

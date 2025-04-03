@@ -1,21 +1,26 @@
 
 type t = Sqlite3.db
 
-let initializers = ref []
+let initializers = ref [[]; []; []; [];[]; []; []]
 
-let add_init f =
-  initializers := f :: !initializers
+let add_init (priority, f) =
+  initializers := List.mapi (fun i lst -> if i = priority then f :: lst else lst) !initializers
 
 let mk path =
   let st = Sqlite3.db_open path in
-  List.iter (fun f ->
+  let iter_init init_list = List.iter (fun f ->
       f st
-    ) (List.rev !initializers);
+    ) (List.rev init_list) in
+  List.iter iter_init !initializers;
   st
 
 let atomically = Sqlite3_utils.atomically
 
 let exec ~st sql =
+  let log_channel = open_out_gen [Open_append] 0o644 "/home/but2ene/Documents/software/ocaml_projects/scrat/ftw/ftw.log" in
+  Printf.fprintf log_channel "query: %s\n" sql;
+  flush log_channel;
+  close_out log_channel;
   let open Sqlite3_utils in
   exec0_exn st sql
 
@@ -79,4 +84,4 @@ let add_init_descr_table ~table_name ~to_int ~values =
         (to_int value) name
       ) values
   in
-  add_init aux
+  add_init (0, aux)

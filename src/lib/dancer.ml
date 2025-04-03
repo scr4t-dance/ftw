@@ -31,8 +31,8 @@ let as_follower { as_follower; _ } = as_follower
 (* ************************************************************************* *)
 
 let () =
-  State.add_init (fun st ->
-      Sqlite3_utils.exec0_exn st {|
+  State.add_init (1, fun st ->
+      State.exec ~st {|
         CREATE TABLE IF NOT EXISTS dancers (
           id INTEGER PRIMARY KEY,
           birthday TEXT,

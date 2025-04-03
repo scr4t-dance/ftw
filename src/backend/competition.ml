@@ -100,7 +100,7 @@ and get_phases =
     ~to_yojson:Types.PhaseIdList.to_yojson
     (fun req st ->
        let+ id = Utils.int_param req "id" in
-       let phases = Ftw.Phase.ids_from_competition st id in
+       let phases = Ftw.Phase.find_ids st id in
        let res : Types.PhaseIdList.t = { phases; } in
        Ok res
     )

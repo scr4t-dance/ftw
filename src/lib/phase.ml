@@ -4,7 +4,7 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type id = Id.t
+type id = Id.t [@@deriving yojson]
 
 type t = {
   id : id;
@@ -29,18 +29,19 @@ let head_judge_artefact_descr { head_judge_artefact_descr; _ } = head_judge_arte
 (* ************************************************************************* *)
 
 let () =
-  State.add_init (fun st ->
-      Sqlite3_utils.exec0_exn st {|
+  State.add_init (3, fun st ->
+      State.exec ~st {|
         CREATE TABLE IF NOT EXISTS phases (
           id INTEGER PRIMARY KEY,
           competition_id INT REFERENCES competitions(id),
-          round INTEGER REFERNECES round_names(id),
+          round INTEGER REFERENCES round_names(id),
           judge_artefact_descr TEXT,
           head_judge,artefact_descr TEXT,
           ranking_algorithm TEXT,
           UNIQUE(competition_id, round)
         )
-      |})
+      |}
+    )
 
 let conv =
   Conv.mk
@@ -79,6 +80,16 @@ let find_ids st competition_id =
 let find st competition_id =
   State.query_list_where ~p:Id.p ~conv ~st
     {| SELECT * FROM phases WHERE competition = ? |} competition_id
+
+let build id_phase competition_id round judge_artefact_descr 
+    head_judge_artefact_descr ranking_algorithm = {
+  id=id_phase;
+  competition_id;
+  round;
+  judge_artefact_descr;
+  head_judge_artefact_descr;
+  ranking_algorithm;
+}
 
 let create
     ~st competition_id round
@@ -134,5 +145,6 @@ let update st t =
                          ranking_algorithm=?
                    WHERE id=? |}
     round judge_artefact_descr head_judge_artefact_descr
-    ranking_algorithm t.id
+    ranking_algorithm t.id;
+  t.id
 

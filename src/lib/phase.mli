@@ -4,7 +4,7 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type id = Id.t
+type id = Id.t [@@deriving yojson]
 (** Ids for phases *)
 
 type t
@@ -54,6 +54,14 @@ val find : State.t -> Competition.id -> t list
 val find_ids : State.t -> Competition.id -> id list
 (** Optimized version of {!find} that only returns phases ids. *)
 
+val build :
+  id -> Competition.id -> Round.t ->
+  Artefact.Descr.t ->
+  Artefact.Descr.t ->
+  Ranking.Algorithm.t ->
+  t
+(** Create a new phase *)
+
 val create :
   st:State.t -> Competition.id -> Round.t ->
   ranking_algorithm:Ranking.Algorithm.t ->
@@ -62,6 +70,6 @@ val create :
   id
 (** Create a new phase *)
 
-val update : State.t -> t -> unit
+val update : State.t -> t -> id
 (** Update the details of a phase. *)
 
