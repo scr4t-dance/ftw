@@ -140,8 +140,8 @@ let update st t =
   let open Sqlite3_utils.Ty in
   State.insert ~st ~ty:[int; text; text; text; int]
     {| UPDATE phases SET round=?,
-                         judge_artefact_string=?,
-                         head_judge_artefact_string=?,
+                         judge_artefact_descr=?,
+                         head_judge_artefact_descr=?,
                          ranking_algorithm=?
                    WHERE id=? |}
     round judge_artefact_descr head_judge_artefact_descr

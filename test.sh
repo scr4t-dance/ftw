@@ -8,7 +8,7 @@ curl -s -X PUT http://localhost:8080/api/comp "Content-Type: application/json" -
 
 curl -s -X PUT localhost:8080/api/phase -H "Content-Type: application/json" -d '{"competition":1,"round":["Prelims"],"judge_artefact_description":"yans:test","head_judge_artefact_description":"ranking","ranking_algorithm":"RPSS"}'
 
-curl -s -X PATCH localhost:8080/api/phase/1 "Content-Type: application/json" '{"competition":1,"round":["Finals"],"judge_artefact_description":"yans:full","head_judge_artefact_description":"yans:head","ranking_algorithm":"RPSS"}'
+curl -v -s -X PATCH localhost:8080/api/phase/1 -H "Content-Type: application/json" -d '{"competition":1,"round":["Finals"],"judge_artefact_description":"yans:full","head_judge_artefact_description":"yans:head","ranking_algorithm":"RPSS"}'
 
 # dancer
 curl -s -X PUT localhost:8080/api/dancer -H "Content-Type: application/json" -d '{"birthday":{"day":1,"month":1,"year":1900}, "last_name":"Bury", "first_name":"Guillaume", "email":"email@email.email", "as_leader":["Novice"], "as_follower":["Novice"]}'

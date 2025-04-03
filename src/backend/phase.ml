@@ -52,7 +52,7 @@ let rec routes router =
       "400", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Invalid input";
     ]
-  |> Router.put "/api/phase/:id" update_phase
+  |> Router.patch "/api/phase/:id" update_phase
     ~tags:["phase"]
     ~summary:"Update parameters of a Phase"
     ~parameters:[
