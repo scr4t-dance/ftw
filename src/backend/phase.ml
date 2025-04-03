@@ -132,7 +132,6 @@ and update_phase =
     ~to_yojson:Types.PhaseId.to_yojson
     (
       fun req st (phase : Types.Phase.t) ->
-        Printf.printf  "query: %s %s %s\n" phase.judge_artefact_description phase.head_judge_artefact_description phase.ranking_algorithm;
         flush_all ();
         let+ id_phase = Utils.int_param req "id" in
         let p = Ftw.Phase.get st id_phase in

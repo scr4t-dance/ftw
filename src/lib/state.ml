@@ -8,11 +8,7 @@ let add_init (priority, f) =
 
 let mk path =
   let st = Sqlite3.db_open path in
-  let iter_init i init_list = 
-    let log_channel = open_out_gen [Open_append] 0o644 "/home/but2ene/Documents/software/ocaml_projects/scrat/ftw/ftw.log" in
-    Printf.fprintf log_channel "boucle %d with %d elements\n" i (List.length init_list);
-    flush log_channel;
-    close_out log_channel;
+  let iter_init _ init_list =
     List.iter (fun f ->
         f st
       ) (List.rev init_list) in
@@ -22,10 +18,6 @@ let mk path =
 let atomically = Sqlite3_utils.atomically
 
 let exec ~st sql =
-  let log_channel = open_out_gen [Open_append] 0o644 "/home/but2ene/Documents/software/ocaml_projects/scrat/ftw/ftw.log" in
-  Printf.fprintf log_channel "query: %s\n" sql;
-  flush log_channel;
-  close_out log_channel;
   let open Sqlite3_utils in
   exec0_exn st sql
 

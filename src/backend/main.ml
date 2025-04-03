@@ -71,8 +71,10 @@ let () =
     ~interface:"0.0.0.0"
     ~port:options.server_port
     ~tls:false
-  @@ Dream.logger  
+  @@ Dream.logger
   @@ cors_middleware
   @@ Dream.memory_sessions
   @@ State.init ~path:options.db_path
   @@ Router.build ~default_routes router
+
+
