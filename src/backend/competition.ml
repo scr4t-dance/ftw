@@ -49,6 +49,8 @@ and get_comp =
          name = Ftw.Competition.name comp;
          kind = Ftw.Competition.kind comp;
          category;
+         leaders = Ftw.Competition.n_leaders comp;
+         follows = Ftw.Competition.n_follows comp;
        } in
        Ok ret
     )
@@ -63,8 +65,10 @@ and create_comp =
     ~to_yojson:Types.CompetitionId.to_yojson
     (fun _req st (comp : Types.Competition.t) ->
        let category = Types.Category.to_ftw comp.category in
-       let id =
-         Ftw.Competition.create st comp.event comp.name comp.kind category
+       let competition =
+         Ftw.Competition.create st
+           comp.event comp.name comp.kind category
+           ~n_leaders:comp.leaders ~n_follows:comp.follows
        in
-       Ok id)
+       Ok (Ftw.Competition.id competition))
 

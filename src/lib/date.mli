@@ -10,6 +10,12 @@ type t = {
   year : int;
 } [@@deriving yojson]
 
+(* Usual functions *)
+(* ************************************************************************* *)
+
+val print : Format.formatter -> t -> unit
+(** Printing function (note: only for debugging). *)
+
 val equal : t -> t -> bool
 (** Equality function *)
 
@@ -56,3 +62,13 @@ val p : (string -> 'a, 'a) Sqlite3_utils.Ty.t
 val conv : t Conv.t
 (** DB converter for dates. *)
 
+
+(* Serialization *)
+(* ************************************************************************* *)
+
+val to_toml : t -> Otoml.t
+(** Serialization to toml. *)
+
+val of_toml : Otoml.t -> t
+(** Deserialization from toml.
+    @raise Misc.Error.Deserialization_error *)

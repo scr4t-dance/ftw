@@ -10,6 +10,19 @@ type t =
   | Followers
   | Couples
 
+(* Serialization *)
+(* ************************************************************************* *)
+
+let to_string = function
+  | Head -> "Head"
+  | Leaders -> "Leaders"
+  | Followers -> "Followers"
+  | Couples -> "Couples"
+
+
+(* DB interaction *)
+(* ************************************************************************* *)
+
 let to_int = function
   | Head -> 0
   | Leaders -> 1
@@ -30,10 +43,8 @@ let conv =
 let () =
   State.add_init_descr_table
     ~table_name:"judging_names" ~to_int
-    ~values:[
-      Head, "Head";
-      Leaders, "Leaders";
-      Followers, "Followers";
-      Couples, "Couples";
+    ~to_descr:to_string ~values:[
+      Head; Couples;
+      Leaders; Followers;
     ]
 

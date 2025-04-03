@@ -20,6 +20,7 @@ type t =
 
 let equal = Stdlib.(=)
 let compare = Stdlib.compare
+let max = Stdlib.max
 
 let print fmt = function
   | None -> Format.fprintf fmt "N/A"
@@ -29,8 +30,36 @@ let print fmt = function
   | Intermediate_Advanced -> Format.fprintf fmt "inter/adv"
   | Advanced -> Format.fprintf fmt "advanced"
 
+let includes div t =
+  match (div : Division.t) with
+  | Novice ->
+    begin match t with
+      | Novice | Novice_Intermediate -> true
+      | _ -> false
+    end
+  | Intermediate ->
+    begin match t with
+      | Novice_Intermediate | Intermediate | Intermediate_Advanced -> true
+      | _ -> false
+    end
+  | Advanced ->
+    begin match t with
+      | Intermediate_Advanced | Advanced -> true
+      | _ -> false
+    end
 
-(* Conversions *)
+(* Conversion *)
+(* ************************************************************************* *)
+
+let to_string = function
+  | None -> "None"
+  | Novice -> "Novice"
+  | Novice_Intermediate -> "Novice/Inter"
+  | Intermediate -> "Inter"
+  | Intermediate_Advanced -> "Inter/Advanced"
+  | Advanced -> "Advanced"
+
+(* DB interaction *)
 (* ************************************************************************* *)
 
 let to_int = function
@@ -52,4 +81,16 @@ let of_int = function
 
 let p = Sqlite3_utils.Ty.([int])
 let conv = Conv.mk p of_int
+
+let () =
+  State.add_init_descr_table
+    ~table_name:"divisions_names" ~to_int
+    ~to_descr:to_string ~values:[
+    None;
+    Novice;
+    Novice_Intermediate;
+    Intermediate;
+    Intermediate_Advanced;
+    Advanced;
+  ]
 

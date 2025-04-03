@@ -18,7 +18,7 @@ all: build
 build: backend
 
 configure:
-	opam install . --deps-only
+	opam install . --deps-only --yes
 	cd src/frontend && npm install
 
 $(FRONTEND_TARGET): $(FRONTEND_DEPS)

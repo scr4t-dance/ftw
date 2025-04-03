@@ -32,6 +32,10 @@ let compare r r' =
 
 let equal r r' = compare r r' = 0
 
+let print_compact fmt = function
+  | Leader -> Format.fprintf fmt "L"
+  | Follower -> Format.fprintf fmt "F"
+
 module Aux = struct
   type nonrec t = t
   let compare = compare

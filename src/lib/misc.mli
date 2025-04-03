@@ -1,6 +1,42 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+(* Result monadic operators *)
+(* ************************************************************************* *)
+
+module Result : sig
+
+  val (let+) : ('a, 'b) result -> ('a -> ('c, 'b) result) -> ('c, 'b) result
+
+end
+
+(* Common Errors *)
+(* ************************************************************************* *)
+
+module Error : sig
+
+  exception Deserialization_error of {
+      payload : string;
+      expected : string;
+    }
+  (** Exception for errors during deserialization. *)
+
+  val deserialization : payload:string -> expected:string -> _
+  (** Raise a deserialization exception. *)
+
+end
+
+(* Lists *)
+(* ************************************************************************* *)
+
+module Lists : sig
+
+  val all_the_same : eq:('a -> 'a -> bool) -> 'a list -> 'a option
+  (** Returns [true] if all the elements of the list are equal
+      according to the equality function given. *)
+
+end
+
 (* Bitwise manipulations *)
 (* ************************************************************************* *)
 

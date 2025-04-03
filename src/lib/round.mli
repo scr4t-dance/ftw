@@ -14,6 +14,13 @@ type t =
     There cannot be two phases with the same round type in a competition. *)
 
 
+(* Serialization *)
+(* ************************************************************************* *)
+
+val toml_key : t -> string
+(** Suitable key for toml *)
+
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
@@ -33,6 +40,9 @@ val conv : t Conv.t
 
 (* Usual functions *)
 (* ************************************************************************* *)
+
+val print : Format.formatter -> t -> unit
+(** Printing *)
 
 val equal : t -> t -> bool
 (** Equality function *)

@@ -26,6 +26,33 @@ type t =
 [@@deriving yojson]
 
 
+(* Serialization *)
+(* ************************************************************************* *)
+
+let to_string = function
+  | Non_competitive Regular -> "Regular"
+  | Competitive Novice -> "Novice"
+  | Competitive Intermediate -> "Intermediate"
+  | Competitive Advanced -> "Advanced"
+  | Non_competitive Qualifying -> "Qualifying"
+  | Non_competitive Invited -> "Invited"
+
+let of_string = function
+  | "Regular" -> Non_competitive Regular
+  | "Novice" -> Competitive Novice
+  | "Intermediate" -> Competitive Intermediate
+  | "Advanced" -> Competitive Advanced
+  | "Qualifying" -> Non_competitive Qualifying
+  | "Invited" -> Non_competitive Invited
+  | s -> Misc.Error.deserialization ~payload:s ~expected:"Category (string)"
+
+let to_toml t =
+  Otoml.string (to_string t)
+
+let of_toml t =
+  of_string (Otoml.get_string t)
+
+
 (* DB Interaction *)
 (* ************************************************************************* *)
 
@@ -52,17 +79,21 @@ let conv = Conv.mk p of_int
 let () =
   State.add_init_descr_table
     ~table_name:"competition_categories" ~to_int
-    ~values:[
-      Non_competitive Regular, "Regular";
-      Competitive Novice, "SCR4T - Novice";
-      Competitive Intermediate, "SCR4T - Inter";
-      Competitive Advanced, "SCR4T - Advanced";
-      Non_competitive Qualifying, "Qualifying";
-      Non_competitive Invited, "Invited"
+    ~to_descr:to_string ~values:[
+      Non_competitive Regular;
+      Competitive Novice;
+      Competitive Intermediate;
+      Competitive Advanced;
+      Non_competitive Qualifying;
+      Non_competitive Invited
     ]
+
 
 (* Usual functions *)
 (* ************************************************************************* *)
+
+let print fmt t =
+  Format.fprintf fmt "%s" (to_string t)
 
 let compare d d' =
   CCOrd.int (to_int d) (to_int d')
