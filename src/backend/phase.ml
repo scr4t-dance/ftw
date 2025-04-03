@@ -52,9 +52,9 @@ let rec routes router =
       "400", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Invalid input";
     ]
-  |> Router.patch "/api/phase/:id" update_phase
+  |> Router.put "/api/phase/:id" update_phase
     ~tags:["phase"]
-    ~summary:"Get the details of a Phase"
+    ~summary:"Update parameters of a Phase"
     ~parameters:[
       Types.obj @@ Spec.make_parameter_object ()
         ~name:"id" ~in_:Path
@@ -79,7 +79,7 @@ let rec routes router =
           Spec.make_media_type_object () ~schema:(Types.(ref Phase.ref));
         ];
       "400", Types.obj @@ Spec.make_error_response_object ()
-        ~description:"Invalid Id supplied";
+        ~description:"Invalid Id or Data supplied";
       "404", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Phase not found";
     ]
@@ -127,11 +127,13 @@ and create_phase =
        Ok id)
 
 and update_phase = 
-  Api.patch
+  Api.put
     ~of_yojson:Types.Phase.of_yojson
     ~to_yojson:Types.PhaseId.to_yojson
     (
       fun req st (phase : Types.Phase.t) ->
+        Printf.printf  "query: %s %s %s\n" phase.judge_artefact_description phase.head_judge_artefact_description phase.ranking_algorithm;
+        flush_all ();
         let+ id_phase = Utils.int_param req "id" in
         let p = Ftw.Phase.get st id_phase in
         let id_p = Ftw.Phase.id p in
