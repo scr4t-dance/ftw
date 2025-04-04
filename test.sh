@@ -15,11 +15,15 @@ curl -s -X PUT http://localhost:8080/api/comp "Content-Type: application/json" -
 echo ""
 
 echo "Creating prelims phase for 4TWC/JJ"
-curl -s -X PUT localhost:8080/api/phase -H "Content-Type: application/json" -d '{"competition":1,"round":["Prelims"],"judge_artefact_description":"yans:test","head_judge_artefact_description":"ranking","ranking_algorithm":"RPSS"}'
+curl -s -X PUT localhost:8080/api/phase -H "Content-Type: application/json" -d '{"competition":1,"round":["Prelims"],"judge_artefact_description":''{"artefact":"ranking", "ranking_algorithm": "RPSS"}'',"head_judge_artefact_description":"ranking","ranking_algorithm":"RPSS"}'
 echo ""
 
 echo "updating prelims for 4TWC/JJ"
-curl -v -s -X PATCH localhost:8080/api/phase/1 -H "Content-Type: application/json" -d '{"competition":1,"round":["Finals"],"judge_artefact_description":"yans:full","head_judge_artefact_description":"yans:head","ranking_algorithm":"RPSS"}'
+curl -s -X PATCH localhost:8080/api/phase/1 -H "Content-Type: application/json" -d '{"competition":1,"round":["Prelims"],"judge_artefact_description":{"artefact":"yan","yan_criterion":[["technique",{"yes":4,"alt":2,"no":1}]],"algorithm_for_ranking":null},"head_judge_artefact_description":{"artefact":"yan","yan_criterion":[["teamwork",{"yes":5,"alt":2,"no":1}]],"algorithm_for_ranking":null}}'
+echo ""
+
+echo "getting prelims for 4TWC/JJ"
+curl localhost:8080/api/phase/1 -H "Content-Type: application/json"
 echo ""
 
 # dancer

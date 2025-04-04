@@ -69,12 +69,12 @@ Create some phase
 
   $ curl -s -X PUT localhost:8081/api/phase \
   > -H "Content-Type: application/json" \
-  > -d '{"competition":2,"round":["Prelims"],"judge_artefact_description":"yans:test","head_judge_artefact_description":"ranking","ranking_algorithm":"RPSS"}'
+  > -d '{"competition":2,"round":["Prelims"],"judge_artefact_description":{"artefact":"yan","yan_criterion":[["overall",{"yes":3,"alt":2,"no":1}]],"algorithm_for_ranking":null},"head_judge_artefact_description":{"artefact":"yan","yan_criterion":[["head",{"yes":3,"alt":2,"no":1}]],"algorithm_for_ranking":null}}'
   1
 
   $ curl -s -X PUT localhost:8081/api/phase \
   > -H "Content-Type: application/json" \
-  > -d '{"competition":2,"round":["Finals"],"judge_artefact_description":"ranking","head_judge_artefact_description":"yans:total","ranking_algorithm":"RPSS"}'
+  > -d '{"competition":2,"round":["Finals"],"judge_artefact_description":{"artefact":"ranking","yan_criterion":null,"algorithm_for_ranking":"RPSS"},"head_judge_artefact_description":{"artefact":"ranking","yan_criterion":null,"algorithm_for_ranking":"RPSS"}}'
   2
 
 Get the ids of phase we created, and check their details
@@ -83,19 +83,27 @@ Get the ids of phase we created, and check their details
   {"phases":[1,2]}
 
   $ curl -s localhost:8081/api/phase/1
-  {"competition":2,"round":["Prelims"],"judge_artefact_description":"yans:test","head_judge_artefact_description":"ranking","ranking_algorithm":"RPSS"}
+  {"competition":2,"round":["Prelims"],"judge_artefact_description":{"artefact":"yan","yan_criterion":[["overall",{"yes":3,"alt":2,"no":1}]],"algorithm_for_ranking":null},"head_judge_artefact_description":{"artefact":"yan","yan_criterion":[["head",{"yes":3,"alt":2,"no":1}]],"algorithm_for_ranking":null}}
 
   $ curl -s localhost:8081/api/phase/2
-  {"competition":2,"round":["Finals"],"judge_artefact_description":"ranking","head_judge_artefact_description":"yans:total","ranking_algorithm":"RPSS"}
+  {"competition":2,"round":["Finals"],"judge_artefact_description":{"artefact":"ranking","yan_criterion":null,"algorithm_for_ranking":"RPSS"},"head_judge_artefact_description":{"artefact":"ranking","yan_criterion":null,"algorithm_for_ranking":"RPSS"}}
 
 Update a phase
 
   $ curl -s -X PATCH localhost:8081/api/phase/2 \
   > -H "Content-Type: application/json" \
-  > -d '{"competition":2,"round":["Finals"],"judge_artefact_description":"yans:full","head_judge_artefact_description":"yans:head","ranking_algorithm":"Condorcet"}'
+  > -d '{"competition":2,"round":["Finals"],"judge_artefact_description":{"artefact":"yan","yan_criterion":[["technique",{"yes":4,"alt":2,"no":1}]],"algorithm_for_ranking":null},"head_judge_artefact_description":{"artefact":"yan","yan_criterion":[["teamwork",{"yes":5,"alt":2,"no":1}]],"algorithm_for_ranking":null}}'
+  2
 
   $ curl -s localhost:8081/api/phase/2
-  {"competition":2,"round":["Finals"],"judge_artefact_description":"ranking","head_judge_artefact_description":"yans:total","ranking_algorithm":"RPSS"}
+  {"competition":2,"round":["Finals"],"judge_artefact_description":{"artefact":"yan","yan_criterion":[["technique",{"yes":4,"alt":2,"no":1}]],"algorithm_for_ranking":null},"head_judge_artefact_description":{"artefact":"yan","yan_criterion":[["teamwork",{"yes":4,"alt":2,"no":1}]],"algorithm_for_ranking":null}}
+
+  $ curl -s -X DELETE localhost:8081/api/phase/2 \
+  > -H "Content-Type: application/json"
+  2
+
+  $ curl -s localhost:8081/api/phase/2
+
 
 End & Cleanup
 -------------

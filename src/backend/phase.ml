@@ -83,6 +83,28 @@ let rec routes router =
       "404", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Phase not found";
     ]
+  |> Router.delete "/api/phase/:id" delete_phase
+    ~tags:["phase"]
+    ~summary:"Delete a Phase"
+    ~parameters:[
+      Types.obj @@ Spec.make_parameter_object ()
+        ~name:"id" ~in_:Path
+        ~description:"Id of the phase to delete"
+        ~required:true
+        ~schema:Types.(ref PhaseId.ref)
+    ]
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Successful operation"
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref Phase.ref));
+        ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid Id supplied";
+      "404", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Phase not found";
+    ]
 
 
 (* Phase query *)
@@ -100,9 +122,8 @@ and get_phase =
        let ret : Types.Phase.t = {
          competition = Ftw.Phase.competition phase;
          round = Ftw.Phase.round phase;
-         judge_artefact_description = Ftw.Artefact.Descr.to_string @@ Ftw.Phase.judge_artefact_descr phase;
-         head_judge_artefact_description = Ftw.Artefact.Descr.to_string @@ Ftw.Phase.head_judge_artefact_descr phase;
-         ranking_algorithm = Ftw.Ranking.Algorithm.to_string @@ Ftw.Phase.ranking_algorithm phase;
+         judge_artefact_description = Types.ArtefactDescription.of_ftw (Ftw.Phase.judge_artefact_descr phase) (Ftw.Phase.ranking_algorithm phase);
+         head_judge_artefact_description = Types.ArtefactDescription.of_ftw (Ftw.Phase.head_judge_artefact_descr phase) (Ftw.Phase.ranking_algorithm phase);
        } in
        Ok ret
     )
@@ -116,9 +137,14 @@ and create_phase =
     ~to_yojson:Types.PhaseId.to_yojson
     (fun _req st (phase : Types.Phase.t) ->
        let id =
-         let judge_artefact_descr = Ftw.Artefact.Descr.of_string phase.judge_artefact_description in
-         let head_judge_artefact_descr = Ftw.Artefact.Descr.of_string phase.head_judge_artefact_description in
-         let ranking_algorithm = Ftw.Ranking.Algorithm.of_string phase.ranking_algorithm in
+         let (judge_artefact_descr, judge_ranking_algorithm) = 
+           Types.ArtefactDescription.to_ftw phase.judge_artefact_description in
+         let (head_judge_artefact_descr, head_judge_ranking_algorithm) = 
+           Types.ArtefactDescription.to_ftw phase.head_judge_artefact_description in
+         let ranking_algorithm = 
+           if judge_ranking_algorithm = head_judge_ranking_algorithm 
+           then judge_ranking_algorithm 
+           else assert false in
          Ftw.Phase.create ~st phase.competition phase.round
            ~ranking_algorithm:ranking_algorithm
            ~judge_artefact_descr:judge_artefact_descr
@@ -132,17 +158,29 @@ and update_phase =
     ~to_yojson:Types.PhaseId.to_yojson
     (
       fun req st (phase : Types.Phase.t) ->
-        flush_all ();
         let+ id_phase = Utils.int_param req "id" in
         let p = Ftw.Phase.get st id_phase in
-        let id_p = Ftw.Phase.id p in
         let competition_p = Ftw.Phase.competition p in
         let round_p = Ftw.Phase.round p in
-        let judge_artefact_descr = Ftw.Artefact.Descr.of_string phase.judge_artefact_description in
-        let head_judge_artefact_descr = Ftw.Artefact.Descr.of_string phase.head_judge_artefact_description in
-        let ranking_algorithm = Ftw.Ranking.Algorithm.of_string phase.ranking_algorithm in
-        let updated_p = Ftw.Phase.build id_p competition_p round_p judge_artefact_descr
-            head_judge_artefact_descr ranking_algorithm in 
-        let id_p = Ftw.Phase.update st updated_p in
+        let (judge_artefact_descr, judge_ranking_algorithm) = 
+          Types.ArtefactDescription.to_ftw phase.judge_artefact_description in
+        let (head_judge_artefact_descr, _head_judge_ranking_algorithm) = 
+          Types.ArtefactDescription.to_ftw phase.head_judge_artefact_description in
+        (* TODO handle case when judge_ranking_algorithm and _head_judge_ranking_algorithm are different *)
+        let ranking_algorithm = judge_ranking_algorithm in
+        let id_p =Ftw.Phase.update ~st competition_p round_p ~ranking_algorithm ~judge_artefact_descr
+            ~head_judge_artefact_descr in
         Ok id_p
+    )
+
+and delete_phase = 
+  Api.delete
+    ~to_yojson:Types.PhaseId.to_yojson
+    (fun req st ->
+       let+ id = Utils.int_param req "id" in
+       let+ ret =
+         try Ok (Ftw.Phase.delete ~st id)
+         with Not_found -> Error.(mk @@ not_found "Phase")
+       in
+       Ok ret
     )

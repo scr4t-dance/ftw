@@ -117,9 +117,9 @@ module Kind = struct
         obj @@ S.make_schema ()
           ~typ:string
           ~enum:(List.map 
-          (fun kind -> `String (show kind)) 
-          all
-        )
+                   (fun kind -> `String (show kind)) 
+                   all
+                )
       )
 end
 
@@ -141,10 +141,10 @@ module Division = struct
         obj @@ S.make_schema ()
           ~typ:string
           ~enum:(List.map 
-            (fun division -> `String (show division)) 
-            all
-          )
-        )
+                   (fun division -> `String (show division)) 
+                   all
+                )
+      )
 end
 
 (* Competition Category *)
@@ -186,9 +186,9 @@ module Category = struct
         obj @@ S.make_schema ()
           ~typ:string
           ~enum:(List.map 
-            (fun cat -> `String (show cat)) 
-            all
-          )
+                   (fun cat -> `String (show cat)) 
+                   all
+                )
       )
 end
 
@@ -212,9 +212,9 @@ module Round = struct
         obj @@ S.make_schema ()
           ~typ:string
           ~enum:(List.map 
-          (fun round -> `String (show round)) 
-          all
-        )
+                   (fun round -> `String (show round)) 
+                   all
+                )
       )
 end
 
@@ -326,6 +326,82 @@ module Competition = struct
       ]
 end
 
+(* Artefact *)
+(* ************************************************************************* *)
+
+module YanCriterion = struct
+  type t = string * Ftw.Ranking.Algorithm.YanWeight.t [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"YanCriterion"
+      ~typ:(Obj Object)
+      ~additional_properties:(
+        obj @@ S.make_schema ()
+          ~properties:[
+            "yes", obj @@ S.make_schema ()
+              ~typ:int;
+            "alt", obj @@ S.make_schema ()
+              ~typ:int;
+            "no", obj @@ S.make_schema ()
+              ~typ:int;
+          ]
+      )
+end
+
+
+module ArtefactDescription = struct
+
+  module StrMap = Map.Make (String)
+
+  type t = {
+    artefact: string;
+    yan_criterion: YanCriterion.t list option;
+    algorithm_for_ranking: string option;
+  }[@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"ArtefactDescription"
+      ~typ:(Obj Object)
+      ~description: {| artefact is either ranking or yan. 
+        For a ranking artefact, ranking_algorithm property should be specified.
+        For a yan artefact, yan_criterion property should be set. |}
+      ~properties:[
+        "artefact", obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[`String "ranking"; `String "yan"];
+        "yan_criterion", obj @@ S.make_schema ()
+          ~typ:(Obj Array)
+          ~items:(ref YanCriterion.ref);
+        "algorithm_for_ranking", obj @@ S.make_schema ()
+          ~typ:string
+      ]
+      ~required:["artefact"]
+
+
+  let of_ftw artefact_description ranking_algorithm =
+    match artefact_description, ranking_algorithm with
+    | Ftw.Artefact.Descr.Yans { criterion }, Ftw.Ranking.Algorithm.Yan_weighted { weights } -> 
+      { artefact = "yan";
+        yan_criterion = Some (List.map2 (fun c w -> (c,w)) criterion weights);
+        algorithm_for_ranking = None }
+    | Ftw.Artefact.Descr.Ranking, Ftw.Ranking.Algorithm.RPSS -> 
+      { artefact = "ranking"; 
+        yan_criterion = None; 
+        algorithm_for_ranking = Some "RPSS" }
+    | _, _ -> assert false
+
+  let to_ftw {artefact; yan_criterion; algorithm_for_ranking} = 
+    match artefact, yan_criterion, algorithm_for_ranking with
+    | "ranking", None, Some _ -> (Ftw.Artefact.Descr.Ranking, Ftw.Ranking.Algorithm.RPSS)
+    | "yan", Some yan_criterion_list, None -> (
+        Yans {criterion=List.map (fun (c,_) -> c) yan_criterion_list}, 
+        Yan_weighted {weights=List.map (fun (_, w) -> w) yan_criterion_list} 
+      )
+    | _ -> assert false
+end
+
 
 (* Phases *)
 (* ************************************************************************* *)
@@ -363,9 +439,8 @@ module Phase = struct
   type t = {
     competition : CompetitionId.t;
     round : Round.t;
-    judge_artefact_description : string;
-    head_judge_artefact_description : string;
-    ranking_algorithm : string;
+    judge_artefact_description : ArtefactDescription.t;
+    head_judge_artefact_description : ArtefactDescription.t;
   } [@@deriving yojson]
 
   let ref, schema =
@@ -376,22 +451,9 @@ module Phase = struct
         "competition", ref CompetitionId.ref;
         "round", ref Round.ref;
         "judge_artefact_description", obj @@ S.make_schema ()
-          ~typ:string
-          ~examples:[
-            `String "Rank";
-            `String "Note";
-            `String "Single_note";
-          ];
+          ~typ:(ref ArtefactDescription.ref);
         "head_judge_artefact_description", obj @@ S.make_schema ()
-        ~typ:string
-        ~examples:[
-          `String "Rank";
-          `String "Note";
-          `String "Single_note";
-        ];
-        "ranking_algorithm", obj @@ S.make_schema ()
-          ~typ:string
-          ~examples:[`String "RPSS"];
+          ~typ:(ref ArtefactDescription.ref)
       ]
 end
 

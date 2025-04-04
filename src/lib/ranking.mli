@@ -17,7 +17,7 @@ module Algorithm : sig
     val to_string : t -> string
   end
 
-  type t [@@deriving yojson]
+  type t = RPSS | Yan_weighted of { weights : YanWeight.t list; } [@@deriving yojson]
   (** The type for ranking algorithms. *)
 
   val of_string : string -> t

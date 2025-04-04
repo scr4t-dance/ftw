@@ -59,3 +59,13 @@ let patch ~of_yojson ~to_yojson callback = fun req ->
       | Ok res -> Dream.json ~code:201 (Yojson.Safe.to_string (to_yojson res))
       | Error err -> error err
     )
+
+(* DELETE requests *)
+(* ************************************************************************* *)
+
+let delete ~to_yojson callback = fun req ->
+  State.get req (fun st ->
+      match callback req st with
+      | Ok res -> Dream.json (Yojson.Safe.to_string (to_yojson res))
+      | Error err -> error err
+    )

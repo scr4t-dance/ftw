@@ -27,7 +27,7 @@ type 'a rank =
 module Algorithm = struct
 
   module YanWeight = struct
-    
+
     type t = {
       yes : int;
       alt : int;
@@ -52,14 +52,14 @@ module Algorithm = struct
     | _ -> match CCString.chop_prefix ~pre:"yan_weights:" s with
       | Some criterion_list -> Yan_weighted { 
           weights = List.map YanWeight.of_string 
-            (String.split_on_char ';' criterion_list)
+              (String.split_on_char ';' criterion_list)
         }
       | None -> raise (Invalid_argument ("Invalid t type: " ^ s))
 
   let to_string = function
     | RPSS -> "RPSS"
     | Yan_weighted { weights } -> 
-        "yan_weights:" ^ String.concat ";" (List.map YanWeight.to_string weights)
+      "yan_weights:" ^ String.concat ";" (List.map YanWeight.to_string weights)
 
   (* Algorithms implementations *)
   (* *********************************************************************** *)
