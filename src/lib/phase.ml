@@ -138,6 +138,6 @@ let update ~st competition_id round ~ranking_algorithm ~judge_artefact_descr ~he
 let delete ~st id_phase =
   let open Sqlite3_utils.Ty in
   State.insert ~st ~ty:[int]
-    {| DELETE FROM phases 
+    {| DELETE FROM phases
         WHERE id=?|} id_phase;
   id_phase

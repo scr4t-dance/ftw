@@ -41,7 +41,7 @@ The target automatically open `http://localhost:3000/static`,
 which is not a valid website. Ignore it and go to `http://localhost:3000/`.
 
 You cannot use `make run` and `make frontend_dev` simutaneously
-(in separate terminals). 
+(in separate terminals).
 The last command will always kill background process running ocaml servers.
 
 

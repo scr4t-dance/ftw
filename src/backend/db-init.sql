@@ -72,7 +72,7 @@ CREATE TABLE bibs (
     role TEXT NOT NULL,
 
     PRIMARY KEY(bid_id, competition_id, role)
-    -- allow to work with either 
+    -- allow to work with either
     -- * same bib for dancer as lead and follow
     -- * different bibs for leaders and followers
 );
@@ -153,4 +153,3 @@ CREATE TABLE couple_bonus_artefacts (
 );
 
 COMMIT;
-

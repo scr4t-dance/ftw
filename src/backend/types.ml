@@ -116,8 +116,8 @@ module Kind = struct
       ~items:(
         obj @@ S.make_schema ()
           ~typ:string
-          ~enum:(List.map 
-                   (fun kind -> `String (show kind)) 
+          ~enum:(List.map
+                   (fun kind -> `String (show kind))
                    all
                 )
       )
@@ -140,8 +140,8 @@ module Division = struct
       ~items:(
         obj @@ S.make_schema ()
           ~typ:string
-          ~enum:(List.map 
-                   (fun division -> `String (show division)) 
+          ~enum:(List.map
+                   (fun division -> `String (show division))
                    all
                 )
       )
@@ -185,8 +185,8 @@ module Category = struct
       ~items:(
         obj @@ S.make_schema ()
           ~typ:string
-          ~enum:(List.map 
-                   (fun cat -> `String (show cat)) 
+          ~enum:(List.map
+                   (fun cat -> `String (show cat))
                    all
                 )
       )
@@ -211,8 +211,8 @@ module Round = struct
       ~items:(
         obj @@ S.make_schema ()
           ~typ:string
-          ~enum:(List.map 
-                   (fun round -> `String (show round)) 
+          ~enum:(List.map
+                   (fun round -> `String (show round))
                    all
                 )
       )
@@ -364,7 +364,7 @@ module ArtefactDescription = struct
     make_schema ()
       ~name:"ArtefactDescription"
       ~typ:(Obj Object)
-      ~description: {| artefact is either ranking or yan. 
+      ~description: {| artefact is either ranking or yan.
         For a ranking artefact, ranking_algorithm property should be specified.
         For a yan artefact, yan_criterion property should be set. |}
       ~properties:[
@@ -382,22 +382,22 @@ module ArtefactDescription = struct
 
   let of_ftw artefact_description ranking_algorithm =
     match artefact_description, ranking_algorithm with
-    | Ftw.Artefact.Descr.Yans { criterion }, Ftw.Ranking.Algorithm.Yan_weighted { weights } -> 
+    | Ftw.Artefact.Descr.Yans { criterion }, Ftw.Ranking.Algorithm.Yan_weighted { weights } ->
       { artefact = "yan";
         yan_criterion = Some (List.map2 (fun c w -> (c,w)) criterion weights);
         algorithm_for_ranking = None }
-    | Ftw.Artefact.Descr.Ranking, Ftw.Ranking.Algorithm.RPSS -> 
-      { artefact = "ranking"; 
-        yan_criterion = None; 
+    | Ftw.Artefact.Descr.Ranking, Ftw.Ranking.Algorithm.RPSS ->
+      { artefact = "ranking";
+        yan_criterion = None;
         algorithm_for_ranking = Some "RPSS" }
     | _, _ -> assert false
 
-  let to_ftw {artefact; yan_criterion; algorithm_for_ranking} = 
+  let to_ftw {artefact; yan_criterion; algorithm_for_ranking} =
     match artefact, yan_criterion, algorithm_for_ranking with
     | "ranking", None, Some _ -> (Ftw.Artefact.Descr.Ranking, Ftw.Ranking.Algorithm.RPSS)
     | "yan", Some yan_criterion_list, None -> (
-        Yans {criterion=List.map (fun (c,_) -> c) yan_criterion_list}, 
-        Yan_weighted {weights=List.map (fun (_, w) -> w) yan_criterion_list} 
+        Yans {criterion=List.map (fun (c,_) -> c) yan_criterion_list},
+        Yan_weighted {weights=List.map (fun (_, w) -> w) yan_criterion_list}
       )
     | _ -> assert false
 end
@@ -521,4 +521,3 @@ module HeatIdList = struct
           ~items:(ref HeatId.ref);
       ]
 end
-

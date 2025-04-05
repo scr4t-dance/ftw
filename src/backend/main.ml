@@ -65,7 +65,7 @@ let () =
       Dream.add_header response "Access-Control-Allow-Origin" "*";
       Dream.add_header response "Access-Control-Allow-Headers" "Content-Type, Authorization";
       Lwt.return response
-  in 
+  in
   (* Setup the dream server and run it *)
   Dream.run
     ~interface:"0.0.0.0"
@@ -76,5 +76,3 @@ let () =
   @@ Dream.memory_sessions
   @@ State.init ~path:options.db_path
   @@ Router.build ~default_routes router
-
-

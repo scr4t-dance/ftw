@@ -20,9 +20,9 @@ module Descr = struct
 
   let to_string = function
     | Ranking -> "ranking"
-    | Yans { criterion } -> 
+    | Yans { criterion } ->
         "yans:" ^ String.concat "," criterion
-  
+
   let ranking = Ranking
   let yans criterion = Yans { criterion; }
 
@@ -128,4 +128,3 @@ let set ~st ~judge ~target t =
   State.insert ~st ~ty:[int;int;int]
     {| INSERT INTO artefacts(target_id,judge,artefact) VALUES (?,?,?) |}
     target judge (to_int t)
-

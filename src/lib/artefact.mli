@@ -11,7 +11,7 @@ module Descr : sig
     | Yans of { criterion : string list; }
   [@@deriving yojson]
   (** Description of artefact types.
-      Enable reading of artefacts.*)  
+      Enable reading of artefacts.*)
 
   val ranking : t
   val yans : string list -> t
@@ -22,7 +22,7 @@ module Descr : sig
   (** Conversion to string. *)
   val p : (string -> 'a, 'a) Sqlite3_utils.Ty.t
   (** Sqlite query "type" for identifiers *)
-  
+
   val conv : t Conv.t
   (** Converter for identifiers *)
 end
@@ -55,4 +55,3 @@ val set :
   judge:Judge.id ->
   target:Id.t ->
   t -> unit
-

@@ -137,13 +137,13 @@ and create_phase =
     ~to_yojson:Types.PhaseId.to_yojson
     (fun _req st (phase : Types.Phase.t) ->
        let id =
-         let (judge_artefact_descr, judge_ranking_algorithm) = 
+         let (judge_artefact_descr, judge_ranking_algorithm) =
            Types.ArtefactDescription.to_ftw phase.judge_artefact_description in
-         let (head_judge_artefact_descr, head_judge_ranking_algorithm) = 
+         let (head_judge_artefact_descr, head_judge_ranking_algorithm) =
            Types.ArtefactDescription.to_ftw phase.head_judge_artefact_description in
-         let ranking_algorithm = 
-           if judge_ranking_algorithm = head_judge_ranking_algorithm 
-           then judge_ranking_algorithm 
+         let ranking_algorithm =
+           if judge_ranking_algorithm = head_judge_ranking_algorithm
+           then judge_ranking_algorithm
            else assert false in
          Ftw.Phase.create ~st phase.competition phase.round
            ~ranking_algorithm:ranking_algorithm
@@ -152,7 +152,7 @@ and create_phase =
        in
        Ok id)
 
-and update_phase = 
+and update_phase =
   Api.put
     ~of_yojson:Types.Phase.of_yojson
     ~to_yojson:Types.PhaseId.to_yojson
@@ -162,9 +162,9 @@ and update_phase =
         let p = Ftw.Phase.get st id_phase in
         let competition_p = Ftw.Phase.competition p in
         let round_p = Ftw.Phase.round p in
-        let (judge_artefact_descr, judge_ranking_algorithm) = 
+        let (judge_artefact_descr, judge_ranking_algorithm) =
           Types.ArtefactDescription.to_ftw phase.judge_artefact_description in
-        let (head_judge_artefact_descr, _head_judge_ranking_algorithm) = 
+        let (head_judge_artefact_descr, _head_judge_ranking_algorithm) =
           Types.ArtefactDescription.to_ftw phase.head_judge_artefact_description in
         (* TODO handle case when judge_ranking_algorithm and _head_judge_ranking_algorithm are different *)
         let ranking_algorithm = judge_ranking_algorithm in
@@ -173,7 +173,7 @@ and update_phase =
         Ok id_p
     )
 
-and delete_phase = 
+and delete_phase =
   Api.delete
     ~to_yojson:Types.PhaseId.to_yojson
     (fun req st ->
