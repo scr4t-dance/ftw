@@ -330,7 +330,7 @@ end
 (* ************************************************************************* *)
 
 module YanCriterion = struct
-  type t = string * Ftw.Ranking.Algorithm.YanWeight.t [@@deriving yojson]
+  type t = string * Ftw.Ranking.Algorithm.yan_weight [@@deriving yojson]
 
   let ref, schema =
     make_schema ()
