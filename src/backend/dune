@@ -1,19 +1,19 @@
-
 ; main server binary
+
 (executable
-  (name         main)
-  (public_name  ftw)
-  (preprocess (pps lwt_ppx ppx_deriving.show ppx_deriving_yojson))
-  (libraries
-     ftw
-     openapi_router
-     fmt dream cmdliner containers yojson)
-)
+ (name main)
+ (public_name ftw)
+ (preprocess
+  (pps lwt_ppx ppx_deriving.show ppx_deriving_yojson))
+ (libraries ftw openapi_router fmt dream cmdliner containers yojson))
 
 ; crunch static files
-(rule
-  (target static.ml)
-  (deps (source_tree static))
-  (action (with-stdout-to %{null}
-   (run ocaml-crunch -m plain static -o %{target}))))
 
+(rule
+ (target static.ml)
+ (deps
+  (source_tree static))
+ (action
+  (with-stdout-to
+   %{null}
+   (run ocaml-crunch -m plain static -o %{target}))))

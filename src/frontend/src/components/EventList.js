@@ -1,7 +1,7 @@
 import "../styles/ContentStyle.css";
 
 import React, { useEffect } from 'react';
-import useEventApi from '../hooks/useEventApi'; 
+import useEventApi from '../hooks/useEventApi';
 
 import PageTitle from "./PageTitle";
 import Header from "./Header";
@@ -63,9 +63,10 @@ function EventList() {
         data,
         error,
         loading,
+        /* comment unused var for CI
         createEvent,
         getEventDetails,
-        getEventComps,
+        getEventComps, */
         getAllEvents,
     } = useEventApi();
 
@@ -103,7 +104,7 @@ function EventList() {
                             <th>Année</th>
                         </tr>
                         {events.map(({id, name, month, year}, index) => (
-                            <tr key={id} 
+                            <tr key={id}
                                 className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
                                 <td>
                                     <a href={`${eventListlink}${id}`}>
