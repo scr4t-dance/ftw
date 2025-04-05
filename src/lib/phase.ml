@@ -65,10 +65,6 @@ let conv =
         judge_artefact_descr; head_judge_artefact_descr;
       })
 
-
-let list st =
-  State.query_list ~st ~conv {|SELECT * FROM phases|}
-
 let get st id =
   State.query_one_where ~st ~conv ~p:Id.p
     {|SELECT * FROM phases WHERE id=?|} id
@@ -80,16 +76,6 @@ let find_ids st competition_id =
 let find st competition_id =
   State.query_list_where ~p:Id.p ~conv ~st
     {| SELECT * FROM phases WHERE competition_id = ? ORDER BY id |} competition_id
-
-let build id_phase competition_id round judge_artefact_descr 
-    head_judge_artefact_descr ranking_algorithm = {
-  id=id_phase;
-  competition_id;
-  round;
-  judge_artefact_descr;
-  head_judge_artefact_descr;
-  ranking_algorithm;
-}
 
 let create
     ~st competition_id round

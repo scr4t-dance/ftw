@@ -42,8 +42,6 @@ val ranking_algorithm : t -> Ranking.Algorithm.t
 (* DB interaction *)
 (* ************************************************************************* *)
 
-val list : State.t -> t list
-
 val get : State.t -> id -> t
 (** Get an event from its id.
     @raise Not_found if the phase is not found. *)
@@ -54,14 +52,6 @@ val find : State.t -> Competition.id -> t list
 val find_ids : State.t -> Competition.id -> id list
 (** Optimized version of {!find} that only returns phases ids. *)
 
-val build :
-  id -> Competition.id -> Round.t ->
-  Artefact.Descr.t ->
-  Artefact.Descr.t ->
-  Ranking.Algorithm.t ->
-  t
-(** Create a new phase *)
-
 val create :
   st:State.t -> Competition.id -> Round.t ->
   ranking_algorithm:Ranking.Algorithm.t ->
@@ -71,7 +61,7 @@ val create :
 (** Create a new phase *)
 
 val update : st:State.t ->
-  id ->
+  Competition.id ->
   Round.t ->
   ranking_algorithm:Ranking.Algorithm.t ->
   judge_artefact_descr:Artefact.Descr.t ->
