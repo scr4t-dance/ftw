@@ -27,14 +27,14 @@ type 'a rank =
 module Algorithm = struct
 
   type yan_weight = {
-    yes : int;
-    alt : int;
-    no : int;
-  } [@@deriving yojson]
+      yes : int;
+      alt : int;
+      no : int;
+    } [@@deriving yojson]
 
   type t =
     | RPSS
-    | Yan_weighted of { wieghts : yan_weight list; }
+    | Yan_weighted of { weights : yan_weight list; }
   [@@deriving yojson]
 
   (* Algorithms implementations *)

@@ -4,12 +4,17 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type id = Id.t
+type id = Id.t [@@deriving yojson]
 (** Ids for phases *)
 
 type t
 (** Competitions Phases: competions are made of different rounds (prelims,
-    finals, etc..), and each pair (competition * round) is a phase. *)
+    finals, etc..), and each pair (competition * round) is a phase.
+    This type describe a phase of a competition.
+    Only one phase of a specific round is allowed per competition.
+    This table is the reference for the list of judges, the head judge,
+    table of heats (artefacts' targets) and couple_heats.
+    *)
 
 
 (* Accessors *)
@@ -55,6 +60,14 @@ val create :
   id
 (** Create a new phase *)
 
-val update : State.t -> t -> unit
+val update : st:State.t ->
+  Competition.id ->
+  Round.t ->
+  ranking_algorithm:Ranking.Algorithm.t ->
+  judge_artefact_descr:Artefact.Descr.t ->
+  head_judge_artefact_descr:Artefact.Descr.t ->
+  id
 (** Update the details of a phase. *)
 
+val delete : st:State.t -> id -> id
+(** Delete a phase. TODO : delete more than phase. TODO : soft delete ? *)

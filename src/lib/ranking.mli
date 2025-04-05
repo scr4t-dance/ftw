@@ -10,7 +10,9 @@
 
 module Algorithm : sig
 
-  type t [@@deriving yojson]
-  (** The type for ranking algorithms. *)
+  type yan_weight = { yes : int; alt : int; no : int } [@@deriving yojson]
+
+  type t = RPSS | Yan_weighted of { weights : yan_weight list; } [@@deriving yojson]
+(** The type for ranking algorithms. *)
 
 end

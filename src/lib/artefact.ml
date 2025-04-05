@@ -93,12 +93,12 @@ let p = Sqlite3_utils.Ty.([int])
 let conv ~descr = Conv.mk p (of_int ~descr)
 
 let () =
-  State.add_init (fun st ->
+  State.add_init (5, fun st ->
       State.exec ~st {|
         CREATE TABLE IF NOT EXISTS artefacts (
           target_id INTEGER REFERENCES heats(id),
-          judge INTEGER REFERNECES dancers(id),
-          artefact INTEGER NOT NULL
+          judge INTEGER REFERENCES dancers(id),
+          artefact INTEGER NOT NULL,
           PRIMARY KEY(target_id,judge)
         )
       |})
@@ -114,4 +114,3 @@ let set ~st ~judge ~target t =
   State.insert ~st ~ty:[int;int;int]
     {| INSERT INTO artefacts(target_id,judge,artefact) VALUES (?,?,?) |}
     target judge (to_int t)
-

@@ -105,7 +105,9 @@ module Kind = struct
     | Strictly
     | JJ_Strictly
     | Jack_and_Jill
-  [@@deriving yojson]
+  [@@deriving yojson, enum, show]
+
+  let all = List.filter_map of_enum (List.init (to_enum Jack_and_Jill + 1) Fun.id)
 
   let ref, schema =
     make_schema ()
@@ -114,12 +116,11 @@ module Kind = struct
       ~items:(
         obj @@ S.make_schema ()
           ~typ:string
-          ~enum:[
-            `String "Routine";
-            `String "Strictly";
-            `String "JJ_Strictly";
-            `String "Jack_and_Jill";
-          ])
+          ~enum:(List.map
+                   (fun kind -> `String (show kind))
+                   all
+                )
+      )
 end
 
 (* Competition Division *)
@@ -128,7 +129,9 @@ module Division = struct
     | Novice
     | Intermediate
     | Advanced
-  [@@deriving yojson]
+  [@@deriving yojson, enum, show]
+
+  let all = List.filter_map of_enum (List.init (to_enum Advanced + 1) Fun.id)
 
   let ref, schema =
     make_schema ()
@@ -137,11 +140,11 @@ module Division = struct
       ~items:(
         obj @@ S.make_schema ()
           ~typ:string
-          ~enum:[
-            `String "Novice";
-            `String "Intermediate";
-            `String "Advanced";
-          ])
+          ~enum:(List.map
+                   (fun division -> `String (show division))
+                   all
+                )
+      )
 end
 
 (* Competition Category *)
@@ -153,7 +156,9 @@ module Category = struct
     | Regular
     | Qualifying
     | Invited
-  [@@deriving yojson]
+  [@@deriving yojson, enum, show]
+
+  let all = List.filter_map of_enum (List.init (to_enum Invited + 1) Fun.id)
 
   let of_ftw cat : t =
     match (cat : Ftw.Category.t) with
@@ -180,15 +185,39 @@ module Category = struct
       ~items:(
         obj @@ S.make_schema ()
           ~typ:string
-          ~enum:[
-            `String "Novice";
-            `String "Intermediate";
-            `String "Advanced";
-            `String "Regular";
-            `String "Qualifying";
-            `String "Invited";
-          ])
+          ~enum:(List.map
+                   (fun cat -> `String (show cat))
+                   all
+                )
+      )
 end
+
+(* Round *)
+module Round = struct
+  type t = Ftw.Round.t =
+    | Prelims
+    | Octofinals
+    | Quarterfinals
+    | Semifinals
+    | Finals
+  [@@deriving yojson, enum, show]
+
+  let all = List.filter_map of_enum (List.init (to_enum Finals + 1) Fun.id)
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Round"
+      ~typ:array
+      ~items:(
+        obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:(List.map
+                   (fun round -> `String (show round))
+                   all
+                )
+      )
+end
+
 
 
 (* Events *)
@@ -268,7 +297,7 @@ module CompetitionIdList = struct
       ~name:"CompetitionIdList"
       ~typ:object_
       ~properties:[
-        "events", obj @@ S.make_schema ()
+        "comps", obj @@ S.make_schema ()
           ~typ:array
           ~items:(ref CompetitionId.ref);
       ]
@@ -297,3 +326,198 @@ module Competition = struct
       ]
 end
 
+(* Artefact *)
+(* ************************************************************************* *)
+
+module YanCriterion = struct
+  type t = string * Ftw.Ranking.Algorithm.yan_weight [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"YanCriterion"
+      ~typ:(Obj Object)
+      ~additional_properties:(
+        obj @@ S.make_schema ()
+          ~properties:[
+            "yes", obj @@ S.make_schema ()
+              ~typ:int;
+            "alt", obj @@ S.make_schema ()
+              ~typ:int;
+            "no", obj @@ S.make_schema ()
+              ~typ:int;
+          ]
+      )
+end
+
+
+module ArtefactDescription = struct
+
+  module StrMap = Map.Make (String)
+
+  type t = {
+    artefact: string;
+    yan_criterion: YanCriterion.t list option;
+    algorithm_for_ranking: string option;
+  }[@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"ArtefactDescription"
+      ~typ:(Obj Object)
+      ~description: {| artefact is either ranking or yan.
+        For a ranking artefact, ranking_algorithm property should be specified.
+        For a yan artefact, yan_criterion property should be set. |}
+      ~properties:[
+        "artefact", obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[`String "ranking"; `String "yan"];
+        "yan_criterion", obj @@ S.make_schema ()
+          ~typ:(Obj Array)
+          ~items:(ref YanCriterion.ref);
+        "algorithm_for_ranking", obj @@ S.make_schema ()
+          ~typ:string
+      ]
+      ~required:["artefact"]
+
+
+  let of_ftw artefact_description ranking_algorithm =
+    match artefact_description, ranking_algorithm with
+    | Ftw.Artefact.Descr.Yans { criterion }, Ftw.Ranking.Algorithm.Yan_weighted { weights } ->
+      { artefact = "yan";
+        yan_criterion = Some (List.map2 (fun c w -> (c,w)) criterion weights);
+        algorithm_for_ranking = None }
+    | Ftw.Artefact.Descr.Ranking, Ftw.Ranking.Algorithm.RPSS ->
+      { artefact = "ranking";
+        yan_criterion = None;
+        algorithm_for_ranking = Some "RPSS" }
+    | _, _ -> assert false
+
+  let to_ftw {artefact; yan_criterion; algorithm_for_ranking} =
+    match artefact, yan_criterion, algorithm_for_ranking with
+    | "ranking", None, Some _ -> (Ftw.Artefact.Descr.Ranking, Ftw.Ranking.Algorithm.RPSS)
+    | "yan", Some yan_criterion_list, None -> (
+        Yans {criterion=List.map (fun (c,_) -> c) yan_criterion_list},
+        Yan_weighted {weights=List.map (fun (_, w) -> w) yan_criterion_list}
+      )
+    | _ -> assert false
+end
+
+
+(* Phases *)
+(* ************************************************************************* *)
+
+(* Phase Ids *)
+module PhaseId = struct
+  type t = Ftw.Phase.id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"PhaseId"
+      ~typ:int
+      ~examples:[`Int 42]
+end
+
+(* Phase Id list *)
+module PhaseIdList = struct
+  type t = {
+    phases : PhaseId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"PhaseIdList"
+      ~typ:object_
+      ~properties:[
+        "phases", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref PhaseId.ref);
+      ]
+end
+
+(* Phase specification *)
+module Phase = struct
+  type t = {
+    competition : CompetitionId.t;
+    round : Round.t;
+    judge_artefact_description : ArtefactDescription.t;
+    head_judge_artefact_description : ArtefactDescription.t;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Phase"
+      ~typ:(Obj Object)
+      ~properties:[
+        "competition", ref CompetitionId.ref;
+        "round", ref Round.ref;
+        "judge_artefact_description", obj @@ S.make_schema ()
+          ~typ:(ref ArtefactDescription.ref);
+        "head_judge_artefact_description", obj @@ S.make_schema ()
+          ~typ:(ref ArtefactDescription.ref)
+      ]
+end
+
+
+(* Dancers *)
+(* ************************************************************************* *)
+
+(* Dancer Ids *)
+module DancerId = struct
+  type t = Ftw.Dancer.id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"DancerId"
+      ~typ:int
+      ~examples:[`Int 42]
+end
+
+(* Dancer Id list *)
+module DancerIdList = struct
+  type t = {
+    phases : DancerId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"DancerIdList"
+      ~typ:object_
+      ~properties:[
+        "dancers", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref DancerId.ref);
+      ]
+end
+
+
+
+(* Heats *)
+(* ************************************************************************* *)
+
+(* Heat Ids *)
+module HeatId = struct
+  type t = Ftw.Heat.passage_id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatId"
+      ~typ:int
+      ~examples:[`Int 42]
+end
+
+(* Heat Id list *)
+module HeatIdList = struct
+  type t = {
+    phases : HeatId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatIdList"
+      ~typ:object_
+      ~properties:[
+        "heats", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref HeatId.ref);
+      ]
+end

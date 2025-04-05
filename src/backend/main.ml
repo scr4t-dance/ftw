@@ -49,6 +49,7 @@ let () =
     router
     |> Event.routes
     |> Competition.routes
+    |> Phase.routes
   in
   (* Define CORS middleware manually *)
   let cors_middleware handler request =
@@ -64,13 +65,13 @@ let () =
       Dream.add_header response "Access-Control-Allow-Origin" "*";
       Dream.add_header response "Access-Control-Allow-Headers" "Content-Type, Authorization";
       Lwt.return response
-  in 
+  in
   (* Setup the dream server and run it *)
   Dream.run
     ~interface:"0.0.0.0"
     ~port:options.server_port
     ~tls:false
-  @@ Dream.logger  
+  @@ Dream.logger
   @@ cors_middleware
   @@ Dream.memory_sessions
   @@ State.init ~path:options.db_path

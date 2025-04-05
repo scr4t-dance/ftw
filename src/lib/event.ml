@@ -34,8 +34,8 @@ let compare e e' =
 (* ************************************************************************* *)
 
 let () =
-  State.add_init (fun st ->
-      Sqlite3_utils.exec0_exn st {|
+  State.add_init (1, fun st ->
+      State.exec ~st {|
         CREATE TABLE IF NOT EXISTS events (
           id INTEGER PRIMARY KEY,
           name TEXT,

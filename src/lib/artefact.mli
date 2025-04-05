@@ -10,6 +10,8 @@ module Descr : sig
     | Ranking
     | Yans of { criterion : string list; }
   [@@deriving yojson]
+  (** Description of artefact types.
+      Enable reading of artefacts.*)
 
   val ranking : t
   val yans : string list -> t
@@ -44,4 +46,3 @@ val set :
   judge:Judge.id ->
   target:Id.t ->
   t -> unit
-

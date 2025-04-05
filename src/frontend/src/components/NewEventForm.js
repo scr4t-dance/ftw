@@ -75,9 +75,9 @@ function NewEventForm() {
                     />
                 </div>
 
-                {error && 
+                {error &&
                     <div className="error_message">
-                        <span>&#x26A0; </span> 
+                        <span>&#x26A0; </span>
                         {error}
                     </div>
                 }

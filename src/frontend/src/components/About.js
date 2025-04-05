@@ -19,21 +19,21 @@ function About() {
                 <h3>Nos objectifs</h3>
                 <ul>
                     <li>
-                        Mettre en place des divisions compétitives durables dans le temps, et partagées par plusieurs événements, 
-                        dans lesquelles et entre lesquelles les danseur·euse·s de Rock 4 Temps pourront évoluer s'iels participent 
+                        Mettre en place des divisions compétitives durables dans le temps, et partagées par plusieurs événements,
+                        dans lesquelles et entre lesquelles les danseur·euse·s de Rock 4 Temps pourront évoluer s'iels participent
                         à des compétitions adoptant le SCR4T.
-                        Un tel système permet de créer un parcours équitable pour les danseur·euse·s, qui leur permettra de se fixer des objectifs, 
-                        d'obtenir des accomplissements et d'avoir une concrétisation tangible de leur progrès en tant que danseur·euse·s et 
+                        Un tel système permet de créer un parcours équitable pour les danseur·euse·s, qui leur permettra de se fixer des objectifs,
+                        d'obtenir des accomplissements et d'avoir une concrétisation tangible de leur progrès en tant que danseur·euse·s et
                         compétiteur·ice·s.
                     </li>
                     <li>
-                        Promouvoir une vision positive de la compétition, qui a des vertus notables à favoriser : elle permet de définir des objectifs 
-                        de progression et tirer la communauté vers le haut, en créant des exemples, des critères de ce qu'est une bonne danse, un·e 
-                        bon·ne danseur·euse. Cependant, nous sommes conscients des écueils dans lesquelles la compétition peut tomber et ses aspects 
+                        Promouvoir une vision positive de la compétition, qui a des vertus notables à favoriser : elle permet de définir des objectifs
+                        de progression et tirer la communauté vers le haut, en créant des exemples, des critères de ce qu'est une bonne danse, un·e
+                        bon·ne danseur·euse. Cependant, nous sommes conscients des écueils dans lesquelles la compétition peut tomber et ses aspects
                         négatifs (pression, stress, jugements négatifs ou non constructifs).
-                        Nous voulons donc créer des façons d'aborder la compétition dans une atmosphère bienveillante, bon enfant, agréable et amusante. 
-                        Nous pensons que le système de division et de points contribue à cela de part l'aspect ludique qu'il apporte. 
-                        Le Rock 4 Temps étant avant tout une danse sociale, nous pensons que le format Jack'n'Jill est particulièrement adapté à cela, 
+                        Nous voulons donc créer des façons d'aborder la compétition dans une atmosphère bienveillante, bon enfant, agréable et amusante.
+                        Nous pensons que le système de division et de points contribue à cela de part l'aspect ludique qu'il apporte.
+                        Le Rock 4 Temps étant avant tout une danse sociale, nous pensons que le format Jack'n'Jill est particulièrement adapté à cela,
                         et c'est pour ce format que le SCR4T est pensé.
                     </li>
                 </ul>
@@ -49,7 +49,7 @@ function About() {
 
                 <h3>Les administrateurs</h3>
                 <p>Le SCR4T est administré par des volontaires qui ont participé à sa conception : Léa Cimelli, Guillaume de Longuemar et Guillaume Bury.</p>
-                
+
             </div>
             <Footer />
         </>

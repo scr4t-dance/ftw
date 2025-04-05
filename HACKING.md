@@ -41,7 +41,7 @@ The target automatically open `http://localhost:3000/static`,
 which is not a valid website. Ignore it and go to `http://localhost:3000/`.
 
 You cannot use `make run` and `make frontend_dev` simutaneously
-(in separate terminals). 
+(in separate terminals).
 The last command will always kill background process running ocaml servers.
 
 
@@ -74,9 +74,12 @@ make promote
 Look at curl commands in `tests/api.t/run.t` to design new tests.
 
 
-Hacks
------
+Hacks for vscode
+----------------
 
 In vscode, install Ocaml extension to get the button to create sandboxed terminals.
 
-Install `ocp-indent` to format files
+Install `ocp-indent` to format files.
+Extension OCaml Indentation by Zachary Palmer works, but you have to hardcode path to ocp-indent binary in settings. Then look for `format file` command.
+
+Remove trailing whitespaces with settings.

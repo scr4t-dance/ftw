@@ -5,7 +5,7 @@
 (* ************************************************************************* *)
 
 (* TODO: find a decent/better name for an occurrence of a dancer in a heat *)
-type passage_id = Id.t
+type passage_id = Id.t [@@deriving yojson]
 type passage_kind =
   | Only
   | Multiple of { nth : int; }
