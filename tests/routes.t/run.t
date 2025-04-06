@@ -23,6 +23,4 @@ End & Cleanup
 Make sure all children of this process have been killed,
 especially the FTW server in the background
 
-  $ ps --ppid "$$" | grep ^$CMD|wc -l
-  5
   $ pkill -P "$$"

@@ -1,7 +1,7 @@
 import "../styles/ContentStyle.css";
 
 import React from 'react';
-import {useGetApiEvents, useGetApiEventId, getGetApiEventIdQueryKey} from '../hookgen/event/event';
+import {useGetApiEvents, useGetApiEventId} from '../hookgen/event/event';
 
 import PageTitle from "./PageTitle";
 import Header from "./Header";
