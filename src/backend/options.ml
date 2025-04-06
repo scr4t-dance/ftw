@@ -9,7 +9,6 @@ open Cmdliner
 type server = {
   db_path : string;
   server_port : int;
-  static_path : string;
 }
 
 type openapi = {
