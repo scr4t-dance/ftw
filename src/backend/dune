@@ -2,7 +2,7 @@
 ; main server binary
 (executable
   (name         main)
-  (public_name  ftw_backend)
+  (public_name  ftw)
   (preprocess (pps lwt_ppx ppx_deriving.show ppx_deriving_yojson))
   (libraries
      ftw
@@ -16,4 +16,3 @@
   (deps (source_tree static))
   (action (with-stdout-to %{null}
    (run ocaml-crunch -m plain static -o %{target}))))
-

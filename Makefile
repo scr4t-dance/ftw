@@ -12,13 +12,14 @@ FRONTEND_DEPS=\
 	src/frontend/package-lock.json \
 	src/frontend/public/* \
 	src/frontend/src/* \
-	src/frontend/src/components/*
+	src/frontend/src/components/* \
+	src/frontend/src/hooks/*
 
 all: build
 
 build: backend
 
-configure: ftw.opam
+configure:
 	opam install . --deps-only
 	cd src/frontend && npm install
 	cd src/hookgen && npm install
@@ -29,22 +30,13 @@ $(FRONTEND_TARGET): $(FRONTEND_DEPS)
 backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
 
-stop:
-	killall ftw_backend 2>/dev/null || true
+run: backend
+	dune exec -- ftw --db=tests/test.db
 
-run: backend stop
-	dune exec -- ftw_backend --db=tests/test.db
+frontend_dev: backend
+	./deploy_frontend_dev.sh
 
-frontend_dev: $(FRONTEND_DEPS) stop
-	dune build $(FLAGS) @install
-	dune exec -- ftw_backend --db=tests/test.db > ftw_backend.log 2>&1 &
-	sleep 1
-	curl -s http://localhost:8080/openapi.json -o src/hookgen/raw_openapi.json
-	cd src/hookgen && node pretty_print_openapi_json.js
-	cd src/hookgen && ./node_modules/.bin/orval --config ./orval.config.js
-	cd src/frontend && npm start
-
-tests: backend stop
+tests: backend
 	dune runtest
 
 promote:
@@ -57,10 +49,11 @@ clean:
 	rm -rf src/frontend/node_modules
 	cd src/frontend/src/hookgen && find . -type f -name "*" ! -name ".gitignore" -exec rm -v {} \;
 	cd src/frontend/src/hookgen && find . -type d -name "*" ! -name "." -exec rmdir -v {} \;
+
 top:
 	dune utop
 
 doc:
 	dune build $(FLAGS) @doc
 
-.PHONY: all build stop top doc run frontend_dev tests promote clean
+.PHONY: all build top doc run frontend_dev tests promote clean

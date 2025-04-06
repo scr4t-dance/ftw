@@ -35,13 +35,13 @@ update itself when any files in `src/frontend/src` is updated.
 * `localhost:8080` will be available to answer API calls.
 It also serve the website based on what is available on `src/frontend/build`.
 But this website should be ignored. It runs in background
-The logs of the ocaml server are stored in `ftw_backend.log` in root dir.
+The logs of the ocaml server are stored in `ftw.log` in root dir.
 
 The target automatically open `http://localhost:3000/static`,
 which is not a valid website. Ignore it and go to `http://localhost:3000/`.
 
 You cannot use `make run` and `make frontend_dev` simutaneously
-(in separate terminals). 
+(in separate terminals).
 The last command will always kill background process running ocaml servers.
 
 
