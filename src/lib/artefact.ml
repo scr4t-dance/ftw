@@ -7,11 +7,10 @@
 module Descr = struct
 
   type t =
-    | Bonus
     | Ranking
     | Yans of { criterion : string list; }
+  [@@deriving yojson]
 
-  let bonus = Bonus
   let ranking = Ranking
   let yans criterion = Yans { criterion; }
 
@@ -20,9 +19,6 @@ end
 (* Artefact values *)
 (* ************************************************************************* *)
 
-type bonus = int
-(* Bonus value *)
-
 type yan =
   | Yes
   | Alt
@@ -30,12 +26,11 @@ type yan =
 (* Yes/Alt/No *)
 
 type t =
-  | Bonus of bonus
   | Rank of Rank.t
   | Yans of yan list
 
 
-(* DB interaction *)
+(* Encoding and decoding *)
 (* ************************************************************************* *)
 
 (* Int encoding schema:
@@ -66,7 +61,6 @@ let of_int ~descr v =
       No
   in
   match (descr : Descr.t) with
-  | Bonus -> Bonus v
   | Ranking -> Rank v
   | Yans { criterion; } ->
     let rec aux v i = function
@@ -86,12 +80,38 @@ let to_int t =
     | No -> v
   in
   match (t : t) with
-  | Bonus b -> b
   | Rank r -> r
   | Yans l ->
     fst @@ List.fold_left
       (fun (v, i) y -> (encode_yan v i y, i + 2)) (0, 0) l
 
+
+(* DB interaction *)
+(* ************************************************************************* *)
+
 let p = Sqlite3_utils.Ty.([int])
 let conv ~descr = Conv.mk p (of_int ~descr)
+
+let () =
+  State.add_init (fun st ->
+      State.exec ~st {|
+        CREATE TABLE IF NOT EXISTS artefacts (
+          target_id INTEGER REFERENCES heats(id),
+          judge INTEGER REFERNECES dancers(id),
+          artefact INTEGER NOT NULL
+          PRIMARY KEY(target_id,judge)
+        )
+      |})
+
+let get ~st ~judge ~target ~descr =
+  let open Sqlite3_utils.Ty in
+  State.query_one_where ~st ~p:[int;int] ~conv:(conv ~descr)
+    {| SELECT artefact FROM artefacts WHERE target_id = ? AND judge = ? |}
+    target judge
+
+let set ~st ~judge ~target t =
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[int;int;int]
+    {| INSERT INTO artefacts(target_id,judge,artefact) VALUES (?,?,?) |}
+    target judge (to_int t)
 

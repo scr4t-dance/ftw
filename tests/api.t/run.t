@@ -19,19 +19,19 @@ Event Management
 
 Create a first event
 
-  $ curl -s -X PUT http://localhost:8080/api/event \
+  $ curl -s -X PUT http://localhost:8081/api/event \
   > -H "Content-Type: application/json" \
   > -d '{"name":"P4T","start_date":{"day":1,"month":1,"year":2025},"end_date":{"day":3,"month":1,"year":2025}}'
   1
 
 List all events
 
-  $ curl -s http://localhost:8080/api/events
+  $ curl -s http://localhost:8081/api/events
   {"events":[1]}
 
 Check the details of the create event
 
-  $ curl -s http://localhost:8080/api/event/1
+  $ curl -s http://localhost:8081/api/event/1
   {"name":"P4T","start_date":{"day":1,"month":1,"year":2025},"end_date":{"day":3,"month":1,"year":2025}}
 
 
@@ -40,23 +40,23 @@ Competition Management
 
 Create some competitions
 
-  $ curl -s -X PUT http://localhost:8080/api/comp \
+  $ curl -s -X PUT http://localhost:8081/api/comp \
   > -H "Content-Type: application/json" \
   > -d '{"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Novice"]}'
 
-  $ curl -s -X PUT http://localhost:8080/api/comp \
+  $ curl -s -X PUT http://localhost:8081/api/comp \
   > -H "Content-Type: application/json" \
   > -d '{"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Intermediate"]}'
 
 Get the ids of competitions we created, and check their details
 
-  $ curl -s http://localhost:8080/api/event/1/comps
+  $ curl -s http://localhost:8081/api/event/1/comps
   {"comps":[1,2]}
 
-  $ curl -s http://localhost:8080/api/comp/1
+  $ curl -s http://localhost:8081/api/comp/1
   {"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Novice"]}
 
-  $ curl -s http://localhost:8080/api/comp/2
+  $ curl -s http://localhost:8081/api/comp/2
   {"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Intermediate"]}
 
 

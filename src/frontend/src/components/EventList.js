@@ -1,7 +1,7 @@
 import "../styles/ContentStyle.css";
 
 import React from 'react';
-import {useGetApiEvents, useGetApiEventId, getGetApiEventIdQueryKey} from '../hookgen/event/event'; 
+import {useGetApiEvents, useGetApiEventId, getGetApiEventIdQueryKey} from '../hookgen/event/event';
 
 import PageTitle from "./PageTitle";
 import Header from "./Header";
@@ -62,10 +62,10 @@ const events = [
 function EventList() {
 
     const { data, isLoading, error } = useGetApiEvents();
-  
+
     if (isLoading) return <div>Chargement des événements...</div>;
     if (error) return <div>Erreur: {(error as any).message}</div>;
-  
+
     return (
         <>
             <PageTitle title="Événements" />
@@ -91,7 +91,7 @@ function EventList() {
                             <th>Année</th>
                         </tr>
                         {events.map(({id, name, month, year}, index) => (
-                            <tr key={id} 
+                            <tr key={id}
                                 className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
                                 <td>
                                     <a href={`${eventListlink}${id}`}>
@@ -112,7 +112,7 @@ function EventList() {
                             <th>Mois</th>
                             <th>Année</th>
                         </tr>
-                        
+
                         {data?.data.events?.map((eventId, index) => (
                             <EventDetails key={eventId} id={eventId} index={index}/>
                         ))}
@@ -127,16 +127,16 @@ function EventList() {
 
 function EventDetails({ id, index }: { id: EventId, index: number }) {
   const { data, isLoading } = useGetApiEventId(id);
-  
+
   if (isLoading) return <div>Chargement...</div>;
   if (!data) return null;
-  
+
   const event = data.data;
   const month = event.start_date?.month;
   const year = event.start_date?.year;
 
   return (
-    <tr key={id} 
+    <tr key={id}
         className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
         <td>
         <Link to={`/events/${id}`}>
@@ -146,7 +146,7 @@ function EventDetails({ id, index }: { id: EventId, index: number }) {
         <td>{month}</td>
         <td>{year}</td>
     </tr>
-    
+
   );
 }
 

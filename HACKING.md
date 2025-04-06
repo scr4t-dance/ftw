@@ -72,3 +72,11 @@ make promote
 ```
 
 Look at curl commands in `tests/api.t/run.t` to design new tests.
+
+
+Hacks
+-----
+
+In vscode, install Ocaml extension to get the button to create sandboxed terminals.
+
+Install `ocp-indent` to format files

@@ -6,7 +6,12 @@
 
 let loader _root path _request =
   match Static.read path with
-  | None -> Dream.empty `Not_Found
+  | None ->
+    (* if the path is not found in the frontend, automatically redirect to `index.html` *)
+    begin match Static.read "index.html" with
+      | None -> assert false (* let's assume the frontend will always have an `index.html` *)
+      | Some asset -> Dream.html asset
+    end
   | Some asset -> Dream.respond asset
 
 (* Main entrypoint *)
@@ -54,11 +59,11 @@ let () =
         ("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         ("Access-Control-Allow-Headers", "Content-Type, Authorization");
       ] ~status:`No_Content ""
-      | _ ->
-        let%lwt response = handler request in
-        Dream.add_header response "Access-Control-Allow-Origin" "*";
-        Dream.add_header response "Access-Control-Allow-Headers" "Content-Type, Authorization";
-        Lwt.return response
+    | _ ->
+      let%lwt response = handler request in
+      Dream.add_header response "Access-Control-Allow-Origin" "*";
+      Dream.add_header response "Access-Control-Allow-Headers" "Content-Type, Authorization";
+      Lwt.return response
   in
   (* Setup the dream server and run it *)
   Dream.run
