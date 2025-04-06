@@ -69,7 +69,7 @@ module Error = struct
       ~properties:[
         "message", obj @@ S.make_schema ()
           ~typ:string
-          (* 
+          (*
           TODO raise issue at openapi_router
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
@@ -90,10 +90,11 @@ module Date = struct
     make_schema ()
       ~name:"Date"
       ~typ:object_
+      ~required:["year";"month";"day"]
       ~properties:[
         "day", obj @@ S.make_schema ()
           ~typ:int
-          (* 
+          (*
           TODO raise issue at openapi_router
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
@@ -212,7 +213,7 @@ module EventId = struct
     make_schema ()
       ~name:"EventId"
       ~typ:int
-      (* 
+      (*
       TODO raise issue at openapi_router
       https://swagger.io/docs/specification/v3_0/adding-examples/
       Note that schemas and properties support single example but not multiple examples.
@@ -252,7 +253,7 @@ module Event = struct
       ~properties:[
         "name", obj @@ S.make_schema ()
           ~typ:string
-          (* 
+          (*
           TODO raise issue at openapi_router
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
@@ -274,7 +275,7 @@ module CompetitionId = struct
     make_schema ()
       ~name:"CompetitionId"
       ~typ:int
-      (* 
+      (*
       TODO raise issue at openapi_router
       https://swagger.io/docs/specification/v3_0/adding-examples/
       Note that schemas and properties support single example but not multiple examples.
@@ -316,7 +317,7 @@ module Competition = struct
         "event", ref EventId.ref;
         "name", obj @@ S.make_schema ()
           ~typ:string
-          (* 
+          (*
           TODO raise issue at openapi_router
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
@@ -326,4 +327,3 @@ module Competition = struct
         "category", ref Category.ref;
       ]
 end
-

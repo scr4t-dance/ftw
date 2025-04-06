@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router';
 
 import HomePage from './components/HomePage';
 import EventList from './components/EventList';
@@ -6,6 +6,7 @@ import EventList from './components/EventList';
 import NewEventForm from './components/NewEventForm';
 import About from './components/About';
 import React from 'react';
+import EventPage from './components/EventPage';
 
 const router = createBrowserRouter([
 	{
@@ -19,6 +20,10 @@ const router = createBrowserRouter([
 	{
 		path: "/events",
 		element: <EventList />,
+	},
+	{
+		path: "/events/:id_event",
+		element: <EventPage />,
 	},
 	{
 		path: "/event",

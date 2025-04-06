@@ -1,13 +1,13 @@
 import "../styles/ContentStyle.css";
 
 import React from 'react';
-import {useGetApiEvents, useGetApiEventId, getGetApiEventIdQueryKey} from '../hookgen/event/event';
+import {useGetApiEvents, useGetApiEventId} from '../hookgen/event/event';
 
 import PageTitle from "./PageTitle";
 import Header from "./Header";
 import Footer from "./Footer";
 import { EventId } from "hookgen/model";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 const eventListlink = "events/"
 // TEMPORAIRE
@@ -78,7 +78,7 @@ function EventList() {
                 <h1>Événements partenaires</h1>
                 <ul>
                     {eventsPartners.map(({name, link}, index) => (
-                        <li key={index}><a target="_blank" href={link}>{name}</a></li>
+                        <li key={index}><a target="_blank" rel="noreferrer" href={link}>{name}</a></li>
                     ))}
                 </ul>
 

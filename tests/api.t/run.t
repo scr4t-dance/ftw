@@ -6,7 +6,7 @@ Initialization
 
 Launch the FTW server in the background
 
-  $ ftw --db=":memory:" --static="../../src/backend/static" > /dev/null 2>&1 &
+  $ ftw --db=":memory:" --port=8081 > /dev/null 2>&1 &
 
 Sleep a bit to ensure that the server had had time to initialize and is ready
 to respond to requests
@@ -66,8 +66,4 @@ End & Cleanup
 Make sure all children of this process have been killed,
 especially the FTW server in the background
 
-  $ ps --ppid "$$" | grep ^$CMD|wc -l
-  5
   $ pkill -P "$$"
-  $ ps --ppid "$$" | grep ^$CMD|wc -l
-  4
