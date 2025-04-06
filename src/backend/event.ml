@@ -145,4 +145,3 @@ and create_event =
        in
        let id = Ftw.Event.create st event.name ~start_date ~end_date in
        Ok id)
-
