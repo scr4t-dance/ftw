@@ -16,7 +16,6 @@ FRONTEND_DEPS=\
 	src/frontend/src/hooks/*
 
 HOOKGEN_TARGETS=\
-	src/frontend/src/hookgen/* \
 	src/frontend/src/hookgen/competition/* \
 	src/frontend/src/hookgen/event/* \
 	src/frontend/src/hookgen/model/*
@@ -30,21 +29,23 @@ configure:
 	cd src/frontend && npm install
 	cd src/hookgen && npm install
 
-# initiate ocaml server once to generate openapi.json file
-${HOOKGEN_TARGETS}: src/backend/types.ml
-	echo "Update hookgen"
+src/hookgen/raw_openapi.json:
 	dune build $(FLAGS) @install
 	./hookgen.sh
 
-# force hookgen
-hookgen:
-	dune build $(FLAGS) @install
-	./hookgen.sh
+# initiate ocaml server once to generate openapi.json file
+hookgen ${HOOKGEN_TARGETS}: src/hookgen/raw_openapi.json
+	cd src/hookgen && node pretty_print_openapi_json.js
+	cd src/hookgen && ./node_modules/.bin/orval --config ./orval.config.js
 
 $(FRONTEND_TARGET): ${HOOKGEN_TARGETS} $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
 
-backend: $(FRONTEND_TARGET)
+init_backend: $(FRONTEND_TARGET)
+	dune build $(FLAGS) @install
+	./hookgen.sh
+
+backend: init_backend $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
 
 run: backend

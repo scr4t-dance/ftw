@@ -14,6 +14,7 @@ module.exports = {
             client: 'react-query',
             mock: true,
             baseUrl: 'http://localhost:8080',
+            clean: true,
         },
     },
 };

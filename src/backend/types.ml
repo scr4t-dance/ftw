@@ -294,7 +294,7 @@ module CompetitionIdList = struct
       ~name:"CompetitionIdList"
       ~typ:object_
       ~properties:[
-        "events", obj @@ S.make_schema ()
+        "competitions", obj @@ S.make_schema ()
           ~typ:array
           ~items:(ref CompetitionId.ref);
       ]

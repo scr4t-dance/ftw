@@ -7,6 +7,7 @@ import NewEventForm from './components/NewEventForm';
 import About from './components/About';
 import React from 'react';
 import EventPage from './components/EventPage';
+import NewCompetitionFormPage from './components/NewCompetitionFormPage';
 
 const router = createBrowserRouter([
 	{
@@ -37,6 +38,10 @@ const router = createBrowserRouter([
 		path: "/new/event",
 		element: <NewEventForm />,
 	},
+	{
+		path:"/new/competition",
+		element: <NewCompetitionFormPage />
+	}
 ]);
 
 const App = () => {
