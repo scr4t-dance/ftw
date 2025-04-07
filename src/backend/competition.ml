@@ -18,6 +18,18 @@ let rec routes router =
         ~required:true
         ~schema:Types.(ref CompetitionId.ref)
     ]
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Successful operation"
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref Competition.ref));
+        ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid Id supplied";
+      "404", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Competition not found";
+    ]
   |> Router.put "/api/comp" create_comp
     ~tags:["competition"]
     ~summary:"Create a new competition"
@@ -29,6 +41,14 @@ let rec routes router =
           Spec.json,
           Spec.make_media_type_object () ~schema:(Types.(ref Competition.ref));
         ])
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Successful operation"
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref CompetitionId.ref));
+        ];
+    ]
 
 
 (* Competition query *)
@@ -67,4 +87,3 @@ and create_comp =
          Ftw.Competition.create st comp.event comp.name comp.kind category
        in
        Ok id)
-

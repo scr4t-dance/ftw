@@ -5,14 +5,17 @@
 (* ************************************************************************* *)
 
 let loader _root path _request =
+  Printf.printf "\nFile list %s\n" (List.fold_left (fun x y -> x ^ "\n" ^ y) "" Static.file_list);
   match Static.read path with
-    | None ->
-      (* if the path is not found in the frontend, automatically redirect to `index.html` *)
-      begin match Static.read "index.html" with
-          | None -> assert false (* let's assume the frontend will always have an `index.html` *)
-          | Some asset -> Dream.html asset
-        end
-    | Some asset -> Dream.respond asset
+  | None ->
+    Printf.printf "\nNot found %s default to index.html\n" path; flush_all();
+    (* if the path is not found in the frontend, automatically redirect to `index.html` *)
+    begin match Static.read "index.html" with
+      | None -> assert false (* let's assume the frontend will always have an `index.html` *)
+      | Some asset -> Dream.html asset
+    end
+  | Some asset ->
+    Printf.printf "\nFound %s default\n" path; flush_all(); Dream.respond asset
 
 (* Main entrypoint *)
 (* ************************************************************************* *)
@@ -64,13 +67,13 @@ let () =
       Dream.add_header response "Access-Control-Allow-Origin" "*";
       Dream.add_header response "Access-Control-Allow-Headers" "Content-Type, Authorization";
       Lwt.return response
-  in 
+  in
   (* Setup the dream server and run it *)
   Dream.run
     ~interface:"0.0.0.0"
     ~port:options.server_port
     ~tls:false
-  @@ Dream.logger  
+  @@ Dream.logger
   @@ cors_middleware
   @@ Dream.memory_sessions
   @@ State.init ~path:options.db_path

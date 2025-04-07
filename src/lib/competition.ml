@@ -68,6 +68,5 @@ let create st event_id name kind category : Id.t =
   (* TODO: try and get the id of the new competition from the insert statement above,
      rather than using a new query *)
   State.query_one_where ~p:[ int; text; int; int ] ~conv:Id.conv ~st
-    {| SELECT id FROM competition WHERE event = ? AND name=? AND kind=? AND category=? |}
+    {| SELECT id FROM competitions WHERE event = ? AND name=? AND kind=? AND category=? |}
     event_id name (Kind.to_int kind) (Category.to_int category);
-

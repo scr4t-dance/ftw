@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Start the backend server
-dune exec -- ftw --db=tests/test.db > ftw.log 2>&1 & 
+dune exec -- ftw --db=tests/test.db > ftw.log 2>&1 &
 FTW_PID=$!
 echo $FTW_PID > ftw.pid
 
