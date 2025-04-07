@@ -123,8 +123,8 @@ and get_comps =
     ~to_yojson:Types.CompetitionIdList.to_yojson
     (fun req st ->
        let+ id = Utils.int_param req "id" in
-       let comps = Ftw.Competition.ids_from_event st id in
-       let res : Types.CompetitionIdList.t = { comps; } in
+       let competitions = Ftw.Competition.ids_from_event st id in
+       let res : Types.CompetitionIdList.t = { competitions; } in
        Ok res
     )
 

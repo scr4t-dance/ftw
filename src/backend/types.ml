@@ -286,7 +286,7 @@ end
 (* Competition Id list *)
 module CompetitionIdList = struct
   type t = {
-    comps : CompetitionId.t list;
+    competitions : CompetitionId.t list;
   } [@@deriving yojson]
 
   let ref, schema =

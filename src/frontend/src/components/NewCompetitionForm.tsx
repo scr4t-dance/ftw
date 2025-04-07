@@ -6,12 +6,12 @@ import { usePutApiComp } from '../hookgen/competition/competition';
 
 import { Competition, EventId, KindItem, CategoryItem } from 'hookgen/model';
 
-function NewCompetitionForm() {
+function NewCompetitionForm({default_event=-1} : {default_event?:EventId}) {
 
     // const navigate = useNavigate();
 
     const [competition, setCompetition] = useState<Competition>({
-        event: -1,
+        event: default_event,
         name: '',
         kind: [KindItem.Jack_and_Jill],
         category: [CategoryItem.Novice]
@@ -35,6 +35,12 @@ function NewCompetitionForm() {
             setCompetition((prevCompetition: Competition) => ({
                 ...prevCompetition,
                 [name]: [value],
+            }));
+        } else if(name === "event") {
+
+            setCompetition((prevCompetition: Competition) => ({
+                ...prevCompetition,
+                [name]: Number(value),
             }));
         } else {
             setCompetition((prevCompetition: Competition) => ({
@@ -112,7 +118,7 @@ function NewCompetitionForm() {
                     <label>Type de compétition</label>
                     <select
                         name="kind"
-                        value={competition.kind}
+                        value={competition.kind && competition.kind[0]}
                         onChange={handleInputChange}
                         required>
                         {KindItem && Object.keys(KindItem).map(key => {
@@ -126,7 +132,7 @@ function NewCompetitionForm() {
                     <label>Catégorie de compétition</label>
                     <select
                         name="category"
-                        value={competition.category}
+                        value={competition.category && competition.category[0]}
                         onChange={handleInputChange}
                         required>
                         {CategoryItem && Object.keys(CategoryItem).map(key => {

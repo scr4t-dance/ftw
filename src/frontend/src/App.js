@@ -8,6 +8,7 @@ import About from './components/About';
 import React from 'react';
 import EventPage from './components/EventPage';
 import NewCompetitionFormPage from './components/NewCompetitionFormPage';
+import CompetitionPage from './components/CompetitionPage';
 
 const router = createBrowserRouter([
 	{
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
 	{
 		path: "/events/:id_event",
 		element: <EventPage />,
+	},
+	{
+		path: "/competitions/:id_competition",
+		element: <CompetitionPage />,
 	},
 	{
 		path: "/event",
