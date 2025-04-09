@@ -4,7 +4,7 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type id = Id.t
+type id = Id.t [@@deriving yojson]
 (** Alias for ids *)
 
 type t
@@ -24,6 +24,9 @@ val last_name : t -> string
 val first_name : t -> string
 (** Names of the dancer. *)
 
+val email : t -> string
+(** email of the dancer. *)
+
 val as_leader : t -> Divisions.t
 val as_follower : t -> Divisions.t
 (** Returns the divisions accessible to the given dancer, as a leader or
@@ -41,5 +44,3 @@ val add :
   first_name:string -> last_name:string -> email:string ->
   as_leader:Divisions.t -> as_follower:Divisions.t -> id
 (** Add a dancer, and returns its id. *)
-
-

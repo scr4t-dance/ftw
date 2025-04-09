@@ -4,7 +4,7 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type id = Id.t
+type id = Id.t [@@deriving yojson]
 (** Ids for phases *)
 
 type t
@@ -55,6 +55,12 @@ val create :
   id
 (** Create a new phase *)
 
-val update : State.t -> t -> unit
+val update :
+  st:State.t -> Competition.id -> Round.t ->
+  ranking_algorithm:Ranking.Algorithm.t ->
+  judge_artefact_descr:Artefact.Descr.t ->
+  head_judge_artefact_descr:Artefact.Descr.t ->
+  id
 (** Update the details of a phase. *)
 
+val delete : st:State.t -> id -> id

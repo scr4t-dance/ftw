@@ -38,12 +38,12 @@ hookgen ${HOOKGEN_TARGETS}: src/hookgen/raw_openapi.json
 	cd src/hookgen && node pretty_print_openapi_json.js
 	cd src/hookgen && ./node_modules/.bin/orval --config ./orval.config.js
 
-$(FRONTEND_TARGET): ${HOOKGEN_TARGETS} $(FRONTEND_DEPS)
-	cd src/frontend && npm run build
-
-init_backend: $(FRONTEND_TARGET)
+init_backend:
 	dune build $(FLAGS) @install
 	./hookgen.sh
+
+$(FRONTEND_TARGET): ${HOOKGEN_TARGETS} $(FRONTEND_DEPS)
+	cd src/frontend && npm run build
 
 backend: init_backend $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
@@ -74,4 +74,4 @@ top:
 doc:
 	dune build $(FLAGS) @doc
 
-.PHONY: all build top doc run frontend_dev tests promote clean hookgen
+.PHONY: all build top doc run frontend_dev tests promote clean hookgen init_backend

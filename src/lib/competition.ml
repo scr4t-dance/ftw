@@ -30,7 +30,7 @@ let category { category; _ } = category
 
 let () =
   State.add_init (fun st ->
-      Sqlite3_utils.exec0_exn st {|
+      State.exec ~st {|
         CREATE TABLE IF NOT EXISTS competitions (
           id INTEGER PRIMARY KEY,
           event INTEGER REFERENCES events(id),

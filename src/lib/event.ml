@@ -35,7 +35,7 @@ let compare e e' =
 
 let () =
   State.add_init (fun st ->
-      Sqlite3_utils.exec0_exn st {|
+      State.exec ~st {|
         CREATE TABLE IF NOT EXISTS events (
           id INTEGER PRIMARY KEY,
           name TEXT,
@@ -70,4 +70,3 @@ let create st name ~start_date ~end_date : Id.t =
   State.query_one_where ~p:[ text; text; text; ] ~conv:Id.conv ~st
     {| SELECT id FROM events WHERE name=? AND start_date=? AND end_date=? |}
     name (Date.to_string start_date) (Date.to_string end_date)
-

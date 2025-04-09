@@ -80,7 +80,7 @@ end
 
 (* Dates, identifying a day. *)
 module Date = struct
-  type t = {
+  type t = Ftw.Date.t = {
     day : int;
     month : int;
     year : int;
@@ -99,13 +99,13 @@ module Date = struct
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
           *)
-          (* ~examples:[`Int 1; `Int 31] *);
+        (* ~examples:[`Int 1; `Int 31] *);
         "month", obj @@ S.make_schema ()
           ~typ:int
-          (* ~examples:[`Int 1; `Int 12] *);
+        (* ~examples:[`Int 1; `Int 12] *);
         "year", obj @@ S.make_schema ()
           ~typ:int
-          (* ~examples:[`Int 2019; `Int 2024] *);
+        (* ~examples:[`Int 2019; `Int 2024] *);
       ]
 end
 
@@ -155,6 +155,35 @@ module Division = struct
           ])
 end
 
+(* Dancer Divisions *)
+module Divisions = struct
+  type t = Ftw.Divisions.t =
+    | None
+    | Novice
+    | Novice_Intermediate
+    | Intermediate
+    | Intermediate_Advanced
+    | Advanced
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Divisions"
+      ~typ:array
+      ~items:(
+        obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[
+            `String "None";
+            `String "Novice";
+            `String "Novice_Intermediate";
+            `String "Intermediate";
+            `String "Intermediate_Advanced";
+            `String "Advanced";
+          ]
+      )
+end
+
 (* Competition Category *)
 module Category = struct
   type t =
@@ -201,6 +230,32 @@ module Category = struct
           ])
 end
 
+(* Round *)
+module Round = struct
+  type t = Ftw.Round.t =
+    | Prelims
+    | Octofinals
+    | Quarterfinals
+    | Semifinals
+    | Finals
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Round"
+      ~typ:array
+      ~items:(
+        obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[
+            `String "Prelims";
+            `String "Octofinals";
+            `String "Quarterfinals";
+            `String "Semifinals";
+            `String "Finals";
+          ]
+      )
+end
 
 (* Events *)
 (* ************************************************************************* *)
@@ -258,7 +313,7 @@ module Event = struct
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
           *)
-          (* ~examples:[`String "P4T"] *);
+        (* ~examples:[`String "P4T"] *);
         "start_date", ref Date.ref;
         "end_date", ref Date.ref;
       ]
@@ -322,8 +377,257 @@ module Competition = struct
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
           *)
-          (* ~examples:[`String "P4T"]*) ;
+        (* ~examples:[`String "P4T"]*) ;
         "kind", ref Kind.ref;
         "category", ref Category.ref;
+      ]
+end
+
+
+(* Artefact *)
+(* ************************************************************************* *)
+
+module YanCriterion = struct
+  type t = Ftw.Ranking.Algorithm.yan_weight [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"YanCriterion"
+      ~typ:(Obj Object)
+      ~properties:[
+        "yes", obj @@ S.make_schema ()
+          ~typ:int;
+        "alt", obj @@ S.make_schema ()
+          ~typ:int;
+        "no", obj @@ S.make_schema ()
+          ~typ:int;
+      ]
+end
+
+module YanArtefact = struct
+  type t = (string * YanCriterion.t) list [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"YanArtefact"
+      ~typ:(Obj Object)
+      ~description: {| artefact of type yan.
+        For a yan artefact, yan_criterion property should be set. |}
+      ~additional_properties:(ref YanCriterion.ref)
+
+  let of_ftw (criterion: string list) (weights: Ftw.Ranking.Algorithm.yan_weight list) =
+    List.map2 (fun key item -> (key, item)) criterion weights
+
+  let to_ftw yan_criterion =
+    let pairs = yan_criterion in
+    (
+      Ftw.Artefact.Descr.Yans {criterion=List.map (fun (c, _) -> c) pairs},
+      Ftw.Ranking.Algorithm.Yan_weighted {weights=List.map (fun (_, w) -> w) pairs}
+    )
+end
+
+
+module ArtefactDescription = struct
+
+  type t =
+    | Yan of {
+        yan_criterion: YanArtefact.t;
+      }
+    | Ranking of {
+        algorithm_for_ranking: string;
+      }
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"ArtefactDescription"
+      ~typ:(Obj Array)
+      ~description: {| artefact is either ranking or yan.
+        For a ranking artefact, ranking_algorithm property should be specified.
+        For a yan artefact, yan_criterion property should be set. |}
+      ~items:(
+        obj @@ S.make_schema()
+          ~one_of:[
+            obj @@ S.make_schema ()
+              ~typ:string;
+            (ref YanArtefact.ref);
+            obj @@ S.make_schema ()
+              ~typ:array
+              ~items:(
+                obj @@ S.make_schema ()
+                  ~typ:string;
+              );
+          ]
+      )
+      ~required:["artefact"]
+
+
+  let of_ftw artefact_description ranking_algorithm =
+    match artefact_description, ranking_algorithm with
+    | Ftw.Artefact.Descr.Yans { criterion }, Ftw.Ranking.Algorithm.Yan_weighted { weights} ->
+      let yan_criterion = YanArtefact.of_ftw criterion weights
+      in
+      Yan { yan_criterion=yan_criterion; }
+    | Ftw.Artefact.Descr.Ranking, Ftw.Ranking.Algorithm.RPSS ->
+      Ranking { algorithm_for_ranking = "RPSS"; }
+    | _, _ -> assert false
+
+  let to_ftw artefact_description =
+    match artefact_description with
+    | Yan { yan_criterion; } -> YanArtefact.to_ftw yan_criterion
+    | Ranking { algorithm_for_ranking = _; } ->
+      (Ftw.Artefact.Descr.Ranking, Ftw.Ranking.Algorithm.RPSS)
+end
+
+
+(* Phases *)
+(* ************************************************************************* *)
+
+(* Phase Ids *)
+module PhaseId = struct
+  type t = Ftw.Phase.id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"PhaseId"
+      ~typ:int
+      ~examples:[`Int 42]
+end
+
+(* Phase Id list *)
+module PhaseIdList = struct
+  type t = {
+    phases : PhaseId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"PhaseIdList"
+      ~typ:object_
+      ~properties:[
+        "phases", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref PhaseId.ref);
+      ]
+end
+
+(* Phase specification *)
+module Phase = struct
+  type t = {
+    competition : CompetitionId.t;
+    round : Round.t;
+    judge_artefact_description : ArtefactDescription.t;
+    head_judge_artefact_description : ArtefactDescription.t;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Phase"
+      ~typ:(Obj Object)
+      ~properties:[
+        "competition", ref CompetitionId.ref;
+        "round", ref Round.ref;
+        "judge_artefact_description", ref ArtefactDescription.ref;
+        "head_judge_artefact_description", ref ArtefactDescription.ref
+      ]
+end
+
+(* Dancer *)
+(* ************************************************************************* *)
+
+(* Dancer Ids *)
+module DancerId = struct
+  type t = Ftw.Dancer.id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"DancerId"
+      ~typ:int
+      ~examples:[`Int 42]
+end
+
+(* Dancer Id list *)
+module DancerIdList = struct
+  type t = {
+    dancers : DancerId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"DancerIdList"
+      ~typ:object_
+      ~properties:[
+        "dancers", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref DancerId.ref);
+      ]
+end
+
+
+(* Dancer specification *)
+module Dancer = struct
+  type t = {
+    birthday : Date.t option;
+    last_name : string;
+    first_name : string;
+    email : string;
+    as_leader : Divisions.t;
+    as_follower : Divisions.t;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Dancer"
+      ~typ:(Obj Object)
+      ~properties:[
+        "birthday", ref Date.ref;
+        "last_name", obj @@ S.make_schema ()
+          ~typ:string
+          ~examples:[
+            `String "Bury";
+          ];
+        "first_name", obj @@ S.make_schema ()
+          ~typ:string
+          ~examples:[
+            `String "Guillaume";
+          ];
+        "email", obj @@ S.make_schema ()
+          ~typ:string
+          ~examples:[
+            `String "email@email.email";
+          ];
+        "as_leader", ref Divisions.ref;
+        "as_follower", ref Divisions.ref;
+      ]
+end
+
+(* Heats *)
+(* ************************************************************************* *)
+
+(* Heat Ids *)
+module HeatId = struct
+  type t = Ftw.Heat.passage_id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatId"
+      ~typ:int
+      ~examples:[`Int 42]
+end
+
+(* Heat Id list *)
+module HeatIdList = struct
+  type t = {
+    phases : HeatId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatIdList"
+      ~typ:object_
+      ~properties:[
+        "heats", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref HeatId.ref);
       ]
 end

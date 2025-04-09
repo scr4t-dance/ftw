@@ -5,7 +5,7 @@
 (* ************************************************************************* *)
 
 (* TODO: find a decent/better name for an occurrence of a dancer in a heat *)
-type passage_id = Id.t
+type passage_id = Id.t [@@deriving yojson]
 type passage_kind =
   | Only
   | Multiple of { nth : int; }
@@ -51,6 +51,3 @@ type couples_heats = {
 
 val get_singles : st:State.t -> phase:Phase.id -> singles_heats
 val get_couples : st:State.t -> phase:Phase.id -> couples_heats
-
-
-

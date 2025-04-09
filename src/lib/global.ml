@@ -7,7 +7,7 @@ type 'a t = {
 
 let () =
   State.add_init (fun st ->
-      Sqlite3_utils.exec0_exn st {|
+      State.exec ~st {|
         CREATE TABLE IF NOT EXISTS globals (
         name TEXT PRIMARY KEY,
         value TEXT
@@ -46,4 +46,3 @@ let string name default =
   let p = text in
   let conv = Conv.mk (p1 text) (fun s -> s) in
   mk name p conv default
-

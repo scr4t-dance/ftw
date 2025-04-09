@@ -44,4 +44,3 @@ val set :
   judge:Judge.id ->
   target:Id.t ->
   t -> unit
-
