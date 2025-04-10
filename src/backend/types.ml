@@ -387,12 +387,12 @@ end
 (* Artefact *)
 (* ************************************************************************* *)
 
-module YanCriterion = struct
+module YanCriterionWeight = struct
   type t = Ftw.Ranking.Algorithm.yan_weight [@@deriving yojson]
 
   let ref, schema =
     make_schema ()
-      ~name:"YanCriterion"
+      ~name:"YanCriterionWeight"
       ~typ:(Obj Object)
       ~properties:[
         "yes", obj @@ S.make_schema ()
@@ -404,16 +404,17 @@ module YanCriterion = struct
       ]
 end
 
-module YanArtefact = struct
-  type t = (string * YanCriterion.t) list [@@deriving yojson]
+module YanArtefactDescription = struct
+  type t = (string * YanCriterionWeight.t) list [@@deriving yojson]
 
   let ref, schema =
     make_schema ()
-      ~name:"YanArtefact"
+      ~name:"YanArtefactDescription"
       ~typ:(Obj Object)
       ~description: {| artefact of type yan.
         For a yan artefact, yan_criterion property should be set. |}
-      ~additional_properties:(ref YanCriterion.ref)
+      ~additional_properties:(ref YanCriterionWeight.ref)
+
 
   let of_ftw (criterion: string list) (weights: Ftw.Ranking.Algorithm.yan_weight list) =
     List.map2 (fun key item -> (key, item)) criterion weights
@@ -426,57 +427,91 @@ module YanArtefact = struct
     )
 end
 
+module RankingArtefactDescription = struct
+  type t = string [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"RankingArtefactDescription"
+      ~typ:string
+      ~description: {| artefact of type yan.
+        For a yan artefact, yan_criterion property should be set. |}
+
+  let of_ftw (algorithm_for_ranking: Ftw.Ranking.Algorithm.t) =
+    match algorithm_for_ranking with
+    | RPSS -> "RPSS"
+    | _ -> assert false
+
+  let to_ftw algorithm_for_ranking =
+    match algorithm_for_ranking with
+    | "RPSS" ->
+      (Ftw.Artefact.Descr.Ranking, Ftw.Ranking.Algorithm.RPSS)
+    | _ -> assert false
+
+end
+
 
 module ArtefactDescription = struct
 
   type t =
-    | Yan of {
-        yan_criterion: YanArtefact.t;
-      }
-    | Ranking of {
-        algorithm_for_ranking: string;
-      }
+    | Yan of {yan_criterion: YanArtefactDescription.t}
+    | Ranking of {algorithm_for_ranking: RankingArtefactDescription.t}
   [@@deriving yojson]
 
   let ref, schema =
     make_schema ()
       ~name:"ArtefactDescription"
-      ~typ:(Obj Array)
       ~description: {| artefact is either ranking or yan.
         For a ranking artefact, ranking_algorithm property should be specified.
         For a yan artefact, yan_criterion property should be set. |}
-      ~items:(
+      ~one_of:[
         obj @@ S.make_schema()
-          ~one_of:[
-            obj @@ S.make_schema ()
-              ~typ:string;
-            (ref YanArtefact.ref);
-            obj @@ S.make_schema ()
-              ~typ:array
-              ~items:(
-                obj @@ S.make_schema ()
-                  ~typ:string;
-              );
-          ]
-      )
-      ~required:["artefact"]
+          ~typ:(Obj Object)
+          ~properties:[
+            "yan", (ref YanArtefactDescription.ref);
+          ];
+        obj @@ S.make_schema()
+          ~typ:(Obj Object)
+          ~properties:[
+            "ranking", (ref RankingArtefactDescription.ref);
+          ];
+      ]
 
+
+
+  let of_yojson artefact =
+    let open Result in
+    match artefact with
+    | `Assoc [("yan", descr)] ->
+      YanArtefactDescription.of_yojson descr
+      |> Result.map (fun yan_descr -> Yan { yan_criterion = yan_descr })
+
+    | `Assoc [("ranking", descr)] ->
+      RankingArtefactDescription.of_yojson descr
+      |> Result.map (fun algo -> Ranking { algorithm_for_ranking = algo })
+
+    | _ -> Error "Invalid artefact format"
+
+
+  let to_yojson artefact =
+    match artefact with
+    | Yan {yan_criterion} -> (`Assoc [("yan", (YanArtefactDescription.to_yojson yan_criterion))])
+    | Ranking {algorithm_for_ranking} -> (`Assoc [("ranking", RankingArtefactDescription.to_yojson algorithm_for_ranking)])
 
   let of_ftw artefact_description ranking_algorithm =
     match artefact_description, ranking_algorithm with
     | Ftw.Artefact.Descr.Yans { criterion }, Ftw.Ranking.Algorithm.Yan_weighted { weights} ->
-      let yan_criterion = YanArtefact.of_ftw criterion weights
+      let yan_criterion = YanArtefactDescription.of_ftw criterion weights
       in
       Yan { yan_criterion=yan_criterion; }
     | Ftw.Artefact.Descr.Ranking, Ftw.Ranking.Algorithm.RPSS ->
-      Ranking { algorithm_for_ranking = "RPSS"; }
+      Ranking {algorithm_for_ranking=RankingArtefactDescription.of_ftw ranking_algorithm}
     | _, _ -> assert false
 
   let to_ftw artefact_description =
     match artefact_description with
-    | Yan { yan_criterion; } -> YanArtefact.to_ftw yan_criterion
-    | Ranking { algorithm_for_ranking = _; } ->
-      (Ftw.Artefact.Descr.Ranking, Ftw.Ranking.Algorithm.RPSS)
+    | Yan { yan_criterion; } -> YanArtefactDescription.to_ftw yan_criterion
+    | Ranking {algorithm_for_ranking;} -> RankingArtefactDescription.to_ftw algorithm_for_ranking
 end
 
 

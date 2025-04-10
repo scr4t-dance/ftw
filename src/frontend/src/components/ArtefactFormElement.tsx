@@ -1,4 +1,4 @@
-import { ArtefactDescription, Phase, YanArtefact } from 'hookgen/model';
+import { ArtefactDescription, ArtefactDescriptionOneOf, Phase, YanArtefactDescription } from 'hookgen/model';
 import React, { useState } from 'react';
 
 export function ArtefactFormElement({ attribute_name, artefact_value, callback }: { attribute_name: string; artefact_value: ArtefactDescription; callback: React.Dispatch<React.SetStateAction<Phase>>; }) {
@@ -6,7 +6,8 @@ export function ArtefactFormElement({ attribute_name, artefact_value, callback }
     const [artefact, setArtefact] = useState<ArtefactDescription>(artefact_value);
 
     const default_yan_weights = {yes:3, alt:2, no:1};
-    const defaultArtefact: YanArtefact = { "test": default_yan_weights };
+    const defaultYanArtefact: YanArtefactDescription = {"test": default_yan_weights};
+
     const handleInputChange = (event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
         const { name, value } = event.target;
 
@@ -15,10 +16,10 @@ export function ArtefactFormElement({ attribute_name, artefact_value, callback }
             setArtefact((prev) => {
                 let updated_prev = { ...prev };
 
-                if (value === "Ranking") {
-                    updated_prev = [value, 'RPSS'];
-                } else if (value === "Yan") {
-                    updated_prev = [value, defaultArtefact];
+                if (value === "ranking") {
+                    updated_prev = {[value]:'RPSS'};
+                } else if (value === "yan") {
+                    updated_prev = {[value]:defaultYanArtefact};
                 }
 
                 console.log(updated_prev);
@@ -51,55 +52,55 @@ export function ArtefactFormElement({ attribute_name, artefact_value, callback }
 
         if (field === 'newkey') {
             setArtefact((prev: ArtefactDescription) => {
-                if (!prev[1]) {
-                    return prev;
-                }
-                const updatedCriterion = prev[1] as YanArtefact;
-                updatedCriterion[key] = default_yan_weights;
 
+                console.log(prev);
+                const criterion = (prev as ArtefactDescriptionOneOf).yan as YanArtefactDescription;
+                const updatedCriterion = {
+                    ...criterion,
+                    [key]: default_yan_weights
+                };
 
-                console.log("Updated YanArtefact newkey", {
-                    ...artefact,
-                    yan_criterion: updatedCriterion
-                });
-                return [prev[0], updatedCriterion];
+                return {yan:updatedCriterion};
             });
         } else if (field === 'key') {
             setArtefact((prev: ArtefactDescription) => {
-                if (!prev[1]) {
-                    return prev;
-                }
 
-                const updatedCriterion = prev[1] as YanArtefact;
-                updatedCriterion[value] = updatedCriterion[key];
+                console.log(prev);
+                const criterion = (prev as ArtefactDescriptionOneOf).yan as YanArtefactDescription;
+                const updatedCriterion = {
+                    ...criterion,
+                    [value]: criterion[key]
+                };
                 delete updatedCriterion[key];
 
                 return {
-                    ...artefact,
-                    yan_criterion: updatedCriterion
+                    ...prev,
+                    yan: updatedCriterion
                 };
             });
         } else if (['yes', 'alt', 'no'].includes(field)) {
             setArtefact((prev: ArtefactDescription) => {
-                if (!prev[1]) {
-                    return prev;
-                }
 
                 const numberValue = parseInt(value);
-                const yan_artefact = prev[1] as YanArtefact
 
-                if (!yan_artefact[key]) {
-                    yan_artefact[key] = default_yan_weights;
+                const criterion = (prev as ArtefactDescriptionOneOf).yan as YanArtefactDescription;
+                const weights = criterion[key];
+
+                const updated_weights = {
+                    ...weights,
+                    [field]: numberValue
                 }
+                const updatedCriterion = {
+                    ...criterion,
+                    [key]:updated_weights
 
-                const updatedCriterion = prev[1] as YanArtefact;
-                updatedCriterion[key][field] = numberValue;
+                };
 
-                console.log("Updated YanArtefact", updatedCriterion);
+                //console.log("Updated YanArtefactDescription", updatedCriterion);
 
                 return {
                     ...artefact,
-                    yan_criterion: updatedCriterion
+                    yan: updatedCriterion
                 };
             });
         }
@@ -122,15 +123,15 @@ export function ArtefactFormElement({ attribute_name, artefact_value, callback }
                 <label>Type d'artefact</label>
                 <select
                     name="artefact"
-                    value={artefact[0] as string}
+                    value={Object.keys(artefact)[0]}
                     onChange={handleInputChange}
                     required>
-                    {["Yan", "Ranking"].map(key => {
+                    {["yan", "ranking"].map(key => {
                         return <option key={key} value={key}>{key}</option>;
                     })}
                 </select>
             </div>
-            {artefact[1] && artefact[0] === "Yan" &&
+            {'yan' in artefact &&
                 <table>
                     <thead>
                         <tr>
@@ -141,7 +142,7 @@ export function ArtefactFormElement({ attribute_name, artefact_value, callback }
                         </tr>
                     </thead>
                     <tbody>
-                        {artefact[1] && Object.entries(artefact[1]).map(([key, { yes, alt, no }], index) => (
+                        {artefact.yan && Object.entries(artefact.yan as YanArtefactDescription).map(([key, { yes, alt, no }], index) => (
                             <tr key={index}>
                                 <td>
                                     <input
@@ -172,23 +173,23 @@ export function ArtefactFormElement({ attribute_name, artefact_value, callback }
                                 </td>
                             </tr>
                         ))}
-                        <tr key={Object.keys(artefact[1]).length}>
+                        <tr>
                             <td>
-                                <button type='button' onClick={(e) => handleYanCriterionChange('', 'newkey', '')}>
+                                <button type='button' onClick={(e) => handleYanCriterionChange('critere', 'newkey', 'critere')}>
                                     Add row
                                 </button>
                             </td>
                         </tr>
                     </tbody>
                 </table>}
-            {artefact[1] && artefact[0] === "Ranking" &&
+            {'ranking' in artefact &&
                 <>
                     <div>
                         <label>Algorithm for Ranking:</label>
                         <input
                             type="text"
                             name="algorithm_for_ranking"
-                            value={artefact[1] as string || ''}
+                            value={artefact.ranking || ''}
                             onChange={handleInputChange} />
                     </div>
                 </>}

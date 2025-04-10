@@ -5,6 +5,15 @@
 (* ************************************************************************* *)
 
 let loader _root path _request =
+  Printf.printf "Printing ArtefactDescription";
+  Printf.printf "%s" (Yojson.Safe.to_string @@
+                      Types.ArtefactDescription.to_yojson @@
+                      Types.ArtefactDescription.of_ftw Ftw.Artefact.Descr.Ranking Ftw.Ranking.Algorithm.RPSS
+                     );
+  Printf.printf "%s" (Yojson.Safe.to_string @@
+                      Types.ArtefactDescription.to_yojson @@
+                      Types.ArtefactDescription.of_ftw (Ftw.Artefact.Descr.Yans {criterion=["test"]}) (Ftw.Ranking.Algorithm.Yan_weighted {weights=[{yes=3;alt=2;no=1}]})
+                     ); flush_all();
   Printf.printf "\nFile list %s\n" (List.fold_left (fun x y -> x ^ "\n" ^ y) "" Static.file_list);
   match Static.read path with
   | None ->

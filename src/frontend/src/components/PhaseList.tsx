@@ -14,6 +14,8 @@ function PhaseList({ id_competition }: { id_competition: CompetitionId }) {
 
     const { data, isLoading, isError, error } = useGetApiCompIdPhases(id_competition);
 
+    console.log(data?.data.phases)
+
     if (isLoading) return <div>Chargement des phases...</div>;
     if (isError) return <div>Erreur: {(error as any).message}</div>;
 

@@ -18,8 +18,8 @@ function NewPhaseForm({ default_competition = -1 }: { default_competition?: Comp
     const [phase, setPhase] = useState<Phase>({
         competition: default_competition,
         round: [RoundItem.Finals],
-        judge_artefact_description: [ 'Ranking', ['RPSS'] ],
-        head_judge_artefact_description: [ 'Ranking', ['RPSS'] ]
+        judge_artefact_description: {ranking:'RPSS'},
+        head_judge_artefact_description: {ranking:'RPSS'}
     });
 
     const [selectedEvent, setSelectedEvent] = useState<EventId>(1)
