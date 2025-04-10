@@ -1,16 +1,16 @@
 #!/bin/bash
 
 # Start the backend server
-dune exec -- ftw --db=tests/test.db > ftw.log 2>&1 &
+dune exec -- ftw --db=tests/test.db > bin/ftw.log 2>&1 &
 FTW_PID=$!
-echo $FTW_PID > ftw.pid
+echo $FTW_PID > bin/ftw.pid
 
 # Ensure the backend server is cleaned up on exit
 cleanup() {
     if [[ -f ftw.pid ]]; then
-        kill -TERM $(cat ftw.pid) 2>/dev/null
+        kill -TERM $(cat bin/ftw.pid) 2>/dev/null
         echo "Stopped ftw task"
-        rm -f ftw.pid
+        rm -f bin/ftw.pid
     fi
 }
 trap cleanup INT TERM EXIT

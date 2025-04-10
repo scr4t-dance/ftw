@@ -119,12 +119,7 @@ and get_phase =
          try Ok (Ftw.Phase.get st id)
          with Not_found -> Error.(mk @@ not_found "Phase")
        in
-       let ret : Types.Phase.t = {
-         competition = Ftw.Phase.competition phase;
-         round = Ftw.Phase.round phase;
-         judge_artefact_description = Types.ArtefactDescription.of_ftw (Ftw.Phase.judge_artefact_descr phase) (Ftw.Phase.ranking_algorithm phase);
-         head_judge_artefact_description = Types.ArtefactDescription.of_ftw (Ftw.Phase.head_judge_artefact_descr phase) (Ftw.Phase.ranking_algorithm phase);
-       } in
+       let ret = Types.Phase.of_ftw phase in
        Ok ret
     )
 
@@ -137,14 +132,9 @@ and create_phase =
     ~to_yojson:Types.PhaseId.to_yojson
     (fun _req st (phase : Types.Phase.t) ->
        let id =
-         let (judge_artefact_descr, judge_ranking_algorithm) =
-           Types.ArtefactDescription.to_ftw phase.judge_artefact_description in
-         let (head_judge_artefact_descr, head_judge_ranking_algorithm) =
-           Types.ArtefactDescription.to_ftw phase.head_judge_artefact_description in
-         let ranking_algorithm =
-           if judge_ranking_algorithm = head_judge_ranking_algorithm
-           then judge_ranking_algorithm
-           else assert false in
+         let (ranking_algorithm, judge_artefact_descr, head_judge_artefact_descr) =
+           Types.Phase.artefact_to_ftw phase
+         in
          Ftw.Phase.create ~st phase.competition phase.round
            ~ranking_algorithm:ranking_algorithm
            ~judge_artefact_descr:judge_artefact_descr
@@ -162,12 +152,9 @@ and update_phase =
         let p = Ftw.Phase.get st id_phase in
         let competition_p = Ftw.Phase.competition p in
         let round_p = Ftw.Phase.round p in
-        let (judge_artefact_descr, judge_ranking_algorithm) =
-          Types.ArtefactDescription.to_ftw phase.judge_artefact_description in
-        let (head_judge_artefact_descr, _head_judge_ranking_algorithm) =
-          Types.ArtefactDescription.to_ftw phase.head_judge_artefact_description in
-        (* TODO handle case when judge_ranking_algorithm and _head_judge_ranking_algorithm are different *)
-        let ranking_algorithm = judge_ranking_algorithm in
+        let (ranking_algorithm, judge_artefact_descr, head_judge_artefact_descr) =
+          Types.Phase.artefact_to_ftw phase
+        in
         let id_p =Ftw.Phase.update ~st competition_p round_p ~ranking_algorithm ~judge_artefact_descr
             ~head_judge_artefact_descr in
         Ok id_p

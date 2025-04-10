@@ -16,7 +16,6 @@ let mk path =
 let atomically = Sqlite3_utils.atomically
 
 let exec ~st sql =
-  Printf.printf "%s" sql; flush_all();
   let open Sqlite3_utils in
   exec0_exn st sql
 

@@ -434,8 +434,11 @@ module YanArtefactDescription = struct
     in
     `Assoc criterion_list
 
-  let of_ftw (criterion: string list) (weights: Ftw.Ranking.Algorithm.yan_weight list) =
-    List.map2 (fun key item -> (key, item)) criterion weights
+  let of_ftw criterion_names criterion_weights =
+    match criterion_names, criterion_weights with
+    | Ftw.Artefact.Descr.Yans { criterion }, Ftw.Ranking.Algorithm.Yan_weighted { weights} ->
+      List.map2 (fun key item -> (key, item)) criterion weights
+    | _ -> assert false
 
   let to_ftw yan_criterion =
     let pairs = yan_criterion in
@@ -524,8 +527,8 @@ module ArtefactDescription = struct
 
   let of_ftw artefact_description ranking_algorithm =
     match artefact_description, ranking_algorithm with
-    | Ftw.Artefact.Descr.Yans { criterion }, Ftw.Ranking.Algorithm.Yan_weighted { weights} ->
-      let yan_criterion = YanArtefactDescription.of_ftw criterion weights
+    | Ftw.Artefact.Descr.Yans { criterion=_; }, Ftw.Ranking.Algorithm.Yan_weighted { weights=_;} ->
+      let yan_criterion = YanArtefactDescription.of_ftw artefact_description ranking_algorithm
       in
       Yan { yan_criterion=yan_criterion; }
     | Ftw.Artefact.Descr.Ranking, Ftw.Ranking.Algorithm.RPSS ->
@@ -589,6 +592,75 @@ module Phase = struct
         "judge_artefact_description", ref ArtefactDescription.ref;
         "head_judge_artefact_description", ref ArtefactDescription.ref
       ]
+
+  let artefact_to_ftw p =
+    let judge_artefact_description = p.judge_artefact_description
+    in
+    let head_judge_artefact_description = p.head_judge_artefact_description
+    in
+    let full_artefact_description = match judge_artefact_description, head_judge_artefact_description with
+      | Yan {yan_criterion=judge_criterion}, Yan {yan_criterion=head_criterion} ->
+        let criterion = List.concat [
+            (List.map (fun (k,v) -> (k, v)) judge_criterion);
+            (List.map (fun (k,v) -> (k, v)) head_criterion);
+          ]
+        in
+        ArtefactDescription.Yan {yan_criterion=criterion}
+      | Ranking {algorithm_for_ranking=jr}, Ranking {algorithm_for_ranking=hr} when jr = hr ->
+        Ranking {algorithm_for_ranking=jr}
+      | Ranking {algorithm_for_ranking=_;}, Ranking {algorithm_for_ranking=_;} ->
+        assert false
+      | _, _ -> assert false
+    in
+    let (_, ranking_algorithm) = ArtefactDescription.to_ftw full_artefact_description in
+    let (judge_artefact_descr, _) = ArtefactDescription.to_ftw judge_artefact_description in
+    let (head_judge_artefact_descr, _ ) = ArtefactDescription.to_ftw head_judge_artefact_description in
+    (
+      ranking_algorithm,
+      judge_artefact_descr,
+      head_judge_artefact_descr
+    )
+
+  let artefact_of_ftw ranking_algorithm judge_artefact_descr head_judge_artefact_descr =
+    match judge_artefact_descr, head_judge_artefact_descr with
+    | Ftw.Artefact.Descr.Ranking, Ftw.Artefact.Descr.Ranking ->
+      (
+        ArtefactDescription.of_ftw judge_artefact_descr ranking_algorithm,
+        ArtefactDescription.of_ftw judge_artefact_descr ranking_algorithm
+      )
+    | Ftw.Artefact.Descr.Yans {criterion=ja;}, Ftw.Artefact.Descr.Yans {criterion=ha;} ->
+      let full_descr = Ftw.Artefact.Descr.Yans {criterion=List.concat [ja;ha];}
+      in
+      let full_artefact = ArtefactDescription.of_ftw full_descr ranking_algorithm
+      in
+      let artefact_list = (match full_artefact with
+          | Yan {yan_criterion} -> yan_criterion
+          | _ -> assert false
+        )
+      in
+      let judge_artefact = Seq.take (List.length ja) (List.to_seq artefact_list)
+      in
+      let head_artefact = Seq.take (List.length ha) (List.to_seq @@ List.rev artefact_list)
+      in
+      (
+        Yan {yan_criterion=List.of_seq judge_artefact},
+        Yan {yan_criterion=List.of_seq head_artefact}
+      )
+    | _, _ -> assert false
+
+  let of_ftw phase =
+    let (judge_artefact, head_artefact) = artefact_of_ftw
+        (Ftw.Phase.ranking_algorithm phase)
+        (Ftw.Phase.judge_artefact_descr phase)
+        (Ftw.Phase.head_judge_artefact_descr phase)
+    in
+    {
+      competition=Ftw.Phase.competition phase;
+      round=Ftw.Phase.round phase;
+      judge_artefact_description=judge_artefact;
+      head_judge_artefact_description=head_artefact;
+    }
+
 end
 
 (* Dancer *)

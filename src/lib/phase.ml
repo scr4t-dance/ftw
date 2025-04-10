@@ -30,7 +30,6 @@ let head_judge_artefact_descr { head_judge_artefact_descr; _ } = head_judge_arte
 
 let () =
   State.add_init (fun st ->
-      Printf.printf "%s" (Yojson.Safe.pretty_to_string @@ Artefact.Descr.to_yojson @@ Artefact.Descr.Yans {criterion=["test"]}); flush_all();
       State.exec ~st {|
         CREATE TABLE IF NOT EXISTS phases (
           id INTEGER PRIMARY KEY,

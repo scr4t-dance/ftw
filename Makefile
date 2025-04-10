@@ -34,7 +34,7 @@ configure:
 
 src/hookgen/raw_openapi.json:
 	dune build $(FLAGS) @install
-	./hookgen.sh
+	./bin/hookgen.sh
 
 # initiate ocaml server once to generate openapi.json file
 hookgen ${HOOKGEN_TARGETS}: src/hookgen/raw_openapi.json
@@ -43,7 +43,7 @@ hookgen ${HOOKGEN_TARGETS}: src/hookgen/raw_openapi.json
 
 init_backend:
 	dune build $(FLAGS) @install
-	./hookgen.sh
+	./bin/hookgen.sh
 
 $(FRONTEND_TARGET): ${HOOKGEN_TARGETS} $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
@@ -55,7 +55,7 @@ run: backend
 	dune exec -- ftw --db=tests/test.db
 
 frontend_dev: backend
-	./deploy_frontend_dev.sh
+	./bin/deploy_frontend_dev.sh
 
 tests: backend
 	dune runtest
@@ -66,10 +66,9 @@ promote:
 clean:
 	dune clean
 	rm -rf $(FRONTEND_TARGET)
+	rm -rf $(HOOKGEN_TARGETS)
 	rm -rf src/hookgen/node_modules
 	rm -rf src/frontend/node_modules
-	cd src/frontend/src/hookgen && find . -type f -name "*" ! -name ".gitignore" -exec rm -v {} \;
-	cd src/frontend/src/hookgen && find . -type d -name "*" ! -name "." -exec rmdir -v {} \;
 
 top:
 	dune utop
