@@ -4,7 +4,7 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type id = Id.t
+type id = Id.t [@@deriving yojson]
 
 type t = {
   id : id;
@@ -23,6 +23,7 @@ let id { id; _ } = id
 let birthday { birthday; _ } = birthday
 let last_name { last_name; _ } = last_name
 let first_name { first_name; _ } = first_name
+let email { email; _ } = email
 let as_leader { as_leader; _ } = as_leader
 let as_follower { as_follower; _ } = as_follower
 
@@ -32,7 +33,7 @@ let as_follower { as_follower; _ } = as_follower
 
 let () =
   State.add_init (fun st ->
-      Sqlite3_utils.exec0_exn st {|
+      State.exec ~st {|
         CREATE TABLE IF NOT EXISTS dancers (
           id INTEGER PRIMARY KEY,
           birthday TEXT,
@@ -71,4 +72,3 @@ let add ~st ~birthday ~first_name ~last_name ~email ~as_leader ~as_follower =
                                 AND email = ? AND as_leader = ? AND as_follower = ? |}
     (match birthday with None -> "" | Some d -> Date.to_string d)
     last_name first_name email (Divisions.to_int as_leader) (Divisions.to_int as_follower)
-

@@ -11,6 +11,7 @@ type t =
   | Intermediate
   | Intermediate_Advanced
   | Advanced (**)
+[@@deriving yojson]
 (** This represents the divisions accessible to a given dancer.
     See comment in the interface. *)
 
@@ -52,4 +53,3 @@ let of_int = function
 
 let p = Sqlite3_utils.Ty.([int])
 let conv = Conv.mk p of_int
-

@@ -7,7 +7,7 @@ module S = Openapi_router.Json_Schema
 (* ************************************************************************* *)
 
 let obj o = S.Obj o
-let ref name = S.Ref name
+let ref name = S.Ref ("#/components/schemas/" ^ name)
 
 let int = obj S.Integer
 let array = obj S.Array
@@ -69,13 +69,18 @@ module Error = struct
       ~properties:[
         "message", obj @@ S.make_schema ()
           ~typ:string
-          ~examples:[`String "Event not found"]
+          (*
+          TODO raise issue at openapi_router
+          https://swagger.io/docs/specification/v3_0/adding-examples/
+          Note that schemas and properties support single example but not multiple examples.
+          *)
+          (* ~examples:[`String "Event not found"] *)
       ]
 end
 
 (* Dates, identifying a day. *)
 module Date = struct
-  type t = {
+  type t = Ftw.Date.t = {
     day : int;
     month : int;
     year : int;
@@ -85,16 +90,22 @@ module Date = struct
     make_schema ()
       ~name:"Date"
       ~typ:object_
+      ~required:["year";"month";"day"]
       ~properties:[
         "day", obj @@ S.make_schema ()
           ~typ:int
-          ~examples:[`Int 1; `Int 31];
+          (*
+          TODO raise issue at openapi_router
+          https://swagger.io/docs/specification/v3_0/adding-examples/
+          Note that schemas and properties support single example but not multiple examples.
+          *)
+        (* ~examples:[`Int 1; `Int 31] *);
         "month", obj @@ S.make_schema ()
           ~typ:int
-          ~examples:[`Int 1; `Int 12];
+        (* ~examples:[`Int 1; `Int 12] *);
         "year", obj @@ S.make_schema ()
           ~typ:int
-          ~examples:[`Int 2019; `Int 2024];
+        (* ~examples:[`Int 2019; `Int 2024] *);
       ]
 end
 
@@ -144,6 +155,35 @@ module Division = struct
           ])
 end
 
+(* Dancer Divisions *)
+module Divisions = struct
+  type t = Ftw.Divisions.t =
+    | None
+    | Novice
+    | Novice_Intermediate
+    | Intermediate
+    | Intermediate_Advanced
+    | Advanced
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Divisions"
+      ~typ:array
+      ~items:(
+        obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[
+            `String "None";
+            `String "Novice";
+            `String "Novice_Intermediate";
+            `String "Intermediate";
+            `String "Intermediate_Advanced";
+            `String "Advanced";
+          ]
+      )
+end
+
 (* Competition Category *)
 module Category = struct
   type t =
@@ -190,6 +230,32 @@ module Category = struct
           ])
 end
 
+(* Round *)
+module Round = struct
+  type t = Ftw.Round.t =
+    | Prelims
+    | Octofinals
+    | Quarterfinals
+    | Semifinals
+    | Finals
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Round"
+      ~typ:array
+      ~items:(
+        obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[
+            `String "Prelims";
+            `String "Octofinals";
+            `String "Quarterfinals";
+            `String "Semifinals";
+            `String "Finals";
+          ]
+      )
+end
 
 (* Events *)
 (* ************************************************************************* *)
@@ -202,7 +268,12 @@ module EventId = struct
     make_schema ()
       ~name:"EventId"
       ~typ:int
-      ~examples:[`Int 42]
+      (*
+      TODO raise issue at openapi_router
+      https://swagger.io/docs/specification/v3_0/adding-examples/
+      Note that schemas and properties support single example but not multiple examples.
+      *)
+      (* ~examples:[`Int 42] *)
 end
 
 (* Event Id list *)
@@ -237,7 +308,12 @@ module Event = struct
       ~properties:[
         "name", obj @@ S.make_schema ()
           ~typ:string
-          ~examples:[`String "P4T"];
+          (*
+          TODO raise issue at openapi_router
+          https://swagger.io/docs/specification/v3_0/adding-examples/
+          Note that schemas and properties support single example but not multiple examples.
+          *)
+        (* ~examples:[`String "P4T"] *);
         "start_date", ref Date.ref;
         "end_date", ref Date.ref;
       ]
@@ -254,13 +330,18 @@ module CompetitionId = struct
     make_schema ()
       ~name:"CompetitionId"
       ~typ:int
-      ~examples:[`Int 42]
+      (*
+      TODO raise issue at openapi_router
+      https://swagger.io/docs/specification/v3_0/adding-examples/
+      Note that schemas and properties support single example but not multiple examples.
+      *)
+      (* ~examples:[`Int 42] *)
 end
 
 (* Competition Id list *)
 module CompetitionIdList = struct
   type t = {
-    comps : CompetitionId.t list;
+    competitions : CompetitionId.t list;
   } [@@deriving yojson]
 
   let ref, schema =
@@ -268,7 +349,7 @@ module CompetitionIdList = struct
       ~name:"CompetitionIdList"
       ~typ:object_
       ~properties:[
-        "events", obj @@ S.make_schema ()
+        "competitions", obj @@ S.make_schema ()
           ~typ:array
           ~items:(ref CompetitionId.ref);
       ]
@@ -291,9 +372,393 @@ module Competition = struct
         "event", ref EventId.ref;
         "name", obj @@ S.make_schema ()
           ~typ:string
-          ~examples:[`String "P4T"];
+          (*
+          TODO raise issue at openapi_router
+          https://swagger.io/docs/specification/v3_0/adding-examples/
+          Note that schemas and properties support single example but not multiple examples.
+          *)
+        (* ~examples:[`String "P4T"]*) ;
         "kind", ref Kind.ref;
         "category", ref Category.ref;
       ]
 end
 
+
+(* Artefact *)
+(* ************************************************************************* *)
+
+module YanCriterionWeight = struct
+  type t = Ftw.Ranking.Algorithm.yan_weight [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"YanCriterionWeight"
+      ~typ:(Obj Object)
+      ~properties:[
+        "yes", obj @@ S.make_schema ()
+          ~typ:int;
+        "alt", obj @@ S.make_schema ()
+          ~typ:int;
+        "no", obj @@ S.make_schema ()
+          ~typ:int;
+      ]
+end
+
+module YanArtefactDescription = struct
+  type t = (string * YanCriterionWeight.t) list [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"YanArtefactDescription"
+      ~typ:(Obj Object)
+      ~description: {| artefact of type yan.
+        For a yan artefact, yan_criterion property should be set. |}
+      ~additional_properties:(ref YanCriterionWeight.ref)
+
+  let of_yojson = function
+    | `Assoc entries ->
+      (* We will convert the key-value pairs in the JSON object into a list of pairs (key, value) *)
+      let open Result in
+      let list_parsed = List.fold_left (fun acc (k, v) ->
+          let parsed_row = map (fun parsed -> (k, parsed)) (YanCriterionWeight.of_yojson v)
+          in
+          fold ~ok:(fun r_list -> map (fun row -> row::r_list) parsed_row)
+            ~error:(fun err -> Error err) acc
+        ) (Ok []) entries
+      in
+      list_parsed
+    | _ -> Error "YanArtefactDescription.t: expected JSON object"
+
+  let to_yojson artefact =
+    let criterion_list = List.map (fun (k, v) -> (k, YanCriterionWeight.to_yojson v)) artefact
+    in
+    `Assoc criterion_list
+
+  let of_ftw criterion_names criterion_weights =
+    match criterion_names, criterion_weights with
+    | Ftw.Artefact.Descr.Yans { criterion }, Ftw.Ranking.Algorithm.Yan_weighted { weights} ->
+      List.map2 (fun key item -> (key, item)) criterion weights
+    | _ -> assert false
+
+  let to_ftw yan_criterion =
+    let pairs = yan_criterion in
+    (
+      Ftw.Artefact.Descr.Yans {criterion=List.map (fun (c, _) -> c) pairs},
+      Ftw.Ranking.Algorithm.Yan_weighted {weights=List.map (fun (_, w) -> w) pairs}
+    )
+end
+
+module RankingArtefactDescription = struct
+  type t = string [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"RankingArtefactDescription"
+      ~typ:string
+      ~description: {| artefact of type yan.
+        For a yan artefact, yan_criterion property should be set. |}
+
+  let of_ftw (algorithm_for_ranking: Ftw.Ranking.Algorithm.t) =
+    match algorithm_for_ranking with
+    | RPSS -> "RPSS"
+    | _ -> assert false
+
+  let to_ftw algorithm_for_ranking =
+    match algorithm_for_ranking with
+    | "RPSS" ->
+      (Ftw.Artefact.Descr.Ranking, Ftw.Ranking.Algorithm.RPSS)
+    | _ -> assert false
+
+end
+
+
+module ArtefactDescription = struct
+
+  type t =
+    | Yan of {yan_criterion: YanArtefactDescription.t}
+    | Ranking of {algorithm_for_ranking: RankingArtefactDescription.t}
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"ArtefactDescription"
+      ~description: {| artefact is either ranking or yan.
+        For a ranking artefact, ranking_algorithm property should be specified.
+        For a yan artefact, yan_criterion property should be set. |}
+      ~one_of:[
+        obj @@ S.make_schema()
+          ~typ:(Obj Object)
+          ~properties:[
+            "yan", (ref YanArtefactDescription.ref);
+          ];
+        obj @@ S.make_schema()
+          ~typ:(Obj Object)
+          ~properties:[
+            "ranking", (ref RankingArtefactDescription.ref);
+          ];
+      ]
+
+
+
+  let of_yojson = function
+    | `Assoc props -> (
+        match List.assoc_opt "yan" props, List.assoc_opt "ranking" props with
+        | Some descr, None ->
+          YanArtefactDescription.of_yojson descr
+          |> Result.map (fun yan_descr -> Yan { yan_criterion = yan_descr })
+
+        | None, Some descr ->
+          RankingArtefactDescription.of_yojson descr
+          |> Result.map (fun algo -> Ranking { algorithm_for_ranking = algo })
+
+        | Some _, Some _ ->
+          Error "ArtefactDescription.of_yojson: cannot have both 'yan' and 'ranking'"
+
+        | None, None ->
+          Error "ArtefactDescription.of_yojson: missing 'yan' or 'ranking'"
+      )
+    | _ -> Error "ArtefactDescription.of_yojson: expected JSON object"
+
+
+  let to_yojson artefact =
+    match artefact with
+    | Yan {yan_criterion} -> (`Assoc [("yan", (YanArtefactDescription.to_yojson yan_criterion))])
+    | Ranking {algorithm_for_ranking} -> (`Assoc [("ranking", RankingArtefactDescription.to_yojson algorithm_for_ranking)])
+
+  let of_ftw artefact_description ranking_algorithm =
+    match artefact_description, ranking_algorithm with
+    | Ftw.Artefact.Descr.Yans { criterion=_; }, Ftw.Ranking.Algorithm.Yan_weighted { weights=_;} ->
+      let yan_criterion = YanArtefactDescription.of_ftw artefact_description ranking_algorithm
+      in
+      Yan { yan_criterion=yan_criterion; }
+    | Ftw.Artefact.Descr.Ranking, Ftw.Ranking.Algorithm.RPSS ->
+      Ranking {algorithm_for_ranking=RankingArtefactDescription.of_ftw ranking_algorithm}
+    | _, _ -> assert false
+
+  let to_ftw artefact_description =
+    match artefact_description with
+    | Yan { yan_criterion; } -> YanArtefactDescription.to_ftw yan_criterion
+    | Ranking {algorithm_for_ranking;} -> RankingArtefactDescription.to_ftw algorithm_for_ranking
+end
+
+
+(* Phases *)
+(* ************************************************************************* *)
+
+(* Phase Ids *)
+module PhaseId = struct
+  type t = Ftw.Phase.id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"PhaseId"
+      ~typ:int
+      ~examples:[`Int 42]
+end
+
+(* Phase Id list *)
+module PhaseIdList = struct
+  type t = {
+    phases : PhaseId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"PhaseIdList"
+      ~typ:object_
+      ~properties:[
+        "phases", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref PhaseId.ref);
+      ]
+end
+
+(* Phase specification *)
+module Phase = struct
+  type t = {
+    competition : CompetitionId.t;
+    round : Round.t;
+    judge_artefact_description : ArtefactDescription.t;
+    head_judge_artefact_description : ArtefactDescription.t;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Phase"
+      ~typ:(Obj Object)
+      ~properties:[
+        "competition", ref CompetitionId.ref;
+        "round", ref Round.ref;
+        "judge_artefact_description", ref ArtefactDescription.ref;
+        "head_judge_artefact_description", ref ArtefactDescription.ref
+      ]
+
+  let artefact_to_ftw p =
+    let judge_artefact_description = p.judge_artefact_description
+    in
+    let head_judge_artefact_description = p.head_judge_artefact_description
+    in
+    let full_artefact_description = match judge_artefact_description, head_judge_artefact_description with
+      | Yan {yan_criterion=judge_criterion}, Yan {yan_criterion=head_criterion} ->
+        let criterion = List.concat [
+            (List.map (fun (k,v) -> (k, v)) judge_criterion);
+            (List.map (fun (k,v) -> (k, v)) head_criterion);
+          ]
+        in
+        ArtefactDescription.Yan {yan_criterion=criterion}
+      | Ranking {algorithm_for_ranking=jr}, Ranking {algorithm_for_ranking=hr} when jr = hr ->
+        Ranking {algorithm_for_ranking=jr}
+      | Ranking {algorithm_for_ranking=_;}, Ranking {algorithm_for_ranking=_;} ->
+        assert false
+      | _, _ -> assert false
+    in
+    let (_, ranking_algorithm) = ArtefactDescription.to_ftw full_artefact_description in
+    let (judge_artefact_descr, _) = ArtefactDescription.to_ftw judge_artefact_description in
+    let (head_judge_artefact_descr, _ ) = ArtefactDescription.to_ftw head_judge_artefact_description in
+    (
+      ranking_algorithm,
+      judge_artefact_descr,
+      head_judge_artefact_descr
+    )
+
+  let artefact_of_ftw ranking_algorithm judge_artefact_descr head_judge_artefact_descr =
+    match judge_artefact_descr, head_judge_artefact_descr with
+    | Ftw.Artefact.Descr.Ranking, Ftw.Artefact.Descr.Ranking ->
+      (
+        ArtefactDescription.of_ftw judge_artefact_descr ranking_algorithm,
+        ArtefactDescription.of_ftw judge_artefact_descr ranking_algorithm
+      )
+    | Ftw.Artefact.Descr.Yans {criterion=ja;}, Ftw.Artefact.Descr.Yans {criterion=ha;} ->
+      let full_descr = Ftw.Artefact.Descr.Yans {criterion=List.concat [ja;ha];}
+      in
+      let full_artefact = ArtefactDescription.of_ftw full_descr ranking_algorithm
+      in
+      let artefact_list = (match full_artefact with
+          | Yan {yan_criterion} -> yan_criterion
+          | _ -> assert false
+        )
+      in
+      let judge_artefact = Seq.take (List.length ja) (List.to_seq artefact_list)
+      in
+      let head_artefact = Seq.take (List.length ha) (List.to_seq @@ List.rev artefact_list)
+      in
+      (
+        Yan {yan_criterion=List.of_seq judge_artefact},
+        Yan {yan_criterion=List.of_seq head_artefact}
+      )
+    | _, _ -> assert false
+
+  let of_ftw phase =
+    let (judge_artefact, head_artefact) = artefact_of_ftw
+        (Ftw.Phase.ranking_algorithm phase)
+        (Ftw.Phase.judge_artefact_descr phase)
+        (Ftw.Phase.head_judge_artefact_descr phase)
+    in
+    {
+      competition=Ftw.Phase.competition phase;
+      round=Ftw.Phase.round phase;
+      judge_artefact_description=judge_artefact;
+      head_judge_artefact_description=head_artefact;
+    }
+
+end
+
+(* Dancer *)
+(* ************************************************************************* *)
+
+(* Dancer Ids *)
+module DancerId = struct
+  type t = Ftw.Dancer.id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"DancerId"
+      ~typ:int
+      ~examples:[`Int 42]
+end
+
+(* Dancer Id list *)
+module DancerIdList = struct
+  type t = {
+    dancers : DancerId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"DancerIdList"
+      ~typ:object_
+      ~properties:[
+        "dancers", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref DancerId.ref);
+      ]
+end
+
+
+(* Dancer specification *)
+module Dancer = struct
+  type t = {
+    birthday : Date.t option;
+    last_name : string;
+    first_name : string;
+    email : string;
+    as_leader : Divisions.t;
+    as_follower : Divisions.t;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Dancer"
+      ~typ:(Obj Object)
+      ~properties:[
+        "birthday", ref Date.ref;
+        "last_name", obj @@ S.make_schema ()
+          ~typ:string
+          ~examples:[
+            `String "Bury";
+          ];
+        "first_name", obj @@ S.make_schema ()
+          ~typ:string
+          ~examples:[
+            `String "Guillaume";
+          ];
+        "email", obj @@ S.make_schema ()
+          ~typ:string
+          ~examples:[
+            `String "email@email.email";
+          ];
+        "as_leader", ref Divisions.ref;
+        "as_follower", ref Divisions.ref;
+      ]
+end
+
+(* Heats *)
+(* ************************************************************************* *)
+
+(* Heat Ids *)
+module HeatId = struct
+  type t = Ftw.Heat.passage_id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatId"
+      ~typ:int
+      ~examples:[`Int 42]
+end
+
+(* Heat Id list *)
+module HeatIdList = struct
+  type t = {
+    phases : HeatId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatIdList"
+      ~typ:object_
+      ~properties:[
+        "heats", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref HeatId.ref);
+      ]
+end

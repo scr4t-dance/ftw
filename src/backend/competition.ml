@@ -18,6 +18,37 @@ let rec routes router =
         ~required:true
         ~schema:Types.(ref CompetitionId.ref)
     ]
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Successful operation"
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref Competition.ref));
+        ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid Id supplied";
+      "404", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Competition not found";
+    ]
+  (* Competition phases query *)
+  |> Router.get "/api/comp/:id/phases" get_phases
+    ~tags:["phase"; "competition"]
+    ~summary:"Get the list of phases of a Competition"
+    ~parameters:[
+      Types.obj @@ Spec.make_parameter_object ()
+        ~name:"id" ~in_:Path
+        ~description:"Id of the queried Competition"
+        ~required:true
+        ~schema:Types.(ref CompetitionId.ref)
+    ]
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Successful operation"
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref PhaseIdList.ref));
+        ];
+    ]
   |> Router.put "/api/comp" create_comp
     ~tags:["competition"]
     ~summary:"Create a new competition"
@@ -29,6 +60,16 @@ let rec routes router =
           Spec.json,
           Spec.make_media_type_object () ~schema:(Types.(ref Competition.ref));
         ])
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Successful operation"
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref CompetitionId.ref));
+        ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid input";
+    ]
 
 
 (* Competition query *)
@@ -54,6 +95,19 @@ and get_comp =
     )
 
 
+and get_phases =
+  Api.get
+    ~to_yojson:Types.PhaseIdList.to_yojson
+    (fun req st ->
+       let+ id = Utils.int_param req "id" in
+       let phases = Ftw.Phase.find_ids st id in
+       let res : Types.PhaseIdList.t = { phases; } in
+       Ok res
+    )
+
+
+
+
 (* Competition creation *)
 (* ************************************************************************* *)
 
@@ -67,4 +121,3 @@ and create_comp =
          Ftw.Competition.create st comp.event comp.name comp.kind category
        in
        Ok id)
-

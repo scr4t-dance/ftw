@@ -96,14 +96,14 @@ let () =
   State.add_init (fun st ->
       State.exec ~st {|
         CREATE TABLE IF NOT EXISTS artefacts (
-          target_id INTEGER REFERENCES heats(id),
-          judge INTEGER REFERNECES dancers(id),
-          artefact INTEGER NOT NULL
+          target_id, --INTEGER REFERENCES heats(id),
+          judge INTEGER, --REFERENCES dancers(id),
+          artefact INTEGER NOT NULL,
           PRIMARY KEY(target_id,judge)
         )
       |})
 
-let get ~st ~judge ~target ~descr =
+let get ~st ~(judge:Judge.id) ~(target:Dancer.id) ~descr =
   let open Sqlite3_utils.Ty in
   State.query_one_where ~st ~p:[int;int] ~conv:(conv ~descr)
     {| SELECT artefact FROM artefacts WHERE target_id = ? AND judge = ? |}
@@ -114,4 +114,3 @@ let set ~st ~judge ~target t =
   State.insert ~st ~ty:[int;int;int]
     {| INSERT INTO artefacts(target_id,judge,artefact) VALUES (?,?,?) |}
     target judge (to_int t)
-

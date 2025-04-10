@@ -1,33 +1,63 @@
-import {createBrowserRouter, RouterProvider} from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router';
 
 import HomePage from './components/HomePage';
 import EventList from './components/EventList';
 
 import NewEventForm from './components/NewEventForm';
 import About from './components/About';
+import React from 'react';
+import EventPage from './components/EventPage';
+import NewCompetitionFormPage from './components/NewCompetitionFormPage';
+import CompetitionPage from './components/CompetitionPage';
+import PhasePage from './components/PhasePage';
+import NewPhaseFormPage from './components/NewPhaseFormPage';
 
 const router = createBrowserRouter([
 	{
-	  path: "/",
-	  element: <HomePage />,
+		path: "/",
+		element: <HomePage />,
 	},
 	{
-	  path: "index.html",
-	  element: <HomePage />,
+		path: "index.html",
+		element: <HomePage />,
 	},
 	{
-	  path: "/events",
-	  element: <EventList />,
+		path: "/events",
+		element: <EventList />,
 	},
 	{
-	  path: "/about",
-	  element: <About />,
+		path: "/events/:id_event",
+		element: <EventPage />,
 	},
 	{
-	  path: "/new/event",
-	  element: <NewEventForm />,
+		path: "/competitions/:id_competition",
+		element: <CompetitionPage />,
 	},
-  ]);
+	{
+		path: "/event",
+		element: <NewEventForm />,
+	},
+	{
+		path: "/about",
+		element: <About />,
+	},
+	{
+		path: "/new/event",
+		element: <NewEventForm />,
+	},
+	{
+		path:"/new/competition",
+		element: <NewCompetitionFormPage />
+	},
+	{
+		path:"/new/phase",
+		element: <NewPhaseFormPage />
+	},
+	{
+		path: "/phases/:id_phase",
+		element: <PhasePage />
+	}
+]);
 
 const App = () => {
 	return (

@@ -27,4 +27,3 @@ let t =
     Arg.(value & opt int 8080 & info ["p"; "port"] ~doc)
   in
   Term.(const mk $ db_path $ port)
-
