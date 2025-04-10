@@ -15,9 +15,12 @@ FRONTEND_DEPS=\
 	src/frontend/src/components/* \
 	src/frontend/src/hooks/*
 
+# manually check for other dirs in src/frontend/src/hookgen
 HOOKGEN_TARGETS=\
-	src/frontend/src/hookgen/competition/* \
 	src/frontend/src/hookgen/event/* \
+	src/frontend/src/hookgen/competition/* \
+	src/frontend/src/hookgen/phase/* \
+	src/frontend/src/hookgen/dancer/* \
 	src/frontend/src/hookgen/model/*
 
 all: build

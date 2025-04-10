@@ -415,6 +415,24 @@ module YanArtefactDescription = struct
         For a yan artefact, yan_criterion property should be set. |}
       ~additional_properties:(ref YanCriterionWeight.ref)
 
+  let of_yojson = function
+    | `Assoc entries ->
+      (* We will convert the key-value pairs in the JSON object into a list of pairs (key, value) *)
+      let open Result in
+      let list_parsed = List.fold_left (fun acc (k, v) ->
+          let parsed_row = map (fun parsed -> (k, parsed)) (YanCriterionWeight.of_yojson v)
+          in
+          fold ~ok:(fun r_list -> map (fun row -> row::r_list) parsed_row)
+            ~error:(fun err -> Error err) acc
+        ) (Ok []) entries
+      in
+      list_parsed
+    | _ -> Error "YanArtefactDescription.t: expected JSON object"
+
+  let to_yojson artefact =
+    let criterion_list = List.map (fun (k, v) -> (k, YanCriterionWeight.to_yojson v)) artefact
+    in
+    `Assoc criterion_list
 
   let of_ftw (criterion: string list) (weights: Ftw.Ranking.Algorithm.yan_weight list) =
     List.map2 (fun key item -> (key, item)) criterion weights

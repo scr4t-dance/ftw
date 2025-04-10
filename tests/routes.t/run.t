@@ -19,12 +19,13 @@ Get default routes
                                    Dload  Upload   Total   Spent    Left  Speed
     0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
   HTTP/1.1 404 Not Found
-  Set-Cookie: dream.session=0TV2_n9jxtH7Pl9C9AtqZ0VJE; Max-Age=1209599; Path=/; HttpOnly; SameSite=Lax
+  Set-Cookie: dream.session=00aK6W8wuHxBgZAoupu3nTvCS; Max-Age=1209599; Path=/; HttpOnly; SameSite=Lax
   Access-Control-Allow-Origin: *
   Access-Control-Allow-Headers: Content-Type, Authorization
   Content-Length: 0
   
   $ curl -s localhost:8082/index.html | head -1
+  <!doctype html><html lang="en"><head><meta charset="utf-8"/><link rel="icon" type="image/png" href="/logo.png"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#000000"/><meta name="description" content="Web site created using create-react-app"/><link rel="apple-touch-icon" href="/logo192.png"/><link rel="manifest" href="/manifest.json"/><title>SCR4T</title><script defer="defer" src="/static/js/main.0e256ce8.js"></script><link href="/static/css/main.6099b47f.css" rel="stylesheet"></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div></body></html>
 
 End & Cleanup
 -------------

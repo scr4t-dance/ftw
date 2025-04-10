@@ -2,7 +2,6 @@ import "../styles/ContentStyle.css";
 
 import React from 'react';
 import { useGetApiCompId } from '../hookgen/competition/competition';
-import { useGetApiEventIdComps } from "hookgen/event/event";
 
 import { ArtefactDescription, CompetitionId } from "hookgen/model";
 import { Link } from "react-router";
@@ -49,7 +48,13 @@ function PhaseDetails({ id, index }: { id: CompetitionId, index: number }) {
     const phase = data?.data;
     const { data: dataComp } = useGetApiCompId(phase?.competition as CompetitionId);
 
-    if (isLoading) return <div>Chargement...</div>;
+    if (isLoading) return (
+        <tr>
+            <td>
+                Chargement...
+            </td>
+        </tr>
+    );
     if (!data) return null;
 
     const competition = dataComp?.data;
@@ -57,16 +62,20 @@ function PhaseDetails({ id, index }: { id: CompetitionId, index: number }) {
     return (
         <tr key={id}
             className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
-            <Link to={`/${phaseListlink}${id}`}>
-                {phase?.round} {competition?.name}
-            </Link>
 
+            <td>
+                <Link to={`/${phaseListlink}${id}`}>
+                    {phase?.round} {competition?.name}
+                </Link>
+            </td>
             <td>
                 <Link to={`/competitions/${phase?.competition}`}>
                     {competition?.name}
                 </Link>
             </td>
-            <td>{phase?.round}</td>
+            <td>
+                {phase?.round}
+            </td>
             <td>
                 <ArtefactDescriptionComponent
                     artefact_description={phase?.judge_artefact_description as ArtefactDescription}

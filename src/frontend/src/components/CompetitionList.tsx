@@ -40,7 +40,7 @@ function CompetitionList({ id_event }: {id_event: EventId}) {
 function CompetitionDetails({ id, index }: { id: CompetitionId, index: number }) {
   const { data, isLoading } = useGetApiCompId(id);
 
-  if (isLoading) return <div>Chargement...</div>;
+  if (isLoading) return <tr><td>Chargement...</td></tr>;
   if (!data) return null;
 
   const competition = data.data;

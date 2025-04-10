@@ -1,9 +1,20 @@
 import { ArtefactDescription, ArtefactDescriptionOneOf, Phase, YanArtefactDescription } from 'hookgen/model';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 export function ArtefactFormElement({ attribute_name, artefact_value, callback }: { attribute_name: string; artefact_value: ArtefactDescription; callback: React.Dispatch<React.SetStateAction<Phase>>; }) {
 
     const [artefact, setArtefact] = useState<ArtefactDescription>(artefact_value);
+
+    useEffect(() => {
+
+        callback((prevPhase: Phase) => {
+            return {
+                ...prevPhase,
+                [attribute_name]: artefact,
+            };
+        });
+
+    }, [artefact, attribute_name, callback])
 
     const default_yan_weights = { yes: 3, alt: 2, no: 1 };
     const defaultYanArtefact: YanArtefactDescription = { "test": default_yan_weights };
@@ -22,14 +33,6 @@ export function ArtefactFormElement({ attribute_name, artefact_value, callback }
                 } else if (value === "yan") {
                     updated_prev = { [value]: defaultYanArtefact };
                 }
-
-                callback((prevPhase: Phase) => {
-
-                    return {
-                        ...prevPhase,
-                        [attribute_name]: updated_prev,
-                    };
-                });
                 return updated_prev;
 
             });
@@ -40,14 +43,6 @@ export function ArtefactFormElement({ attribute_name, artefact_value, callback }
                     ...prev,
                     [name]: value
                 };
-
-                callback((prevPhase: Phase) => {
-
-                    return {
-                        ...prevPhase,
-                        [attribute_name]: updated_prev,
-                    };
-                });
                 return updated_prev;
             });
         }
@@ -72,11 +67,6 @@ export function ArtefactFormElement({ attribute_name, artefact_value, callback }
                 const updated = { yan: updatedCriterion };
                 console.log("Updated artefact (newkey):", updated);
 
-                callback((prevPhase: Phase) => ({
-                    ...prevPhase,
-                    [attribute_name]: updated,
-                }));
-
                 return updated;
             });
 
@@ -95,11 +85,6 @@ export function ArtefactFormElement({ attribute_name, artefact_value, callback }
                 };
 
                 console.log("Updated artefact (key rename):", updated);
-
-                callback((prevPhase: Phase) => ({
-                    ...prevPhase,
-                    [attribute_name]: updated,
-                }));
 
                 return updated;
             });
@@ -125,11 +110,6 @@ export function ArtefactFormElement({ attribute_name, artefact_value, callback }
                 };
 
                 console.log("Updated artefact (weights):", updated);
-
-                callback((prevPhase: Phase) => ({
-                    ...prevPhase,
-                    [attribute_name]: updated,
-                }));
 
                 return updated;
             });

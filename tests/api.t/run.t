@@ -68,34 +68,30 @@ Create some phase
 
   $ curl -s -X PUT localhost:8081/api/phase \
   > -H "Content-Type: application/json" \
-  > -d '{"competition":2,"round":["Prelims"],"judge_artefact_description":["Ranking",{"algorithm_for_ranking":"RPSS"}],"head_judge_artefact_description":["Ranking",{"algorithm_for_ranking":"RPSS"}]}'
+  > -d '{"competition":2,"round":["Prelims"],"judge_artefact_description":{"yan":{"test":{"yes":3,"alt":2,"no":1}}},"head_judge_artefact_description":{"yan":{"test":{"yes":3,"alt":2,"no":1}}}}'
   1
 
   $ curl -s -X PUT localhost:8081/api/phase \
   > -H "Content-Type: application/json" \
-  > -d '{"competition":2,"round":["Finals"],"judge_artefact_description":["Ranking",{"algorithm_for_ranking":"RPSS"}],"head_judge_artefact_description":["Ranking",{"algorithm_for_ranking":"RPSS"}]}'
-  2
+  > -d '{"competition":2,"round":["Prelims"],"judge_artefact_description":{"ranking":"RPSS"},"head_judge_artefact_description":{"ranking":"RPSS"}}'
 
 Get the ids of phase we created, and check their details
 
   $ curl -s localhost:8081/api/comp/2/phases
-  {"phases":[2,1]}
+  {"phases":[1]}
 
   $ curl -s localhost:8081/api/phase/1
-  {"competition":2,"round":["Prelims"],"judge_artefact_description":["Ranking",{"algorithm_for_ranking":"RPSS"}],"head_judge_artefact_description":["Ranking",{"algorithm_for_ranking":"RPSS"}]}
+  {"competition":2,"round":["Prelims"],"judge_artefact_description":{"yan":{"test":{"yes":3,"alt":2,"no":1}}},"head_judge_artefact_description":{"yan":{"test":{"yes":3,"alt":2,"no":1}}}}
 
   $ curl -s localhost:8081/api/phase/2
-  {"competition":2,"round":["Finals"],"judge_artefact_description":["Ranking",{"algorithm_for_ranking":"RPSS"}],"head_judge_artefact_description":["Ranking",{"algorithm_for_ranking":"RPSS"}]}
 
 Update a phase
 
   $ curl -s -X PATCH localhost:8081/api/phase/2 \
   > -H "Content-Type: application/json" \
-  > -d '{"competition":2,"round":["Finals"],"judge_artefact_description":["Yan",{"yan_criterion":[["test",{"yes":3,"alt":2,"no":1}]]}],"head_judge_artefact_description":["Yan",{"yan_criterion":[["test",{"yes":3,"alt":2,"no":1}]]}]}'
-  2
+  > -d '{"competition":2,"round":["Finals"],"judge_artefact_description":{"yan":{"technique":{"yes":3,"alt":2,"no":1}, "musicalité":{"yes":3,"alt":2,"no":1}}},"head_judge_artefact_description":{"yan":{"head":{"yes":3,"alt":2,"no":1}}}}'
 
   $ curl -s localhost:8081/api/phase/2
-  {"competition":2,"round":["Finals"],"judge_artefact_description":["Yan",{"yan_criterion":[["test",{"yes":3,"alt":2,"no":1}]]}],"head_judge_artefact_description":["Yan",{"yan_criterion":[["test",{"yes":3,"alt":2,"no":1}]]}]}
 
   $ curl -s -X DELETE localhost:8081/api/phase/2 \
   > -H "Content-Type: application/json"
