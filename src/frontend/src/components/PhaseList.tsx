@@ -4,9 +4,10 @@ import React from 'react';
 import { useGetApiCompId } from '../hookgen/competition/competition';
 import { useGetApiEventIdComps } from "hookgen/event/event";
 
-import { CompetitionId } from "hookgen/model";
+import { ArtefactDescription, CompetitionId } from "hookgen/model";
 import { Link } from "react-router";
 import { useGetApiCompIdPhases, useGetApiPhaseId } from "hookgen/phase/phase";
+import ArtefactDescriptionComponent from "./ArtefactDescription";
 
 const phaseListlink = "phases/"
 
@@ -25,7 +26,7 @@ function PhaseList({ id_competition }: { id_competition: CompetitionId }) {
             <table>
                 <tbody>
                     <tr>
-                        <th>Nom de la Phase</th>
+                        <th>Phase</th>
                         <th>Compétition</th>
                         <th>Round</th>
                         <th>Artefact Juges</th>
@@ -45,20 +46,37 @@ function PhaseList({ id_competition }: { id_competition: CompetitionId }) {
 function PhaseDetails({ id, index }: { id: CompetitionId, index: number }) {
     const { data, isLoading } = useGetApiPhaseId(id);
 
+    const phase = data?.data;
+    const { data: dataComp } = useGetApiCompId(phase?.competition as CompetitionId);
+
     if (isLoading) return <div>Chargement...</div>;
     if (!data) return null;
 
-    const phase = data.data;
+    const competition = dataComp?.data;
 
     return (
         <tr key={id}
             className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
             <Link to={`/${phaseListlink}${id}`}>
-                <td>{phase.competition}</td>
-                <td>{phase.round}</td>
+                {phase?.round} {competition?.name}
             </Link>
-            <td>{phase.judge_artefact_description && phase.judge_artefact_description.toString()}</td>
-            <td>{phase.head_judge_artefact_description && phase.head_judge_artefact_description.toString()}</td>
+
+            <td>
+                <Link to={`/competitions/${phase?.competition}`}>
+                    {competition?.name}
+                </Link>
+            </td>
+            <td>{phase?.round}</td>
+            <td>
+                <ArtefactDescriptionComponent
+                    artefact_description={phase?.judge_artefact_description as ArtefactDescription}
+                />
+            </td>
+            <td>
+                <ArtefactDescriptionComponent
+                    artefact_description={phase?.head_judge_artefact_description as ArtefactDescription}
+                />
+            </td>
         </tr>
 
     );

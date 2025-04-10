@@ -5,41 +5,53 @@ export function ArtefactFormElement({ attribute_name, artefact_value, callback }
 
     const [artefact, setArtefact] = useState<ArtefactDescription>(artefact_value);
 
-    const default_yan_weights = {yes:3, alt:2, no:1};
-    const defaultYanArtefact: YanArtefactDescription = {"test": default_yan_weights};
+    const default_yan_weights = { yes: 3, alt: 2, no: 1 };
+    const defaultYanArtefact: YanArtefactDescription = { "test": default_yan_weights };
 
     const handleInputChange = (event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
         const { name, value } = event.target;
 
+        console.log(name, value);
         if (name === "artefact") {
 
             setArtefact((prev) => {
                 let updated_prev = { ...prev };
 
                 if (value === "ranking") {
-                    updated_prev = {[value]:'RPSS'};
+                    updated_prev = { [value]: 'RPSS' };
                 } else if (value === "yan") {
-                    updated_prev = {[value]:defaultYanArtefact};
+                    updated_prev = { [value]: defaultYanArtefact };
                 }
 
-                console.log(updated_prev);
+                callback((prevPhase: Phase) => {
+
+                    return {
+                        ...prevPhase,
+                        [attribute_name]: updated_prev,
+                    };
+                });
                 return updated_prev;
 
             });
         } else {
-            setArtefact((prev) => ({
-                ...prev,
-                [name]: value
-            }));
+            setArtefact((prev) => {
+
+                const updated_prev = {
+                    ...prev,
+                    [name]: value
+                };
+
+                callback((prevPhase: Phase) => {
+
+                    return {
+                        ...prevPhase,
+                        [attribute_name]: updated_prev,
+                    };
+                });
+                return updated_prev;
+            });
         }
 
-        callback((prevPhase: Phase) => {
-
-            return {
-                ...prevPhase,
-                [attribute_name]: artefact,
-            };
-        });
     };
 
     const handleYanCriterionChange = (
@@ -47,73 +59,81 @@ export function ArtefactFormElement({ attribute_name, artefact_value, callback }
         field: 'newkey' | 'key' | 'yes' | 'alt' | 'no',
         value: string
     ) => {
-
-        console.log(key, field, value);
+        console.log("Change requested:", key, field, value);
 
         if (field === 'newkey') {
-            setArtefact((prev: ArtefactDescription) => {
-
-                console.log(prev);
-                const criterion = (prev as ArtefactDescriptionOneOf).yan as YanArtefactDescription;
+            setArtefact((prev) => {
+                const criterion = (prev as ArtefactDescriptionOneOf).yan ?? {};
                 const updatedCriterion = {
                     ...criterion,
                     [key]: default_yan_weights
                 };
 
-                return {yan:updatedCriterion};
-            });
-        } else if (field === 'key') {
-            setArtefact((prev: ArtefactDescription) => {
+                const updated = { yan: updatedCriterion };
+                console.log("Updated artefact (newkey):", updated);
 
-                console.log(prev);
-                const criterion = (prev as ArtefactDescriptionOneOf).yan as YanArtefactDescription;
+                callback((prevPhase: Phase) => ({
+                    ...prevPhase,
+                    [attribute_name]: updated,
+                }));
+
+                return updated;
+            });
+
+        } else if (field === 'key') {
+            setArtefact((prev) => {
+                const criterion = (prev as ArtefactDescriptionOneOf).yan ?? {};
                 const updatedCriterion = {
                     ...criterion,
                     [value]: criterion[key]
                 };
                 delete updatedCriterion[key];
 
-                return {
+                const updated = {
                     ...prev,
                     yan: updatedCriterion
                 };
+
+                console.log("Updated artefact (key rename):", updated);
+
+                callback((prevPhase: Phase) => ({
+                    ...prevPhase,
+                    [attribute_name]: updated,
+                }));
+
+                return updated;
             });
+
         } else if (['yes', 'alt', 'no'].includes(field)) {
-            setArtefact((prev: ArtefactDescription) => {
+            const numberValue = parseInt(value);
 
-                const numberValue = parseInt(value);
-
-                const criterion = (prev as ArtefactDescriptionOneOf).yan as YanArtefactDescription;
-                const weights = criterion[key];
-
-                const updated_weights = {
+            setArtefact((prev) => {
+                const criterion = (prev as ArtefactDescriptionOneOf).yan ?? {};
+                const weights = criterion[key] ?? {};
+                const updatedWeights = {
                     ...weights,
                     [field]: numberValue
-                }
+                };
                 const updatedCriterion = {
                     ...criterion,
-                    [key]:updated_weights
-
+                    [key]: updatedWeights
                 };
 
-                //console.log("Updated YanArtefactDescription", updatedCriterion);
-
-                return {
-                    ...artefact,
+                const updated = {
+                    ...prev,
                     yan: updatedCriterion
                 };
+
+                console.log("Updated artefact (weights):", updated);
+
+                callback((prevPhase: Phase) => ({
+                    ...prevPhase,
+                    [attribute_name]: updated,
+                }));
+
+                return updated;
             });
         }
-
-
-        callback((prevPhase: Phase) => {
-
-            return {
-                ...prevPhase,
-                [attribute_name]: artefact,
-            };
-        });
-
     };
 
 

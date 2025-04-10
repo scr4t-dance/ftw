@@ -9,6 +9,8 @@ import React from 'react';
 import EventPage from './components/EventPage';
 import NewCompetitionFormPage from './components/NewCompetitionFormPage';
 import CompetitionPage from './components/CompetitionPage';
+import PhasePage from './components/PhasePage';
+import NewPhaseFormPage from './components/NewPhaseFormPage';
 
 const router = createBrowserRouter([
 	{
@@ -46,6 +48,14 @@ const router = createBrowserRouter([
 	{
 		path:"/new/competition",
 		element: <NewCompetitionFormPage />
+	},
+	{
+		path:"/new/phase",
+		element: <NewPhaseFormPage />
+	},
+	{
+		path: "/phases/:id_phase",
+		element: <PhasePage />
 	}
 ]);
 

@@ -479,18 +479,24 @@ module ArtefactDescription = struct
 
 
 
-  let of_yojson artefact =
-    let open Result in
-    match artefact with
-    | `Assoc [("yan", descr)] ->
-      YanArtefactDescription.of_yojson descr
-      |> Result.map (fun yan_descr -> Yan { yan_criterion = yan_descr })
+  let of_yojson = function
+    | `Assoc props -> (
+        match List.assoc_opt "yan" props, List.assoc_opt "ranking" props with
+        | Some descr, None ->
+          YanArtefactDescription.of_yojson descr
+          |> Result.map (fun yan_descr -> Yan { yan_criterion = yan_descr })
 
-    | `Assoc [("ranking", descr)] ->
-      RankingArtefactDescription.of_yojson descr
-      |> Result.map (fun algo -> Ranking { algorithm_for_ranking = algo })
+        | None, Some descr ->
+          RankingArtefactDescription.of_yojson descr
+          |> Result.map (fun algo -> Ranking { algorithm_for_ranking = algo })
 
-    | _ -> Error "Invalid artefact format"
+        | Some _, Some _ ->
+          Error "ArtefactDescription.of_yojson: cannot have both 'yan' and 'ranking'"
+
+        | None, None ->
+          Error "ArtefactDescription.of_yojson: missing 'yan' or 'ranking'"
+      )
+    | _ -> Error "ArtefactDescription.of_yojson: expected JSON object"
 
 
   let to_yojson artefact =
