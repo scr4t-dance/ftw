@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router';
+import { BrowserRouter, Routes, Route } from 'react-router';
 
 import HomePage from './components/HomePage';
 import EventList from './components/EventList';
@@ -8,40 +8,19 @@ import About from './components/About';
 import React from 'react';
 import EventPage from './components/EventPage';
 
-const router = createBrowserRouter([
-	{
-		path: "/",
-		element: <HomePage />,
-	},
-	{
-		path: "index.html",
-		element: <HomePage />,
-	},
-	{
-		path: "/events",
-		element: <EventList />,
-	},
-	{
-		path: "/events/:id_event",
-		element: <EventPage />,
-	},
-	{
-		path: "/event",
-		element: <NewEventForm />,
-	},
-	{
-		path: "/about",
-		element: <About />,
-	},
-	{
-		path: "/new/event",
-		element: <NewEventForm />,
-	},
-]);
-
 const App = () => {
 	return (
-		<RouterProvider router={router} />
+		<BrowserRouter>
+			<Routes>
+				<Route index element={<HomePage />} />
+				<Route path='index.html' element={<HomePage />} />
+				<Route path='events' element={<EventList />}>
+					<Route path='new' element={<NewEventForm />} />
+					<Route path=':id_event' element={<EventPage />} />
+				</Route>
+				<Route path='about' element={<About />} />
+			</Routes>
+		</BrowserRouter>
 	);
 }
 
