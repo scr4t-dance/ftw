@@ -70,3 +70,18 @@ module Json : sig
   (** Wrapper around a [of_yojson] value to parse from a string (exn version). *)
 
 end
+
+(* Toml helpers *)
+(* ************************************************************************* *)
+
+module Toml : sig
+
+  val add :
+    string -> ('a -> Otoml.t) -> 'a ->
+    (string * Otoml.t) list -> (string * Otoml.t) list
+
+  val add_opt :
+    string -> ('a -> Otoml.t) -> 'a option ->
+    (string * Otoml.t) list -> (string * Otoml.t) list
+
+end

@@ -17,8 +17,9 @@ type t
 val id : t -> id
 (** Dancer id. *)
 
+val email : t -> string option
 val birthday : t -> Date.t option
-(** Birthday (optional). *)
+(** Email & Birthday (optional). *)
 
 val last_name : t -> string
 val first_name : t -> string
@@ -48,6 +49,9 @@ val add :
 val update_divisions :
   st:State.t -> dancer:id -> role:Role.t -> divs:Divisions.t -> unit
 (** Update divisions for a dancer. *)
+
+val for_all : st:State.t -> f:(t -> unit) -> unit
+(** Iterate over all dancers. *)
 
 
 (* Index *)

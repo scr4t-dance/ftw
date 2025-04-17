@@ -47,10 +47,10 @@ let to_int t =
     in
     i lsl (n * 8)
   in
-  aux 0 t.prelims land
-  aux 1 t.finals land
-  aux 2 t.semifinals land
-  aux 3 t.quarterfinals land
+  aux 0 t.finals lor
+  aux 1 t.prelims lor
+  aux 2 t.semifinals lor
+  aux 3 t.quarterfinals lor
   aux 4 t.octofinals
 
 let of_int i =
@@ -62,11 +62,11 @@ let of_int i =
     | _ -> Ranked j
   in
   {
-    prelims = aux i 0;
+    prelims = aux i 1;
     octofinals = aux i 4;
     quarterfinals = aux i 3;
     semifinals = aux i 2;
-    finals = aux i 1;
+    finals = aux i 0;
   }
 
 (* TOML serialization *)

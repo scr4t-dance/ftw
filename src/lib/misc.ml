@@ -69,3 +69,18 @@ module Json = struct
     | Error msg -> failwith ("Misc.Json.parse_exn: " ^ msg)
 
 end
+
+(* Toml helpers *)
+(* ************************************************************************* *)
+
+module Toml = struct
+
+  let add name f x l =
+    (name, f x) :: l
+
+  let add_opt name f o l =
+    match o with
+    | None -> l
+    | Some x -> add name f x l
+
+end

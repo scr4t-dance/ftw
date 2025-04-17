@@ -60,7 +60,7 @@ let find_or_add_dancer ~st
         end
     end
 
-let import_dancers ~st ~t =
+let import_dancers_aux ~st ~t =
   let+ l = Otoml.find_result t (Otoml.get_array Otoml.get_value) ["list"] in
   let map =
     List.fold_left (fun map t' ->
@@ -78,9 +78,11 @@ let import_dancers ~st ~t =
   in
   Ok map
 
-let import_dancers_opt ~st = function
+let import_dancers ~st t =
+  let t = Otoml.find_opt t Otoml.get_value ["dancers"] in
+  match t with
   | None -> Ok Id.Map.empty
-  | Some t -> import_dancers ~st ~t
+  | Some t -> import_dancers_aux ~st ~t
 
 (* Phases *)
 (* ************************************************************************* *)
@@ -174,12 +176,32 @@ let import_results_csv ~st ~competition t =
   in
   l
 
-let import_results ~st ~subst:_ ~t ~competition =
+let import_results_list ~subst ~competition t =
+  Otoml.get_array (fun t ->
+      let dancer_before_subst = Otoml.find t Id.of_toml ["dancer"] in
+      let dancer = Id.Map.find dancer_before_subst subst in
+      let role = Otoml.find t Role.of_toml ["role"] in
+      let result = Otoml.find t Results.of_toml ["result"] in
+      (* TODO: points *)
+      let points = 0 in
+      let r : Results.r = {
+        competition = Competition.id competition;
+        dancer; role; result; points;
+      } in
+      r
+    ) t
+
+
+let import_results ~st ~subst ~t ~competition =
   let t = Otoml.find t Otoml.get_value ["results"] in
   let results =
     match Otoml.find_opt t (import_results_csv ~st ~competition) ["csv"] with
     | Some l -> l
-    | None -> raise (Otoml.Type_error "Missing results")
+    | None ->
+      begin match Otoml.find_opt t (import_results_list ~subst ~competition) ["list"] with
+        | Some l -> l
+        | None -> raise (Otoml.Type_error "Missing results")
+      end
   in
   List.iter (fun (r : Results.r) ->
       Results.add ~st
@@ -201,10 +223,11 @@ let import_comp ~st ~subst ~t ~event_id =
   let+ category = find_result t Category.of_toml ["category"] in
   let+ n_leaders = find_result t Otoml.get_integer ["leaders"] in
   let+ n_follows = find_result t Otoml.get_integer ["follows"] in
+  let check_divs = find_opt t Otoml.get_boolean ["check_divs"] in
   let competition =
     Competition.create st
       event_id name kind category
-      ~n_leaders ~n_follows
+      ~n_leaders ~n_follows ?check_divs
   in
   let+ () = import_phases ~st ~subst ~t ~competition in
   let+ () = import_results ~st ~subst ~t ~competition in
@@ -219,7 +242,7 @@ let import_comps ~st ~subst ~t ~event_id =
 (* Event *)
 (* ************************************************************************* *)
 
-let import_event ~st ~subst ~t =
+let import_event_aux ~st ~subst ~t =
   let open Otoml in
   let+ name = find_result t get_string ["name"] in
   let+ start_date = find_result t Date.of_toml ["start_date"] in
@@ -228,19 +251,28 @@ let import_event ~st ~subst ~t =
   let+ t = find_result t Otoml.get_value ["comps"] in
   import_comps ~st ~subst ~t ~event_id
 
+let import_event ~st ~subst ~t =
+  let t = Otoml.find_opt t Otoml.get_value ["event"] in
+  match t with
+  | None -> Ok ()
+  | Some t -> import_event_aux ~st ~subst ~t
 
-(* File interaction *)
+
+(* Import from a single file *)
 (* ************************************************************************* *)
 
-let from_file ~st path () =
+let from_file ~st acc path =
+  let+ () = acc in
+  let start_time = Unix.gettimeofday () in
+  Logs.debug ~src (fun k->k "%s : reading input file..." (Filename.basename path));
   let+ t = Otoml.Parser.from_file_result path in
   try
-    Logs.info ~src (fun k->k "Read input file from %s" path);
     index := Dancer.Index.mk ~st;
-    let t_dancers = Otoml.find_opt t Otoml.get_value ["dancers"] in
-    let+ subst = import_dancers_opt ~st t_dancers in
-    let+ t_ev = Otoml.find_result t Otoml.get_value ["event"] in
-    let+ () = import_event ~st ~subst ~t:t_ev in
+    let+ subst = import_dancers ~st t in
+    let+ () = import_event ~st ~subst ~t in
+    let stop_time = Unix.gettimeofday () in
+    Logs.info ~src (fun k->k "%s : finished import in %.4fs"
+                       (Filename.basename path) (stop_time -. start_time));
     Ok ()
   with exn ->
     let bt = Printexc.get_backtrace () in
@@ -250,7 +282,16 @@ let from_file ~st path () =
       );
     Error "Exception while importing"
 
-let import ~st path =
-  Bos.OS.Path.fold (from_file ~st) () [path]
+(* File/Directory interaction *)
+(* ************************************************************************* *)
 
+let import ~st path =
+  let all_files = Gen.to_list @@ CCIO.File.read_dir ~recurse:true (CCIO.File.make path) in
+  let files = List.filter (fun file_path -> Filename.extension file_path = ".toml") all_files in
+  let sorted_files =
+    List.sort (fun f1 f2 ->
+        String.compare (Filename.basename f1) (Filename.basename f2)
+      ) files
+  in
+  List.fold_left (from_file ~st) (Ok ()) sorted_files
 

@@ -69,11 +69,11 @@ let server (options : Options.server) =
 let import (options : Options.import) =
   Ftw.State.atomically (Ftw.State.mk options.db_path)
     ~f:(fun st ->
-        match Ftw.Import.from_file st options.ev_path with
+        match Ftw.Import.import ~st options.ev_path with
         | Ok () -> ()
         | Error msg ->
           Logs.err (fun k->k "Import failed: %s" msg);
-          exit 1
+          raise Exit
       )
 
 (* Event Export *)
@@ -84,7 +84,7 @@ let export (options : Options.export) =
     ~f:(fun st ->
         match Ftw.Export.to_file ~st options.out_path options.ev_id with
         | Ok _ -> ()
-        | Error () -> exit 1
+        | Error () -> raise Exit
       )
 
 (* Main entrypoint *)

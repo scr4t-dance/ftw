@@ -84,8 +84,11 @@ let import =
   and+ logs_level
   and+ logs_style
   and+ ev_path =
-    let doc = "Path of the serialized event to import" in
-    Arg.(required & pos 0 (some non_dir_file) None & info [] ~doc ~docv:"FILE")
+    let doc = "Path of the serialized event(s) to import. Can be either
+               a path to a file to import, or a path to a directory from
+               which all events (i.e. files ending in .toml) will be
+               imported." in
+    Arg.(required & pos 0 (some file) None & info [] ~doc ~docv:"FILE")
   in
   setup_bt bt;
   setup_log logs_style logs_level;

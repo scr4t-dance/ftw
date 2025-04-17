@@ -11,7 +11,7 @@ type t = {
   birthday : Date.t option;
   last_name : string;
   first_name : string;
-  email : string;
+  email : string option;
   as_leader : Divisions.t;
   as_follower : Divisions.t;
 }
@@ -25,10 +25,10 @@ let last_name { last_name; _ } = last_name
 let first_name { first_name; _ } = first_name
 let as_leader { as_leader; _ } = as_leader
 let as_follower { as_follower; _ } = as_follower
+let email { email; _ } = email
 
 let print_compact fmt t =
   Format.fprintf fmt "%s %s" t.first_name t.last_name
-
 
 (* DB interaction *)
 (* ************************************************************************* *)
@@ -52,6 +52,7 @@ let conv =
     Sqlite3_utils.Ty.[int; text; text; text; text; int; int]
     (fun id birthday last_name first_name email as_leader as_follower ->
        let birthday = if birthday = "" then None else Some (Date.of_string birthday) in
+       let email = if email = "" then None else Some email in
        let as_leader = Divisions.of_int as_leader in
        let as_follower = Divisions.of_int as_follower in
        { id; birthday; last_name; first_name; email; as_leader; as_follower; })
@@ -60,7 +61,7 @@ let get ~st id =
   State.query_one_where ~p:Id.p ~conv ~st
     {| SELECT * FROM dancers WHERE id = ? |} id
 
-let for_all ~f ~st =
+let for_all ~st ~f =
   State.query_all ~f ~st ~conv
     {| SELECT * FROM dancers |}
 
@@ -146,7 +147,6 @@ module Index = struct
     for_all ~st ~f:(fun dancer -> i := add dancer !i);
     Logs.debug ~src (fun k->k "Finished Index creation");
     !i
-
 
   let find_aux (index : t) ~first_name ~last_name =
     let limit = 3 in

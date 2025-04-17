@@ -1,0 +1,27 @@
+
+# FTW Event Info
+
+[event]
+name = "Concours Chorégraphie ENS Ulm"
+start_date = 2018-06-16
+end_date = 2017-06-16
+
+[event.comps.cc]
+name = ""
+kind = "Routine"
+category = "Regular"
+leaders = 0
+follows = 0
+
+[event.comps.cc.results]
+csv = """
+1	L	Laurent	Théo
+1	F	Durand	Céline
+
+2	L	Janin	Martin
+2	F	Castro Scherianz	Maria
+
+3	L	Chen	Frédéric
+3	F	Vallerio	Héloise
+"""
+

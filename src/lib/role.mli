@@ -11,6 +11,17 @@ type t =
 (** Type for dancer roles of competitions. *)
 
 
+(* Serialization *)
+(* ************************************************************************* *)
+
+val to_toml : t -> Otoml.t
+(** Serialization to toml. *)
+
+val of_toml : Otoml.t -> t
+(** Deserialization from toml.
+    @raise Otoml.Type_error *)
+
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
