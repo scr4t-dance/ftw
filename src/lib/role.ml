@@ -24,6 +24,20 @@ let of_int = function
 let p = Sqlite3_utils.Ty.([int])
 let conv = Conv.mk p of_int
 
+(* Toml serialization *)
+(* ************************************************************************* *)
+
+let to_toml = function
+  | Leader -> Otoml.string "Leader"
+  | Follower -> Otoml.string "Follower"
+
+let of_toml t =
+  match Otoml.get_string t with
+  | "Leader" -> Leader
+  | "Follower" -> Follower
+  | s -> raise (Otoml.Type_error ("Not a valid role: " ^ s))
+
+
 (* Usual functions *)
 (* ************************************************************************* *)
 
@@ -31,6 +45,10 @@ let compare r r' =
   Stdlib.compare (to_int r) (to_int r')
 
 let equal r r' = compare r r' = 0
+
+let print_compact fmt = function
+  | Leader -> Format.fprintf fmt "L"
+  | Follower -> Format.fprintf fmt "F"
 
 module Aux = struct
   type nonrec t = t

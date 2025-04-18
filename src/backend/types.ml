@@ -281,6 +281,8 @@ module Competition = struct
     name : string;
     kind : Kind.t;
     category : Category.t;
+    leaders_count : int;
+    followers_count : int;
   } [@@deriving yojson]
 
   let ref, schema =
@@ -294,6 +296,8 @@ module Competition = struct
           ~examples:[`String "P4T"];
         "kind", ref Kind.ref;
         "category", ref Category.ref;
+        "leaders_count", obj @@ S.make_schema () ~typ:int;
+        "followers_count", obj @@ S.make_schema () ~typ:int;
       ]
 end
 

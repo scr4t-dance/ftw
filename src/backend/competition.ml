@@ -18,6 +18,14 @@ let rec routes router =
         ~required:true
         ~schema:Types.(ref CompetitionId.ref)
     ]
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Succesful operation"
+        ~content:[
+          "application/json",
+          Spec.make_media_type_object () ~schema:Types.(ref CompetitionIdList.ref);
+        ];
+    ]
   |> Router.put "/api/comp" create_comp
     ~tags:["competition"]
     ~summary:"Create a new competition"
@@ -29,6 +37,16 @@ let rec routes router =
           Spec.json,
           Spec.make_media_type_object () ~schema:(Types.(ref Competition.ref));
         ])
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Successful operation"
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref CompetitionId.ref));
+        ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid input";
+    ]
 
 
 (* Competition query *)
@@ -49,6 +67,8 @@ and get_comp =
          name = Ftw.Competition.name comp;
          kind = Ftw.Competition.kind comp;
          category;
+         leaders_count = Ftw.Competition.n_leaders comp;
+         followers_count = Ftw.Competition.n_follows comp;
        } in
        Ok ret
     )
@@ -63,8 +83,10 @@ and create_comp =
     ~to_yojson:Types.CompetitionId.to_yojson
     (fun _req st (comp : Types.Competition.t) ->
        let category = Types.Category.to_ftw comp.category in
-       let id =
-         Ftw.Competition.create st comp.event comp.name comp.kind category
+       let competition =
+         Ftw.Competition.create st
+           comp.event comp.name comp.kind category
+           ~n_leaders:comp.leaders_count ~n_follows:comp.followers_count
        in
-       Ok id)
+       Ok (Ftw.Competition.id competition))
 

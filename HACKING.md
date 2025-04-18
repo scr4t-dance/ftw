@@ -74,6 +74,22 @@ make promote
 Look at curl commands in `tests/api.t/run.t` to design new tests.
 
 
+
+Building a test DB
+------------------
+
+You can build a test DB by executing the following from the root of the project.
+
+```
+$ dune exec -- ftw import --db=tmp.sqlite tests/import
+```
+
+Note that if `tmp.sqlite` already exists a contains data (e.g. from a previous
+import), this is likely to fail with uninformative error messages. In the future
+the error messages should be improved.
+
+
+
 Hacks
 -----
 
