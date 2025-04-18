@@ -33,7 +33,7 @@ module Map = Map.Make(Aux)
 (* ************************************************************************* *)
 
 let () =
-  State.add_init (3, fun st ->
+  State.add_init ~name:"bib" (fun st ->
       State.exec ~st {|
         CREATE TABLE IF NOT EXISTS bibs (
           dancer_id INTEGER REFERENCES dancers(id),
@@ -95,4 +95,3 @@ let set ~st ~competition ~target ~bib =
   | Any Couple { leader; follower; } ->
     set_aux ~st ~bib ~competition ~dancer:leader ~role:Leader;
     set_aux ~st ~bib ~competition ~dancer:follower ~role:Follower
-

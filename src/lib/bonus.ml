@@ -15,7 +15,7 @@ let p = Sqlite3_utils.Ty.[int]
 let conv : t Conv.t = Conv.mk p (fun id -> id)
 
 let () =
-  State.add_init (5, fun st ->
+  State.add_init ~name:"bonus" (fun st ->
       State.exec ~st {|
         CREATE TABLE bonus (
           target_id INTEGER REFERENCES heats(id), -- = target id of judgement

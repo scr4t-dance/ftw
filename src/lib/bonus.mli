@@ -21,4 +21,3 @@ val get : st:State.t -> target:Id.t -> int
 
 val set : st:State.t -> target:Id.t -> int -> unit
 (** Set the bonus for J&J and strictlys. *)
-

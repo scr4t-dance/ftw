@@ -29,7 +29,7 @@ let head_judge_artefact_descr { head_judge_artefact_descr; _ } = head_judge_arte
 (* ************************************************************************* *)
 
 let () =
-  State.add_init (3, fun st ->
+  State.add_init ~name:"phase" (fun st ->
       State.exec ~st {|
         CREATE TABLE IF NOT EXISTS phases (
           id INTEGER PRIMARY KEY,
@@ -83,6 +83,14 @@ let create
     ~judge_artefact_descr
     ~head_judge_artefact_descr
   =
+  Logs.debug (fun k->
+      k "@[<hv 2>Creating new phase with@ competition_id: %d / round: %a@ \
+                 artefacts: %a@ head_artefacts: %a@ ranking algorithm: %a@]"
+        competition_id Round.print round
+        Artefact.Descr.print judge_artefact_descr
+        Artefact.Descr.print head_judge_artefact_descr
+        Ranking.Algorithm.print ranking_algorithm
+    );
   let round = Round.to_int round in
   let ranking_algorithm =
     Misc.Json.print ranking_algorithm

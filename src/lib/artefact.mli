@@ -15,7 +15,17 @@ module Descr : sig
 
   val ranking : t
   val yans : string list -> t
+  (** Construction functions *)
 
+  val print : Format.formatter -> t -> unit
+  (** Printing. *)
+
+  val to_toml : t -> Otoml.t
+  (** Serialization to toml. *)
+
+  val of_toml : Otoml.t -> t
+  (** Deserialization from toml.
+      @raise Otoml.Type_error *)
 end
 
 (* Artefact type *)
@@ -46,3 +56,14 @@ val set :
   judge:Judge.id ->
   target:Id.t ->
   t -> unit
+
+
+(* Serialization *)
+(* ************************************************************************* *)
+
+val to_toml : t -> Otoml.t
+(** Serialization to toml. *)
+
+val of_toml : descr:Descr.t -> Otoml.t -> t
+(** Deserialization from toml.
+    @raise Otoml.Type_error *)

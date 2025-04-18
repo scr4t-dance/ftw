@@ -8,8 +8,9 @@
   )
   (libraries
      ftw
-     openapi_router
-     fmt dream cmdliner containers yojson)
+     openapi_router dream
+     fmt fmt.cli logs logs.cli logs.fmt
+     cmdliner containers yojson)
 )
 
 ; crunch static files

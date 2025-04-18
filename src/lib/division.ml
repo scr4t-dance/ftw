@@ -14,6 +14,15 @@ type t =
   | Advanced
 [@@deriving yojson]
 
+(* Serialization *)
+(* ************************************************************************* *)
+
+let to_string = function
+  | Novice -> "Novice"
+  | Intermediate -> "Intermediate"
+  | Advanced -> "Advanced"
+
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
@@ -40,10 +49,10 @@ let conv = Conv.mk p of_int
 let () =
   State.add_init_descr_table
     ~table_name:"division_names" ~to_int
-    ~values:[
-      Novice, "Novice";
-      Intermediate, "Intermediate";
-      Advanced, "Advanced";
+    ~to_descr:to_string ~values:[
+      Novice;
+      Intermediate;
+      Advanced;
     ]
 
 (* Common functions *)
