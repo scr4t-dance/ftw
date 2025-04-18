@@ -12,8 +12,13 @@ module Algorithm : sig
 
   type yan_weight = { yes : int; alt : int; no : int } [@@deriving yojson]
 
-  type t = RPSS | Yan_weighted of { weights : yan_weight list; } [@@deriving yojson]
-(** The type for ranking algorithms. *)
+  type t =
+    | RPSS
+    | Yan_weighted of {
+        weights : yan_weight list;
+        head_weights : yan_weight list;
+      } [@@deriving yojson]
+  (** The type for ranking algorithms. *)
 
   val print : Format.formatter -> t -> unit
   (** Printing. *)
