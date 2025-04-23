@@ -5,7 +5,8 @@
 (* ************************************************************************* *)
 
 (* TODO: find a decent/better name for an occurrence of a dancer in a heat *)
-type passage_id = Id.t [@@deriving yojson]
+type target_id = Id.t [@@deriving yojson]
+type passage_id = Id.t
 type passage_kind =
   | Only
   | Multiple of { nth : int; }
@@ -44,6 +45,22 @@ type couples_heats = {
   couples_heats : couples_heat array;
 }
 
+type row = {
+  target_id : target_id;
+  heat_number : int;
+  leader : Dancer.id option;
+  follow : Dancer.id option;
+}
+
+
+type raw_target = {
+  passage_id : passage_id;
+  heat_number : int;
+  leader : Dancer.id option;
+  follow : Dancer.id option;
+}
+
+
 
 
 (* DB interaction *)
@@ -51,4 +68,3 @@ type couples_heats = {
 
 val get_singles : st:State.t -> phase:Phase.id -> singles_heats
 val get_couples : st:State.t -> phase:Phase.id -> couples_heats
-

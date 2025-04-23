@@ -629,7 +629,7 @@ end
 
 (* Heat Ids *)
 module HeatId = struct
-  type t = Ftw.Heat.passage_id [@@deriving yojson]
+  type t = Ftw.Heat.target_id [@@deriving yojson]
 
   let ref, schema =
     make_schema ()

@@ -5,7 +5,8 @@
 (* ************************************************************************* *)
 
 (* TODO: find a decent/better name for an occurrence of a dancer in a heat *)
-type passage_id = Id.t [@@deriving yojson]
+type target_id = Id.t [@@deriving yojson]
+type passage_id = Id.t
 type passage_kind =
   | Only
   | Multiple of { nth : int; }
@@ -55,15 +56,15 @@ let () =
           id INTEGER PRIMARY KEY,
           phase_id INTEGER REFERENCES phases(id),
           heat_number INTEGER NOT NULL,
-          leader_bib INTEGER,
-          follower_bib INTEGER
+          leader_id INTEGER REFERENCES dancers(id),
+          follower_id INTEGER REFERENCES dancers(id)
         )
       |})
 
 (* Helpers *)
 
 type row = {
-  passage_id : passage_id;
+  target_id : target_id;
   heat_number : int;
   leader : Dancer.id option;
   follow : Dancer.id option;
@@ -72,37 +73,44 @@ type row = {
 let conv =
   let open Sqlite3_utils.Ty in
   Conv.mk [int; int; nullable int; nullable int]
-    (fun passage_id heat_number leader follow ->
-       { passage_id; heat_number; leader; follow; })
+    (fun target_id heat_number leader follow ->
+       { target_id; heat_number; leader; follow; })
 
-let raw_get st ~phase =
+type raw_target = {
+  passage_id : passage_id;
+  heat_number : int;
+  leader : Dancer.id option;
+  follow : Dancer.id option;
+}
+
+let raw_get st ~(phase:Id.t) =
   State.query_list_where ~st ~conv ~p:Id.p
-    {| SELECT (id, heat_number, leader_bib, follower_bib)
+    {| SELECT (id, heat_number, leader_id, follower_id)
        FROM heats WHERE phase_id = ? |}
     phase
 
-let incr_passage map_ref bib =
+let incr_passage map_ref dancer_id =
     map_ref :=
-      Id.Map.update bib (function
+      Id.Map.update dancer_id (function
           | None -> Some 1
           | Some n -> Some (n + 1)
         ) !map_ref
 
 let update_heats ~f a l =
-  List.iter (fun { passage_id; heat_number; leader; follow } ->
+  List.iter (fun ({ target_id; heat_number; leader; follow } : row) ->
       let heat = a.(heat_number) in
-      a.(heat_number) <- f heat passage_id ~leader ~follow
+      a.(heat_number) <- f heat target_id ~leader ~follow
     ) l
 
 
 (* Singles heats *)
 (* ************* *)
 
-let mk_singles l =
+let mk_singles (l : row list) =
   (* Compute the number of heats *)
   let n =
     List.fold_left
-      (fun acc { heat_number; _ } -> max acc heat_number)
+      (fun acc ({ heat_number; _ } : row) -> max acc heat_number)
       0 l
   in
   (* Allocate the heats array and fill it.
@@ -110,13 +118,15 @@ let mk_singles l =
   let a = Array.make n { leaders = []; followers = []; passages = Id.Map.empty; } in
   let num_total_passages = ref Id.Map.empty in
   update_heats a l
-    ~f:(fun heat passage_id ~leader ~follow ->
+    ~f:(fun heat _target_id ~leader ~follow ->
       match leader, follow with
       | Some dancer, None ->
         incr_passage num_total_passages dancer;
+        let passage_id = Id.Map.find dancer !num_total_passages in
         { heat with leaders = { passage_id; dancer; } :: heat.leaders; }
       | None, Some dancer ->
         incr_passage num_total_passages dancer;
+        let passage_id = Id.Map.find dancer !num_total_passages in
         { heat with followers = { passage_id; dancer; } :: heat.followers; }
       | None, None | Some _, Some _ -> failwith "incorrect encoding for j&j heat"
     );
@@ -152,11 +162,11 @@ let get_singles ~st ~phase =
 (* Couples heats *)
 (* ************* *)
 
-let mk_couples l =
+let mk_couples (l: row list) =
   (* Compute the number of heats *)
   let n =
     List.fold_left
-      (fun acc { heat_number; _ } -> max acc heat_number)
+      (fun acc ({ heat_number; _ } : row)-> max acc heat_number)
       0 l
   in
   (* Allocate the heats array and fill it.
@@ -201,4 +211,3 @@ let mk_couples l =
 
 let get_couples ~st ~phase =
   mk_couples @@ raw_get st ~phase
-
