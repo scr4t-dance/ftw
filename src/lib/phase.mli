@@ -12,8 +12,8 @@ type t
     finals, etc..), and each pair (competition * round) is a phase.
     This type describe a phase of a competition.
     Only one phase of a specific round is allowed per competition.
-    This table is the reference for the list of judges, the head judge,
-    table of heats (artefacts' targets) and couple_heats.
+    The phase is used to define the list of judges, the head judge,
+    table of heats (and artefacts' targets).
     *)
 
 
