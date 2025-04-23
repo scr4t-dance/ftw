@@ -22,7 +22,7 @@ let mk path =
         Logs.err ~src (fun k->k "Failed initialization for %s" name);
         raise exn
     ) (List.rev !initializers);
-  Logs.debug (fun k->k "Finished initialization of DB");
+  Logs.debug ~src (fun k->k "Finished initialization of DB");
   st
 
 let add_init ~name f =

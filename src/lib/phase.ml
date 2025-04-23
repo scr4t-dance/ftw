@@ -85,7 +85,7 @@ let create
   =
   Logs.debug (fun k->
       k "@[<hv 2>Creating new phase with@ competition_id: %d / round: %a@ \
-                 artefacts: %a@ head_artefacts: %a@ ranking algorithm: %a@]"
+         artefacts: %a@ head_artefacts: %a@ ranking algorithm: %a@]"
         competition_id Round.print round
         Artefact.Descr.print judge_artefact_descr
         Artefact.Descr.print head_judge_artefact_descr
@@ -117,7 +117,7 @@ let create
     {| SELECT id FROM phases WHERE competition_id=? AND round=? |}
     competition_id round
 
-let update ~st competition_id round ~ranking_algorithm ~judge_artefact_descr ~head_judge_artefact_descr =
+let update ~st phase_id ~competition_id ~round ~ranking_algorithm ~judge_artefact_descr ~head_judge_artefact_descr =
   let round = Round.to_int round in
   let ranking_algorithm =
     Misc.Json.print ranking_algorithm
@@ -132,16 +132,18 @@ let update ~st competition_id round ~ranking_algorithm ~judge_artefact_descr ~he
       ~to_yojson:Artefact.Descr.to_yojson
   in
   let open Sqlite3_utils.Ty in
-  State.insert ~st ~ty:[text; text; text; int; int]
-    {| UPDATE phases SET judge_artefact_descr=?,
-                         head_judge_artefact_descr=?,
-                         ranking_algorithm=?
-                   WHERE competition_id=? and round=? |}
-    judge_artefact_descr head_judge_artefact_descr
-    ranking_algorithm competition_id round;
-  State.query_one_where ~st ~conv:Id.conv ~p:[int; int]
-    {| SELECT id FROM phases WHERE competition_id=? AND round=? |}
-    competition_id round
+  State.insert ~st ~ty:[int; int; text; text; text; int]
+    {|
+      UPDATE phases SET competition_id=?
+        , round=?
+        , judge_artefact_descr=?
+        , head_judge_artefact_descr=?
+        , ranking_algorithm=?
+      WHERE  id=?
+    |}
+    competition_id round judge_artefact_descr head_judge_artefact_descr
+    ranking_algorithm phase_id;
+  phase_id
 
 let delete ~st id_phase =
   let open Sqlite3_utils.Ty in

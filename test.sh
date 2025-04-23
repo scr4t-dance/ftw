@@ -11,19 +11,23 @@ curl -s -X PUT http://localhost:8080/api/event -H "Content-Type: application/jso
 echo ""
 
 echo "Creating competition JJ for 4TWC"
-curl -s -X PUT http://localhost:8080/api/comp "Content-Type: application/json" -d '{"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Novice"]}'
+curl -s -X PUT http://localhost:8080/api/comp "Content-Type: application/json" -d '{"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Novice"], "n_leaders":5, n_follows:6}'
 echo ""
 
 echo "Creating prelims phase for 4TWC/JJ"
-curl -s -X PUT localhost:8080/api/phase -H "Content-Type: application/json" -d '{"competition":1,"round":["Prelims"],"judge_artefact_description":''{"artefact":"ranking", "ranking_algorithm": "RPSS"}'',"head_judge_artefact_description":"ranking","ranking_algorithm":"RPSS"}'
+curl -s -X PUT localhost:8080/api/phase -H "Content-Type: application/json" -d '{"competition":2,"round":["Prelims"],"judge_artefact_descr":{"artefact":"yan","artefact_data":["overall"]},"head_judge_artefact_descr":{"artefact":"yan","artefact_data":["head"]}, "ranking_algorithm":{"algorithm":"Yan_weighted", "algorithm_data":{"weights":[{"yes":3,"alt":2,"no":1}], head_weights:[{"yes":3,"alt":2,"no":1}]}}}'
+echo ""
+
+echo "Creating finals phase for 4TWC/JJ"
+curl -s -X PUT localhost:8080/api/phase -H "Content-Type: application/json" -d '{"competition":2,"round":["Finals"],"judge_artefact_descr":{"artefact":"ranking","artefact_data":null},"head_judge_artefact_descr":{"artefact":"ranking","artefact_data":null}, "ranking_algorithm":{"algorithm":"RPSS", "algorithm_data":null}}'
 echo ""
 
 echo "updating prelims for 4TWC/JJ"
-curl -s -X PATCH localhost:8080/api/phase/1 -H "Content-Type: application/json" -d '{"competition":1,"round":["Prelims"],"judge_artefact_description":{"artefact":"yan","yan_criterion":[["technique",{"yes":4,"alt":2,"no":1}]],"algorithm_for_ranking":null},"head_judge_artefact_description":{"artefact":"yan","yan_criterion":[["teamwork",{"yes":5,"alt":2,"no":1}]],"algorithm_for_ranking":null}}'
+curl -s -X PATCH localhost:8080/api/phase/2 -H "Content-Type: application/json" -d '{"competition":2,"round":["Finals"],"judge_artefact_descr":{"artefact":"yan","artefact_data":["technique"]},"head_judge_artefact_descr":{"artefact":"yan","artefact_data":["teamwork"]},  "ranking_algorithm":{"algorithm":"Yan_weighted", "algorithm_data":{"weights":[{"yes":4,"alt":2,"no":1}], head_weights:[{"yes":5,"alt":2,"no":1}]}}}'
 echo ""
 
 echo "getting prelims for 4TWC/JJ"
-curl localhost:8080/api/phase/1 -H "Content-Type: application/json"
+curl localhost:8080/api/phase/2 -H "Content-Type: application/json"
 echo ""
 
 # dancer

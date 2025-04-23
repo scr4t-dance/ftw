@@ -49,7 +49,7 @@ val print_compact : Format.formatter -> t -> unit
 
 val get : State.t -> id -> t
 (** Get an event from its id.
-    @raise Not_found if the competition is not found. *)
+    @raise Stdlib.Not_found if the competition is not found. *)
 
 val from_event : State.t -> Event.id -> t list
 (** Get the list of all competitions that belong to a given event. *)
@@ -63,4 +63,3 @@ val create :
   string -> Kind.t -> Category.t ->
   n_leaders:int -> n_follows:int -> t
 (** Create a new competition *)
-

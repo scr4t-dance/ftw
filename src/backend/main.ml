@@ -1,10 +1,13 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+let src = Logs.Src.create "backend.main"
+
 (* Main Server *)
 (* ************************************************************************* *)
 
 let loader _root path _request =
+  Logs.debug ~src (fun m -> m "Loading static request for '%s'" path);
   match Static.read path with
     | None ->
       (* if the path is not found in the frontend, automatically redirect to `index.html` *)
@@ -15,6 +18,7 @@ let loader _root path _request =
     | Some asset -> Dream.respond asset
 
 let server (options : Options.server) =
+
   (* Defaul routes to serve the clients files (pages, scripts and css) *)
   let default_routes = [
     Dream.get "/" (loader "" "");
@@ -73,7 +77,7 @@ let import (options : Options.import) =
         match Ftw.Import.import ~st options.ev_path with
         | Ok () -> ()
         | Error msg ->
-          Logs.err (fun k->k "Import failed: %s" msg);
+          Logs.err ~src (fun k->k "Import failed: %s" msg);
           raise Exit
       )
 
@@ -111,4 +115,3 @@ let () =
   | Ok `Ok Options.Server options -> server options
   | Ok `Ok Options.Import options -> import options
   | Ok `Ok Options.Export options -> export options
-

@@ -41,7 +41,7 @@ val to_int : t -> int
 
 val of_int : int -> t
 (** Conversion from integer.
-    @raise Failure _ if the int is out of range *)
+    @raise Stdlib.Failure _ if the int is out of range *)
 
 val p : (int -> 'a, 'a) Sqlite3_utils.Ty.t
 (** Sqlite query "type" for identifiers *)
@@ -67,4 +67,3 @@ module Set : Set.S with type elt = t
 
 module Map : Map.S with type key = t
 (** Maps for identifiers *)
-

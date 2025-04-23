@@ -36,8 +36,8 @@ exception Invalid_date of [`Day | `Month]
 
 val mk : day:int -> month:int -> year:int -> t
 (** Create a date fromn a day, month and year.
-    @raise [Invalid_date `Day] if given a day outside the [1; 31] range
-    @raise [Invalid_date `Month] if given a month outside the range [1;12] *)
+    @raise \[Invalid_date \`Day\] if given a day outside the [1; 31] range
+    @raise \[Invalid_date \`Month\] if given a month outside the range [1;12] *)
 
 val day : t -> int
 val month : t -> int

@@ -44,7 +44,7 @@ val ranking_algorithm : t -> Ranking.Algorithm.t
 
 val get : State.t -> id -> t
 (** Get an event from its id.
-    @raise Not_found if the phase is not found. *)
+    @raise Stdlib.Not_found if the phase is not found. *)
 
 val find : State.t -> Competition.id -> t list
 (** Get the list of all phases that belong to a given competition. *)
@@ -61,8 +61,9 @@ val create :
 (** Create a new phase *)
 
 val update : st:State.t ->
-  Competition.id ->
-  Round.t ->
+  id ->
+    competition_id:Competition.id ->
+  round:Round.t ->
   ranking_algorithm:Ranking.Algorithm.t ->
   judge_artefact_descr:Artefact.Descr.t ->
   head_judge_artefact_descr:Artefact.Descr.t ->

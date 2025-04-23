@@ -90,8 +90,8 @@ and get_comp =
          name = Ftw.Competition.name comp;
          kind = Ftw.Competition.kind comp;
          category;
-         leaders_count = Ftw.Competition.n_leaders comp;
-         followers_count = Ftw.Competition.n_follows comp;
+         n_leaders = Ftw.Competition.n_leaders comp;
+         n_follows = Ftw.Competition.n_follows comp;
        } in
        Ok ret
     )
@@ -120,7 +120,6 @@ and create_comp =
        let competition =
          Ftw.Competition.create st
            comp.event comp.name comp.kind category
-           ~n_leaders:comp.leaders_count ~n_follows:comp.followers_count
+           ~n_leaders:comp.n_leaders ~n_follows:comp.n_follows
        in
        Ok (Ftw.Competition.id competition))
-
