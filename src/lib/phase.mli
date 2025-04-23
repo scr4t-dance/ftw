@@ -60,14 +60,11 @@ val create :
   id
 (** Create a new phase *)
 
-val update : st:State.t ->
-  id ->
-    competition_id:Competition.id ->
-  round:Round.t ->
+val update : st:State.t -> id ->
   ranking_algorithm:Ranking.Algorithm.t ->
   judge_artefact_descr:Artefact.Descr.t ->
   head_judge_artefact_descr:Artefact.Descr.t ->
-  id
+  unit
 (** Update the details of a phase. *)
 
 val delete : st:State.t -> id -> id

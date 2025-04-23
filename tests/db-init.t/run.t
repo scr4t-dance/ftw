@@ -87,8 +87,8 @@ Print schema
             id INTEGER PRIMARY KEY,
             phase_id INTEGER REFERENCES phases(id),
             heat_number INTEGER NOT NULL,
-            leader_bib INTEGER,
-            follower_bib INTEGER
+            leader_id INTEGER REFERENCES dancers(id),
+            follower_id INTEGER REFERENCES dancers(id)
           );
 
 End & Cleanup

@@ -56,6 +56,18 @@ let schemas, make_schema =
 (* Common schemas *)
 (* ************************************************************************* *)
 
+(* Ok/Unit: i.e. no meaningful return value (apart from the HTPP return code) *)
+module Ok = struct
+  type t = unit [@@deriving yojson]
+
+  (* TODO: how to specify NULL as a JSON schema ? *)
+  let ref, schema =
+    make_schema ()
+      ~name:"Ok"
+      ~typ:(obj S.Null)
+
+end
+
 (* Errors *)
 module Error = struct
   type t = {

@@ -117,8 +117,10 @@ let create
     {| SELECT id FROM phases WHERE competition_id=? AND round=? |}
     competition_id round
 
-let update ~st phase_id ~competition_id ~round ~ranking_algorithm ~judge_artefact_descr ~head_judge_artefact_descr =
-  let round = Round.to_int round in
+let update ~st phase_id
+    ~ranking_algorithm
+    ~judge_artefact_descr
+    ~head_judge_artefact_descr =
   let ranking_algorithm =
     Misc.Json.print ranking_algorithm
       ~to_yojson:Ranking.Algorithm.to_yojson
@@ -132,18 +134,16 @@ let update ~st phase_id ~competition_id ~round ~ranking_algorithm ~judge_artefac
       ~to_yojson:Artefact.Descr.to_yojson
   in
   let open Sqlite3_utils.Ty in
-  State.insert ~st ~ty:[int; int; text; text; text; int]
+  State.insert ~st ~ty:[text; text; text; int]
     {|
-      UPDATE phases SET competition_id=?
-        , round=?
+      UPDATE phases SET
         , judge_artefact_descr=?
         , head_judge_artefact_descr=?
         , ranking_algorithm=?
       WHERE  id=?
     |}
-    competition_id round judge_artefact_descr head_judge_artefact_descr
-    ranking_algorithm phase_id;
-  phase_id
+    judge_artefact_descr head_judge_artefact_descr
+    ranking_algorithm phase_id
 
 let delete ~st id_phase =
   let open Sqlite3_utils.Ty in
@@ -151,3 +151,4 @@ let delete ~st id_phase =
     {| DELETE FROM phases
         WHERE id=?|} id_phase;
   id_phase
+

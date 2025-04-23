@@ -10,7 +10,8 @@ type t =
   | Followers
   | Couples (**)
 (** The type of "judging", i.e. what/who does a Judge scores.
-    * Head means both leaders and followers are judged.
+    * Head means both leaders and followers are judged. Additionally,
+      the head judge's notes are used to break up ties.
     * Leaders
     * Followers
     * Couples means the pair of dancers is judged together

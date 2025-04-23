@@ -10,7 +10,11 @@
 
 module Algorithm : sig
 
-  type yan_weight = { yes : int; alt : int; no : int } [@@deriving yojson]
+  type yan_weight = {
+    yes : int;
+    alt : int;
+    no : int
+  } [@@deriving yojson]
 
   type t =
     | RPSS

@@ -93,10 +93,9 @@ Update a phase
   $ curl -s -X PATCH localhost:8081/api/phase/2 \
   > -H "Content-Type: application/json" \
   > -d '{"competition":2,"round":["Finals"],"judge_artefact_descr":{"artefact":"yan","artefact_data":["technique"]},"head_judge_artefact_descr":{"artefact":"yan","artefact_data":["teamwork"]},  "ranking_algorithm":{"algorithm":"Yan_weighted", "algorithm_data":{"weights":[{"yes":4,"alt":2,"no":1}], head_weights:[{"yes":5,"alt":2,"no":1}]}}}'
-  2
 
   $ curl -s localhost:8081/api/phase/2
-  {"competition":2,"round":["Finals"],"judge_artefact_descr":{"artefact":"yan","artefact_data":["technique"]},"head_judge_artefact_descr":{"artefact":"yan","artefact_data":["teamwork"]},"ranking_algorithm":{"algorithm":"yan","algorithm_data":{"weights":[{"yes":4,"alt":2,"no":1}],"head_weights":[{"yes":5,"alt":2,"no":1}]}}}
+  {"competition":2,"round":["Finals"],"judge_artefact_descr":{"artefact":"ranking","artefact_data":null},"head_judge_artefact_descr":{"artefact":"ranking","artefact_data":null},"ranking_algorithm":{"algorithm":"RPSS","algorithm_data":null}}
 
   $ curl -s -X DELETE localhost:8081/api/phase/2 \
   > -H "Content-Type: application/json"

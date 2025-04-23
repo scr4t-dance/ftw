@@ -159,19 +159,16 @@ and update_phase =
   );
   Api.put
     ~of_yojson:Types.Phase.of_yojson
-    ~to_yojson:Types.PhaseId.to_yojson
+    ~to_yojson:Types.Ok.to_yojson
     (
       fun req st (phase : Types.Phase.t) ->
         let+ id_phase = Utils.int_param req "id" in
-        let p = Ftw.Phase.get st id_phase in
-        let competition_p = Ftw.Phase.competition p in
-        let round_p = Ftw.Phase.round p in
         let judge_artefact_descr = phase.judge_artefact_descr in
         let head_judge_artefact_descr = phase.head_judge_artefact_descr in
         let ranking_algorithm = phase.ranking_algorithm in
-        let id_p =Ftw.Phase.update ~st id_phase ~competition_id:competition_p ~round:round_p
+        let () = Ftw.Phase.update ~st id_phase
             ~ranking_algorithm ~judge_artefact_descr ~head_judge_artefact_descr in
-        Ok id_p
+        Ok ()
     )
 
 and delete_phase =
