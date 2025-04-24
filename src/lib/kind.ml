@@ -11,6 +11,29 @@ type t =
   | Jack_and_Jill
 [@@deriving yojson]
 
+(* Serialization *)
+(* ************************************************************************* *)
+
+let to_string = function
+  | Routine -> "Routine"
+  | Strictly -> "Strictly"
+  | JJ_Strictly -> "JJ_Strictly"
+  | Jack_and_Jill -> "Jack_and_Jill"
+
+let of_string = function
+  | "Routine" -> Routine
+  | "Strictly" -> Strictly
+  | "JJ_Strictly" -> JJ_Strictly
+  | "Jack_and_Jill" -> Jack_and_Jill
+  | s -> Misc.Error.deserialization ~payload:s ~expected:"Kind (string)"
+
+let to_toml t =
+  Otoml.string (to_string t)
+
+let of_toml t =
+  of_string (Otoml.get_string t)
+
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
@@ -32,16 +55,18 @@ let conv = Conv.mk p of_int
 
 let () =
   State.add_init_descr_table
-    ~table_name:"division_names" ~to_int
-    ~values:[
-      Routine, "Routine";
-      Strictly, "Strictly";
-      JJ_Strictly, "JJ_Strictly";
-      Jack_and_Jill, "Jack_and_Jill";
-    ]
+    ~table_name:"division_names" ~to_int ~to_descr:to_string
+    ~values:[Routine; Strictly; JJ_Strictly; Jack_and_Jill]
+
 
 (* Usual functions *)
 (* ************************************************************************* *)
+
+let print fmt = function
+  | Routine -> Format.fprintf fmt "Routine"
+  | Strictly -> Format.fprintf fmt "Strictly"
+  | JJ_Strictly -> Format.fprintf fmt "J&J Strictly "
+  | Jack_and_Jill -> Format.fprintf fmt "Jack&Jill"
 
 let compare k k' =
   Stdlib.compare (to_int k) (to_int k')

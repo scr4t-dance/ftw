@@ -42,11 +42,13 @@ Create some competitions
 
   $ curl -s -X PUT http://localhost:8081/api/comp \
   > -H "Content-Type: application/json" \
-  > -d '{"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Novice"]}'
+  > -d '{"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Novice"],"leaders_count":0,"followers_count":0}'
+  1
 
   $ curl -s -X PUT http://localhost:8081/api/comp \
   > -H "Content-Type: application/json" \
-  > -d '{"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Intermediate"]}'
+  > -d '{"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Intermediate"],"leaders_count":0,"followers_count":0}'
+  2
 
 Get the ids of competitions we created, and check their details
 
@@ -54,10 +56,10 @@ Get the ids of competitions we created, and check their details
   {"comps":[1,2]}
 
   $ curl -s http://localhost:8081/api/comp/1
-  {"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Novice"]}
+  {"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Novice"],"leaders_count":0,"followers_count":0}
 
   $ curl -s http://localhost:8081/api/comp/2
-  {"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Intermediate"]}
+  {"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Intermediate"],"leaders_count":0,"followers_count":0}
 
 
 End & Cleanup
