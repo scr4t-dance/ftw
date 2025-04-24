@@ -1,5 +1,7 @@
 # copyright (c) 2024, Guillaume Bury
 
+SHELL := /bin/bash
+
 FLAGS=
 BINDIR=_build/install/default/bin
 
@@ -15,13 +17,7 @@ FRONTEND_DEPS=\
 	src/frontend/src/components/* \
 	src/frontend/src/hooks/*
 
-# manually check for other dirs in src/frontend/src/hookgen
-HOOKGEN_TARGETS=\
-	src/frontend/src/hookgen/event/* \
-	src/frontend/src/hookgen/competition/* \
-	src/frontend/src/hookgen/phase/* \
-	src/frontend/src/hookgen/dancer/* \
-	src/frontend/src/hookgen/model/*
+HOOKGEN_TARGETS := $(shell cat src/hookgen/hookgen.lock)
 
 all: build
 
@@ -31,24 +27,42 @@ configure:
 	opam install . --deps-only
 	cd src/frontend && npm install
 	cd src/hookgen && npm install
-
-src/hookgen/raw_openapi.json:
-	dune build $(FLAGS) @install
-	./bin/hookgen.sh
+# bootstrap backend without front (for hookgen)
+	mkdir -p src/frontend/build
+	touch src/frontend/build/index.html
 
 # initiate ocaml server once to generate openapi.json file
-hookgen ${HOOKGEN_TARGETS}: src/hookgen/raw_openapi.json
-	cd src/hookgen && node pretty_print_openapi_json.js
-	cd src/hookgen && ./node_modules/.bin/orval --config ./orval.config.js
-
-init_backend:
+hookgen_init src/hookgen/raw_openapi.json :
 	dune build $(FLAGS) @install
 	./bin/hookgen.sh
+
+# `&:` is used to define a grouped target
+${HOOKGEN_TARGETS} &: src/hookgen/raw_openapi.json
+	@echo "Running hooks generation"
+	cd src/hookgen && node pretty_print_openapi_json.js
+	cd src/hookgen && ./node_modules/.bin/orval --config ./orval.config.js
+	@echo "Hookgen was updated, run 'make hookgen_validate' if there are diffs with src/hookgen/hookgen.lock"
+	@echo "starting diff ----"
+	@diff <(echo "$(HOOKGEN_TARGETS)" | tr ' ' '\n' | sort |uniq) \
+		<(find src/frontend/src/hookgen -type f |sort|uniq)
+	@echo "end of diff   ----"
+
+hookgen : ${HOOKGEN_TARGETS}
+
+hookgen_validate:
+	@echo "Following diff will be overwritten"
+	@echo "starting diff ----"
+	@diff \
+		<(echo "$(HOOKGEN_TARGETS)" | tr ' ' '\n' | sort |uniq) \
+	 	<(find src/frontend/src/hookgen -type f |sort|uniq) \
+		|| true
+	@echo "end of diff   ----"
+	find src/frontend/src/hookgen/ -type f > src/hookgen/hookgen.lock
 
 $(FRONTEND_TARGET): ${HOOKGEN_TARGETS} $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
 
-backend: init_backend $(FRONTEND_TARGET)
+backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
 
 run: backend
@@ -66,9 +80,10 @@ promote:
 clean:
 	dune clean
 	rm -rf $(FRONTEND_TARGET)
-	rm -rf $(HOOKGEN_TARGETS)
-	rm -rf src/hookgen/node_modules
 	rm -rf src/frontend/node_modules
+	rm -rf src/hookgen/node_modules
+	rm -rf src/frontend/src/hookgen
+	rm -rf src/hookgen/raw_openapi.json
 
 top:
 	dune utop
@@ -76,4 +91,5 @@ top:
 doc:
 	dune build $(FLAGS) @doc
 
-.PHONY: all build top doc run frontend_dev tests promote clean hookgen init_backend
+.PHONY: all build top doc run frontend_dev tests promote clean
+	hookgen hookgen_init hookgen_validate
