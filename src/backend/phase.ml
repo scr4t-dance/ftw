@@ -1,7 +1,7 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-let src = Logs.Src.create "backend.phase"
+let src = Logs.Src.create "ftw.backend.phase"
 
 open Utils.Syntax
 
