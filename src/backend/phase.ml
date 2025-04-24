@@ -113,9 +113,6 @@ let rec routes router =
 (* ************************************************************************* *)
 
 and get_phase =
-  Logs.debug ~src (fun k->
-    k "@[<hv 2> Get phase"
-  );
   Api.get
     ~to_yojson:Types.Phase.to_yojson
     (fun req st ->
@@ -138,9 +135,6 @@ and get_phase =
 (* ************************************************************************* *)
 
 and create_phase =
-  Logs.debug ~src (fun k->
-    k "@[<hv 2> Create phase"
-  );
   Api.put
     ~of_yojson:Types.Phase.of_yojson
     ~to_yojson:Types.PhaseId.to_yojson
@@ -154,9 +148,6 @@ and create_phase =
        Ok id)
 
 and update_phase =
-  Logs.debug ~src (fun k->
-    k "@[<hv 2> Update phase"
-  );
   Api.put
     ~of_yojson:Types.Phase.of_yojson
     ~to_yojson:Types.Ok.to_yojson
@@ -172,9 +163,6 @@ and update_phase =
     )
 
 and delete_phase =
-  Logs.debug ~src (fun k->
-    k "@[<hv 2> delete phase"
-  );
   Api.delete
     ~to_yojson:Types.PhaseId.to_yojson
     (fun req st ->

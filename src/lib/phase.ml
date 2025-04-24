@@ -137,7 +137,7 @@ let update ~st phase_id
   State.insert ~st ~ty:[text; text; text; int]
     {|
       UPDATE phases SET
-        , judge_artefact_descr=?
+        judge_artefact_descr=?
         , head_judge_artefact_descr=?
         , ranking_algorithm=?
       WHERE  id=?
@@ -151,4 +151,3 @@ let delete ~st id_phase =
     {| DELETE FROM phases
         WHERE id=?|} id_phase;
   id_phase
-

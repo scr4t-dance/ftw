@@ -344,12 +344,12 @@ end
 (* Artefact *)
 (* ************************************************************************* *)
 
-module YanCriterionWeight = struct
+module YanCriterionWeights = struct
   type t = Ftw.Ranking.Algorithm.yan_weight [@@deriving yojson]
 
   let ref, schema =
     make_schema ()
-      ~name:"YanCriterionWeight"
+      ~name:"YanCriterionWeights"
       ~typ:(Obj Object)
       ~properties:[
         "yes", obj @@ S.make_schema ()
@@ -363,8 +363,8 @@ end
 
 module RankingYanWeighted = struct
   type t = {
-    weights: YanCriterionWeight.t list;
-    head_weights: YanCriterionWeight.t list;
+    weights: YanCriterionWeights.t list;
+    head_weights: YanCriterionWeights.t list;
   }
   [@@deriving yojson]
 
@@ -373,7 +373,7 @@ module RankingYanWeighted = struct
       ~name:"RankingYanWeighted"
       ~typ:array
       ~description: {| Ranking algorithm for Yan_weighted |}
-      ~items:(ref YanCriterionWeight.ref)
+      ~items:(ref YanCriterionWeights.ref)
 
   let of_ftw criterion_weights =
     match criterion_weights with
@@ -393,8 +393,8 @@ module RankingAlgorithm = struct
   type t = Ftw.Ranking.Algorithm.t =
     | RPSS
     | Yan_weighted of {
-        weights : YanCriterionWeight.t list;
-        head_weights : YanCriterionWeight.t list;
+        weights : YanCriterionWeights.t list;
+        head_weights : YanCriterionWeights.t list;
       }
   [@@deriving yojson]
 
@@ -413,7 +413,7 @@ module RankingAlgorithm = struct
           ~one_of:[
             obj @@ S.make_schema ()
               ~typ:array
-              ~items:(ref YanCriterionWeight.ref);
+              ~items:(ref YanCriterionWeights.ref);
             obj @@ S.make_schema ()
               ~typ:(obj S.Null)
           ]
@@ -444,8 +444,8 @@ module RankingAlgorithm = struct
                  | _, Error e -> Error e)
               lst (Ok [])
           in
-          let weights = sequence (List.map YanCriterionWeight.of_yojson weights) in
-          let head_weights = sequence (List.map YanCriterionWeight.of_yojson head_weights) in
+          let weights = sequence (List.map YanCriterionWeights.of_yojson weights) in
+          let head_weights = sequence (List.map YanCriterionWeights.of_yojson head_weights) in
 
           begin match weights, head_weights with
             | Ok w, Ok hw -> Ok (Yan_weighted { weights=w; head_weights=hw })
@@ -467,8 +467,8 @@ module RankingAlgorithm = struct
       `Assoc [
         ("algorithm", `String "yan");
         ("algorithm_data", `Assoc [
-            ("weights", `List (List.map YanCriterionWeight.to_yojson weights));
-            ("head_weights", `List (List.map YanCriterionWeight.to_yojson head_weights));
+            ("weights", `List (List.map YanCriterionWeights.to_yojson weights));
+            ("head_weights", `List (List.map YanCriterionWeights.to_yojson head_weights));
           ]
         );
       ]

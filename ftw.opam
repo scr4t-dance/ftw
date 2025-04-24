@@ -20,7 +20,6 @@ depends: [
   "containers"
   "bos"
   "fpath"
-  "gen"
   "logs"
   "fmt"
   "uutf"
