@@ -88,7 +88,7 @@ let rec routes router =
       "400", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Invalid input";
       "409", Types.obj @@ Spec.make_error_response_object ()
-        ~description:"Conflict bject with same name, start date and end date already exists";
+        ~description:"Conflict object with same name, start date and end date already exists";
     ]
 
 
