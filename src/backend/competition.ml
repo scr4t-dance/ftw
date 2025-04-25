@@ -75,8 +75,8 @@ let rec routes router =
         ~description:"Invalid input";
     ]
   (* Event comps query *)
-  |> Router.get "/api/event/:id/dancers" list_dancers
-    ~tags:["dancer"; "competition"]
+  |> Router.get "/api/comp/:id/dancers" list_dancers
+    ~tags:["competition"; "dancer"]
     ~summary:"Get the list of dancers of a Competition"
     ~parameters:[
       Types.obj @@ Spec.make_parameter_object ()

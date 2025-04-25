@@ -5,7 +5,7 @@ import { useGetApiCompId, useGetApiCompIdDancers } from '../hookgen/competition/
 import PageTitle from "./PageTitle";
 import Header from "./Header";
 import Footer from "./Footer";
-import { CompetitionId } from "hookgen/model";
+import { Bib, CompetitionId, DancerIdList } from "hookgen/model";
 import { Link, useParams } from "react-router";
 import { useGetApiEventId } from "hookgen/event/event";
 import NewPhaseForm from "./NewPhaseForm";
