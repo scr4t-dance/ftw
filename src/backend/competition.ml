@@ -76,7 +76,7 @@ let rec routes router =
     ]
   (* Event comps query *)
   |> Router.get "/api/comp/:id/dancers" list_dancers
-    ~tags:["competition"; "dancer"]
+    ~tags:["dancer"; "competition"]
     ~summary:"Get the list of dancers of a Competition"
     ~parameters:[
       Types.obj @@ Spec.make_parameter_object ()
@@ -196,22 +196,6 @@ and list_dancers =
        let bib_list_with_error = Result.map_error
            Error.generic bib_list_result
        in Result.map (fun bibs : Types.BibList.t -> { bibs; }) bib_list_with_error
-    )
-
-and add_dancer =
-  Api.put
-    ~of_yojson:Types.Bib.of_yojson
-    ~to_yojson:Types.DancerIdList.to_yojson
-    (
-      fun req st (bib : Types.Bib.t) ->
-        let+ id = Utils.int_param req "id" in
-        match bib.competition with
-        | comp_id when comp_id = id ->
-          let target = Types.Target.to_ftw bib.target in
-          Ftw.Bib.set ~st ~competition:id ~target ~bib:bib.bib;
-          let dancer_list : Types.DancerIdList.t = {dancers=Types.Target.dancers bib.target} in
-          Ok dancer_list
-        | _ -> Error (Error.generic "Competition id do not match payload")
     )
 
 and list_dancers =
