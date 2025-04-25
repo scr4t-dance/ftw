@@ -12,3 +12,5 @@ _opam
 .vscode
 
 *.log
+
+src/frontend/src/hookgen

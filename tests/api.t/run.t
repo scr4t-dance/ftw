@@ -43,15 +43,17 @@ Create some competitions
   $ curl -s -X PUT http://localhost:8081/api/comp \
   > -H "Content-Type: application/json" \
   > -d '{"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Novice"]}'
+  1
 
   $ curl -s -X PUT http://localhost:8081/api/comp \
   > -H "Content-Type: application/json" \
   > -d '{"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Intermediate"]}'
+  2
 
 Get the ids of competitions we created, and check their details
 
   $ curl -s http://localhost:8081/api/event/1/comps
-  {"comps":[1,2]}
+  {"competitions":[1,2]}
 
   $ curl -s http://localhost:8081/api/comp/1
   {"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Novice"]}
