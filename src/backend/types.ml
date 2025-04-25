@@ -685,39 +685,6 @@ module Phase = struct
 end
 
 
-(* Dancers *)
-(* ************************************************************************* *)
-
-(* Dancer Ids *)
-module DancerId = struct
-  type t = Ftw.Dancer.id [@@deriving yojson]
-
-  let ref, schema =
-    make_schema ()
-      ~name:"DancerId"
-      ~typ:int
-      ~examples:[`Int 42]
-end
-
-(* Dancer Id list *)
-module DancerIdList = struct
-  type t = {
-    phases : DancerId.t list;
-  } [@@deriving yojson]
-
-  let ref, schema =
-    make_schema ()
-      ~name:"DancerIdList"
-      ~typ:object_
-      ~properties:[
-        "dancers", obj @@ S.make_schema ()
-          ~typ:array
-          ~items:(ref DancerId.ref);
-      ]
-end
-
-
-
 (* Heats *)
 (* ************************************************************************* *)
 
@@ -822,6 +789,7 @@ end
 
 module SingleTarget = struct
   type t = {
+    target_type: string;
     target : DancerId.t;
     role : Role.t;
   } [@@deriving yojson]
@@ -829,8 +797,11 @@ module SingleTarget = struct
   let ref, schema =
     make_schema ()
       ~name:"SingleTarget"
-      ~typ:(Obj Object)
+      ~typ:object_
       ~properties:[
+        "target_type", obj @@ S.make_schema()
+          ~typ:string
+          ~enum:[`String "single"];
         "target", ref DancerId.ref;
         "role", ref Role.ref;
       ]
@@ -839,6 +810,7 @@ end
 
 module CoupleTarget = struct
   type t = {
+    target_type: string;
     leader : DancerId.t;
     follower : DancerId.t;
   } [@@deriving yojson]
@@ -846,8 +818,11 @@ module CoupleTarget = struct
   let ref, schema =
     make_schema ()
       ~name:"CoupleTarget"
-      ~typ:(Obj Object)
+      ~typ:object_
       ~properties:[
+        "target_type", obj @@ S.make_schema()
+          ~typ:string
+          ~enum:[`String "couple"];
         "leader", ref DancerId.ref;
         "follower", ref DancerId.ref;
       ]
@@ -862,17 +837,12 @@ module Target = struct
   let ref, schema =
     make_schema ()
       ~name:"Target"
-      ~typ:(Obj Object)
-      ~properties:[
-        "target_type", obj @@ S.make_schema()
-          ~typ:string;
-        "target",obj @@ S.make_schema()
-          ~typ:object_
-          ~one_of:[
-            ref SingleTarget.ref;
-            ref CoupleTarget.ref;
-          ]
+      ~typ:object_
+      ~one_of:[
+        (ref SingleTarget.ref);
+        (ref CoupleTarget.ref);
       ]
+
 
   let dancers target =
     match target with
@@ -881,32 +851,43 @@ module Target = struct
 
   let of_ftw s =
     match s with
-    | Ftw.Bib.Any (Single {target;role}) -> TargetSingle {target={target;role;}}
-    | Ftw.Bib.Any (Couple {leader;follower}) -> TargetCouple {target={leader;follower;}}
+    | Ftw.Bib.Any (Single {target;role}) -> TargetSingle {target={target;role;target_type="single"}}
+    | Ftw.Bib.Any (Couple {leader;follower}) -> TargetCouple {target={leader;follower;target_type="couple"}}
 
   let to_ftw s =
     match s with
-    | TargetSingle {target={target;role;}} -> Ftw.Bib.Any (Single {target;role})
-    | TargetCouple {target={leader;follower;}} -> Ftw.Bib.Any (Couple {leader;follower})
+    | TargetSingle {target={target;role; _}} -> Ftw.Bib.Any (Single {target;role})
+    | TargetCouple {target={leader;follower; _}} -> Ftw.Bib.Any (Couple {leader;follower})
 
 
   let to_yojson target =
     match target with
-    | TargetSingle {target=t} -> `Assoc[("target_type", `String "single"); ("target", SingleTarget.to_yojson t)]
-    | TargetCouple {target=t} -> `Assoc[("target_type", `String "single"); ("target", CoupleTarget.to_yojson t)]
+    | TargetSingle {target=t} ->
+      let schema_fields =
+        begin match SingleTarget.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("target_type", `String "single");] @ schema_fields)
+    | TargetCouple {target=t} ->
+      let schema_fields =
+        begin match CoupleTarget.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("target_type", `String "couple");] @ schema_fields)
 
   let of_yojson json =
     match json with
-    | `Assoc (obj : (string * S.any) list) -> (
-        match List.assoc_opt "target_type" obj, List.assoc_opt "target" obj with
-        | Some (`String "single"), Some raw_target ->
-          SingleTarget.of_yojson raw_target |> Result.map (fun s -> TargetSingle { target = s })
-        | Some (`String "couple"), Some raw_target ->
-          CoupleTarget.of_yojson raw_target |> Result.map (fun s -> TargetCouple { target = s })
-        | Some (`String unknown), _ -> Error ("Unrecognised target_type: " ^ unknown)
-        | Some _, Some _ -> Error ("Unrecognised target_type")
-        | None, _ -> Error "Missing key: target_type"
-        | _, None -> Error "Missing key: target"
+    | `Assoc fields -> (
+        match List.assoc_opt "target_type" fields with
+        | Some (`String "single") -> SingleTarget.of_yojson json |> Result.map (fun s -> TargetSingle {target=s})
+        | Some (`String "couple") -> CoupleTarget.of_yojson json |> Result.map (fun s -> TargetCouple {target=s})
+        | Some (`String unknown) -> Error ("Unrecognised target_type: " ^ unknown)
+        | Some _  -> Error ("Unrecognised target_type")
+        | None -> Error "Missing key: target_type"
       )
     | _ -> Error "Expected JSON object for Target"
 end
@@ -944,7 +925,7 @@ module BibList = struct
       ~name:"BibList"
       ~typ:object_
       ~properties:[
-        "dancers", obj @@ S.make_schema ()
+        "bibs", obj @@ S.make_schema ()
           ~typ:array
           ~items:(ref Bib.ref);
       ]

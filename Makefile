@@ -36,7 +36,7 @@ hookgen: src/openapi.json
 $(FRONTEND_TARGET): hookgen $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
 
-backend: hookgen_init $(FRONTEND_TARGET)
+backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
 
 
@@ -46,10 +46,13 @@ backend: hookgen_init $(FRONTEND_TARGET)
 
 tests: backend
 	@dune runtest \
-		|| echo -e "\n\e[01;31m!!! TESTS FAILED !!!\e[0m\n-> run 'make promote' to update the tests result files"
+		|| echo -e "\n\e[01;31m!!! TESTS FAILED !!!\e[0m\n-> run 'make promote' to update the tests result files\nRun 'make openapi' if tests fail"
 
 promote:
 	dune promote
+
+openapi:
+	dune exec -- ftw openapi src/openapi.json
 
 doc:
 	dune build $(FLAGS) @doc

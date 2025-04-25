@@ -3,13 +3,36 @@ import "../styles/ContentStyle.css";
 import React from 'react';
 import { useGetApiDancers, useGetApiDancerId } from '../hookgen/dancer/dancer';
 
-import { DancerId } from "hookgen/model";
+import { DancerId, DancerIdList } from "hookgen/model";
 import { Link } from "react-router";
 import PageTitle from "./PageTitle";
 import Header from "./Header";
 import Footer from "./Footer";
 
 const dancerLink = "dancer/"
+
+export function BareDancerListComponent({dancer_list} : {dancer_list : DancerIdList}) {
+
+    return (
+        <>
+            <h1>Liste Compétiteur-ices</h1>
+            <table>
+                <tbody>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Prénom</th>
+                        <th>Division follower</th>
+                        <th>Division leader</th>
+                    </tr>
+
+                    {dancer_list?.dancers?.map((dancerId, index) => (
+                        <DancerDetails key={dancerId} id={dancerId} index={index} />
+                    ))}
+                </tbody>
+            </table>
+        </>
+    );
+}
 
 function DancerListComponent() {
 
@@ -20,21 +43,7 @@ function DancerListComponent() {
 
     return (
         <>
-            <h1>Liste Compétiteur-euses</h1>
-            <table>
-                <tbody>
-                    <tr>
-                        <th>Nom</th>
-                        <th>Prénom</th>
-                        <th>Division follower</th>
-                        <th>Division leader</th>
-                    </tr>
-
-                    {data?.data?.dancers?.map((dancerId, index) => (
-                        <DancerDetails key={dancerId} id={dancerId} index={index} />
-                    ))}
-                </tbody>
-            </table>
+            <BareDancerListComponent dancer_list={data?.data as DancerIdList} />
         </>
     );
 }
