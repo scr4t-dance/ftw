@@ -229,6 +229,25 @@ module Category = struct
           ])
 end
 
+(* Role *)
+module Role = struct
+  type t = Ftw.Role.t =
+    | Leader
+    | Follower
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Role"
+      ~typ:array
+      ~items:(
+        obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[
+            `String "Leader";
+            `String "Follower";
+          ])
+end
 
 (* Events *)
 (* ************************************************************************* *)
@@ -425,4 +444,139 @@ module Dancer = struct
         "as_follower", ref Divisions.ref;
       ]
       ~required:["last_name"; "first_name"; "as_leader"; "as_follower"]
+end
+
+(* Bibs *)
+(* ************************************************************************* *)
+
+
+module SingleTarget = struct
+  type t = {
+    target : DancerId.t;
+    role : Role.t;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"SingleTarget"
+      ~typ:(Obj Object)
+      ~properties:[
+        "target", ref DancerId.ref;
+        "role", ref Role.ref;
+      ]
+end
+
+
+module CoupleTarget = struct
+  type t = {
+    leader : DancerId.t;
+    follower : DancerId.t;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"CoupleTarget"
+      ~typ:(Obj Object)
+      ~properties:[
+        "leader", ref DancerId.ref;
+        "follower", ref DancerId.ref;
+      ]
+end
+
+module Target = struct
+  type t =
+    | TargetSingle of {target: SingleTarget.t}
+    | TargetCouple of {target: CoupleTarget.t}
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Target"
+      ~typ:(Obj Object)
+      ~properties:[
+        "target_type", obj @@ S.make_schema()
+          ~typ:string;
+        "target",obj @@ S.make_schema()
+          ~typ:object_
+          ~one_of:[
+            ref SingleTarget.ref;
+            ref CoupleTarget.ref;
+          ]
+      ]
+
+  let dancers target =
+    match target with
+    | TargetSingle {target=s} -> [s.target]
+    | TargetCouple {target=s} -> [s.leader;s.follower]
+
+  let of_ftw s =
+    match s with
+    | Ftw.Bib.Any (Single {target;role}) -> TargetSingle {target={target;role;}}
+    | Ftw.Bib.Any (Couple {leader;follower}) -> TargetCouple {target={leader;follower;}}
+
+  let to_ftw s =
+    match s with
+    | TargetSingle {target={target;role;}} -> Ftw.Bib.Any (Single {target;role})
+    | TargetCouple {target={leader;follower;}} -> Ftw.Bib.Any (Couple {leader;follower})
+
+
+  let to_yojson target =
+    match target with
+    | TargetSingle {target=t} -> `Assoc[("target_type", `String "single"); ("target", SingleTarget.to_yojson t)]
+    | TargetCouple {target=t} -> `Assoc[("target_type", `String "single"); ("target", CoupleTarget.to_yojson t)]
+
+  let of_yojson json =
+    match json with
+    | `Assoc (obj : (string * S.any) list) -> (
+        match List.assoc_opt "target_type" obj, List.assoc_opt "target" obj with
+        | Some (`String "single"), Some raw_target ->
+          SingleTarget.of_yojson raw_target |> Result.map (fun s -> TargetSingle { target = s })
+        | Some (`String "couple"), Some raw_target ->
+          CoupleTarget.of_yojson raw_target |> Result.map (fun s -> TargetCouple { target = s })
+        | Some (`String unknown), _ -> Error ("Unrecognised target_type: " ^ unknown)
+        | Some _, Some _ -> Error ("Unrecognised target_type")
+        | None, _ -> Error "Missing key: target_type"
+        | _, None -> Error "Missing key: target"
+      )
+    | _ -> Error "Expected JSON object for Target"
+end
+
+module Bib = struct
+
+  type t = {
+    competition : CompetitionId.t;
+    bib : int;
+    target : Target.t;
+  } [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Bib"
+      ~typ:(Obj Object)
+      ~properties:[
+        "competition", ref CompetitionId.ref;
+        "bib", obj @@ S.make_schema()
+          ~typ:int;
+        "target", ref Target.ref;
+      ]
+
+end
+
+(* BibSingle list *)
+module BibList = struct
+  type t = {
+    bibs : Bib.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"BibList"
+      ~typ:object_
+      ~properties:[
+        "dancers", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref Bib.ref);
+      ]
+
 end
