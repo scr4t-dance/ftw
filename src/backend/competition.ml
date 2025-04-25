@@ -85,12 +85,13 @@ and create_comp =
   Api.put
     ~of_yojson:Types.Competition.of_yojson
     ~to_yojson:Types.CompetitionId.to_yojson
-    (fun _req st (comp : Types.Competition.t) ->
-       let category = Types.Category.to_ftw comp.category in
-       let competition =
-         Ftw.Competition.create st
-           comp.event comp.name comp.kind category
-           ~n_leaders:comp.leaders_count ~n_follows:comp.followers_count
-       in
-       Ok id)
-       Ok (Ftw.Competition.id competition))
+    (
+      fun _req st (comp : Types.Competition.t) ->
+        let category = Types.Category.to_ftw comp.category in
+        let competition =
+          Ftw.Competition.create st
+            comp.event comp.name comp.kind category
+            ~n_leaders:comp.leaders_count ~n_follows:comp.followers_count
+        in
+        Ok (Ftw.Competition.id competition)
+    )

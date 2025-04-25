@@ -34,7 +34,7 @@ configure:
 # initiate ocaml server once to generate openapi.json file
 hookgen_init src/hookgen/raw_openapi.json :
 	dune build $(FLAGS) @install
-	./hookgen.sh
+	./bin/hookgen.sh
 
 # `&:` is used to define a grouped target
 ${HOOKGEN_TARGETS} &: src/hookgen/raw_openapi.json
@@ -69,7 +69,7 @@ run: backend
 	dune exec -- ftw --db=tests/test.db
 
 frontend_dev: backend
-	./deploy_frontend_dev.sh
+	./bin/deploy_frontend_dev.sh
 
 tests: backend
 	dune runtest
