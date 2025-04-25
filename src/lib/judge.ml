@@ -26,7 +26,7 @@ type panel =
 (* ************************************************************************* *)
 
 let () =
-  State.add_init (fun st ->
+  State.add_init ~name:"judge" (fun st ->
       State.exec ~st {|
         CREATE TABLE judges (
           judge_id INTEGER REFERENCES dancers(id),

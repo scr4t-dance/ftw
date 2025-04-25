@@ -1,0 +1,27 @@
+
+# FTW Event Info
+
+[event]
+name = "Concours Chorégraphie ENS Ulm"
+start_date = 2019-05-04
+end_date = 2017-05-04
+
+[event.comps.cc]
+name = ""
+kind = "Routine"
+category = "Regular"
+leaders = 0
+follows = 0
+
+[event.comps.cc.results]
+csv = """
+1	L	Kavokine	Nikita
+1	F	Vallerio	Héloise
+
+2	L	Falconieri	Lorenzo
+2	F	Desseaux	Albane
+
+3	L	Lopez	Yann
+3	F	Gadon-Ferreira	Justine
+"""
+
