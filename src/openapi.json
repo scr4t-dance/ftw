@@ -172,6 +172,89 @@
         }
       }
     },
+    "/api/comp/{id}/bib": {
+      "put": {
+        "tags": [ "competition", "dancer" ],
+        "summary": "Add dancer to competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Event",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Details of the Competition to create",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Bib" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DancerIdList" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/comp/{id}/dancers": {
+      "get": {
+        "tags": [ "competition", "dancer" ],
+        "summary": "Get the list of dancers of a Competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Event",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BibList" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/comp": {
       "put": {
         "tags": [ "competition" ],
@@ -491,6 +574,10 @@
           ]
         }
       },
+      "Role": {
+        "type": "array",
+        "items": { "type": "string", "enum": [ "Leader", "Follower" ] }
+      },
       "EventId": { "type": "integer" },
       "EventIdList": {
         "type": "object",
@@ -632,6 +719,68 @@
           "email": { "examples": [ "email@email.email" ], "type": "string" },
           "as_leader": { "$ref": "#/components/schemas/Divisions" },
           "as_follower": { "$ref": "#/components/schemas/Divisions" }
+        }
+      },
+      "DancerId": { "type": "integer" },
+      "DancerIdList": {
+        "type": "object",
+        "properties": {
+          "dancers": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DancerId" }
+          }
+        }
+      },
+      "Dancer": {
+        "type": "object",
+        "properties": {
+          "birthday": { "$ref": "#/components/schemas/Date" },
+          "last_name": { "type": "string" },
+          "first_name": { "type": "string" },
+          "email": { "type": "string" },
+          "as_leader": { "$ref": "#/components/schemas/Divisions" },
+          "as_follower": { "$ref": "#/components/schemas/Divisions" }
+        },
+        "required": [ "last_name", "first_name", "as_leader", "as_follower" ]
+      },
+      "SingleTarget": {
+        "type": "object",
+        "properties": {
+          "target_type": { "type": "string", "enum": [ "single" ] },
+          "target": { "$ref": "#/components/schemas/DancerId" },
+          "role": { "$ref": "#/components/schemas/Role" }
+        }
+      },
+      "CoupleTarget": {
+        "type": "object",
+        "properties": {
+          "target_type": { "type": "string", "enum": [ "couple" ] },
+          "leader": { "$ref": "#/components/schemas/DancerId" },
+          "follower": { "$ref": "#/components/schemas/DancerId" }
+        }
+      },
+      "Target": {
+        "type": "object",
+        "oneOf": [
+          { "$ref": "#/components/schemas/SingleTarget" },
+          { "$ref": "#/components/schemas/CoupleTarget" }
+        ]
+      },
+      "Bib": {
+        "type": "object",
+        "properties": {
+          "competition": { "$ref": "#/components/schemas/CompetitionId" },
+          "bib": { "type": "integer" },
+          "target": { "$ref": "#/components/schemas/Target" }
+        }
+      },
+      "BibList": {
+        "type": "object",
+        "properties": {
+          "bibs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Bib" }
+          }
         }
       }
     }

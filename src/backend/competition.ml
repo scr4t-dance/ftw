@@ -75,8 +75,8 @@ let rec routes router =
         ~description:"Invalid input";
     ]
   (* Event comps query *)
-  |> Router.get "/api/event/:id/dancers" list_dancers
-    ~tags:["dancer"; "competition"]
+  |> Router.get "/api/comp/:id/dancers" list_dancers
+    ~tags:["competition"; "dancer"]
     ~summary:"Get the list of dancers of a Competition"
     ~parameters:[
       Types.obj @@ Spec.make_parameter_object ()
@@ -90,11 +90,15 @@ let rec routes router =
         ~description:"Successful operation"
         ~content:[
           Spec.json,
-          Spec.make_media_type_object () ~schema:(Types.(ref CompetitionIdList.ref));
+          Spec.make_media_type_object () ~schema:(Types.(ref BibList.ref));
         ];
+        "400", Types.obj @@ Spec.make_error_response_object ()
+          ~description:"Invalid Id supplied";
+        "404", Types.obj @@ Spec.make_error_response_object ()
+          ~description:"Competition not found";
     ]
   |> Router.put "/api/comp/:id/bib" add_dancer
-    ~tags:["competition"]
+    ~tags:["competition"; "dancer"]
     ~summary:"Add dancer to competition"
     ~request_body:(
       Types.obj @@ Spec.make_request_body_object ()
