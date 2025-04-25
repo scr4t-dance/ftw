@@ -14,8 +14,8 @@ function HomePage() {
 
                 <h2>Présentation</h2>
                 <p>
-                    Le SCR4T, ou “Scrat” pour les amis et les fans de “l'Âge de Glace”, est le “Système Compétitif de Rock 4 Temps”. 
-                    C'est un système d'organisation de compétition pensé pour, et amené à évoluer avec la communauté de Rock 4 Temps 
+                    Le SCR4T, ou “Scrat” pour les amis et les fans de “l'Âge de Glace”, est le “Système Compétitif de Rock 4 Temps”.
+                    C'est un système d'organisation de compétition pensé pour, et amené à évoluer avec la communauté de Rock 4 Temps
                     (ou toute autre appellation de danses de couple se considérant comme voisine de celle-ci) d'Île de France.
                 </p>
                 <p>Le SCR4T propose une architecture de compétition en 3 sous-systèmes complémentaires :</p>
@@ -29,8 +29,8 @@ function HomePage() {
                 <p>Avec les années, la communauté de Rock 4 Temps grandit, et nous en sommes très heureux. Avec cette croissance, les écarts de niveau entre les débutant·e·s et les danseur-euse-s les plus aguerri·e·s croissent également.</p>
                 <p>Nous proposons un système de divisions à points pour faire de la compétition un parcours, qui puisse être motivant et épanouissant pour tout le monde, pour accompagner l'évolution d'un danseur-euse de Rock 4 Temps sur plusieurs paliers.</p>
                 <p>
-                    Chaque danseur·euse débutant dans les compétitions SCR4T commence dans la première division : la division initiée. 
-                    Iel y reste jusqu'à avoir obtenu suffisamment de succès compétitifs, pour lui ouvrir l'accès à la compétition dans la division suivante : la division intermédiaire. 
+                    Chaque danseur·euse débutant dans les compétitions SCR4T commence dans la première division : la division initiée.
+                    Iel y reste jusqu'à avoir obtenu suffisamment de succès compétitifs, pour lui ouvrir l'accès à la compétition dans la division suivante : la division intermédiaire.
                     Iel accumule alors des points Intermédiaire, qui lui permettent d'obtenir l'accès à la division suivante : la division Avancé.
                 </p>
 
@@ -52,7 +52,7 @@ function HomePage() {
                 </ul>
 
                 <h2>Contact</h2>
-                <p>Pour ne pas rater les nouvelles infos, suivez <a target="_blank" href="https://www.facebook.com/SCR4T.danse">notre page facebook</a> !</p>
+                <p>Pour ne pas rater les nouvelles infos, suivez <a target="_blank" rel="noreferrer" href="https://www.facebook.com/SCR4T.danse">notre page facebook</a> !</p>
                 <p>Vous êtes un organisateur souhaitant utiliser le système, un compétiteur curieux ? Contactez-nous à : <a href="mailto:scr4t.danse@gmail.com">scr4t.danse@gmail.com</a>.</p>
             </div>
             <Footer />

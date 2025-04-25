@@ -84,4 +84,3 @@ let err_msg = function
     Format.asprintf
       "Invalid Event dates: %s - %s"
       (Ftw.Date.to_string start_date) (Ftw.Date.to_string end_date)
-

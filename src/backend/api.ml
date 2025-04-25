@@ -31,9 +31,9 @@ let put ~of_yojson ~to_yojson callback = fun req ->
       let res =
         match of_yojson (Yojson.Safe.from_string body) with
         | exception Yojson.Json_error msg ->
-          Error.(mk @@ invalid_json_body msg)
+          Error.(mk @@ invalid_json_body (msg ^ "\n" ^ body))
         | Error msg ->
-          Error.(mk @@ invalid_json_body msg)
+          Error.(mk @@ invalid_json_body (msg ^ "\n" ^ body))
         | Ok input -> callback req st input
       in
       match res with

@@ -4,7 +4,7 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type id = Id.t
+type id = Id.t [@@deriving yojson]
 (** Alias for ids *)
 
 type t
@@ -53,6 +53,7 @@ val update_divisions :
 val for_all : st:State.t -> f:(t -> unit) -> unit
 (** Iterate over all dancers. *)
 
+val list : st:State.t -> t list
 
 (* Index *)
 (* ************************************************************************* *)

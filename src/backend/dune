@@ -17,4 +17,3 @@
   (deps (source_tree static))
   (action (with-stdout-to %{null}
    (run ocaml-crunch -m plain static -o %{target}))))
-
