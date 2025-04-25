@@ -7,7 +7,7 @@ echo $FTW_PID > bin/ftw.pid
 
 # Ensure the backend server is cleaned up on exit
 cleanup() {
-    if [[ -f ftw.pid ]]; then
+    if [[ -f bin/ftw.pid ]]; then
         kill -TERM $(cat bin/ftw.pid) 2>/dev/null
         echo "Stopped ftw task"
         rm -f bin/ftw.pid

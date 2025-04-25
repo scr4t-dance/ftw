@@ -14,7 +14,9 @@ function NewCompetitionForm({default_event=-1} : {default_event?:EventId}) {
         event: default_event,
         name: '',
         kind: [KindItem.Jack_and_Jill],
-        category: [CategoryItem.Novice]
+        category: [CategoryItem.Novice],
+        leaders_count: 50,
+        followers_count: 50
     });
 
     const [competitionValidationError, setCompetitionValidationError] = useState('');
