@@ -39,6 +39,7 @@ let server (options : Options.server) =
     router
     |> Event.routes
     |> Competition.routes
+    |> Dancer.routes
   in
   (* Define CORS middleware manually *)
   let cors_middleware handler request =
@@ -113,4 +114,3 @@ let () =
   | Ok `Ok Options.Server options -> server options
   | Ok `Ok Options.Import options -> import options
   | Ok `Ok Options.Export options -> export options
-

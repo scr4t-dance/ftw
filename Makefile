@@ -62,7 +62,7 @@ hookgen_validate:
 $(FRONTEND_TARGET): ${HOOKGEN_TARGETS} $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
 
-backend: $(FRONTEND_TARGET)
+backend: hookgen_init $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
 
 run: backend

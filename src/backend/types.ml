@@ -99,13 +99,13 @@ module Date = struct
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
           *)
-          (* ~examples:[`Int 1; `Int 31] *);
+        (* ~examples:[`Int 1; `Int 31] *);
         "month", obj @@ S.make_schema ()
           ~typ:int
-          (* ~examples:[`Int 1; `Int 12] *);
+        (* ~examples:[`Int 1; `Int 12] *);
         "year", obj @@ S.make_schema ()
           ~typ:int
-          (* ~examples:[`Int 2019; `Int 2024] *);
+        (* ~examples:[`Int 2019; `Int 2024] *);
       ]
 end
 
@@ -151,6 +151,34 @@ module Division = struct
           ~enum:[
             `String "Novice";
             `String "Intermediate";
+            `String "Advanced";
+          ])
+end
+
+(* Dancer Division *)
+module Divisions = struct
+  type t = Ftw.Divisions.t =
+    | None
+    | Novice
+    | Novice_Intermediate
+    | Intermediate
+    | Intermediate_Advanced
+    | Advanced
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Divisions"
+      ~typ:array
+      ~items:(
+        obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[
+            `String "None";
+            `String "Novice";
+            `String "Novice_Intermediate";
+            `String "Intermediate";
+            `String "Intermediate_Advanced";
             `String "Advanced";
           ])
 end
@@ -258,7 +286,7 @@ module Event = struct
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
           *)
-          (* ~examples:[`String "P4T"] *);
+        (* ~examples:[`String "P4T"] *);
         "start_date", ref Date.ref;
         "end_date", ref Date.ref;
       ]
@@ -324,7 +352,77 @@ module Competition = struct
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
           *)
-          (* ~examples:[`String "P4T"]*) ;
+        (* ~examples:[`String "P4T"]*) ;
+        "kind", ref Kind.ref;
+        "category", ref Category.ref;
+        "leaders_count", obj @@ S.make_schema () ~typ:int;
+        "followers_count", obj @@ S.make_schema () ~typ:int;
+      ]
+end
+
+
+
+(* Dancers *)
+(* ************************************************************************* *)
+
+(* Dancer Ids *)
+module DancerId = struct
+  type t = Ftw.Dancer.id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"DancerId"
+      ~typ:int
+      (*
+      TODO raise issue at openapi_router
+      https://swagger.io/docs/specification/v3_0/adding-examples/
+      Note that schemas and properties support single example but not multiple examples.
+      *)
+      (* ~examples:[`Int 42] *)
+end
+
+(* Dancer Id list *)
+module DancerIdList = struct
+  type t = {
+    competitions : DancerId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"DancerIdList"
+      ~typ:object_
+      ~properties:[
+        "competitions", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref DancerId.ref);
+      ]
+end
+
+(* Dancer specification *)
+module Dancer = struct
+  type t = {
+    birthday : Date.t option;
+    last_name : string;
+    first_name : string;
+    email : string option;
+    as_leader : Divisions.t;
+    as_follower : Divisions.t;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Dancer"
+      ~typ:(Obj Object)
+      ~properties:[
+        "event", ref EventId.ref;
+        "name", obj @@ S.make_schema ()
+          ~typ:string
+          (*
+          TODO raise issue at openapi_router
+          https://swagger.io/docs/specification/v3_0/adding-examples/
+          Note that schemas and properties support single example but not multiple examples.
+          *)
+        (* ~examples:[`String "P4T"]*) ;
         "kind", ref Kind.ref;
         "category", ref Category.ref;
         "leaders_count", obj @@ S.make_schema () ~typ:int;
