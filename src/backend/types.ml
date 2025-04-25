@@ -384,7 +384,7 @@ end
 (* Dancer Id list *)
 module DancerIdList = struct
   type t = {
-    competitions : DancerId.t list;
+    dancers : DancerId.t list;
   } [@@deriving yojson]
 
   let ref, schema =
@@ -392,7 +392,7 @@ module DancerIdList = struct
       ~name:"DancerIdList"
       ~typ:object_
       ~properties:[
-        "competitions", obj @@ S.make_schema ()
+        "dancers", obj @@ S.make_schema ()
           ~typ:array
           ~items:(ref DancerId.ref);
       ]
@@ -407,25 +407,22 @@ module Dancer = struct
     email : string option;
     as_leader : Divisions.t;
     as_follower : Divisions.t;
-  } [@@deriving yojson]
+  } [@@deriving yojson { strict = false }]
 
   let ref, schema =
     make_schema ()
       ~name:"Dancer"
       ~typ:(Obj Object)
       ~properties:[
-        "event", ref EventId.ref;
-        "name", obj @@ S.make_schema ()
-          ~typ:string
-          (*
-          TODO raise issue at openapi_router
-          https://swagger.io/docs/specification/v3_0/adding-examples/
-          Note that schemas and properties support single example but not multiple examples.
-          *)
-        (* ~examples:[`String "P4T"]*) ;
-        "kind", ref Kind.ref;
-        "category", ref Category.ref;
-        "leaders_count", obj @@ S.make_schema () ~typ:int;
-        "followers_count", obj @@ S.make_schema () ~typ:int;
+        "birthday", ref Date.ref;
+        "last_name", obj @@ S.make_schema ()
+          ~typ:string;
+        "first_name", obj @@ S.make_schema ()
+          ~typ:string;
+        "email", obj @@ S.make_schema ()
+          ~typ:string;
+        "as_leader", ref Divisions.ref;
+        "as_follower", ref Divisions.ref;
       ]
+      ~required:["last_name"; "first_name"; "as_leader"; "as_follower"]
 end

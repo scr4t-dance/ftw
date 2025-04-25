@@ -8,6 +8,18 @@ open Utils.Syntax
 
 let rec routes router =
   router
+  (* Dancer List *)
+  |> Router.get "/api/dancers" dancer_list
+    ~tags:["dancer"]
+    ~summary:"Get the list of Dancers"
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Succesful operation"
+        ~content:[
+          "application/json",
+          Spec.make_media_type_object () ~schema:Types.(ref DancerIdList.ref);
+        ];
+    ]
   |> Router.get "/api/dancer/:id" get_dancer
     ~tags:["dancer"]
     ~summary:"Get the details of a Dancer"
@@ -55,6 +67,15 @@ let rec routes router =
 
 (* Dancer query *)
 (* ************************************************************************* *)
+
+and dancer_list =
+  Api.get
+    ~to_yojson:Types.DancerIdList.to_yojson
+    (fun _req st ->
+      let dancers = List.map Ftw.Dancer.id (Ftw.Dancer.list ~st) in
+      let res : Types.DancerIdList.t = { dancers; } in
+      Ok res
+    )
 
 and get_dancer =
   Api.get

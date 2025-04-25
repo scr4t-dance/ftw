@@ -9,6 +9,9 @@ import React from 'react';
 import EventPage from './components/EventPage';
 import NewCompetitionFormPage from './components/NewCompetitionFormPage';
 import CompetitionPage from './components/CompetitionPage';
+import DancerList from './components/DancerList';
+import NewDancerForm from './components/NewDancerForm';
+import DancerPage from './components/DancerPage';
 
 const router = createBrowserRouter([
 	{
@@ -34,6 +37,18 @@ const router = createBrowserRouter([
 	{
 		path: "/event",
 		element: <NewEventForm />,
+	},
+	{
+		path: "/dancer",
+		element: <DancerList />,
+	},
+	{
+		path: "/dancer/:id_dancer",
+		element: <DancerPage />,
+	},
+	{
+		path: "/dancer/new",
+		element: <NewDancerForm />,
 	},
 	{
 		path: "/about",
