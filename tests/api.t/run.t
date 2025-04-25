@@ -6,7 +6,7 @@ Initialization
 
 Launch the FTW server in the background
 
-  $ ftw --db=":memory" --port=8081 > /dev/null 2>&1 &
+  $ ftw --db=":memory:" --port=8081 > /dev/null 2>&1 &
 
 Sleep a bit to ensure that the server had had time to initialize and is ready
 to respond to requests
@@ -53,7 +53,7 @@ Create some competitions
 Get the ids of competitions we created, and check their details
 
   $ curl -s http://localhost:8081/api/event/1/comps
-  {"comps":[1,2]}
+  {"competitions":[1,2]}
 
   $ curl -s http://localhost:8081/api/comp/1
   {"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Novice"],"leaders_count":0,"followers_count":0}
@@ -69,4 +69,3 @@ Make sure all children of this process have been killed,
 especially the FTW server in the background
 
   $ pkill -P "$$"
-

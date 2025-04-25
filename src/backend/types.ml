@@ -7,7 +7,7 @@ module S = Openapi_router.Json_Schema
 (* ************************************************************************* *)
 
 let obj o = S.Obj o
-let ref name = S.Ref name
+let ref name = S.Ref ("#/components/schemas/" ^ name)
 
 let int = obj S.Integer
 let array = obj S.Array
@@ -69,7 +69,12 @@ module Error = struct
       ~properties:[
         "message", obj @@ S.make_schema ()
           ~typ:string
-          ~examples:[`String "Event not found"]
+          (*
+          TODO raise issue at openapi_router
+          https://swagger.io/docs/specification/v3_0/adding-examples/
+          Note that schemas and properties support single example but not multiple examples.
+          *)
+          (* ~examples:[`String "Event not found"] *)
       ]
 end
 
@@ -85,16 +90,22 @@ module Date = struct
     make_schema ()
       ~name:"Date"
       ~typ:object_
+      ~required:["year";"month";"day"]
       ~properties:[
         "day", obj @@ S.make_schema ()
           ~typ:int
-          ~examples:[`Int 1; `Int 31];
+          (*
+          TODO raise issue at openapi_router
+          https://swagger.io/docs/specification/v3_0/adding-examples/
+          Note that schemas and properties support single example but not multiple examples.
+          *)
+          (* ~examples:[`Int 1; `Int 31] *);
         "month", obj @@ S.make_schema ()
           ~typ:int
-          ~examples:[`Int 1; `Int 12];
+          (* ~examples:[`Int 1; `Int 12] *);
         "year", obj @@ S.make_schema ()
           ~typ:int
-          ~examples:[`Int 2019; `Int 2024];
+          (* ~examples:[`Int 2019; `Int 2024] *);
       ]
 end
 
@@ -202,7 +213,12 @@ module EventId = struct
     make_schema ()
       ~name:"EventId"
       ~typ:int
-      ~examples:[`Int 42]
+      (*
+      TODO raise issue at openapi_router
+      https://swagger.io/docs/specification/v3_0/adding-examples/
+      Note that schemas and properties support single example but not multiple examples.
+      *)
+      (* ~examples:[`Int 42] *)
 end
 
 (* Event Id list *)
@@ -237,7 +253,12 @@ module Event = struct
       ~properties:[
         "name", obj @@ S.make_schema ()
           ~typ:string
-          ~examples:[`String "P4T"];
+          (*
+          TODO raise issue at openapi_router
+          https://swagger.io/docs/specification/v3_0/adding-examples/
+          Note that schemas and properties support single example but not multiple examples.
+          *)
+          (* ~examples:[`String "P4T"] *);
         "start_date", ref Date.ref;
         "end_date", ref Date.ref;
       ]
@@ -254,13 +275,18 @@ module CompetitionId = struct
     make_schema ()
       ~name:"CompetitionId"
       ~typ:int
-      ~examples:[`Int 42]
+      (*
+      TODO raise issue at openapi_router
+      https://swagger.io/docs/specification/v3_0/adding-examples/
+      Note that schemas and properties support single example but not multiple examples.
+      *)
+      (* ~examples:[`Int 42] *)
 end
 
 (* Competition Id list *)
 module CompetitionIdList = struct
   type t = {
-    comps : CompetitionId.t list;
+    competitions : CompetitionId.t list;
   } [@@deriving yojson]
 
   let ref, schema =
@@ -268,7 +294,7 @@ module CompetitionIdList = struct
       ~name:"CompetitionIdList"
       ~typ:object_
       ~properties:[
-        "events", obj @@ S.make_schema ()
+        "competitions", obj @@ S.make_schema ()
           ~typ:array
           ~items:(ref CompetitionId.ref);
       ]
@@ -293,11 +319,15 @@ module Competition = struct
         "event", ref EventId.ref;
         "name", obj @@ S.make_schema ()
           ~typ:string
-          ~examples:[`String "P4T"];
+          (*
+          TODO raise issue at openapi_router
+          https://swagger.io/docs/specification/v3_0/adding-examples/
+          Note that schemas and properties support single example but not multiple examples.
+          *)
+          (* ~examples:[`String "P4T"]*) ;
         "kind", ref Kind.ref;
         "category", ref Category.ref;
         "leaders_count", obj @@ S.make_schema () ~typ:int;
         "followers_count", obj @@ S.make_schema () ~typ:int;
       ]
 end
-

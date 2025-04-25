@@ -20,11 +20,15 @@ let rec routes router =
     ]
     ~responses:[
       "200", Types.obj @@ Spec.make_response_object ()
-        ~description:"Succesful operation"
+        ~description:"Successful operation"
         ~content:[
-          "application/json",
-          Spec.make_media_type_object () ~schema:Types.(ref CompetitionIdList.ref);
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref Competition.ref));
         ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid Id supplied";
+      "404", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Competition not found";
     ]
   |> Router.put "/api/comp" create_comp
     ~tags:["competition"]
@@ -81,12 +85,13 @@ and create_comp =
   Api.put
     ~of_yojson:Types.Competition.of_yojson
     ~to_yojson:Types.CompetitionId.to_yojson
-    (fun _req st (comp : Types.Competition.t) ->
-       let category = Types.Category.to_ftw comp.category in
-       let competition =
-         Ftw.Competition.create st
-           comp.event comp.name comp.kind category
-           ~n_leaders:comp.leaders_count ~n_follows:comp.followers_count
-       in
-       Ok (Ftw.Competition.id competition))
-
+    (
+      fun _req st (comp : Types.Competition.t) ->
+        let category = Types.Category.to_ftw comp.category in
+        let competition =
+          Ftw.Competition.create st
+            comp.event comp.name comp.kind category
+            ~n_leaders:comp.leaders_count ~n_follows:comp.followers_count
+        in
+        Ok (Ftw.Competition.id competition)
+    )
