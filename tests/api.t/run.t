@@ -119,6 +119,16 @@ Create some dancers
   > -d '{"birthday":{"day":1, "month":2, "year":2001}, "last_name":"Dancer2", "first_name":"False2", "email":"false2.dancer2@example.com", "as_leader":["Novice"], "as_follower":["Intermediate"]}'
   2
 
+  $ curl -s -X PUT http://localhost:8081/api/dancer \
+  > -H "Content-Type: application/json" \
+  > -d '{"birthday":{"day":1, "month":2, "year":2001}, "last_name":"No", "first_name":"Email", "as_leader":["Novice"], "as_follower":["Intermediate"]}'
+  {"message":"Error while parsing json body: Types.Dancer.t.email\n{\"birthday\":{\"day\":1, \"month\":2, \"year\":2001}, \"last_name\":\"No\", \"first_name\":\"Email\", \"as_leader\":[\"Novice\"], \"as_follower\":[\"Intermediate\"]}"}
+
+  $ curl -s -X PUT http://localhost:8081/api/dancer \
+  > -H "Content-Type: application/json" \
+  > -d '{"last_name":"No", "first_name":"birthday", "email":"false2.dancer2@example.com", "as_leader":["Novice"], "as_follower":["Intermediate"]}'
+  {"message":"Error while parsing json body: Types.Dancer.t.birthday\n{\"last_name\":\"No\", \"first_name\":\"birthday\", \"email\":\"false2.dancer2@example.com\", \"as_leader\":[\"Novice\"], \"as_follower\":[\"Intermediate\"]}"}
+
 Get the ids of competitions we created, and check their details
 
   $ curl -s http://localhost:8081/api/dancer/1
@@ -126,6 +136,10 @@ Get the ids of competitions we created, and check their details
 
   $ curl -s http://localhost:8081/api/dancer/2
   {"birthday":{"day":1,"month":2,"year":2001},"last_name":"Dancer2","first_name":"False2","email":"false2.dancer2@example.com","as_leader":["Novice"],"as_follower":["Intermediate"]}
+
+  $ curl -s http://localhost:8081/api/dancer/3
+
+  $ curl -s http://localhost:8081/api/dancer/4
 
 End & Cleanup
 -------------

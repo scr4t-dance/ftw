@@ -55,6 +55,7 @@ val update_divisions :
 val for_all : st:State.t -> f:(t -> unit) -> unit
 (** Iterate over all dancers. *)
 
+val list : st:State.t -> t list
 
 (* Index *)
 (* ************************************************************************* *)
