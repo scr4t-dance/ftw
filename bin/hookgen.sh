@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Start the backend server
-dune exec -- ftw --db=":memory:" --port=8083> ftw.log 2>&1 &
+dune exec -- ftw --db=":memory:" --port=8083> bin/hookgen-ftw.log 2>&1 &
 FTW_PID=$!
 echo $FTW_PID > src/hookgen/ftw.pid
 

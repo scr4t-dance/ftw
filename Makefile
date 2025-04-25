@@ -29,18 +29,34 @@ configure:
 	opam install . --deps-only --yes
 	cd src/frontend && npm install
 	cd src/hookgen && npm install
+# bootstrap backend without front (for hookgen)
+	mkdir -p src/frontend/build
+	touch src/frontend/build/index.html
 
 hookgen: src/openapi.json
 	cd src/hookgen && ./node_modules/.bin/orval --config ./orval.config.js
+	@echo "Hookgen was updated, run 'make hookgen_validate' if there are diffs with src/hookgen/hookgen.lock"
+	@echo "starting diff ----"
+	@diff <(echo "$(HOOKGEN_TARGETS)" | tr ' ' '\n' | sort |uniq) \
+		<(find src/frontend/src/hookgen -type f |sort|uniq)
+	@echo "end of diff   ----"
+
+hookgen : ${HOOKGEN_TARGETS} hookgen_init
+
+hookgen_validate:
+	@echo "Following diff will be overwritten"
+	@echo "starting diff ----"
+	@diff \
+		<(echo "$(HOOKGEN_TARGETS)" | tr ' ' '\n' | sort |uniq) \
+	 	<(find src/frontend/src/hookgen -type f |sort|uniq) \
+		|| true
+	@echo "end of diff   ----"
+	find src/frontend/src/hookgen/ -type f > src/hookgen/hookgen.lock
 
 $(FRONTEND_TARGET): hookgen $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
 
-init_backend: $(FRONTEND_TARGET)
-	dune build $(FLAGS) @install
-	./hookgen.sh
-
-backend: init_backend $(FRONTEND_TARGET)
+backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
 
 
