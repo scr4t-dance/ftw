@@ -1,16 +1,13 @@
 import "../styles/ContentStyle.css";
 
-import React, { useEffect } from 'react';
 import { useGetApiCompId, useGetApiCompIdDancers } from '../hookgen/competition/competition';
 
 import PageTitle from "./PageTitle";
 import Header from "./Header";
 import Footer from "./Footer";
-import { Bib, CompetitionId, DancerIdList } from "hookgen/model";
+import { CompetitionId } from "hookgen/model";
 import { Link, useParams } from "react-router";
 import { useGetApiEventId } from "hookgen/event/event";
-import { BareDancerListComponent } from "./DancerList";
-import { useGetApiDancers } from "hookgen/dancer/dancer";
 import NewBibForm from "./NewBibForm";
 import { BareBibListComponent } from "./BibList";
 
@@ -18,7 +15,7 @@ function CompetitionPage() {
 
     let { id_competition } = useParams();
     let id_competition_number = Number(id_competition) as CompetitionId;
-    const { data, isLoading, isError, error } = useGetApiCompId(id_competition_number);
+    const { data, isLoading } = useGetApiCompId(id_competition_number);
 
 
     const competition = data?.data;
@@ -26,7 +23,11 @@ function CompetitionPage() {
     const { data: dataEvent } = useGetApiEventId(Number(competition?.event));
     const event = dataEvent?.data;
 
-    const { data: dataBib, isLoading: isLoadingBib, error: errorBib} = useGetApiCompIdDancers(id_competition_number);
+    const {
+        data: dataBib,
+        isLoading: isLoadingBib,
+        error: errorBib
+    } = useGetApiCompIdDancers(id_competition_number);
     const bib_list = dataBib?.data?.bibs ?? [];
 
     console.log("bib_list", bib_list, isLoadingBib, errorBib);
@@ -52,7 +53,7 @@ function CompetitionPage() {
                 <NewBibForm default_competition={id_competition_number} />
 
                 {isLoadingBib &&
-                <p>Chargement de la liste des dossards</p>}
+                    <p>Chargement de la liste des dossards</p>}
                 {!isLoadingBib && bib_list &&
                     <>
                         <BareBibListComponent bib_list={bib_list} />

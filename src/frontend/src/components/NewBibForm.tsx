@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
 // import { useNavigate } from "react-router";
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, UseFormRegister } from 'react-hook-form';
 
 import { useGetApiEventIdComps, useGetApiEvents } from '../hookgen/event/event'
 import { usePutApiCompIdBib, useGetApiCompId } from '../hookgen/competition/competition';
 
 import {
-  Competition, CompetitionId, KindItem, CategoryItem,
-  Bib, SingleTarget, CoupleTarget, Target,
+  CompetitionId,
+  Bib, SingleTarget, CoupleTarget,
   RoleItem,
   EventId,
 } from 'hookgen/model';
 import { Field } from './Field';
+import { SingleBib, SingleTargetForm } from './SingleTargetForm';
+import { CoupleBib, CoupleTargetForm } from './CoupleTargetForm';
 
 function NewBibForm({ default_competition = -1 }: { default_competition?: CompetitionId }) {
 
@@ -20,29 +22,22 @@ function NewBibForm({ default_competition = -1 }: { default_competition?: Compet
   const default_single_target: SingleTarget = { target_type: "single", target: 1, role: [RoleItem.Follower] };
   const default_couple_target: CoupleTarget = { target_type: "couple", follower: 1, leader: 2 };
 
-  const [bib, setBib] = useState<Bib>({
-    competition: default_competition,
-    bib: 100,
-    target: default_single_target,
-  });
-
-  const [competitionValidationError, setBibValidationError] = useState('');
-
   // Using the Orval hook to handle the PUT request
-  const { mutate: updateBib, isError, error, isSuccess } = usePutApiCompIdBib();
+  const { mutate: updateBib, isSuccess } = usePutApiCompIdBib();
 
   const { data: dataCompetition } = useGetApiCompId(default_competition);
   const competition = dataCompetition?.data;
   const { data: dataCompetitionList } = useGetApiEventIdComps(competition?.event as EventId);
   const competition_list = dataCompetitionList?.data.competitions;
-  const { data: dataEventList } = useGetApiEvents();
-  const event_list = dataEventList?.data.events;
+  //const { data: dataEventList } = useGetApiEvents();
+  //const event_list = dataEventList?.data.events;
 
   const {
     register,
     handleSubmit,
     watch,
     reset,
+
     formState: { errors },
   } = useForm<Bib>({
     defaultValues: {
@@ -115,6 +110,7 @@ function NewBibForm({ default_competition = -1 }: { default_competition?: Compet
           />
         </Field>
 
+
         <Field label="Target type" error={errors.target?.target_type?.message}>
           <select {...register("target.target_type")}>
             <option value="single">Single</option>
@@ -123,62 +119,12 @@ function NewBibForm({ default_competition = -1 }: { default_competition?: Compet
         </Field>
 
         {targetType === "single" && (
-          <>
-            <Field label='Compétiteurice' error={errors.target?.message}>
-              <input type="number" {...register("target.target" as const, {
-                valueAsNumber: true, required: true,
-                min: {
-                  value: 0,
-                  message: "Le numéro compétiteur doit être un entier positif.",
-                }
-              })} />
-            </Field>
-            <Field label='Role' error={errors.target?.root?.message}>
-              <select multiple {...register("target.role" as const, { required: true })}>
-                {RoleItem && Object.keys(RoleItem).map(key => {
-                  const value = RoleItem[key as keyof typeof RoleItem];
-                  return <option key={key} value={value}>{value}</option>;
-                })}
-              </select>
-            </Field>
-          </>
+          <SingleTargetForm register={register as UseFormRegister<SingleBib>} errors={errors} />
         )}
 
         {targetType === "couple" && (
-          <>
-            <Field label="Follower" error={errors.target?.root?.message}>
-              <input type="number" {...register("target.follower" as const, {
-                valueAsNumber: true, required: true,
-                min: {
-                  value: 0,
-                  message: "Le numéro compétiteur doit être un entier positif.",
-                }
-              })} />
-            </Field>
-            <Field label="Leader" error={errors.target?.root?.message}>
-              <input type="number" {...register("target.leader" as const, {
-                valueAsNumber: true, required: true,
-                min: {
-                  value: 0,
-                  message: "Le numéro compétiteur doit être un entier positif.",
-                }
-              })} />
-            </Field>
-          </>
+          <CoupleTargetForm register={register as UseFormRegister<CoupleBib>} errors={errors} />
         )}
-
-        {competitionValidationError !== '' &&
-          <div className="error_message">
-            <span>&#x26A0; </span>
-            {competitionValidationError}
-          </div>
-        }
-        {isError &&
-          <div className="error_message">
-            <span>&#x26A0; </span>
-            {error.message}
-          </div>
-        }
 
         <button type="submit" >Inscrire un-e compétiteurice</button>
 
