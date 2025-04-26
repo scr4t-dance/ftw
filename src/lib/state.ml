@@ -113,7 +113,7 @@ module DatabaseVersion = struct
     add_init_descr_table
       ~table_name:"database_version" ~to_int
       ~to_descr:to_string ~values:[
-      1
+      2
     ]
 end
 

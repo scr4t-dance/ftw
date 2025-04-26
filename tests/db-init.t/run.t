@@ -21,22 +21,16 @@ Run a query to init database
   {"events":[]}
 
   $ sqlite3 "test.db" 'SELECT name FROM DATABASE_VERSION;'
-  1
+  2
+
 Print schema
+If the definition changes
+* bump version number in src/lib/state.ml
+* promote changes
+* save new schema in src/migration/schema_V.sql (with V the version number)
+* create migration script src/migration/migrate_V-1_to_V.sql
+* apply to existing database and tests data integrity (with a round trip of exported/imported data)
   $ sqlite3 "test.db" '.schema'
-  CREATE TABLE events (
-            id INTEGER PRIMARY KEY,
-            name TEXT,
-            start_date TEXT,
-            end_date TEXT
-          );
-  CREATE TABLE competitions (
-            id INTEGER PRIMARY KEY,
-            event INTEGER,
-            name TEXT,
-            kind INTEGER,
-            category INTEGER
-          );
   CREATE TABLE database_version (
           id INTEGER PRIMARY KEY,
           name TEXT UNIQUE);
@@ -114,6 +108,7 @@ Print schema
             competition_id INTEGER REFERENCES competitions(id),
             bib INTEGER NOT NULL,
             role INTEGER NOT NULL,
+
             PRIMARY KEY(bib,competition_id,role)
           );
 
