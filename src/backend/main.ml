@@ -5,14 +5,17 @@
 (* ************************************************************************* *)
 
 let loader _root path _request =
+  Printf.printf "\nFile list %s\n" (List.fold_left (fun x y -> x ^ "\n" ^ y) "" Static.file_list);
   match Static.read path with
-    | None ->
-      (* if the path is not found in the frontend, automatically redirect to `index.html` *)
-      begin match Static.read "index.html" with
-          | None -> assert false (* let's assume the frontend will always have an `index.html` *)
-          | Some asset -> Dream.html asset
-        end
-    | Some asset -> Dream.respond asset
+  | None ->
+    Printf.printf "\nNot found %s default to index.html\n" path; flush_all();
+    (* if the path is not found in the frontend, automatically redirect to `index.html` *)
+    begin match Static.read "index.html" with
+      | None -> assert false (* let's assume the frontend will always have an `index.html` *)
+      | Some asset -> Dream.html asset
+    end
+  | Some asset ->
+    Printf.printf "\nFound %s default\n" path; flush_all(); Dream.respond asset
 
 let server (options : Options.server) =
   (* Defaul routes to serve the clients files (pages, scripts and css) *)
@@ -36,6 +39,7 @@ let server (options : Options.server) =
     router
     |> Event.routes
     |> Competition.routes
+    |> Dancer.routes
   in
   (* Define CORS middleware manually *)
   let cors_middleware handler request =
@@ -110,4 +114,3 @@ let () =
   | Ok `Ok Options.Server options -> server options
   | Ok `Ok Options.Import options -> import options
   | Ok `Ok Options.Export options -> export options
-

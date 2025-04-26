@@ -25,6 +25,9 @@ type any_target = Any : _ target -> any_target
 (* DB interaction *)
 (* ************************************************************************* *)
 
+val list_from_comp : st:State.t -> competition:Competition.id ->
+  (any_target Id.Map.t, string) result
+
 val get : st:State.t -> competition:Competition.id -> bib:t -> any_target option
 (** Get the target of a bib, if it exists. *)
 
@@ -48,4 +51,3 @@ module Set : Set.S with type elt = t
 
 module Map : Map.S with type key = t
 (** Maps for identifiers *)
-
