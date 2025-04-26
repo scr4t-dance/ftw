@@ -24,3 +24,4 @@ Make sure all children of this process have been killed,
 especially the FTW server in the background
 
   $ pkill -P "$$"
+  [1]
