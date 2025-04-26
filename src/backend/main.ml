@@ -35,6 +35,7 @@ let router () =
   |> Event.routes
   |> Competition.routes
   |> Phase.routes
+  |> Dancer.routes
 
 let server (options : Options.server) =
   (* Default routes to serve the clients files (pages, scripts and css) *)

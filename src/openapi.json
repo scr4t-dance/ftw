@@ -10,6 +10,98 @@
     "version": "1.0.1"
   },
   "paths": {
+    "/api/dancer": {
+      "put": {
+        "tags": [ "dancer" ],
+        "summary": "Create a new dancer",
+        "parameters": [],
+        "requestBody": {
+          "description": "Details of the Dancer to create",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Dancer" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DancerId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dancer/{id}": {
+      "get": {
+        "tags": [ "dancer" ],
+        "summary": "Get the details of a Dancer",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried dancer",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/DancerId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Dancer" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Dancer not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dancers": {
+      "get": {
+        "tags": [ "dancer" ],
+        "summary": "Get the list of Dancers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Succesful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DancerIdList" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/phase/{id}": {
       "get": {
         "tags": [ "phase" ],

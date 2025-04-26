@@ -52,6 +52,7 @@ promote:
 	dune promote
 
 openapi:
+	dune build $(FLAGS) @install
 	dune exec -- ftw openapi src/openapi.json
 
 doc:
