@@ -41,12 +41,12 @@ let add_init_descr_table ~table_name ~to_int ~to_descr ~values =
       |} table_name);
     (* Add all values *)
     List.iter (fun value ->
-      let name = to_descr value in
-      let open Sqlite3_utils.Ty in
-      Sqlite3_utils.exec_no_cursor_exn st ~ty:[ int; text; ]
-        (Format.asprintf
-           {| INSERT OR IGNORE INTO %s (id, name) VALUES (?,?) |} table_name)
-        (to_int value) name
+        let name = to_descr value in
+        let open Sqlite3_utils.Ty in
+        Sqlite3_utils.exec_no_cursor_exn st ~ty:[ int; text; ]
+          (Format.asprintf
+             {| INSERT OR IGNORE INTO %s (id, name) VALUES (?,?) |} table_name)
+          (to_int value) name
       ) values
   in
   add_init ~name:table_name aux
@@ -57,7 +57,7 @@ let add_init_descr_table ~table_name ~to_int ~to_descr ~values =
 
 let atomically st ~f =
   f st
-  (* Sqlite3_utils.atomically st f *)
+(* Sqlite3_utils.atomically st f *)
 
 let exec ~st sql =
   let open Sqlite3_utils in
@@ -100,3 +100,21 @@ let query_one_where ~p ~conv ~st sql =
     ~ty:(p, res, f_conv)
     ~f:(Sqlite3_utils.Cursor.get_one_exn)
 
+
+module DatabaseVersion = struct
+
+  type t = Id.t
+
+  let to_int = fun a -> a
+
+  let to_string = string_of_int
+
+  let () =
+    add_init_descr_table
+      ~table_name:"database_version" ~to_int
+      ~to_descr:to_string ~values:[
+      1
+    ]
+end
+
+let _ = DatabaseVersion.to_string 1

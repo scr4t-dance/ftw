@@ -23,13 +23,6 @@ function DancerPage() {
     if (isLoading) return <div>Chargement des événements...</div>;
     if (isError) return <div>Erreur: {(error as any).message}</div>;
 
-    const formatDate = (date: Date | undefined): string => {
-        if (date?.year && date?.month && date?.day) {
-            return `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
-        }
-        return '';
-    };
-
     return (
         <>
             <PageTitle title={"Compétiteurice " + dancer?.last_name + " " + dancer.first_name} />
