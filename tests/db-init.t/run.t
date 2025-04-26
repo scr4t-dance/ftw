@@ -107,6 +107,7 @@ If the definition changes
             competition_id INTEGER REFERENCES competitions(id),
             bib INTEGER NOT NULL,
             role INTEGER NOT NULL,
+
             PRIMARY KEY(bib,competition_id,role)
           );
 
