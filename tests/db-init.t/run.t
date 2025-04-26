@@ -20,8 +20,26 @@ Run a query to init database
   $ curl -s http://localhost:8082/api/events
   {"events":[]}
 
+  $ sqlite3 "test.db" 'SELECT name FROM DATABASE_VERSION;'
+  1
 Print schema
   $ sqlite3 "test.db" '.schema'
+  CREATE TABLE events (
+            id INTEGER PRIMARY KEY,
+            name TEXT,
+            start_date TEXT,
+            end_date TEXT
+          );
+  CREATE TABLE competitions (
+            id INTEGER PRIMARY KEY,
+            event INTEGER,
+            name TEXT,
+            kind INTEGER,
+            category INTEGER
+          );
+  CREATE TABLE database_version (
+          id INTEGER PRIMARY KEY,
+          name TEXT UNIQUE);
   CREATE TABLE round_names (
           id INTEGER PRIMARY KEY,
           name TEXT UNIQUE);
@@ -90,6 +108,15 @@ Print schema
             leader_id INTEGER REFERENCES dancers(id),
             follower_id INTEGER REFERENCES dancers(id)
           );
+
+  CREATE TABLE bibs (
+            dancer_id INTEGER REFERENCES dancers(id),
+            competition_id INTEGER REFERENCES competitions(id),
+            bib INTEGER NOT NULL,
+            role INTEGER NOT NULL,
+            PRIMARY KEY(bib,competition_id,role)
+          );
+
 
 End & Cleanup
 -------------
