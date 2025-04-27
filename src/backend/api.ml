@@ -39,7 +39,7 @@ let put ~of_yojson ~to_yojson callback = fun req ->
           Error.(mk @@ invalid_json_body msg)
         | Error msg ->
           Logs.err ~src (fun k->
-              k "@[<hv 2> Error in of_yojson callback for '%s'" body
+              k "@[<hv 2> Error in of_yojson callback for@ '%s'@]" body
             );
           Error.(mk @@ invalid_json_body msg)
         | Ok input -> callback req st input
