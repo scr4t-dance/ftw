@@ -14,7 +14,8 @@ const App = () => {
 			<Routes>
 				<Route index element={<HomePage />} />
 				<Route path='index.html' element={<HomePage />} />
-				<Route path='events' element={<EventList />}>
+				<Route path='events'>
+					<Route index element={<EventList />} />
 					<Route path='new' element={<NewEventForm />} />
 					<Route path=':id_event' element={<EventPage />} />
 				</Route>

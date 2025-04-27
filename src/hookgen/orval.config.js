@@ -12,8 +12,9 @@ module.exports = {
             target: '../frontend/src/hookgen/ftw.ts',
             schemas: '../frontend/src/hookgen/model',
             client: 'react-query',
-            mock: true,
+            mock: false,
             baseUrl: 'http://localhost:8080',
+            clean: true,
         },
     },
 };
