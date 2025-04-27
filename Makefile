@@ -89,6 +89,9 @@ clean:
 debug: backend
 	dune exec -- ftw --db=tests/test.db -vv
 
+debug: backend
+	dune exec -- ftw --db=tests/test.db -b -v -v
+
 run: backend
 	dune exec -- ftw --db=tests/test.db
 
