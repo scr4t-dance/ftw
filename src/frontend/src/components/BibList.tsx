@@ -1,14 +1,14 @@
 import "../styles/ContentStyle.css";
 
 import React from 'react';
-import { useGetApiDancerId } from '../hookgen/dancer/dancer';
+import { useGetApiDancerId } from '@hookgen/dancer/dancer';
 
-import { Bib, CompetitionId, CoupleTarget, RoleItem, SingleTarget, Target } from "hookgen/model";
+import { Bib, CompetitionId, CoupleTarget, RoleItem, SingleTarget, Target } from "@hookgen/model";
 import { Link } from "react-router";
 import PageTitle from "./PageTitle";
 import Header from "./Header";
 import Footer from "./Footer";
-import { useGetApiCompIdDancers } from "hookgen/competition/competition";
+import { useGetApiCompIdDancers } from "@hookgen/competition/competition";
 
 const dancerLink = "dancer/"
 

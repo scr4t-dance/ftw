@@ -1,13 +1,13 @@
 import "../styles/ContentStyle.css";
 
-import { useGetApiCompId, useGetApiCompIdDancers } from '../hookgen/competition/competition';
+import { useGetApiCompId, useGetApiCompIdDancers } from '@hookgen/competition/competition';
 
 import PageTitle from "./PageTitle";
 import Header from "./Header";
 import Footer from "./Footer";
-import { CompetitionId } from "hookgen/model";
+import { CompetitionId } from "@hookgen/model";
 import { Link, useParams } from "react-router";
-import { useGetApiEventId } from "hookgen/event/event";
+import { useGetApiEventId } from "@hookgen/event/event";
 import NewBibForm from "./NewBibForm";
 import { BareBibListComponent } from "./BibList";
 

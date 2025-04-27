@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 // import { useNavigate } from "react-router";
 
-import { usePutApiDancer } from '../hookgen/dancer/dancer';
+import { usePutApiDancer } from '@hookgen/dancer/dancer';
 
 import { DivisionsItem, type Dancer, type Date } from 'hookgen/model';
 

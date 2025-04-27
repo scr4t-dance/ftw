@@ -1,10 +1,10 @@
 import "../styles/ContentStyle.css";
 
 import React from 'react';
-import { useGetApiCompId} from '../hookgen/competition/competition';
-import { useGetApiEventIdComps } from "hookgen/event/event";
+import { useGetApiCompId} from '@hookgen/competition/competition';
+import { useGetApiEventIdComps } from "@hookgen/event/event";
 
-import { CompetitionId, EventId } from "hookgen/model";
+import { CompetitionId, CompetitionIdList, EventId } from "@hookgen/model";
 import { Link } from "react-router";
 
 const competitionListlink = "competitions/"
@@ -12,6 +12,8 @@ const competitionListlink = "competitions/"
 function CompetitionList({ id_event }: {id_event: EventId}) {
 
     const { data, isLoading, error } = useGetApiEventIdComps(id_event);
+
+    const competition_array : CompetitionIdList = data?.data.competitions;
 
     if (isLoading) return <div>Chargement des compétitions...</div>;
     if (error) return <div>Erreur: {(error as any).message}</div>;
@@ -27,7 +29,7 @@ function CompetitionList({ id_event }: {id_event: EventId}) {
                         <th>Catégorie</th>
                     </tr>
 
-                    {data?.data.competitions?.map((competitionId, index) => (
+                    {competition_array.map((competitionId, index) => (
                         <CompetitionDetails key={competitionId} id={competitionId} index={index}/>
                     ))}
                 </tbody>
