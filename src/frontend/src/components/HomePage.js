@@ -52,7 +52,7 @@ function HomePage() {
                 </ul>
 
                 <h2>Contact</h2>
-                <p>Pour ne pas rater les nouvelles infos, suivez <a target="_blank" href="https://www.facebook.com/SCR4T.danse">notre page facebook</a> !</p>
+                <p>Pour ne pas rater les nouvelles infos, suivez <a target="_blank" rel="noreferrer" href="https://www.facebook.com/SCR4T.danse">notre page facebook</a> !</p>
                 <p>Vous êtes un organisateur souhaitant utiliser le système, un compétiteur curieux ? Contactez-nous à : <a href="mailto:scr4t.danse@gmail.com">scr4t.danse@gmail.com</a>.</p>
             </div>
             <Footer />
