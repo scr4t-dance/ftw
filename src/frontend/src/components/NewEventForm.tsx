@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 // import { useNavigate } from "react-router";
 
-import { usePutApiEvent } from '../hookgen/event/event';
+import { usePutApiEvent } from '@hookgen/event/event';
 
 import type { Event, Date } from 'hookgen/model';
 
