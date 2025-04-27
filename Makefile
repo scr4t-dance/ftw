@@ -65,6 +65,9 @@ $(FRONTEND_TARGET): ${HOOKGEN_TARGETS} $(FRONTEND_DEPS)
 backend: hookgen_init $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
 
+debug: backend
+	dune exec -- ftw --db=tests/test.db -b -v -v
+
 run: backend
 	dune exec -- ftw --db=tests/test.db
 
@@ -91,5 +94,5 @@ top:
 doc:
 	dune build $(FLAGS) @doc
 
-.PHONY: all build top doc run frontend_dev tests promote clean
+.PHONY: all build top doc run debug frontend_dev tests promote clean
 	hookgen hookgen_init hookgen_validate
