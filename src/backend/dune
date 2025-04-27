@@ -3,7 +3,9 @@
 (executable
   (name         main)
   (public_name  ftw)
-  (preprocess (pps lwt_ppx ppx_deriving.show ppx_deriving_yojson))
+  (preprocess
+    (pps lwt_ppx ppx_deriving.show ppx_deriving_yojson)
+  )
   (libraries
      ftw
      openapi_router dream
@@ -17,4 +19,3 @@
   (deps (source_tree static))
   (action (with-stdout-to %{null}
    (run ocaml-crunch -m plain static -o %{target}))))
-
