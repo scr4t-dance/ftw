@@ -1,13 +1,14 @@
 import "../styles/ContentStyle.css";
 
 import React from 'react';
-import { useGetApiDancerId } from '../hookgen/dancer/dancer';
-
-import PageTitle from "./PageTitle";
-import Header from "./Header";
-import Footer from "./Footer";
-import { DancerId, Date } from "hookgen/model";
 import { useParams } from "react-router";
+
+import PageTitle from "@components/PageTitle";
+import Header from "@components/Header";
+import Footer from "@components/Footer";
+
+import { DancerId, Date } from "@hookgen/model";
+import { useGetApiDancerId } from '@hookgen/dancer/dancer';
 
 function DancerPage() {
 

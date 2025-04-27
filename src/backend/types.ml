@@ -283,6 +283,7 @@ module EventIdList = struct
           ~typ:array
           ~items:(ref EventId.ref);
       ]
+      ~required:["events"]
 end
 
 (* Event specification *)
@@ -309,6 +310,7 @@ module Event = struct
         "start_date", ref Date.ref;
         "end_date", ref Date.ref;
       ]
+      ~required:["name"; "start_date"; "end_date"]
 end
 
 (* Competitions *)
@@ -345,6 +347,7 @@ module CompetitionIdList = struct
           ~typ:array
           ~items:(ref CompetitionId.ref);
       ]
+      ~required:["competitions"]
 end
 
 (* Competition specification *)
@@ -377,6 +380,7 @@ module Competition = struct
         "leaders_count", obj @@ S.make_schema () ~typ:int;
         "followers_count", obj @@ S.make_schema () ~typ:int;
       ]
+      ~required:["event"; "name"; "kind"; "category"; "leaders_count"; "followers_count"]
 end
 
 
@@ -415,6 +419,7 @@ module DancerIdList = struct
           ~typ:array
           ~items:(ref DancerId.ref);
       ]
+      ~required:["dancers"]
 end
 
 (* Dancer specification *)
@@ -468,6 +473,7 @@ module SingleTarget = struct
         "target", ref DancerId.ref;
         "role", ref Role.ref;
       ]
+      ~required:["target_type"; "target"; "role"]
 end
 
 
@@ -489,6 +495,7 @@ module CoupleTarget = struct
         "leader", ref DancerId.ref;
         "follower", ref DancerId.ref;
       ]
+      ~required:["target_type"; "leader"; "follower"]
 end
 
 module Target = struct
@@ -574,6 +581,7 @@ module Bib = struct
           ~typ:int;
         "target", ref Target.ref;
       ]
+      ~required:["competition"; "bib"; "target"]
 
 end
 
@@ -592,5 +600,6 @@ module BibList = struct
           ~typ:array
           ~items:(ref Bib.ref);
       ]
+      ~required:["bibs"]
 
 end

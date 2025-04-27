@@ -1,12 +1,12 @@
 import "../styles/ContentStyle.css";
 
 import React from 'react';
-import { useGetApiEventId } from '../hookgen/event/event';
+import { useGetApiEventId } from '@hookgen/event/event';
 
 import PageTitle from "./PageTitle";
 import Header from "./Header";
 import Footer from "./Footer";
-import { EventId, Date } from "hookgen/model";
+import { EventId, Date } from "@hookgen/model";
 import { useParams } from "react-router";
 import NewCompetitionForm from "./NewCompetitionForm";
 import CompetitionList from "./CompetitionList";

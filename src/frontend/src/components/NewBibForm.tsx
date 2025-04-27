@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 // import { useNavigate } from "react-router";
 import { useForm, SubmitHandler, UseFormRegister } from 'react-hook-form';
 
-import { useGetApiEventIdComps, useGetApiEvents } from '../hookgen/event/event'
-import { usePutApiCompIdBib, useGetApiCompId } from '../hookgen/competition/competition';
+import { useGetApiEventIdComps, useGetApiEvents } from '@hookgen/event/event'
+import { usePutApiCompIdBib, useGetApiCompId } from '@hookgen/competition/competition';
 
 import {
   CompetitionId,

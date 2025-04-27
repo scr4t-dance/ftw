@@ -1,12 +1,12 @@
 import "../styles/ContentStyle.css";
 
 import React from 'react';
-import {useGetApiEvents, useGetApiEventId} from '../hookgen/event/event';
+import {useGetApiEvents, useGetApiEventId} from '@hookgen/event/event';
 
 import PageTitle from "./PageTitle";
 import Header from "./Header";
 import Footer from "./Footer";
-import { EventId } from "hookgen/model";
+import { EventId } from "@hookgen/model";
 import { Link } from "react-router";
 
 const eventListlink = "events/"

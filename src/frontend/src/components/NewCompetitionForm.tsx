@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 // import { useNavigate } from "react-router";
 
-import { useGetApiEvents } from '../hookgen/event/event'
-import { usePutApiComp } from '../hookgen/competition/competition';
+import { useGetApiEvents } from '@hookgen/event/event'
+import { usePutApiComp } from '@hookgen/competition/competition';
 
 import { Competition, EventId, KindItem, CategoryItem } from 'hookgen/model';
 

@@ -1,8 +1,8 @@
 // components/CoupleTargetForm.tsx
-import { Field } from "./Field";
+import { Field } from "@components/Field";
 import { UseFormRegister, FieldErrors } from "react-hook-form";
-import { Bib } from "../hookgen/model";
-import { CoupleTarget } from "hookgen/model";
+import { Bib } from "@hookgen/model";
+import { CoupleTarget } from "@hookgen/model";
 
 export interface CoupleBib extends Omit<Bib, "target"> {
   target: CoupleTarget;

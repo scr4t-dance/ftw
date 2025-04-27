@@ -1,9 +1,9 @@
 import "../styles/ContentStyle.css";
 
 import React from 'react';
-import { useGetApiDancers, useGetApiDancerId } from '../hookgen/dancer/dancer';
+import { useGetApiDancers, useGetApiDancerId } from '@hookgen/dancer/dancer';
 
-import { DancerId, DancerIdList } from "hookgen/model";
+import { DancerId, DancerIdList } from "@hookgen/model";
 import { Link } from "react-router";
 import PageTitle from "./PageTitle";
 import Header from "./Header";
