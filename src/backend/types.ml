@@ -424,6 +424,7 @@ module Competition = struct
         "n_leaders", obj @@ S.make_schema () ~typ:int;
         "n_follows", obj @@ S.make_schema () ~typ:int;
       ]
+      ~required:["event"; "name"; "kind"; "category"; "leaders_count"; "followers_count"]
 end
 
 (* Artefact *)
