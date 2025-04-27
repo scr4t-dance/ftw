@@ -168,4 +168,3 @@ let of_toml ~descr t =
   match (descr : Descr.t) with
   | Ranking -> Rank (Rank.of_toml t)
   | Yans _ -> Yans (yans_of_toml t)
-

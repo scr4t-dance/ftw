@@ -40,7 +40,7 @@ let print_compact fmt t =
 
 let () =
   State.add_init ~name:"competition" (fun st ->
-      Sqlite3_utils.exec0_exn st {|
+      State.exec ~st {|
         CREATE TABLE IF NOT EXISTS competitions (
           id INTEGER PRIMARY KEY,
           event INTEGER REFERENCES events(id),
@@ -66,11 +66,11 @@ let get st id =
   State.query_one_where ~p:Id.p ~conv ~st
     {| SELECT * FROM competitions WHERE id = ? |} id
 
-let ids_from_event st event_id =
+let ids_from_event st (event_id:Event.id) =
   State.query_list_where ~p:Id.p ~conv:Id.conv ~st
     {| SELECT id FROM competitions WHERE event = ? |} event_id
 
-let from_event st event_id =
+let from_event st (event_id:Event.id) =
   State.query_list_where ~p:Id.p ~conv ~st
     {| SELECT * FROM competitions WHERE event = ? |} event_id
 
