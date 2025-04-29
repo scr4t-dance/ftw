@@ -60,8 +60,7 @@ let find_or_add_dancer ~st
         end
     end
 
-let import_dancers_aux ~st ~t =
-  let+ l = Otoml.find_result t (Otoml.get_array Otoml.get_value) ["list"] in
+let import_dancers_list ~st l =
   let map =
     List.fold_left (fun map t' ->
         let file_id = Otoml.find t' Otoml.get_integer ["id"] in
@@ -78,11 +77,100 @@ let import_dancers_aux ~st ~t =
   in
   Ok map
 
+let extract_bib s =
+  let s = String.trim s in
+  if s = "" then None
+  else begin
+    let s =
+      if String.starts_with ~prefix:"# " s
+      then String.sub s 2 (String.length s - 2)
+      else s
+    in
+    Some (int_of_string (String.trim s))
+  end
+
+let id_map_add_opt key_opt v map =
+  match key_opt with
+  | None -> map
+  | Some k -> Id.Map.add k v map
+
+let import_dancers_tsv ~st s =
+  let l = String.split_on_char '\n' s in
+  let map =
+    List.fold_left (fun map line ->
+        match String.split_on_char '\t' line with
+        | first_name :: last_name :: leader_bib :: follow_bib :: [] ->
+          let leader_id = extract_bib leader_bib in
+          let follow_id = extract_bib follow_bib in
+          let dancer =
+            find_or_add_dancer ~st ()
+              ~first_name ~last_name
+          in
+          id_map_add_opt leader_id (Dancer.id dancer)
+            (id_map_add_opt follow_id (Dancer.id dancer) map)
+        | _ ->
+          Logs.err (fun k->k "Ignoring line in dancers tsv: '%s'" line);
+          map
+      ) Id.Map.empty l
+  in
+  Ok map
+
 let import_dancers ~st t =
   let t = Otoml.find_opt t Otoml.get_value ["dancers"] in
   match t with
   | None -> Ok Id.Map.empty
-  | Some t -> import_dancers_aux ~st ~t
+  | Some t ->
+    begin match Otoml.find_opt t (Otoml.get_array Otoml.get_value) ["list"] with
+      | Some l -> import_dancers_list ~st l
+      | None ->
+        begin match Otoml.find_opt t Otoml.get_string ["raw"] with
+          | Some s -> import_dancers_tsv ~st s
+          | None -> Ok Id.Map.empty
+        end
+    end
+
+(* Heats *)
+(* ************************************************************************* *)
+
+(* TODO: import heats, or generate a dummy heat if not present *)
+
+
+(* Notes/Artefacts *)
+(* ************************************************************************* *)
+
+let import_artefacts_cst ~st ~subst s =
+  (* Split the input string *)
+  let l = String.split_on_char '\n' s in
+  let l =
+    List.filter_map (fun s ->
+      let s = String.trim s in
+      if s = "" then None else Some (String.split_on_char '\t' s)
+    ) l
+  in
+  (* Get the list of judges *)
+  let judges, l =
+    match l with
+    | ( _ :: _ :: _ :: _ :: judges ) :: r ->
+      let judges =
+        List.map (fun s ->
+          match String.split_on_char ',' s with
+          | [first_name; last_name] ->
+            let d =
+              find_or_add_dancer ~first_name ~last_name ~st ()
+            in
+            Dancer.id d
+          | _ ->
+            Logs.err (fun k->k "Could not parse judge: '%s'" s);
+            assert false
+          ) judges
+      in
+      judges, r
+    | _ ->
+      Logs.err (fun k->k "Could not parse the list of judges");
+      assert false
+  in
+  (* Parse artefacts *)
+  assert false
 
 (* Phases *)
 (* ************************************************************************* *)
