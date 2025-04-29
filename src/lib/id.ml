@@ -24,6 +24,7 @@ let of_toml t = Otoml.get_integer t
 
 let equal (x: t) y = x = y
 let compare (x : t) y = Stdlib.compare x y
+let print fmt t = Format.fprintf fmt "%d" t
 
 module Aux = struct
   type nonrec t = t

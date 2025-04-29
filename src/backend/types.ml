@@ -1120,8 +1120,8 @@ module HeatsArray = struct
   (* todo implement interfaces *)
 
   let of_ftw h = match h with
-    | Ftw.Heat.Singles_heats sh -> HeatsSingle {heats=SinglesHeatsArray.of_ftw sh}
-    | Ftw.Heat.Couples_heats ch -> HeatsCouple {heats=CouplesHeatsArray.of_ftw ch}
+    | Ftw.Heat.Singles sh -> HeatsSingle {heats=SinglesHeatsArray.of_ftw sh}
+    | Ftw.Heat.Couples ch -> HeatsCouple {heats=CouplesHeatsArray.of_ftw ch}
 
   let to_yojson target =
     match target with
@@ -1675,3 +1675,5 @@ module InitHeatsFormData = struct
       ]
       ~required:["min_number_of_targets"; "max_number_of_targets"]
 end
+
+

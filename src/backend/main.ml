@@ -73,7 +73,9 @@ let server (options : Options.server) =
   @@ Dream.logger
   @@ cors_middleware
   @@ Dream.memory_sessions
-  @@ State.init ~path:options.db_path
+  @@ State.init
+    ~path:options.db_path
+    ~init:(not options.db_no_init)
   @@ Router.build ~default_routes router
 
 (* Spec export *)
@@ -88,14 +90,29 @@ let openapi (options : Options.openapi) =
   let () = close_out ch in
   ()
 
+(* DB init *)
+(* ************************************************************************* *)
+
+let init (options : Options.init) =
+  let st = Ftw.State.mk ~init:true options.db_path in
+  Ftw.State.atomically st
+    ~f:(fun st ->
+        match options.dancer_file with
+        | None ->
+          Logs.warn ~src (fun k->k "No dancer list provided")
+        | Some file ->
+          Ftw.Import.import_dancers ~st file
+      )
+
 (* Event Import *)
 (* ************************************************************************* *)
 
 let import (options : Options.import) =
-  Ftw.State.atomically (Ftw.State.mk options.db_path)
+  let st = Ftw.State.mk ~init:(not options.db_no_init) options.db_path in
+  Ftw.State.atomically st
     ~f:(fun st ->
-        match Ftw.Import.import ~st options.ev_path with
-        | Ok () -> ()
+        match Ftw.Import.import_event ~st options.ev_path with
+        | Ok _ev_ids -> ()
         | Error msg ->
           Logs.err ~src (fun k->k "Import failed: %s" msg);
           raise Exit
@@ -105,9 +122,11 @@ let import (options : Options.import) =
 (* ************************************************************************* *)
 
 let export (options : Options.export) =
-  Ftw.State.atomically (Ftw.State.mk options.db_path)
+  let st = Ftw.State.mk ~init:(not options.db_no_init) options.db_path in
+  Ftw.State.atomically st
     ~f:(fun st ->
-        match Ftw.Export.to_file ~st options.out_path options.ev_id with
+        match Ftw.Export.export_event
+                ~st options.out_path options.ev_id with
         | Ok _ -> ()
         | Error () -> raise Exit
       )
@@ -122,6 +141,7 @@ let () =
     let open Cmdliner in
     Cmd.group ~default:Options.server info [
       Cmd.v (Cmd.info "openapi") Options.openapi;
+      Cmd.v (Cmd.info "init") Options.init;
       Cmd.v (Cmd.info "import") Options.import;
       Cmd.v (Cmd.info "export") Options.export;
     ]
@@ -135,5 +155,6 @@ let () =
   (* Options parsed, run the code *)
   | Ok `Ok Options.Server options -> server options
   | Ok `Ok Options.Openapi options -> openapi options
+  | Ok `Ok Options.Init options -> init options
   | Ok `Ok Options.Import options -> import options
   | Ok `Ok Options.Export options -> export options

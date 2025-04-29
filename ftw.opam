@@ -12,9 +12,6 @@ build: [
 depends: [
   "ocaml" { >= "4.04.0"}
   "dune"
-  "dream"
-  "crunch"
-  "cmdliner" {>= "1.3.0" }
   "sqlite3"
   "sqlite3_utils"
   "containers"
@@ -27,7 +24,6 @@ depends: [
   "uunf"
   "spelll"
   "otoml"
-  "openapi_router"
   "ppx_deriving"
   "ppx_deriving_yojson"
   "odoc" {with-doc}
@@ -37,12 +33,5 @@ homepage: "https://github.com/scr4t-dance/ftw"
 dev-repo: "git+https://github.com/scr4t-dance/ftw.git"
 bug-reports: "git+https://github.com/scr4t-dance/ftw/issues"
 
-synopsis: "For The Win: a dance competition software"
-description:
-"For The Win is a web server meant to help organize dance competitions, and archive their results.
-
-It offers a web interface allowing competition organizer to create competitions,
-register participants, generated pools of dancers according to configurable parameters,
-register judges notes or rankings, and computes the ranking for each rounds of a competition.
-Finally, the web interface also show results of past competitions, and handles a point and
-divisions system."
+synopsis: "For The Win: a dance competition library"
+description: "Library for the FTW server"

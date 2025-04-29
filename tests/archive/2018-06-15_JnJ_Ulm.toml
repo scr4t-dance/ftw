@@ -1,8 +1,10 @@
-
 # FTW Event Info
+[config]
+format="ftw.1"
 
 [event]
 name = "Jack&Jill Ulm"
+short = "ulm_jj"
 start_date = 2018-06-15
 end_date = 2018-06-15
 
@@ -12,9 +14,7 @@ kind = "Jack_and_Jill"
 category = "Regular"
 leaders = 0
 follows = 0
-
-[event.comps.jj_classic.results]
-csv = """
+results = """
 1	L	Duchon-Doris	Cyril
 1	F	Castro Scherianz	Maria
 
@@ -31,9 +31,7 @@ kind = "Jack_and_Jill"
 category = "Regular"
 leaders = 0
 follows = 0
-
-[event.comps.jj_veteran.results]
-csv = """
+results = """
 1	L	Chen	Frédéric
 1	F	Gadon-Ferreira	Justine
 

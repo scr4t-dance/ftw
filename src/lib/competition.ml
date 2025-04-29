@@ -45,7 +45,7 @@ let () =
           id INTEGER PRIMARY KEY,
           event INTEGER REFERENCES events(id),
           name TEXT,
-          kind INTEGER REFERENCES division_names(id),
+          kind INTEGER REFERENCES competition_kinds(id),
           category INTEGER REFERENCES competition_categories(id),
           num_leaders INTEGER,
           num_followers INTEGER,
@@ -74,10 +74,24 @@ let from_event st (event_id:Event.id) =
   State.query_list_where ~p:Id.p ~conv ~st
     {| SELECT * FROM competitions WHERE event = ? |} event_id
 
-let create st event_id
-    ?(check_divs=true)
-    name kind category
-    ~n_leaders ~n_follows =
+let import ~st ~id:comp_id
+    ~event_id ?(check_divs=true)
+    ~name ~kind ~category
+    ~n_leaders ~n_follows
+    () =
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[ int; int; text; int; int; int; int; int ]
+    {| INSERT INTO competitions
+       (id, event, name, kind, category, num_leaders, num_followers,check_divs)
+       VALUES (?,?,?,?,?,?,?,?) |}
+    comp_id event_id name (Kind.to_int kind) (Category.to_int category)
+    n_leaders n_follows (Bool.to_int check_divs)
+
+let create ~st
+    ~event_id ?(check_divs=true)
+    ~name ~kind ~category
+    ~n_leaders ~n_follows
+    () =
   Logs.debug ~src:State.src (fun k->
       k "@[<hv 2>Creating new competition with@ \
          event_id: %d / name: %s@ \
@@ -104,7 +118,9 @@ let create st event_id
   Logs.debug ~src:State.src (fun k->k "Competition created with id %d" t.id);
   t
 
+(* TODO: move this to another file ? *)
 let ids_from_dancer_history st dancer_id =
   State.query_list_where ~p:Id.p ~conv:Id.conv ~st
     {| SELECT competition_id FROM bibs WHERE dancer_id = ? |}
     dancer_id
+

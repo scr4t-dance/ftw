@@ -4,6 +4,12 @@
 (* Result monadic operators *)
 (* ************************************************************************* *)
 
+module Opt = struct
+
+  let (let+) = Option.bind
+
+end
+
 module Result = struct
 
   let (let+) = Result.bind

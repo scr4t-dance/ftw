@@ -57,7 +57,7 @@ val create :
   ranking_algorithm:Ranking.Algorithm.t ->
   judge_artefact_descr:Artefact.Descr.t ->
   head_judge_artefact_descr:Artefact.Descr.t ->
-  id
+  t
 (** Create a new phase *)
 
 val update : st:State.t -> id ->
@@ -69,3 +69,4 @@ val update : st:State.t -> id ->
 
 val delete : st:State.t -> id -> id
 (** Delete a phase. TODO : delete more than phase. TODO : soft delete ? *)
+

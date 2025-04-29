@@ -38,6 +38,9 @@ val equal : t -> t -> bool
 val compare : t -> t -> int
 (** Comparison function. *)
 
+val print : Format.formatter -> t -> unit
+(** Printing function. *)
+
 module Set : Set.S with type elt = t
 (** Sets for identifiers *)
 

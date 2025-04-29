@@ -1,7 +1,10 @@
 # FTW Event Info
+[config]
+format="ftw.1"
 
 [event]
 name = "Jack&Jill Ulm"
+short = "ulm_jj"
 start_date = 2017-06-01
 end_date = 2017-06-01
 
@@ -11,9 +14,7 @@ kind = "Jack_and_Jill"
 category = "Regular"
 leaders = 0
 follows = 0
-
-[event.comps.jj.results]
-csv = """
+results = """
 1	L	Laurent	Théo
 1	F	Curchod	Hélène
 

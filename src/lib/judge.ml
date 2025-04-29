@@ -22,6 +22,54 @@ type panel =
   | Couples of couples
 
 
+(* Serialization *)
+(* ************************************************************************* *)
+
+let singles_to_toml { leaders; followers; head; } =
+  Otoml.inline_table (
+    ("leaders", Otoml.array (List.map Id.to_toml leaders)) ::
+    ("followers", Otoml.array (List.map Id.to_toml followers)) ::
+    (match head with
+     | None -> []
+     | Some id -> ["head", Id.to_toml id])
+  )
+
+let singles_of_toml t =
+  let head = Otoml.find_opt t Id.of_toml ["head"] in
+  let leaders = Otoml.find_exn t (Otoml.get_array Id.of_toml) ["leaders"] in
+  let followers = Otoml.find_exn t (Otoml.get_array Id.of_toml) ["followers"] in
+  { head; leaders; followers; }
+
+let couples_to_toml { couples; head; } =
+  Otoml.inline_table (
+    ("couples", Otoml.array (List.map Id.to_toml couples)) ::
+    (match head with
+     | None -> []
+     | Some id -> ["head", Id.to_toml id])
+  )
+
+let couples_of_toml t =
+  let head = Otoml.find_opt t Id.of_toml ["head"] in
+  let couples = Otoml.find_exn t (Otoml.get_array Id.of_toml) ["couples"] in
+  { head; couples; }
+
+let panel_to_toml = function
+  | Singles singles ->
+    Otoml.array [Otoml.string "Singles"; singles_to_toml singles]
+  | Couples couples ->
+    Otoml.array [Otoml.string "Couples"; couples_to_toml couples]
+
+let panel_of_toml t =
+  match Otoml.get_array Otoml.get_value t with
+  | cstr :: payload ->
+    begin match Otoml.get_string cstr, payload with
+      | "Singles", [singles] -> Singles (singles_of_toml singles)
+      | "Couples", [couples] -> Couples (couples_of_toml couples)
+      | s, _ -> raise (Otoml.Type_error ("Not a valid judge panel for constructor : " ^ s))
+    end
+  | _ -> raise (Otoml.Type_error ("Not a valid judge panel"))
+
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
@@ -66,11 +114,11 @@ let parse l =
       failwith "mismatched judging for phase"
   in
   let rec aux l = function
-    | [] -> Error "not enough judging for phase"
+    | [] -> failwith "not enough judging for phase"
     | (_, (Judging.Leaders | Judging.Followers)) :: _ ->
-      Ok (singles { leaders = []; followers = []; head = None; } l)
+      singles { leaders = []; followers = []; head = None; } l
     | (_, Judging.Couples) :: _ ->
-      Ok (couples { couples = []; head = None; } l)
+      couples { couples = []; head = None; } l
     | (_, Judging.Head) :: r -> aux l r
   in
   aux l l
@@ -106,6 +154,11 @@ let set ~st ~phase panel =
   | Singles { leaders; followers; head; } ->
     check_list "leaders" leaders;
     check_list "followers" followers;
+    Logs.debug ~src:State.src (fun k->
+        k "New panel: %a / %a"
+          (Format.pp_print_list ~pp_sep:Format.pp_print_space Id.print) leaders
+          (Format.pp_print_list ~pp_sep:Format.pp_print_space Id.print) followers
+                              );
     clear ~st ~phase;
     List.iter (set_aux ~st ~phase ~judging:Leaders) leaders;
     List.iter (set_aux ~st ~phase ~judging:Followers) followers;

@@ -73,8 +73,8 @@ and list_judges =
     (fun req st ->
        let+ id = Utils.int_param req "id" in
        let judges = Ftw.Judge.get ~st ~phase:id in
-       let panel = Result.map Types.Panel.of_ftw judges in
-       Result.map_error Error.generic panel
+       let panel = Types.Panel.of_ftw judges in
+       Ok panel
     )
 
 and set_judges =

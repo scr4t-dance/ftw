@@ -22,6 +22,9 @@ let to_string = function
   | Intermediate -> "Intermediate"
   | Advanced -> "Advanced"
 
+let print fmt t =
+  Format.fprintf fmt "%s" (to_string t)
+
 
 (* DB interaction *)
 (* ************************************************************************* *)

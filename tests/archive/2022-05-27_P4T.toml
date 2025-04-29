@@ -1,0 +1,645 @@
+# FTW Event Info
+[config]
+format = "ftw.1"
+
+[event]
+name = "Printemps 4 Temps"
+short = "p4t"
+start_date = 2022-05-27
+end_date = 2022-05-29
+
+[event.comps.jj_inter]
+name = ""
+kind = "Jack_and_Jill"
+category = "Intermediate"
+check_divs = false
+leaders = 15
+follows = 15
+results="""
+1	L	Aron	Vincent	10
+1	F	Martel	Alice	10
+
+2	L	Popineau	Pierre	8
+2	F	Le	Ai-My	8
+
+3	L	Le	Huy Hoang	6
+3	F	De Saint Léon	Aliénor	6
+
+4	L	Ziakovic	Théo	3
+4	F	Bivas	Irène	3
+
+5	L	Lopez	Yann	3
+5	F	Lefrère	Valentine	3
+
+6	L	Ducros	Charles
+6	F	Desseaux	Albane
+"""
+
+
+[event.comps.jj_inter.finals]
+judge_artefacts_descr = [ "Ranking" ]
+head_artefacts_descr = [ "Ranking" ]
+ranking_algorithm = [ "RPSS" ]
+artefacts="""
+Léa, Cimelli	Adrien, Nykol	Gabija, Purlyte	Guillaume, De Longuemar	Héloise, Vallerio	Lucille, Vignaud	Phillipe, Lam
+#234 Vincent Aron	#133 Alice Martel	1	1	2	1	2	1	4
+#201 Pierre Popineau	#120 Ai-My Le	2	3	1	2	3	3	1
+#204 Huy Hoang Le	#143 Aliénor Langlès	3	4	5	4	1	4	5
+#202 Théo Ziakovic	#103 Irène Bivas	5	2	6	3	4	6	2
+#236 Yann Lopez	#129 Valentine Lefrère	4	6	4	5	5	2	3
+#214 Charles Ducros	#132 Albane Desseaux	6	5	3	6	6	5	6
+"""
+
+[event.comps.jj_inter.prelims]
+judge_artefacts_descr = ["Yans", "technique", "musicality", "teamwork" ]
+head_artefacts_descr = ["Yans", "technique", "musicality", "teamwork" ]
+ranking_algorithm = ["Yan_weighted",
+  [ { yes = 3, alt = 2, no = 1}, { yes = 3, alt = 2, no = 1}, { yes = 3, alt = 2, no = 1} ],
+  [ { yes = 3, alt = 2, no = 1}, { yes = 3, alt = 2, no = 1}, { yes = 3, alt = 2, no = 1} ]
+]
+leaders_artefacts="""
+Lucille, Vignaud	Guillaume, De Longuemar	Adrien, Nykol	*Léa, Cimelli
+Rank	#	Dancer	Score	TK	M	TW	TK	M	TW	TK	M	TW	TK	M	TW
+1	202	Ziakovic Théo	27 / 9	3	3	3	3	3	3	3	3	3	3	3	3
+2	214	Ducros Charles	27 / 8	3	3	3	3	3	3	3	3	3	3	2	3
+3	236	Lopez Yann	25 / 9	3	3	3	2	3	2	3	3	3	3	3	3
+4	201	Popineau Pierre	24 / 9	2	3	3	3	3	3	2	2	3	3	3	3
+5	204	Le Huy Hoang	23 / 7	2	2	3	2	3	3	3	2	3	2	3	2
+6	234	Aron Vincent	21 / 4	2	2	2	2	2	2	3	3	3	1	2	1
+7	224	Varieras Mathilde	20 / 5	1	1	2	3	2	3	2	3	3	1	2	2
+8	233	Marcetteau Aurélien	19 / 8	2	2	2	2	3	2	2	1	3	2	3	3
+9	228	Guillochon Romain	19 / 6	2	2	2	2	2	1	3	2	3	2	2	2
+10	205	Falconieri Lorenzo	18 / 7	3	2	2	1	2	1	3	2	2	2	3	2
+11	235	Kasztelan Emmanuelle	18 / 3	2	2	2	1	2	2	2	2	3	1	1	1
+12	218	Piau Olivier	15 / 4	1	1	1	2	2	2	2	1	3	1	2	1
+13	213	Airiau Pierre-Marie	10 / 3	2	1	1	1	1	1	1	1	1	1	1	1
+14	246	Beisser Hugo	10 / 3	1	1	1	1	1	1	1	2	1	1	1	1
+15	243	Rambaud Matthieu	9 / 3	1	1	1	1	1	1	1	1	1	1	1	1
+"""
+followers_artefacts="""
+Phillipe, Lam	Héloise, Vallerio	Gabija, Purlyte	*Léa, Cimelli
+Rank	#	Dancer	Score	TK	M	TW	TK	M	TW	TK	M	TW	TK	M	TW
+1	132	Desseaux Albane	27 / 6	3	3	3	3	3	3	3	3	3	2	2	2
+2	103	Bivas Irène	26 / 9	3	3	3	3	3	3	2	3	3	3	3	3
+3	143	Langlès Aliénor	26 / 8	3	3	3	3	3	2	3	3	3	3	2	3
+4	133	Martel Alice	26 / 5	3	3	3	3	3	2	3	3	3	2	2	1
+5	120	Le Ai-My	24 / 9	2	3	2	3	3	3	3	3	2	3	3	3
+6	129	Lefrère Valentine	23 / 9	3	3	3	3	3	2	2	2	2	3	3	3
+7	107	Abella Alexandra	22 / 4	2	2	3	3	2	1	3	3	3	1	1	2
+8	108	Castro Maria	21 / 8	3	3	2	2	3	3	1	2	2	3	3	2
+9	102	Parquier Claire	20 / 8	2	2	3	2	2	2	2	2	3	3	2	3
+10	147	Renoul Louise	19 / 6	2	2	2	2	3	2	2	2	2	2	2	2
+11	138	Rault Cécile	15 / 4	1	1	2	2	2	2	1	2	2	1	1	2
+12	150	Hérété Héloise	14 / 8	2	1	1	1	2	1	2	2	2	2	3	3
+13	137	Thomas Lucie	10 / 4	1	1	1	1	1	1	1	1	2	1	2	1
+14	139	Mellet-Leclere Lucas	10 / 3	1	1	1	1	1	2	1	1	1	1	1	1
+15	119	Manet Hugo	9 / 4	1	1	1	1	1	1	1	1	1	1	1	2
+"""
+
+[event.comps.jj_initie]
+name = ""
+kind = "Jack_and_Jill"
+category = "Novice"
+leaders = 31
+follows = 34
+results="""
+# Finals
+1	L	Martel	Alice	14
+1	F	Leblanc Sogutçu	Gabrielle	14
+
+2	L	Bussonati	Orlando	12
+2	F	Daumal 	Ange	12
+
+3	L	Abbed	Aniss	10
+3	F	Gaglione	Eglantine	10
+
+4	L	Bellec	Nicolas	8
+4	F	Guillochon	Romain	8
+
+5	L	Bivas	Irène	8
+5	F	Sargent-Caillat	Pauline	8
+
+6	L	Mellet-Leclere	Lucas	6
+6	F	Szilas	Eva	6
+
+7	L	Manet	Hugo	6
+7	F	Novene	Marie-Lou	6
+
+8	L	Coso	Amaury	3
+8	F	Nguyen	Romy	3
+
+9	L	Régnier	Léo	3
+9	F	Reclus	Anne-Marie	3
+
+10	L	Loew walker	Siegfried	3
+10	F	Koeler	Alice	3
+
+# Semi-finals
+S	L	Camoin	Gabriel	2
+S	L	Renoul	Louise	2
+S	L	Nédélec	Vincent	2
+S	L	Leclerc	Alexis	2
+S	L	Nguyen	Olivier	2
+S	L	Loyer	Lilian	2
+
+S	F	Donatien	Albane	2
+S	F	Law	Thalie	2
+S	F	Leborgne	Amandine	2
+S	F	Penin	Gaelle	2
+S	F	Chauvin	Kitima	2
+S	F	Tandeau	Eléonore	2
+"""
+
+[event.comps.jj_initie.finals]
+judge_artefacts_descr = [ "Ranking" ]
+head_artefacts_descr = [ "Ranking" ]
+ranking_algorithm = [ "RPSS" ]
+artefacts="""
+Léa, Cimelli	AiMy, Le	Claire, Parquier	Guillaume, DeGaulle	Mathilde, Varieras	Paul, Ben Kiran	Pierre, Popineau
+#239 Alice Martel	#109 Gabrielle Leblanc Sogutçu	1	1	6	1	1	1	4
+#219 Orlando Bussonati	#106 Ange Daumal	2	2	1	7	2	3	3
+#230 Aniss Abbed	#142 Eglantine Gaglione	7	3	2	2	3	5	5
+#217 Nicolas Bellec	#124 Romain Guillochon	10	4	3	3	5	8	2
+#203 Irène Bivas	#140 Pauline Sargent-Caillat	6	5	9	4	8	4	1
+#237 Lucas Mellet-Leclere	#125 Eva Szilas	3	8	4	6	6	7	7
+#220 Hugo Manet	#105 Marie-Lou Novene	4	7	7	10	9	6	6
+#215 Amaury Coso	#126 Romy Nguyen	8	6	10	8	7	9	8
+#231 Léo Régnier	#148 Anne-Marie Reclus	5	9	8	5	10	2	9
+#210 Sieffried Loew	#118 Alice Koeler	9	10	5	9	4	10	10
+"""
+
+[event.comps.jj_initie.semifinals]
+judge_artefacts_descr = ["Yans", "technique", "musicality", "teamwork" ]
+head_artefacts_descr = ["Yans", "technique", "musicality", "teamwork" ]
+ranking_algorithm = ["Yan_weighted",
+  [ { yes = 3, alt = 2, no = 1}, { yes = 3, alt = 2, no = 1}, { yes = 3, alt = 2, no = 1} ],
+  [ { yes = 3, alt = 2, no = 1}, { yes = 3, alt = 2, no = 1}, { yes = 3, alt = 2, no = 1} ]
+]
+leaders_artefacts="""
+				Pierre, Popineau			Mathilde, Varieras			Guillaume, DeGaulle			*Léa, Cimelli		
+Rank	#	Dancer	Score	TK	M	TW	TK	M	TW	TK	M	TW	TK	M	TW
+1	203	Bivas Irène	27 / 9	3	3	3	3	3	3	3	3	3	3	3	3
+2	239	Martel Alice	27 / 9	3	3	3	3	3	3	3	3	3	3	3	3
+3	215	Coso Amaury	26 / 7	2	3	3	3	3	3	3	3	3	3	2	2
+4	210	Loew Sieffried	25 / 5	3	3	3	2	3	3	2	3	3	2	1	2
+5	230	Abbed Aniss	23 / 9	3	3	3	2	2	2	2	3	3	3	3	3
+6	217	Bellec Nicolas	22 / 9	3	3	2	2	1	2	3	3	3	3	3	3
+7	220	Manet Hugo	22 / 8	3	3	3	1	2	2	2	3	3	2	3	3
+8	231	Régnier Léo	22 / 8	3	2	3	1	1	3	3	3	3	3	3	2
+9	237	Mellet-Leclere Lucas	21 / 8	2	3	3	2	2	1	2	3	3	3	2	3
+10	219	Bussonati Orlando	21 / 7	3	2	2	2	3	1	2	3	3	3	1	3
+11	206	Camoin Gabriel	21 / 3	3	3	3	1	1	3	2	2	3	1	1	1
+12	249	Renoul Louise	19 / 8	3	3	3	1	2	1	2	2	2	2	3	3
+13	225	Nédélec Vincent	19 / 6	2	2	2	1	3	3	2	2	2	1	2	3
+14	208	Leclerc Alexis	18 / 5	2	2	2	1	3	2	2	2	2	1	3	1
+15	252	Nguyen Olivier	18 / 4	2	2	2	1	3	3	1	2	2	1	2	1
+16	250	Loyer Lilian	17 / 5	1	2	2	2	1	3	2	2	2	2	2	1
+"""
+followers_artefacts="""
+				Paul, Ben Kiran			Claire, Parquier			AiMy, Le			*Léa, Cimelli		
+Rank	#	Dancer	Score	TK	M	TW	TK	M	TW	TK	M	TW	TK	M	TW
+1	105	Novene Marie-Lou	27 / 8	3	3	3	3	3	3	3	3	3	3	2	3
+2	109	Leblanc Sogutçu Gabrielle	26 / 9	3	3	3	3	3	3	3	3	2	3	3	3
+3	142	Gaglione Eglantine	26 / 7	3	3	3	2	3	3	3	3	3	3	3	1
+4	106	Daumal Ange	25 / 9	3	3	3	3	2	2	3	3	3	3	3	3
+5	126	Nguyen Romy	25 / 7	3	3	3	3	2	3	2	3	3	2	2	3
+6	140	Sargent-Caillat Pauline	25 / 3	3	3	3	3	3	3	2	3	2	1	1	1
+7	125	Szilas Eva	24 / 8	3	2	2	2	3	3	3	3	3	3	3	2
+8	124	Guillochon Romain	23 / 7	2	3	3	3	2	1	3	3	3	3	3	1
+9	118	Koeler Alice	22 / 5	3	3	3	1	1	2	3	3	3	2	1	2
+10	148	Reclus Anne-Marie	20 / 8	3	3	3	1	3	3	1	1	2	3	2	3
+11	145	Donatien Albane	20 / 4	2	2	2	3	3	3	2	1	2	2	1	1
+12	104	Law Thalie	19 / 9	2	2	2	2	3	2	2	2	2	3	3	3
+13	130	Leborgne Amandine	19 / 9	1	1	2	3	3	3	2	2	2	3	3	3
+14	134	Penin Gaelle	19 / 7	3	3	2	2	2	2	1	2	2	1	3	3
+15	141	Chauvin Kitima	19 / 3	1	2	2	1	3	3	2	2	3	1	1	1
+16	122	Tandeau Eléonore	17 / 6	2	2	2	1	2	2	3	1	2	2	1	3
+"""
+
+
+[event.comps.jj_initie.prelims]
+judge_artefacts_descr = ["Yans", "technique", "musicality", "teamwork" ]
+head_artefacts_descr = ["Yans", "technique", "musicality", "teamwork" ]
+ranking_algorithm = ["Yan_weighted",
+  [ { yes = 3, alt = 2, no = 1}, { yes = 3, alt = 2, no = 1}, { yes = 3, alt = 2, no = 1} ],
+  [ { yes = 3, alt = 2, no = 1}, { yes = 3, alt = 2, no = 1}, { yes = 3, alt = 2, no = 1} ]
+]
+leaders_artefacts="""
+				Pierre, Popineau			Mathilde, Varieras			Guillaume, DeGaulle			*Léa, Cimelli		
+Rank	#	Dancer	Score	TK	M	TW	TK	M	TW	TK	M	TW	TK	M	TW
+1	203	Bivas Irène	27 / 9	3	3	3	3	3	3	3	3	3	3	3	3
+2	239	Martel Alice	27 / 9	3	3	3	3	3	3	3	3	3	3	3	3
+3	210	Loew Sieffried	26 / 8	3	3	3	3	3	2	3	3	3	3	3	2
+4	215	Coso Amaury	24 / 9	3	3	2	3	3	2	3	3	2	3	3	3
+5	230	Abbed Aniss	24 / 9	2	3	3	2	3	2	3	3	3	3	3	3
+6	231	Régnier Léo	24 / 9	3	3	3	2	2	2	3	3	3	3	3	3
+7	237	Mellet-Leclere Lucas	24 / 9	2	3	3	1	3	3	3	3	3	3	3	3
+8	217	Bellec Nicolas	24 / 7	3	3	3	2	3	1	3	3	3	3	2	2
+9	252	Nguyen Olivier	24 / 6	3	3	3	2	3	3	2	3	2	3	2	1
+10	249	Renoul Louise	23 / 6	3	3	3	2	3	1	3	3	2	3	2	1
+11	206	Camoin Gabriel	22 / 8	2	3	2	2	2	2	3	3	3	3	2	3
+12	208	Leclerc Alexis	21 / 8	3	3	2	1	2	1	3	3	3	2	3	3
+13	225	Nédélec Vincent	21 / 6	3	3	3	1	3	3	2	1	2	1	3	2
+14	219	Bussonati Orlando	21 / 3	2	3	3	1	2	3	2	2	3	1	1	1
+15	220	Manet Hugo	20 / 8	2	2	3	1	3	1	2	3	3	2	3	3
+16	250	Loyer Lilian	20 / 8	2	2	2	1	1	3	3	3	3	2	3	3
+17	207	Schrottenloher Abel	20 / 7	3	3	3	3	1	1	2	2	2	2	3	2
+18	209	Bied Manuel	19 / 9	3	3	2	2	2	1	2	2	2	3	3	3
+19	251	Delaunay Virgile	18 / 9	2	2	2	2	2	2	2	2	2	3	3	3
+20	223	Aflak-Kattar Michel	18 / 7	3	2	3	1	1	2	2	2	2	1	3	3
+21	240	Maymard Vincent	18 / 7	2	2	2	3	2	1	3	1	2	3	3	1
+22	212	Vialard Isa	18 / 5	3	3	3	2	1	1	1	2	2	2	1	2
+23	247	Dabas Jean-Guillain	18 / 5	2	3	2	1	1	1	3	2	3	1	3	1
+24	245	Tran Buu	18 / 3	2	2	2	3	1	2	3	1	2	1	1	1
+25	211	Chachati Geoffrey	17 / 3	2	2	2	1	1	3	2	2	2	1	1	1
+26	241	Tanne Anthony	16 / 7	3	3	3	1	1	1	1	2	1	3	2	2
+27	227	Poirier Jean-François	15 / 5	2	2	2	1	1	2	1	2	2	1	2	2
+28	226	Loncle Kevin	15 / 3	2	2	2	1	1	1	3	1	2	1	1	1
+29	232	Coquinot Baptiste	14 / 6	2	2	2	1	1	2	1	1	2	1	3	2
+30	221	Chen Ray	14 / 4	1	2	2	1	2	1	2	1	2	1	1	2
+31	242	Weibel Julien	13 / 5	2	1	2	1	1	1	2	1	2	2	2	1
+"""
+followers_artefacts="""
+				Paul, Ben Kiran			Claire, Parquier			AiMy, Le			*Léa, Cimelli		
+Rank	#	Dancer	Score	TK	M	TW	TK	M	TW	TK	M	TW	TK	M	TW
+1	109	Leblanc Sogutçu Gabrielle	25 / 9	3	3	3	3	3	1	3	3	3	3	3	3
+2	125	Szilas Eva	25 / 8	1	3	3	3	3	3	3	3	3	3	3	2
+3	126	Nguyen Romy	25 / 8	3	2	3	3	2	3	3	3	3	3	3	2
+4	141	Chauvin Kitima	25 / 5	2	3	3	3	3	3	2	3	3	1	3	1
+5	105	Novene Marie-Lou	24 / 9	3	3	3	3	1	2	3	3	3	3	3	3
+6	106	Daumal Ange	24 / 7	3	3	2	3	3	2	2	3	3	2	3	2
+7	118	Koeler Alice	24 / 7	3	3	3	1	2	3	3	3	3	3	1	3
+8	140	Sargent-Caillat Pauline	24 / 6	3	3	2	3	3	3	2	3	2	2	1	3
+9	142	Gaglione Eglantine	23 / 7	3	2	2	1	3	3	3	3	3	2	3	2
+10	130	Leborgne Amandine	22 / 8	1	2	2	3	3	3	3	3	2	2	3	3
+11	148	Reclus Anne-Marie	22 / 8	3	3	3	1	3	3	2	2	2	3	2	3
+12	122	Tandeau Eléonore	22 / 4	3	3	3	3	2	2	2	2	2	1	1	2
+13	124	Guillochon Romain	21 / 8	2	2	2	3	2	2	3	2	3	3	3	2
+14	134	Penin Gaelle	21 / 8	2	3	3	1	2	3	2	2	3	2	3	3
+15	145	Donatien Albane	21 / 7.2	2	2	3	3	3	1	3	1	3	2	3	2
+16	104	Law Thalie	21 / 7.1	1	2	1	3	3	3	2	3	3	3	3	1
+17	127	Houdeau Alice	21 / 7	3	3	2	1	2	3	2	3	2	3	3	1
+18	123	Rieu Camille	21 / 6	3	2	3	2	2	2	2	2	3	1	2	3
+19	136	Picard Soliane	21 / 5	2	3	2	1	3	3	2	2	3	1	2	2
+20	101	Ziakovic Théo	20 / 9	2	3	2	1	3	2	2	2	3	3	3	3
+21	117	Berton Irène	20 / 7	2	1	3	3	3	3	2	1	2	2	2	3
+22	112	Guillet Rowena	19 / 7	2	2	3	3	3	1	2	1	2	3	2	2
+23	113	Goubert Camille	18 / 9	3	2	2	1	2	2	2	2	2	3	3	3
+24	111	Silvain Alexandra	18 / 8	1	3	2	1	2	3	2	2	2	2	3	3
+25	121	Verhille Julie	17 / 5	3	3	3	1	1	1	2	1	2	2	2	1
+26	146	Kasztelan Emmanuelle	17 / 5	1	2	2	1	3	3	1	2	2	1	2	2
+27	115	Derminon Suzie	16 / 6	2	1	1	1	1	3	2	2	3	2	2	2
+28	114	Bivas Anna	16 / 3	2	1	2	2	1	2	2	2	2	1	1	1
+29	110	Tran Luy Marie	14 / 7	1	1	1	1	2	1	2	2	3	3	2	2
+30	131	Nativelle-José Agathe	14 / 6	1	1	2	1	3	2	2	1	1	2	2	2
+31	135	Barrat Ingrid	14 / 3	1	2	2	1	1	3	1	1	2	1	1	1
+32	149	Vignier Lisa	13 / 3	1	3	2	1	1	1	1	2	1	1	1	1
+33	128	Séguret Marie	12 / 9	2	1	2	1	1	1	1	1	2	3	3	3
+34	116	Caulier Clémence	12 / 3	1	2	1	1	2	1	1	2	1	1	1	1
+"""
+
+[event.comps.jj_initie.dancers]
+bibs="""
+Aniss	Abbed	# 230	
+Alexandra	Abella		# 107
+Cléo	Abécassis		
+Michel	Aflak-Kattar	# 223	
+Pierre-Marie	Airiau	# 213	
+Nicolas	Allard		
+Vincent	Aron	# 234	
+Ingrid	Barrat		# 135
+Laura	Barrera Cano		
+Anne-Laure	Begue		
+Hugo	Beisser	# 246	
+Nicolas	Bellec	# 217	
+Paul	Ben Kiran		
+Johanne	Bensimon		
+Alix	Berthelon		
+Irène	Berton		# 117
+Manuel	Bied	# 209	
+Audrey	Bister		
+Anna	Bivas		# 114
+Irène	Bivas	# 203	# 103
+Clément	Bléchet		
+Valentine	Boucher		
+Sophie	Brosse		
+Aurélien	Brouillaud		
+Ombeline	Brouillaud		
+Anais	Brun		
+Michel	Brun		
+Guillaume	Bury		
+Orlando	Bussonati	# 219	
+Loréna	Bénichou		
+Gabriel	Camoin	# 206	
+Maria	Castro		# 108
+Clémence	Caulier		# 116
+Geoffrey	Chachati	# 211	
+Quentin	Chan-Wai-Nam		
+Kitima	Chauvin		# 141
+Ray	Chen	# 221	
+Guillaume	Chevalier		
+Damien	Cholley		
+Léa	Cimelli		
+Emily	Clément		
+Marilou	Clémençon		
+Baptiste	Coquinot	# 232	
+Alexandre	Corbet		
+Amaury	Coso	# 215	
+Solène	Courtois		
+Céline	Da Costa		
+Jean-Guillain	Dabas	# 247	
+Ange	Daumal		# 106
+Isabelle	Dauvert		# 144
+Guillaume	De Longuemar		
+Jean-Charles	De la Roncière		
+Sandra	Debu		
+Sonia	Dechri		
+Virgile	Delaunay	# 251	
+Suzie	Derminon		# 115
+Albane	Desseaux		# 132
+Clémence	Devries		
+Hawa	Diallo		
+Houria	Djebbor		
+Albane	Donatien		# 145
+Gwenaelle	Dorgeville		
+Jacinthe	Droal		
+Charles	Ducros	# 214	
+Aurélie	Durel		
+Nicolas	Estocq		
+Lorenzo	Falconieri	# 205	
+Jean-Baptiste	Favre		
+Emmanuel	Federbusch	# 222	
+Cynthia	Fernandez		
+Amaury	Fonta		
+Julian	Fressy		
+Eglantine	Gaglione		# 142
+Camille	Goubert		# 113
+Bertrand	Goussu		
+Rowena	Guillet		# 112
+Romain	Guillochon	# 228	# 124
+Louise	Guérin		
+Eglantine	Hector		
+Alice	Houdeau		# 127
+Elina	Huneman		
+Héloise	Hérété		# 150
+Simon	Jouveshomme		
+Emmanuelle	Kasztelan	# 235	# 146
+Alice	Koeler		# 118
+Philippe	Lam		
+Aliénor	Langlès		# 143
+Loic	Lavastre		
+Thalie	Law		# 104
+Ai-My	Le		# 120
+Huy Hoang	Le	# 204	
+Gabrielle	Leblanc Sogutçu		# 109
+Amandine	Leborgne		# 130
+Alexis	Leclerc	# 208	
+Guillaume	Lefeuvre		
+Louis	Lefeuvre		
+Valentine	Lefrère		# 129
+Ninon	Legardinier		
+Jules	Lerouge		
+Maria	Litzler-Italia		
+Sieffried	Loew	# 210	
+Kevin	Loncle	# 226	
+Yann	Lopez	# 236	
+Lilian	Loyer	# 250	
+Marine	Manello		
+Hugo	Manet	# 220	# 119
+Aurélien	Marcetteau	# 233	
+Camille	Mariani		
+Basile	Marin	# 238	
+Alice	Martel	# 239	# 133
+Simon	Matet		
+Emi	Matsuoka		
+Vincent	Maymard	# 240	
+Lucas	Mellet-Leclere	# 237	# 139
+Yani	Meziane		
+Enzo	Miller	# 244	
+Léonard	Momméja		
+Raphael	Morin	# 248	
+Adrien	Nahlowski		
+Agathe	Nativelle-José		# 131
+Olivier	Nguyen	# 252	
+Romy	Nguyen		# 126
+Kalia	Nlend		
+Marie-Lou	Novene		# 105
+Vincent	Nédélec	# 225	
+Michael	Ory	# 216	
+Claire	Parquier		# 102
+Gaelle	Penin		# 134
+Olivier	Piau	# 218	
+Soliane	Picard		# 136
+Jean-François	Poirier	# 227	
+Pierre	Popineau	# 201	
+Gabija	Purlyte		
+Matthieu	Rambaud	# 243	
+Cécile	Rault		# 138
+Anne-Marie	Reclus		# 148
+Louise	Renoul	# 249	# 147
+Camille	Rieu		# 123
+Sarah	Rob		
+Cécile	Rodrigues		
+Rudolph	Rogly		
+Irène	Rossignol		
+Léo	Régnier	# 231	
+Amaury	Sacriste		
+Floriane	Sanfilippo		
+Pauline	Sargent-Caillat		# 140
+Quentin	Savalle		
+Mathew	Scheltienne		
+Abel	Schrottenloher	# 207	
+Alexandra	Silvain		# 111
+Eva	Szilas	# 229	# 125
+Marie	Séguret		# 128
+Antoine	Séré		
+Eléonore	Tandeau		# 122
+Anthony	Tanne	# 241	
+Lucie	Thomas		# 137
+Juliette	Tran		
+Buu	Tran	# 245	
+Marie	Tran Luy		# 110
+Héloise	Vallerio		
+Louise	Varieras		
+Mathilde	Varieras	# 224	
+Julie	Verhille		# 121
+Isa	Vialard	# 212	
+Lucile	Vignaud		
+Lisa	Vignier		# 149
+Madgalina	Von Wunsch		
+Julien	Weibel	# 242	
+Théo	Ziakovic	# 202	# 101
+"""
+
+[event.comps.jj_inter.dancers]
+bibs="""
+Aniss	Abbed	# 230	
+Alexandra	Abella		# 107
+Cléo	Abécassis		
+Michel	Aflak-Kattar	# 223	
+Pierre-Marie	Airiau	# 213	
+Nicolas	Allard		
+Vincent	Aron	# 234	
+Ingrid	Barrat		# 135
+Laura	Barrera Cano		
+Anne-Laure	Begue		
+Hugo	Beisser	# 246	
+Nicolas	Bellec	# 217	
+Paul	Ben Kiran		
+Johanne	Bensimon		
+Alix	Berthelon		
+Irène	Berton		# 117
+Manuel	Bied	# 209	
+Audrey	Bister		
+Anna	Bivas		# 114
+Irène	Bivas	# 203	# 103
+Clément	Bléchet		
+Valentine	Boucher		
+Sophie	Brosse		
+Aurélien	Brouillaud		
+Ombeline	Brouillaud		
+Anais	Brun		
+Michel	Brun		
+Guillaume	Bury		
+Orlando	Bussonati	# 219	
+Loréna	Bénichou		
+Gabriel	Camoin	# 206	
+Maria	Castro		# 108
+Clémence	Caulier		# 116
+Geoffrey	Chachati	# 211	
+Quentin	Chan-Wai-Nam		
+Kitima	Chauvin		# 141
+Ray	Chen	# 221	
+Guillaume	Chevalier		
+Damien	Cholley		
+Léa	Cimelli		
+Emily	Clément		
+Marilou	Clémençon		
+Baptiste	Coquinot	# 232	
+Alexandre	Corbet		
+Amaury	Coso	# 215	
+Solène	Courtois		
+Céline	Da Costa		
+Jean-Guillain	Dabas	# 247	
+Ange	Daumal		# 106
+Isabelle	Dauvert		# 144
+Guillaume	De Longuemar		
+Jean-Charles	De la Roncière		
+Sandra	Debu		
+Sonia	Dechri		
+Virgile	Delaunay	# 251	
+Suzie	Derminon		# 115
+Albane	Desseaux		# 132
+Clémence	Devries		
+Hawa	Diallo		
+Houria	Djebbor		
+Albane	Donatien		# 145
+Gwenaelle	Dorgeville		
+Jacinthe	Droal		
+Charles	Ducros	# 214	
+Aurélie	Durel		
+Nicolas	Estocq		
+Lorenzo	Falconieri	# 205	
+Jean-Baptiste	Favre		
+Emmanuel	Federbusch	# 222	
+Cynthia	Fernandez		
+Amaury	Fonta		
+Julian	Fressy		
+Eglantine	Gaglione		# 142
+Camille	Goubert		# 113
+Bertrand	Goussu		
+Rowena	Guillet		# 112
+Romain	Guillochon	# 228	# 124
+Louise	Guérin		
+Eglantine	Hector		
+Alice	Houdeau		# 127
+Elina	Huneman		
+Héloise	Hérété		# 150
+Simon	Jouveshomme		
+Emmanuelle	Kasztelan	# 235	# 146
+Alice	Koeler		# 118
+Philippe	Lam		
+Aliénor	Langlès		# 143
+Loic	Lavastre		
+Thalie	Law		# 104
+Ai-My	Le		# 120
+Huy Hoang	Le	# 204	
+Gabrielle	Leblanc Sogutçu		# 109
+Amandine	Leborgne		# 130
+Alexis	Leclerc	# 208	
+Guillaume	Lefeuvre		
+Louis	Lefeuvre		
+Valentine	Lefrère		# 129
+Ninon	Legardinier		
+Jules	Lerouge		
+Maria	Litzler-Italia		
+Sieffried	Loew	# 210	
+Kevin	Loncle	# 226	
+Yann	Lopez	# 236	
+Lilian	Loyer	# 250	
+Marine	Manello		
+Hugo	Manet	# 220	# 119
+Aurélien	Marcetteau	# 233	
+Camille	Mariani		
+Basile	Marin	# 238	
+Alice	Martel	# 239	# 133
+Simon	Matet		
+Emi	Matsuoka		
+Vincent	Maymard	# 240	
+Lucas	Mellet-Leclere	# 237	# 139
+Yani	Meziane		
+Enzo	Miller	# 244	
+Léonard	Momméja		
+Raphael	Morin	# 248	
+Adrien	Nahlowski		
+Agathe	Nativelle-José		# 131
+Olivier	Nguyen	# 252	
+Romy	Nguyen		# 126
+Kalia	Nlend		
+Marie-Lou	Novene		# 105
+Vincent	Nédélec	# 225	
+Michael	Ory	# 216	
+Claire	Parquier		# 102
+Gaelle	Penin		# 134
+Olivier	Piau	# 218	
+Soliane	Picard		# 136
+Jean-François	Poirier	# 227	
+Pierre	Popineau	# 201	
+Gabija	Purlyte		
+Matthieu	Rambaud	# 243	
+Cécile	Rault		# 138
+Anne-Marie	Reclus		# 148
+Louise	Renoul	# 249	# 147
+Camille	Rieu		# 123
+Sarah	Rob		
+Cécile	Rodrigues		
+Rudolph	Rogly		
+Irène	Rossignol		
+Léo	Régnier	# 231	
+Amaury	Sacriste		
+Floriane	Sanfilippo		
+Pauline	Sargent-Caillat		# 140
+Quentin	Savalle		
+Mathew	Scheltienne		
+Abel	Schrottenloher	# 207	
+Alexandra	Silvain		# 111
+Eva	Szilas	# 229	# 125
+Marie	Séguret		# 128
+Antoine	Séré		
+Eléonore	Tandeau		# 122
+Anthony	Tanne	# 241	
+Lucie	Thomas		# 137
+Juliette	Tran		
+Buu	Tran	# 245	
+Marie	Tran Luy		# 110
+Héloise	Vallerio		
+Louise	Varieras		
+Mathilde	Varieras	# 224	
+Julie	Verhille		# 121
+Isa	Vialard	# 212	
+Lucile	Vignaud		
+Lisa	Vignier		# 149
+Madgalina	Von Wunsch		
+Julien	Weibel	# 242	
+Théo	Ziakovic	# 202	# 101
+"""

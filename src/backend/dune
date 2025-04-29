@@ -3,6 +3,7 @@
 (executable
   (name         main)
   (public_name  ftw)
+  (package      ftw_bin)
   (preprocess
     (pps lwt_ppx ppx_deriving.show ppx_deriving_yojson)
   )

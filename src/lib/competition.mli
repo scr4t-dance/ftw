@@ -58,11 +58,19 @@ val ids_from_event : State.t -> Event.id -> id list
 (** Get the list of all competitions that belong to a given event. *)
 
 val create :
-  State.t -> Event.id ->
-  ?check_divs:bool ->
-  string -> Kind.t -> Category.t ->
-  n_leaders:int -> n_follows:int -> t
+  st:State.t ->
+  event_id:Event.id -> ?check_divs:bool ->
+  name:string -> kind:Kind.t -> category:Category.t ->
+  n_leaders:int -> n_follows:int -> unit -> t
 (** Create a new competition *)
+
+val import :
+  st:State.t -> id:id ->
+  event_id:Event.id -> ?check_divs:bool ->
+  name:string -> kind:Kind.t -> category:Category.t ->
+  n_leaders:int -> n_follows:int -> unit -> unit
+(** Import a competition (including id). *)
 
 val ids_from_dancer_history : State.t -> Dancer.id -> id list
 (** Get the list of all competitions a dancer participated in. *)
+

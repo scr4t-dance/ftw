@@ -1,7 +1,10 @@
 # FTW Event Info
+[config]
+format="ftw.1"
 
 [event]
 name = "Concours Chorégraphie ENS Ulm"
+short = "ulm_cc"
 start_date = 2017-04-29
 end_date = 2017-04-29
 
@@ -11,9 +14,7 @@ kind = "Routine"
 category = "Regular"
 leaders = 0
 follows = 0
-
-[event.comps.cc.results]
-csv = """
+results = """
 1	L	Laurent	Théo
 1	F	Cimelli	Léa
 

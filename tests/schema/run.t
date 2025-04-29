@@ -8,7 +8,7 @@ test that database initialisation is reproducible
 
 Launch the FTW server in the background
 
-  $ ftw --db="test.db" --port=8082 > /dev/null 2>&1 &
+  $ ftw --db=test.db --port=8082 > /dev/null 2>&1 &
 
 Sleep a bit to ensure that the server had had time to initialize and is ready
 to respond to requests
@@ -28,6 +28,9 @@ If the definition changes
 * create migration script src/migration/migrate_V-1_to_V.sql
 * apply to existing database and tests data integrity (with a round trip of exported/imported data)
   $ sqlite3 "test.db" '.schema'
+  CREATE TABLE database_version (
+          id INTEGER PRIMARY KEY,
+          name TEXT UNIQUE);
   CREATE TABLE round_names (
           id INTEGER PRIMARY KEY,
           name TEXT UNIQUE);
@@ -40,15 +43,19 @@ If the definition changes
   CREATE TABLE events (
             id INTEGER PRIMARY KEY,
             name TEXT,
+            short_name TEXT,
             start_date TEXT,
             end_date TEXT,
             UNIQUE (name, start_date, end_date)
           );
+  CREATE TABLE competition_kinds (
+          id INTEGER PRIMARY KEY,
+          name TEXT UNIQUE);
   CREATE TABLE competitions (
             id INTEGER PRIMARY KEY,
             event INTEGER REFERENCES events(id),
             name TEXT,
-            kind INTEGER REFERENCES division_names(id),
+            kind INTEGER REFERENCES competition_kinds(id),
             category INTEGER REFERENCES competition_categories(id),
             num_leaders INTEGER,
             num_followers INTEGER,
@@ -74,13 +81,6 @@ If the definition changes
             points INTEGER,
             PRIMARY KEY (competition, dancer, role)
           );
-  CREATE TABLE artefacts (
-            target_id INTEGER REFERENCES heats(id),
-            judge INTEGER REFERENCES dancers(id),
-            artefact INTEGER NOT NULL,
-            PRIMARY KEY(target_id,judge)
-            ON CONFLICT REPLACE
-          );
   CREATE TABLE judging_names (
           id INTEGER PRIMARY KEY,
           name TEXT UNIQUE);
@@ -90,6 +90,13 @@ If the definition changes
             judging INTEGER REFERENCES judging_names(id),
   
             PRIMARY KEY(judge_id, phase_id)
+          );
+  CREATE TABLE artefacts (
+            target_id INTEGER REFERENCES heats(id),
+            judge INTEGER REFERENCES dancers(id),
+            artefact INTEGER NOT NULL,
+            PRIMARY KEY(target_id,judge)
+            ON CONFLICT REPLACE
           );
   CREATE TABLE phases (
             id INTEGER PRIMARY KEY,
@@ -107,6 +114,11 @@ If the definition changes
             role INTEGER NOT NULL,
   
             PRIMARY KEY(bib,competition_id,role)
+          );
+  CREATE TABLE bonus (
+            target_id INTEGER REFERENCES heats(id), -- = target id of judgement
+            bonus INTEGER NOT NULL,
+            PRIMARY KEY(target_id)
           );
   CREATE TABLE heats (
             id INTEGER PRIMARY KEY,

@@ -20,6 +20,9 @@ val id : t -> id
 val name : t -> string
 (** Name of the event *)
 
+val short_name : t -> string
+(** Short name for the event *)
+
 val start_date : t -> Date.t
 (** Start date of the event *)
 
@@ -43,5 +46,9 @@ val get : State.t -> id -> t
 (** Get an event from its id.
     @raise Stdlib.Not_found if the event is not found. *)
 
-val create : State.t -> string -> start_date:Date.t -> end_date:Date.t -> id
+val create : st:State.t -> name:string -> short_name:string -> start_date:Date.t -> end_date:Date.t -> id
 (** Create a new event. *)
+
+val import : st:State.t -> id:id -> name:string -> short_name:string -> start_date:Date.t -> end_date:Date.t -> unit
+(** Import an event with a fixed id. *)
+

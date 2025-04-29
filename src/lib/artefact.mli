@@ -40,27 +40,36 @@ type t =
   | Rank of Rank.t
   | Yans of yan list
 
+val check : descr:Descr.t -> t -> bool
+(** Check whether an artefact matches a description. *)
+
+
 (* DB Interaction *)
 (* ************************************************************************* *)
+
+val p : (int -> 'a, 'a) Sqlite3_utils.Ty.t
+(** Sqlite query "type" for identifiers *)
+
+val conv : descr:Descr.t -> t Conv.t
+(** Converter for identifiers *)
 
 val get :
   st:State.t ->
   judge:Judge.id ->
   target:Id.t ->
   descr:Descr.t ->
-  (t option, string) result
+  t
 
 val set :
   st:State.t ->
   judge:Judge.id ->
   target:Id.t ->
-  t -> (Id.t, string) result
+  t -> unit
 
-  val delete :
+val delete :
   st:State.t ->
   judge:Judge.id ->
-  target:Id.t ->
-  (Id.t, string) result
+  target:Id.t -> unit
 
 
 (* Serialization *)
@@ -72,3 +81,20 @@ val to_toml : t -> Otoml.t
 val of_toml : descr:Descr.t -> Otoml.t -> t
 (** Deserialization from toml.
     @raise Otoml.Type_error *)
+
+module Targeted : sig
+
+  type nonrec t = {
+    judge: Judge.id;
+    target : Id.t;
+    artefact : t;
+  }
+
+  val to_toml : t -> Otoml.t
+  (** Serialization to toml. *)
+
+  val of_toml : descr:Descr.t -> Otoml.t -> t
+  (** Deserialization from toml.
+      @raise Otoml.Type_error *)
+
+end

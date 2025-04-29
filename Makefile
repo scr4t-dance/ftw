@@ -40,6 +40,8 @@ src/frontend/app/hookgen/hookgen.sentinel hookgen: src/openapi.json
 $(FRONTEND_TARGET): src/frontend/app/hookgen/hookgen.sentinel $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
 
+frontend: $(FRONTEND_TARGET)
+
 backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
 

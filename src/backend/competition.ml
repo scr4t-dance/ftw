@@ -122,8 +122,9 @@ and create_comp =
     (fun _req st (comp : Types.Competition.t) ->
        let category = Types.Category.to_ftw comp.category in
        let competition =
-         Ftw.Competition.create st
-           comp.event comp.name comp.kind category
+         Ftw.Competition.create ~st ()
+           ~event_id:comp.event ~name:comp.name
+           ~kind:comp.kind ~category:category
            ~n_leaders:comp.n_leaders ~n_follows:comp.n_follows
        in
        Ok (Ftw.Competition.id competition))

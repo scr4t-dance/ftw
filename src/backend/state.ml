@@ -4,7 +4,7 @@ let field =
     ~name:"internal db"
     ~show_value:(fun _ -> "fourever state")
 
-let init ~path =
+let init ~init ~path =
   let state = ref None in
   fun inner_handler request ->
     match !state with
@@ -12,7 +12,7 @@ let init ~path =
       Dream.set_field request field st;
       inner_handler request
     | None ->
-      let st = Ftw.State.mk path in
+      let st = Ftw.State.mk ~init path in
       state := Some st;
       Dream.set_field request field st;
       inner_handler request
