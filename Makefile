@@ -35,6 +35,7 @@ hookgen: src/openapi.json
 
 $(FRONTEND_TARGET): hookgen $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
+	find src/frontend/app/ -type f > src/frontend/frontend.lock
 
 backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
