@@ -16,7 +16,7 @@ cleanup() {
 trap cleanup INT TERM EXIT
 
 echo "Running frontend server..."
-(cd src/frontend && npm start)
+(cd src/frontend && npm run dev)
 
 # Wait for frontend to finish before exiting
 wait $FTW_PID

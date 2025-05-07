@@ -9,12 +9,13 @@ module.exports = {
         },
         output: {
             mode: 'tags-split',
-            target: '../frontend/src/hookgen/ftw.ts',
-            schemas: '../frontend/src/hookgen/model',
+            target: '../frontend/app/hookgen/ftw.ts',
+            schemas: '../frontend/app/hookgen/model',
             client: 'react-query',
             mock: false,
             baseUrl: 'http://localhost:8080',
             clean: true,
+            shouldSplitQueryKey: true,
         },
     },
 };

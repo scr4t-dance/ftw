@@ -13,9 +13,7 @@ FRONTEND_DEPS=\
 	src/frontend/package.json \
 	src/frontend/package-lock.json \
 	src/frontend/public/* \
-	src/frontend/src/* \
-	src/frontend/src/components/* \
-	src/frontend/src/hooks/*
+	$(shell cat src/frontend/frontend.lock)
 
 HOOKGEN_TARGETS := $(shell cat src/hookgen/hookgen.lock)
 
@@ -44,7 +42,7 @@ ${HOOKGEN_TARGETS} &: src/hookgen/raw_openapi.json
 	@echo "Hookgen was updated, run 'make hookgen_validate' if there are diffs with src/hookgen/hookgen.lock"
 	@echo "starting diff ----"
 	@diff <(echo "$(HOOKGEN_TARGETS)" | tr ' ' '\n' | sort |uniq) \
-		<(find src/frontend/src/hookgen -type f |sort|uniq)
+		<(find src/frontend/app/hookgen -type f |sort|uniq)
 	@echo "end of diff   ----"
 
 hookgen : ${HOOKGEN_TARGETS} hookgen_init
@@ -54,13 +52,14 @@ hookgen_validate:
 	@echo "starting diff ----"
 	@diff \
 		<(echo "$(HOOKGEN_TARGETS)" | tr ' ' '\n' | sort |uniq) \
-	 	<(find src/frontend/src/hookgen -type f |sort|uniq) \
+	 	<(find src/frontend/app/hookgen -type f |sort|uniq) \
 		|| true
 	@echo "end of diff   ----"
-	find src/frontend/src/hookgen/ -type f > src/hookgen/hookgen.lock
+	find src/frontend/app/hookgen/ -type f > src/hookgen/hookgen.lock
 
 $(FRONTEND_TARGET): ${HOOKGEN_TARGETS} $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
+	find src/frontend/app/ -type f > src/frontend/frontend.lock
 
 backend: hookgen_init $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
@@ -70,6 +69,7 @@ run: backend
 
 frontend_dev: backend
 	./bin/deploy_frontend_dev.sh
+	find src/frontend/app/ -type f > src/frontend/frontend.lock
 
 tests: backend
 	dune runtest
@@ -82,7 +82,7 @@ clean:
 	rm -rf $(FRONTEND_TARGET)
 	rm -rf src/frontend/node_modules
 	rm -rf src/hookgen/node_modules
-	rm -rf src/frontend/src/hookgen
+	rm -rf src/frontend/app/hookgen
 	rm -rf src/hookgen/raw_openapi.json
 
 top:
