@@ -12,7 +12,7 @@ import Header from "@routes/header/header";
 import Footer from "@routes/footer/footer";
 import { useGetApiCompIdDancers } from "@hookgen/competition/competition";
 
-const dancerLink = "dancer/"
+const dancerLink = "dancers/"
 
 function convert_target(target: Target | undefined) {
 
@@ -129,7 +129,7 @@ function BibList() {
             <Header />
             <div className="content-container">
 
-                <Link to={`/dancer/new`}>
+                <Link to={`/${dancerLink}new`}>
                     Créer un-e nouvel-le compétiteur-euse
                 </Link>
                 <p>Attention, lien unique vers la compétition 1</p>
