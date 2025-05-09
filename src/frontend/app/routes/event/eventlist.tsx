@@ -66,7 +66,7 @@ function EventList() {
 
     const { data, isLoading, error } = useGetApiEvents();
 
-    const event_array = data?.data as EventIdList;
+    const event_array = data as EventIdList;
 
     if (isLoading) return <div>Chargement des événements...</div>;
     if (error) return <div>Erreur: {(error as any).message}</div>;
@@ -136,7 +136,7 @@ function EventDetails({ id, index }: { id: EventId, index: number }) {
   if (isLoading) return <tr><td>Chargement...</td></tr>;
   if (!data) return null;
 
-  const event = data.data;
+  const event = data;
   const month = event.start_date?.month;
   const year = event.start_date?.year;
 

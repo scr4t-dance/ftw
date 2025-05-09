@@ -1,4 +1,4 @@
-import type { Route } from "./+types/EventDetails"
+import type { Route } from "./+types/EventDetailsNoForm"
 import "~/styles/ContentStyle.css";
 
 import React from 'react';
@@ -6,11 +6,10 @@ import { getApiEventId } from '@hookgen/event/event';
 
 import { type EventId, type Date } from "@hookgen/model";
 import CompetitionList from "@routes/competition/CompetitionList";
-import NewCompetitionForm from "../competition/NewCompetitionForm";
 
 export async function loader({ params }: Route.LoaderArgs) {
 
-    const id_event_number = parseInt(params.id_event as string) as EventId;
+    let id_event_number = parseInt(params.id_event as string) as EventId;
     const eventQuery = await getApiEventId(id_event_number);
     return eventQuery;
 }
@@ -51,7 +50,6 @@ function EventDetails({
             <p>Date de début : {formatDate(event?.start_date)}</p>
             <p>Date de fin : {formatDate(event?.end_date)}</p>
             <CompetitionList id_event={parseInt(params.id_event)} />
-            <NewCompetitionForm id_event={parseInt(params.id_event)} />
         </>
     );
 }

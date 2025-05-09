@@ -1,14 +1,12 @@
-
-import React, { useState } from 'react';
-// import { useNavigate } from "react-router";
-
-import { useGetApiEvents, getGetApiEventIdCompsQueryKey } from '@hookgen/event/event'
-import { usePutApiComp } from '@hookgen/competition/competition';
-
-import { type Competition, type EventId, KindItem, CategoryItem } from '@hookgen/model';
-import { useQueryClient, type InvalidateQueryFilters } from '@tanstack/react-query';
+import React from 'react';
+import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 
+import { useGetApiEvents, getGetApiEventIdCompsQueryKey } from '@hookgen/event/event';
+import { usePutApiComp } from '@hookgen/competition/competition';
+
+import { KindItem, CategoryItem, type Competition, type EventId, type EventIdList, type CompetitionIdList } from '@hookgen/model';
+import { useQueryClient } from '@tanstack/react-query';
 
 function NewCompetitionForm({ id_event }: { id_event: EventId }) {
 
@@ -31,104 +29,74 @@ function NewCompetitionForm({ id_event }: { id_event: EventId }) {
 
     const queryClient = useQueryClient();
 
-    // Using the Orval hook to handle the PUT request
-    const { mutate: updateCompetition, isError, error, isSuccess } = usePutApiComp({
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+        setError,
+    } = useForm<Competition>({
+        defaultValues: {
+            event: id_event,
+            name: '',
+            kind: [KindItem.Jack_and_Jill],
+            category: [CategoryItem.Novice],
+            leaders_count: 50,
+            followers_count: 50
+        }
+    });
+
+    const { data: dataCompetition, mutate: updateCompetition, isError, error, isSuccess } = usePutApiComp({
         mutation: {
-            onSuccess: () => {
-                // Invalidate the dancer list query so it refetches
-                console.log("invalidating comp list for event", id_event);
-                console.log(queryClient.getQueryCache().getAll().map(q => q.queryKey));
-                console.log(getGetApiEventIdCompsQueryKey(id_event));
+            onSuccess: (data) => {
+                console.log("NewCompetitionForm cache", queryClient.getQueryCache().getAll().map(q => q.queryKey));
                 queryClient.invalidateQueries({
                     queryKey: getGetApiEventIdCompsQueryKey(id_event),
                 });
-                console.log(getGetApiEventIdCompsQueryKey(id_event));
-                //navigate(".")
             },
-            onError: (error) => {
-              console.error('Error updating competition:', error);
-            },
-        },
+            onError: (err) => {
+                console.error('Error updating competition:', err);
+                setError("root.serverError", { message: 'Erreur lors de l’ajout de la compétition.' });
+            }
+        }
     });
 
-    const { data: dataEventList } = useGetApiEvents();
-    const event_list = dataEventList?.data.events
+    const { data: dataEventList, isLoading } = useGetApiEvents();
 
-    // Handle changes to input fields
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
+    if (isLoading) return <p>Chargement des événements...</p>;
+    if (error) return <p>Erreur: {(error as any).message}</p>;
 
-        console.log("handleInputChange", name, value)
-        if (name === 'kind' || name === 'category') {
+    const event_list = (dataEventList as EventIdList).events;
 
-            setCompetition((prevCompetition: Competition) => ({
-                ...prevCompetition,
-                [name]: [value],
-            }));
-        } else if (name === "event") {
-
-            setCompetition((prevCompetition: Competition) => ({
-                ...prevCompetition,
-                [name]: Number(value),
-            }));
-        } else {
-            setCompetition((prevCompetition: Competition) => ({
-                ...prevCompetition,
-                [name]: value,
-            }));
-        }
-    };
-
-    // Handle form submission
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!competition.kind || !competition.category) {
-            setCompetitionValidationError("Le type et la categorie de compétition sont obligatoires.");
+    const onSubmit = (data: Competition) => {
+        if (!data.kind?.length || !data.category?.length) {
+            setError("root.formValidation", {
+                message: "Le type et la catégorie sont obligatoires."
+            });
             return;
         }
 
-        setCompetitionValidationError('')
-
-        try {
-            updateCompetition({ data: competition });
-            console.log('Competition updated successfully!');
-            console.log(competition);
-        } catch (err) {
-            if (err instanceof Error) {
-                console.error('Error updating competition:', err.message);
-                setCompetitionValidationError(err.message);  // Use err.message
-            } else {
-                // Handle other unexpected error types (fallback to a generic error)
-                console.error('Unexpected error:', err);
-                setCompetitionValidationError("An unexpected error occurred.");
-            }
-        }
+        updateCompetition({ data });
     };
 
     return (
         <>
             <h2>Ajouter une compétition</h2>
             <p>Default Event {id_event}</p>
-            <form onSubmit={handleSubmit}>
 
+            <form onSubmit={handleSubmit(onSubmit)}>
                 {isSuccess &&
-                    <div className="error_message">
-                        <span>&#x26A0; </span>
-                        Successfully added competition "{competition.name}"
+                    <div className="success_message">
+                        ✅ Compétition avec identifiant "{dataCompetition}" ajoutée avec succès.
                     </div>
                 }
 
-
                 <div className="form_subelem">
                     <label>Evénement parent</label>
-                    <select
-                        name="event"
-                        value={competition.event}
-                        onChange={handleInputChange}
-                        required>
-                        {event_list && event_list.map((eventId, index) => (
-                            <option key={index} value={eventId}>{eventId}</option>
+                    <select {...register("event", { required: true })}>
+                        {event_list?.map((eventId, index) => (
+                            <option key={index} value={eventId}>
+                                {eventId}
+                            </option>
                         ))}
                     </select>
                 </div>
@@ -137,56 +105,38 @@ function NewCompetitionForm({ id_event }: { id_event: EventId }) {
                     <label>Titre de la compétition</label>
                     <input
                         type="text"
-                        name="name"
-                        value={competition.name}
-                        onChange={handleInputChange}
-                        required
+                        {...register("name", { required: "Le nom est requis." })}
                     />
+                    {errors.name && <span className="error_message">{errors.name.message}</span>}
                 </div>
 
                 <div className="form_subelem">
                     <label>Type de compétition</label>
-                    <select
-                        name="kind"
-                        value={competition.kind && competition.kind[0]}
-                        onChange={handleInputChange}
-                        required>
-                        {KindItem && Object.keys(KindItem).map(key => {
-                            const value = KindItem[key as keyof typeof KindItem];
-                            return <option key={key} value={value}>{value}</option>;
-                        })}
+                    <select {...register("kind.0", { required: true })}>
+                        {Object.values(KindItem).map((value) => (
+                            <option key={value} value={value}>{value}</option>
+                        ))}
                     </select>
                 </div>
 
                 <div className="form_subelem">
                     <label>Catégorie de compétition</label>
-                    <select
-                        name="category"
-                        value={competition.category && competition.category[0]}
-                        onChange={handleInputChange}
-                        required>
-                        {CategoryItem && Object.keys(CategoryItem).map(key => {
-                            const value = CategoryItem[key as keyof typeof CategoryItem];
-                            return <option key={key} value={value}>{value}</option>;
-                        })}
+                    <select {...register("category.0", { required: true })}>
+                        {Object.values(CategoryItem).map((value) => (
+                            <option key={value} value={value}>{value}</option>
+                        ))}
                     </select>
                 </div>
 
-                {competitionValidationError !== '' &&
-                    <div className="error_message">
-                        <span>&#x26A0; </span>
-                        {competitionValidationError}
-                    </div>
-                }
-                {isError &&
-                    <div className="error_message">
-                        <span>&#x26A0; </span>
-                        {error.message}
-                    </div>
+                {errors.root?.formValidation &&
+                    <div className="error_message">⚠️ {errors.root.formValidation.message}</div>
                 }
 
-                <button type="submit" >Valider l'événement</button>
+                {errors.root?.serverError &&
+                    <div className="error_message">⚠️ {errors.root.serverError.message}</div>
+                }
 
+                <button type="submit">Valider l'événement</button>
             </form>
         </>
     );
