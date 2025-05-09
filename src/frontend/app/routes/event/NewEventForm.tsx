@@ -5,10 +5,6 @@ import { usePutApiEvent } from '@hookgen/event/event';
 
 import type { Event, Date } from '@hookgen/model';
 
-import PageTitle from "@routes/index/PageTitle";
-import Header from "@routes/header/header";
-import Footer from "@routes/footer/footer";
-
 function NewEventForm() {
 
     // const navigate = useNavigate();

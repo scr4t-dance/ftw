@@ -69,6 +69,8 @@ run: backend
 
 frontend_dev: backend
 	./bin/deploy_frontend_dev.sh
+
+frontend_validate:
 	find src/frontend/app/ -type f > src/frontend/frontend.lock
 
 tests: backend

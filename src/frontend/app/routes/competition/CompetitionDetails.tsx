@@ -2,10 +2,7 @@ import "~/styles/ContentStyle.css";
 
 import { useGetApiCompId, useGetApiCompIdDancers } from '@hookgen/competition/competition';
 
-import PageTitle from "@routes/index/PageTitle";
-import Header from "@routes/header/header";
-import Footer from "@routes/footer/footer";
-import { type CompetitionId } from "@hookgen/model";
+import { type Competition, type CompetitionId } from "@hookgen/model";
 import { Link, useParams } from "react-router";
 import { useGetApiEventId } from "@hookgen/event/event";
 import NewBibForm from "./NewBibForm";
@@ -18,17 +15,17 @@ function CompetitionDetails() {
     const { data, isLoading } = useGetApiCompId(id_competition_number);
 
 
-    const competition = data?.data;
+    const competition = data as Competition;
 
     const { data: dataEvent } = useGetApiEventId(Number(competition?.event));
-    const event = dataEvent?.data;
+    const event = dataEvent;
 
     const {
         data: dataBib,
         isLoading: isLoadingBib,
         error: errorBib
     } = useGetApiCompIdDancers(id_competition_number);
-    const bib_list = dataBib?.data?.bibs ?? [];
+    const bib_list = dataBib?.bibs ?? [];
 
     console.log("bib_list", bib_list, isLoadingBib, errorBib);
 
@@ -37,30 +34,25 @@ function CompetitionDetails() {
 
     return (
         <>
-            <PageTitle title={"Compétition " + competition?.name} />
-            <Header />
-            <div className="content-container">
 
-                <h1>Compétition {competition?.name}</h1>
+            <h1>Compétition {competition?.name}</h1>
 
 
-                <p><Link to={`/events/${competition?.event}`}>
-                    Evénement {event?.name}
-                </Link></p>
-                <p>Type : {competition?.kind}</p>
-                <p>Catégorie : {competition?.category}</p>
+            <p><Link to={`/events/${competition?.event}`}>
+                Evénement {event?.name}
+            </Link></p>
+            <p>Type : {competition?.kind}</p>
+            <p>Catégorie : {competition?.category}</p>
 
-                <NewBibForm default_competition={id_competition_number} />
+            {isLoadingBib &&
+                <p>Chargement de la liste des dossards</p>}
+            {!isLoadingBib && bib_list &&
+                <>
+                    <BareBibListComponent bib_list={bib_list} />
+                </>
+            }
 
-                {isLoadingBib &&
-                    <p>Chargement de la liste des dossards</p>}
-                {!isLoadingBib && bib_list &&
-                    <>
-                        <BareBibListComponent bib_list={bib_list} />
-                    </>
-                }
-            </div>
-            <Footer />
+            <NewBibForm default_competition={id_competition_number} />
         </>
     );
 }

@@ -38,6 +38,7 @@ src/frontend/app/assets/logo.png
 src/frontend/app/app.css
 src/frontend/app/styles/ContentStyle.css
 src/frontend/app/root.tsx
+src/frontend/app/routes/event/EventDetailsNoForm.tsx
 src/frontend/app/routes/event/EventDetails.tsx
 src/frontend/app/routes/event/EventHome.tsx
 src/frontend/app/routes/event/NewEventForm.tsx
@@ -55,7 +56,6 @@ src/frontend/app/routes/competition/BibList.tsx
 src/frontend/app/routes/index/PageTitle.tsx
 src/frontend/app/routes/index/index.tsx
 src/frontend/app/routes/index/homepage.tsx
-src/frontend/app/routes/index/reportWebVitals.js
 src/frontend/app/routes/index/index.css
 src/frontend/app/routes/index/field.tsx
 src/frontend/app/routes/index/about.tsx

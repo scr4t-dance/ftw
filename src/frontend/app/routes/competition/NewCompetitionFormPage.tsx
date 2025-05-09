@@ -14,7 +14,7 @@ function NewCompetitionFormPage(){
             <PageTitle title="Nouvelle compétition" />
             <Header />
 
-            <NewCompetitionForm />
+            <NewCompetitionForm id_event={-1} />
 
             <Footer />
         </>

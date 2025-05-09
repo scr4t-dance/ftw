@@ -3,21 +3,38 @@
     "**/*",
     "**/.server/**/*",
     "**/.client/**/*",
-    ".react-router/types/**/*"
+    ".react-router/types/**/*",
+    "../hookgen/api"
   ],
   "compilerOptions": {
-    "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "types": ["node", "vite/client"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ES2022"
+    ],
+    "types": [
+      "node",
+      "vite/client"
+    ],
     "target": "ES2022",
     "module": "ES2022",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
-    "rootDirs": [".", "./.react-router/types"],
+    "rootDirs": [
+      ".",
+      "./.react-router/types"
+    ],
     "baseUrl": ".",
     "paths": {
-      "~/*": ["./app/*"],
-      "@hookgen/*": ["./app/hookgen/*"],
-      "@routes/*": ["./app/routes/*"],
+      "~/*": [
+        "./app/*"
+      ],
+      "@hookgen/*": [
+        "./app/hookgen/*"
+      ],
+      "@routes/*": [
+        "./app/routes/*"
+      ],
     },
     "esModuleInterop": true,
     "verbatimModuleSyntax": true,

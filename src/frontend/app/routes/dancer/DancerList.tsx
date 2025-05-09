@@ -5,13 +5,10 @@ import { useGetApiDancers, useGetApiDancerId } from '@hookgen/dancer/dancer';
 
 import { type DancerId, type DancerIdList } from "@hookgen/model";
 import { Link } from "react-router";
-import PageTitle from "@routes/index/PageTitle";
-import Header from "@routes/header/header";
-import Footer from "@routes/footer/footer";
 
-const dancerLink = "dancer/"
+const dancerLink = "dancers/"
 
-export function BareDancerListComponent({dancer_list} : {dancer_list : DancerIdList}) {
+export function BareDancerListComponent({ dancer_list }: { dancer_list: DancerIdList }) {
 
     return (
         <>
@@ -19,6 +16,7 @@ export function BareDancerListComponent({dancer_list} : {dancer_list : DancerIdL
             <table>
                 <tbody>
                     <tr>
+                        <th>ID</th>
                         <th>Nom</th>
                         <th>Prénom</th>
                         <th>Division follower</th>
@@ -43,7 +41,7 @@ function DancerListComponent() {
 
     return (
         <>
-            <BareDancerListComponent dancer_list={data?.data as DancerIdList} />
+            <BareDancerListComponent dancer_list={data as DancerIdList} />
         </>
     );
 }
@@ -55,11 +53,16 @@ function DancerDetails({ id, index }: { id: DancerId, index: number }) {
     if (isLoading) return <div>Chargement...</div>;
     if (!data) return null;
 
-    const dancer = data.data;
+    const dancer = data;
 
     return (
         <tr key={id}
             className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+            <td>
+                <Link to={`/${dancerLink}${id}`}>
+                    {id}
+                </Link>
+            </td>
             <td>
                 <Link to={`/${dancerLink}${id}`}>
                     {dancer.last_name}
@@ -81,17 +84,10 @@ function DancerList() {
 
     return (
         <>
-            <PageTitle title="Événements" />
-            <Header />
-            <div className="content-container">
-
-                <Link to={`/dancer/new`}>
-                    Créer un-e nouvel-le compétiteur-euse
-                </Link>
-                <DancerListComponent />
-            </div>
-
-            <Footer />
+            <Link to={`/dancers/new`}>
+                Créer un-e nouvel-le compétiteur-euse
+            </Link>
+            <DancerListComponent />
         </>
     );
 }

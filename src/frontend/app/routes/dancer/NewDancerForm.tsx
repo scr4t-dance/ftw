@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 // import { useNavigate } from "react-router";
 
-import { usePutApiDancer } from '@hookgen/dancer/dancer';
+import { getGetApiDancersQueryKey, usePutApiDancer } from '@hookgen/dancer/dancer';
 
 import { DivisionsItem, type Dancer, type Date } from '@hookgen/model';
 
-import PageTitle from "@routes/index/PageTitle";
-import Header from "@routes/header/header";
-import Footer from "@routes/footer/footer";
+import { Link } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
 
 function NewDancerFormComponent() {
 
@@ -29,7 +28,22 @@ function NewDancerFormComponent() {
 
     const [dancerValidationError, setDancerValidationError] = useState('');
 
-    const { mutate: updateDancer, isError, error, isSuccess } = usePutApiDancer();
+    const queryClient = useQueryClient();
+
+    const { mutate: updateDancer, isError, error, isSuccess } = usePutApiDancer({
+        mutation: {
+            onSuccess: (data) => {
+                console.log("NewCompetitionForm cache", queryClient.getQueryCache().getAll().map(q => q.queryKey));
+                queryClient.invalidateQueries({
+                    queryKey: getGetApiDancersQueryKey(),
+                });
+            },
+            onError: (err) => {
+                console.error('Error updating competition:', err);
+                //setError("root.serverError", { message: 'Erreur lors de l’ajout de la compétition.' });
+            }
+        }
+    });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -169,7 +183,6 @@ function NewDancerFormComponent() {
                     <div className="error_message">
                         <span>&#x26A0; </span>
                         <p>{error.message}</p>
-                        <p>{error.response?.data.message}</p>
                     </div>
                 }
 
@@ -186,14 +199,11 @@ function NewDancerForm() {
 
     return (
         <>
-            <PageTitle title="Création Compétiteurice" />
-            <Header />
-            <div className="content-container">
-                <h1>Ajouter un-e compétiteur-euse</h1>
-                <NewDancerFormComponent />
-            </div>
-
-            <Footer />
+            <Link to={`/dancers`}>
+                Retourner à la liste des compétiteurices
+            </Link>
+            <h1>Ajouter un-e compétiteur-euse</h1>
+            <NewDancerFormComponent />
         </>
     );
 }
