@@ -13,9 +13,15 @@ module.exports = {
             schemas: '../frontend/app/hookgen/model',
             client: 'react-query',
             mock: false,
-            baseUrl: 'http://localhost:8080',
             clean: true,
             shouldSplitQueryKey: true,
+            override: {
+                mutator: {
+                    path: './api/custom_axios_instance.ts',
+                    name: 'customInstance',
+                },
+
+            },
         },
     },
 };

@@ -2,18 +2,21 @@ import React, { useEffect } from 'react';
 // import { useNavigate } from "react-router";
 import { useForm, type SubmitHandler, type UseFormRegister } from 'react-hook-form';
 
-import { useGetApiEventIdComps, useGetApiEvents } from '@hookgen/event/event'
-import { usePutApiCompIdBib, useGetApiCompId } from '@hookgen/competition/competition';
+import { useGetApiEventIdComps } from '@hookgen/event/event'
+import { usePutApiCompIdBib, useGetApiCompId, getGetApiCompIdDancersQueryKey } from '@hookgen/competition/competition';
 
 import {
   type CompetitionId,
   type Bib, type SingleTarget, type CoupleTarget,
   RoleItem,
   type EventId,
+  type Competition,
+  type CompetitionIdList,
 } from '@hookgen/model';
 import { Field } from '../index/field';
 import { type SingleBib, SingleTargetForm } from './SingleTargetForm';
 import { type CoupleBib, CoupleTargetForm } from './CoupleTargetForm';
+import { useQueryClient } from '@tanstack/react-query';
 
 function NewBibForm({ default_competition = -1 }: { default_competition?: CompetitionId }) {
 
@@ -22,22 +25,12 @@ function NewBibForm({ default_competition = -1 }: { default_competition?: Compet
   const default_single_target: SingleTarget = { target_type: "single", target: 1, role: [RoleItem.Follower] };
   const default_couple_target: CoupleTarget = { target_type: "couple", follower: 1, leader: 2 };
 
-  // Using the Orval hook to handle the PUT request
-  const { mutate: updateBib, isSuccess } = usePutApiCompIdBib();
-
-  const { data: dataCompetition } = useGetApiCompId(default_competition);
-  const competition = dataCompetition?.data;
-  const { data: dataCompetitionList } = useGetApiEventIdComps(competition?.event as EventId);
-  const competition_list = dataCompetitionList?.data.competitions;
-  //const { data: dataEventList } = useGetApiEvents();
-  //const event_list = dataEventList?.data.events;
-
   const {
     register,
     handleSubmit,
     watch,
     reset,
-
+    setError,
     formState: { errors },
   } = useForm<Bib>({
     defaultValues: {
@@ -46,6 +39,31 @@ function NewBibForm({ default_competition = -1 }: { default_competition?: Compet
       target: default_single_target,
     }
   });
+
+  const queryClient = useQueryClient();
+  // Using the Orval hook to handle the PUT request
+  const { mutate: updateBib, isSuccess } = usePutApiCompIdBib({
+    mutation: {
+      onSuccess: (data) => {
+        console.log("NewBibForm cache", queryClient.getQueryCache().getAll().map(q => q.queryKey));
+        queryClient.invalidateQueries({
+          queryKey: getGetApiCompIdDancersQueryKey(default_competition),
+        });
+      },
+      onError: (err) => {
+        console.error('Error updating competition:', err);
+        setError("root.serverError", { message: 'Erreur lors de l’ajout de la compétition.' });
+      }
+    }
+  });
+
+  const { data: dataCompetition } = useGetApiCompId(default_competition);
+  const competition = dataCompetition as Competition;
+  const { data: dataCompetitionList } = useGetApiEventIdComps(competition?.event as EventId);
+  const competition_list = (dataCompetitionList as CompetitionIdList)?.competitions;
+  //const { data: dataEventList } = useGetApiEvents();
+  //const event_list = dataEventList?.data.events;
+
 
   const targetType = watch("target.target_type");
 

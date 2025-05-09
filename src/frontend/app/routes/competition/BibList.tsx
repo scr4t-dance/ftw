@@ -4,7 +4,7 @@ import React from 'react';
 import { useGetApiDancerId } from '@hookgen/dancer/dancer';
 
 import {
-    type Bib, type BibList, type CompetitionId, type CoupleTarget, RoleItem, type SingleTarget, type Target
+    type Bib, type BibList, type CompetitionId, type CoupleTarget, type Dancer, RoleItem, type SingleTarget, type Target
 } from "@hookgen/model";
 import { Link } from "react-router";
 import PageTitle from "@routes/index/PageTitle";
@@ -80,7 +80,7 @@ function BibDetails({ bib_object, index }: { bib_object: Bib, index: number }) {
     if (isLoading) return <div>Chargement...</div>;
     if (!data) return null;
 
-    const dancer = data.data;
+    const dancer = data as Dancer;
     return (
         <tr key={index}
             className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
@@ -105,7 +105,7 @@ function BibListComponent({ id_competition }: { id_competition: CompetitionId })
 
     const { data, isLoading, error } = useGetApiCompIdDancers(id_competition);
 
-    const bib_list = data?.data as BibList;
+    const bib_list = data as BibList;
 
     if (isLoading) return <div>Chargement des compétiteur-euses...</div>;
     if (error) return <div>Erreur: {(error as any).message}</div>;

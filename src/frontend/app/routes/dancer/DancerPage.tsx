@@ -19,24 +19,19 @@ function DancerPage() {
     if (isLoading) return <div>Chargement...</div>;
     if (!data) return null;
 
-    const dancer = data.data;
+    const dancer = data;
 
     if (isLoading) return <div>Chargement des événements...</div>;
     if (isError) return <div>Erreur: {(error as any).message}</div>;
 
     return (
         <>
-            <PageTitle title={"Compétiteurice " + dancer?.last_name + " " + dancer.first_name} />
-            <Header />
-            <div className="content-container">
-
-                <h1>{dancer?.last_name + " " + dancer.first_name}</h1>
-                <p>Division follower : {dancer?.as_follower}</p>
-                <p>Division leader : {dancer?.as_leader}</p>
-                <p>Birthday: "Hidden"</p>
-                <p>Email : "Hidden"</p>
-            </div>
-            <Footer />
+            <h1>{dancer?.last_name + " " + dancer.first_name}</h1>
+            <p>Division follower : {dancer?.as_follower}</p>
+            <p>Division leader : {dancer?.as_leader}</p>
+            <p>Birthday: "Hidden"</p>
+            <p>Email : "Hidden"</p>
+            <p>List de compétitions: TODO</p>
         </>
     );
 }
