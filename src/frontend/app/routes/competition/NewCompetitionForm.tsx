@@ -10,23 +10,6 @@ import { useQueryClient } from '@tanstack/react-query';
 
 function NewCompetitionForm({ id_event }: { id_event: EventId }) {
 
-    console.log("competition form", id_event)
-
-    // const navigate = useNavigate();
-
-    const [competition, setCompetition] = useState<Competition>({
-        event: id_event,
-        name: '',
-        kind: [KindItem.Jack_and_Jill],
-        category: [CategoryItem.Novice],
-        n_leaders: 50,
-        n_follows: 50
-    });
-
-    const [competitionValidationError, setCompetitionValidationError] = useState('');
-
-    const navigate = useNavigate();
-
     const queryClient = useQueryClient();
 
     const {
