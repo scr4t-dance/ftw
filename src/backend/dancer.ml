@@ -64,6 +64,36 @@ let rec routes router =
       "400", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Invalid input";
     ]
+  |> Router.patch "/api/dancer/:id" update_dancer
+    ~tags:["dancer"]
+    ~summary:"Create a new dancer"
+    ~parameters:[
+      Types.obj @@ Spec.make_parameter_object ()
+        ~name:"id" ~in_:Path
+        ~description:"Id of the queried dancer"
+        ~required:true
+        ~schema:Types.(ref DancerId.ref)
+    ]
+    ~request_body:(
+      Types.obj @@ Spec.make_request_body_object ()
+        ~description:"Details of the Dancer to create"
+        ~required:true
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref Dancer.ref));
+        ])
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Successful operation"
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref DancerId.ref));
+        ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid input or id";
+      "404", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Dancer not found";
+    ]
 
 
 (* Dancer query *)
@@ -73,9 +103,9 @@ and dancer_list =
   Api.get
     ~to_yojson:Types.DancerIdList.to_yojson
     (fun _req st ->
-      let dancers = List.map Ftw.Dancer.id (Ftw.Dancer.list ~st) in
-      let res : Types.DancerIdList.t = { dancers; } in
-      Ok res
+       let dancers = List.map Ftw.Dancer.id (Ftw.Dancer.list ~st) in
+       let res : Types.DancerIdList.t = { dancers; } in
+       Ok res
     )
 
 and get_dancer =
