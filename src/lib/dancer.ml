@@ -89,6 +89,30 @@ let add ~st ?birthday ~first_name ~last_name ?email ~as_leader ~as_follower () =
                                 AND email = ? AND as_leader = ? AND as_follower = ? |}
     dob last_name first_name email (Divisions.to_int as_leader) (Divisions.to_int as_follower)
 
+let update ~st ~id_dancer ?birthday ~first_name ~last_name ?email ~as_leader ~as_follower () =
+  let open Sqlite3_utils.Ty in
+  let email = Option.value ~default:"" email in
+  let dob = Option.fold ~none:"" ~some:Date.to_string birthday in
+  Logs.debug (fun k->
+      k "@[<hv 2>Updating dancer with@ first: %s / last: %s@ birthday: %s / email : %s@ \
+         leader: %a / follower: %a@]"
+        first_name last_name dob email
+        Divisions.print as_leader Divisions.print as_follower);
+  State.insert ~st ~ty:[ text; text; text; text; int; int; int ]
+    {| UPDATE dancers
+    set birthday = ?,
+      last_name = ?,
+      first_name = ?,email = ?,
+      as_leader = ?,
+      as_follower = ?
+    WHERE id = ?
+    |}
+    dob last_name first_name email (Divisions.to_int as_leader) (Divisions.to_int as_follower)
+    id_dancer
+    ;
+    get ~st id_dancer
+
+
 
 let update_divisions ~st ~dancer ~role ~divs =
   let open Sqlite3_utils.Ty in

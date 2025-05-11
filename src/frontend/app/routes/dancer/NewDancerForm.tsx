@@ -1,23 +1,99 @@
 import React, { useState } from 'react';
 // import { useNavigate } from "react-router";
 
-import { getGetApiDancersQueryKey, usePutApiDancer } from '@hookgen/dancer/dancer';
+import { getGetApiDancersQueryKey, usePutApiDancer, usePatchApiDancerId, getGetApiDancerIdQueryKey } from '@hookgen/dancer/dancer';
 
-import { DivisionsItem, type Dancer, type Date } from '@hookgen/model';
+import { DivisionsItem, type Dancer, type DancerId, type Date } from '@hookgen/model';
 
 import { Link } from 'react-router';
-import { useQueryClient } from '@tanstack/react-query';
+import { QueryClient, useQueryClient } from '@tanstack/react-query';
+import { useForm, type SubmitHandler, type UseFormReturn } from 'react-hook-form';
+import { Field } from '../index/field';
 
-function NewDancerFormComponent() {
+function putOrPatchApi({ queryClient, id_dancer, formObject }: { queryClient: QueryClient, id_dancer?: DancerId, formObject: UseFormReturn<Dancer, any, Dancer> }) {
+
+    const { setError } = formObject;
+
+    if (id_dancer) {
+
+        const rawPatchDancerApi = usePatchApiDancerId({
+            mutation: {
+                onSuccess: (data) => {
+                    queryClient.invalidateQueries({
+                        queryKey: getGetApiDancerIdQueryKey(id_dancer),
+                    });
+                },
+                onError: (err) => {
+                    console.error('Error updating competition:', err);
+                    setError("root.serverError", { message: 'Erreur lors de l’ajout de la compétition.' });
+                }
+            }
+        });
+
+        const patchDancerApi = {
+            ...rawPatchDancerApi,
+            mutate: ({ data }: { data: Dancer }) => rawPatchDancerApi.mutate({ id: id_dancer, data: data })
+        };
+
+
+        return patchDancerApi;
+
+    }
+
+    const putDancerApi = usePutApiDancer({
+        mutation: {
+            onSuccess: (data) => {
+                queryClient.invalidateQueries({
+                    queryKey: getGetApiDancersQueryKey(),
+                });
+            },
+            onError: (err) => {
+                console.error('Error updating competition:', err);
+                setError("root.serverError", { message: 'Erreur lors de l’ajout de la compétition.' });
+            }
+        }
+    });
+
+    return putDancerApi;
+
+
+
+
+}
+
+export function SaveDancerFormComponent({ dancer, id_dancer }: { dancer?: Dancer, id_dancer?: DancerId }) {
+
+
+
+    const default_dancer = id_dancer ? dancer : (
+        {
+            last_name: '',
+            first_name: '',
+            as_leader: [DivisionsItem.None],
+            as_follower: [DivisionsItem.None],
+        } as Dancer);
 
     // const navigate = useNavigate();
 
-    const [dancer, setDancer] = useState<Dancer>({
-        last_name: '',
-        first_name: '',
-        as_leader: [DivisionsItem.None],
-        as_follower: [DivisionsItem.None],
+    const formObject = useForm<Dancer>({
+        defaultValues: default_dancer
     });
+    const {
+        register,
+        handleSubmit,
+        watch,
+        formState: { errors },
+    } = formObject;
+
+    const queryClient = useQueryClient();
+    // Using the Orval hook to handle the PUT request
+
+    const { mutate: updateDancer, isSuccess, variables } = putOrPatchApi({ queryClient, id_dancer, formObject });
+
+    const onSubmit: SubmitHandler<Dancer> = (data) => {
+        console.log(data);
+        updateDancer({ data: data });
+    };
 
     const formatDate = (date: Date | undefined): string => {
         if (date?.year && date?.month && date?.day) {
@@ -26,167 +102,68 @@ function NewDancerFormComponent() {
         return '';
     };
 
-    const [dancerValidationError, setDancerValidationError] = useState('');
-
-    const queryClient = useQueryClient();
-
-    const { mutate: updateDancer, isError, error, isSuccess } = usePutApiDancer({
-        mutation: {
-            onSuccess: (data) => {
-                console.log("NewCompetitionForm cache", queryClient.getQueryCache().getAll().map(q => q.queryKey));
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiDancersQueryKey(),
-                });
-            },
-            onError: (err) => {
-                console.error('Error updating competition:', err);
-                //setError("root.serverError", { message: 'Erreur lors de l’ajout de la compétition.' });
-            }
-        }
-    });
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-
-        console.log(name, value)
-        if (name === 'as_follower' || name === 'as_leader') {
-
-            setDancer((prevDancer: Dancer) => ({
-                ...prevDancer,
-                [name]: [value],
-            }));
-        } else if (name === 'birthday') {
-            const [year, month, day] = value.split('-').map(Number);  // Split the YYYY-MM-DD value
-
-            setDancer((prevDancer: Dancer) => ({
-                ...prevDancer,
-                [name]: { day, month, year },
-            }));
-        } else {
-            setDancer((prevDancer: Dancer) => ({
-                ...prevDancer,
-                [name]: value,
-            }));
-        }
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        setDancerValidationError('')
-
-        try {
-            await updateDancer({ data: dancer });
-            console.log('Dancer updated successfully!');
-        } catch (err) {
-            if (err instanceof Error) {
-                console.error('Error updating dancer:', err.message);
-                setDancerValidationError(err.message);  // Use err.message
-            } else {
-                // Handle other unexpected error types (fallback to a generic error)
-                console.error('Unexpected error:', err);
-                setDancerValidationError("An unexpected error occurred.");
-            }
-        }
-    };
+    const buttonText = id_dancer ? "Mise à jour" : "Nouveau";
 
     return (
         <>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit(onSubmit)}>
 
                 {isSuccess &&
                     <div className="error_message">
                         <span>&#x26A0; </span>
-                        Successfully added dancer "{dancer.last_name} {dancer.first_name}"
+                        Successfully added dancer "{variables.data.last_name} {variables.data.first_name}"
                     </div>
                 }
 
-                <div className="form_subelem">
-                    <label>Nom</label>
-                    <input
-                        type="text"
-                        name="last_name"
-                        value={dancer.last_name}
-                        onChange={handleInputChange}
-                        required
+                <Field label="Nom" error={errors.last_name?.message}>
+                    <input {...register("last_name", {
+                        required: true,
+                    })} />
+                </Field>
+
+                <Field label="Prénom" error={errors.first_name?.message}>
+                    <input {...register("first_name", {
+                        required: true,
+                    })} />
+                </Field>
+
+                <Field label="Email" error={errors.email?.message}>
+                    <input {...register("email", {
+                        required: true,
+                    })} />
+                </Field>
+
+                <Field label="Date de naissance 2" error={errors.birthday?.message}>
+                    <input type="date" {...register("birthday", {
+                        required: true,
+                    })}
+                        value={watch("birthday") ? formatDate(watch("birthday")) : ""}
                     />
-                </div>
+                </Field>
 
-                <div className="form_subelem">
-                    <label>Prénom</label>
-                    <input
-                        type="text"
-                        name="first_name"
-                        value={dancer.first_name}
-                        onChange={handleInputChange}
-                        required
-                    />
-                </div>
-
-
-                <div className="form_subelem">
-                    <label>Email</label>
-                    <input
-                        type="text"
-                        name="email"
-                        value={dancer.email}
-                        onChange={handleInputChange}
-                    />
-                </div>
-
-                <div className="form_subelem">
-                    <label>Date de naissance (non obligatoire)</label>
-                    <input
-                        type="date"
-                        name="birthday"
-                        value={formatDate(dancer.birthday)}
-                        onChange={handleInputChange}
-                    />
-                </div>
-
-
-                <div className="form_subelem">
-                    <label>Division follower</label>
-                    <select
-                        name="as_follower"
-                        value={dancer.as_follower && dancer.as_follower[0]}
-                        onChange={handleInputChange}
-                        required>
+                <Field label="Division Follower" error={errors.as_follower?.message}>
+                    <select {...register("as_follower.0", {
+                        required: true,
+                    })}>
                         {DivisionsItem && Object.keys(DivisionsItem).map(key => {
                             const value = DivisionsItem[key as keyof typeof DivisionsItem];
                             return <option key={key} value={value}>{value}</option>;
                         })}
                     </select>
-                </div>
+                </Field>
 
-                <div className="form_subelem">
-                    <label>Division leader</label>
-                    <select
-                        name="as_leader"
-                        value={dancer.as_leader && dancer.as_leader[0]}
-                        onChange={handleInputChange}
-                        required>
+                <Field label="Division leader" error={errors.as_leader?.message}>
+                    <select {...register("as_leader.0", {
+                        required: true,
+                    })}>
                         {DivisionsItem && Object.keys(DivisionsItem).map(key => {
                             const value = DivisionsItem[key as keyof typeof DivisionsItem];
                             return <option key={key} value={value}>{value}</option>;
                         })}
                     </select>
-                </div>
+                </Field>
 
-                {dancerValidationError !== '' &&
-                    <div className="error_message">
-                        <span>&#x26A0; </span>
-                        {dancerValidationError}
-                    </div>
-                }
-                {isError &&
-                    <div className="error_message">
-                        <span>&#x26A0; </span>
-                        <p>{error.message}</p>
-                    </div>
-                }
-
-                <button type="submit" >Valider la création</button>
+                <button type="submit" >{buttonText}</button>
 
             </form>
 
@@ -203,7 +180,7 @@ function NewDancerForm() {
                 Retourner à la liste des compétiteurices
             </Link>
             <h1>Ajouter un-e compétiteur-euse</h1>
-            <NewDancerFormComponent />
+            <SaveDancerFormComponent />
         </>
     );
 }
