@@ -40,6 +40,7 @@ let server (options : Options.server) =
     |> Event.routes
     |> Competition.routes
     |> Dancer.routes
+    |> Bib.routes
   in
   (* Define CORS middleware manually *)
   let cors_middleware handler request =

@@ -156,7 +156,14 @@ form input {
     outline: none;
 }
 
-form button[type="submit"] {
+form .error_message {
+    padding: 0.2rem 0.5rem;
+    background-color: var(--error-background);
+    border: none;
+    border-radius: 0.2rem;
+}
+
+button {
     cursor: pointer;
     margin-top: 0.8rem;
     padding: 0.5rem 1rem;
@@ -170,13 +177,11 @@ form button[type="submit"] {
     transition: background-color 0.3s ease;
 }
 
-form button[type="submit"]:hover {
+button:hover {
     background-color: var(--button-hover);
 }
 
-form .error_message {
-    padding: 0.2rem 0.5rem;
-    background-color: var(--error-background);
-    border: none;
-    border-radius: 0.2rem;
+
+form button[type="submit"] {
+    width: 100%;
 }

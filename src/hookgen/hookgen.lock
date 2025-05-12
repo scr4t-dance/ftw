@@ -1,4 +1,5 @@
 src/frontend/app/hookgen/event/event.ts
+src/frontend/app/hookgen/bib/bib.ts
 src/frontend/app/hookgen/competition/competition.ts
 src/frontend/app/hookgen/model/divisionItem.ts
 src/frontend/app/hookgen/model/singleTarget.ts

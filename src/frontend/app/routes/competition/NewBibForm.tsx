@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
 // import { useNavigate } from "react-router";
-import { useForm, type SubmitHandler, type UseFormRegister } from 'react-hook-form';
+import { useForm, type SubmitHandler, type UseFormRegister, type UseFormReturn } from 'react-hook-form';
 
 import { useGetApiEventIdComps } from '@hookgen/event/event'
-import { usePutApiCompIdBib, useGetApiCompId, getGetApiCompIdDancersQueryKey } from '@hookgen/competition/competition';
+import { useGetApiCompId } from '@hookgen/competition/competition';
+import { usePutApiCompIdBib, getGetApiCompIdBibsQueryKey} from '@hookgen/bib/bib'
+
 
 import {
   type CompetitionId,
@@ -25,6 +27,14 @@ function NewBibForm({ default_competition = -1 }: { default_competition?: Compet
   const default_single_target: SingleTarget = { target_type: "single", target: 1, role: [RoleItem.Follower] };
   const default_couple_target: CoupleTarget = { target_type: "couple", follower: 1, leader: 2 };
 
+  const formObject = useForm<Bib>({
+    defaultValues: {
+      competition: default_competition,
+      bib: 100,
+      target: default_single_target,
+    }
+  });
+
   const {
     register,
     handleSubmit,
@@ -32,13 +42,7 @@ function NewBibForm({ default_competition = -1 }: { default_competition?: Compet
     reset,
     setError,
     formState: { errors },
-  } = useForm<Bib>({
-    defaultValues: {
-      competition: default_competition,
-      bib: 100,
-      target: default_single_target,
-    }
-  });
+  } = formObject;
 
   const queryClient = useQueryClient();
   // Using the Orval hook to handle the PUT request
@@ -47,7 +51,7 @@ function NewBibForm({ default_competition = -1 }: { default_competition?: Compet
       onSuccess: (data) => {
         console.log("NewBibForm cache", queryClient.getQueryCache().getAll().map(q => q.queryKey));
         queryClient.invalidateQueries({
-          queryKey: getGetApiCompIdDancersQueryKey(default_competition),
+          queryKey: getGetApiCompIdBibsQueryKey(default_competition),
         });
       },
       onError: (err) => {
@@ -137,11 +141,11 @@ function NewBibForm({ default_competition = -1 }: { default_competition?: Compet
         </Field>
 
         {targetType === "single" && (
-          <SingleTargetForm register={register as UseFormRegister<SingleBib>} errors={errors} />
+          <SingleTargetForm formObject={formObject as UseFormReturn<SingleBib, any, SingleBib>}/>
         )}
 
         {targetType === "couple" && (
-          <CoupleTargetForm register={register as UseFormRegister<CoupleBib>} errors={errors} />
+          <CoupleTargetForm formObject={formObject as UseFormReturn<CoupleBib, any, CoupleBib>} />
         )}
 
         <button type="submit" >Inscrire un-e compétiteurice</button>
