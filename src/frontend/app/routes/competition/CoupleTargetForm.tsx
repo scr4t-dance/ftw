@@ -1,6 +1,6 @@
 // components/CoupleTargetForm.tsx
 import { Field } from "@routes/index/field";
-import { type UseFormRegister, type FieldErrors } from "react-hook-form";
+import { type UseFormReturn } from "react-hook-form";
 import { type Bib, type CoupleTarget } from "@hookgen/model";
 
 export interface CoupleBib extends Omit<Bib, "target"> {
@@ -8,11 +8,14 @@ export interface CoupleBib extends Omit<Bib, "target"> {
 }
 
 interface Props {
-  register: UseFormRegister<CoupleBib>;
-  errors: FieldErrors<CoupleBib>;
+  formObject: UseFormReturn<CoupleBib, any, CoupleBib>
 }
 
-export function CoupleTargetForm({ register, errors }: Props) {
+export function CoupleTargetForm({ formObject }: Props) {
+  const {
+    register,
+    formState: { errors },
+  } = formObject;
   return (
     <>
       <Field label="Follower" error={errors.target?.follower?.message}>

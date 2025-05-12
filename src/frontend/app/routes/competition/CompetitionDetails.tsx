@@ -1,6 +1,7 @@
 import "~/styles/ContentStyle.css";
 
-import { useGetApiCompId, useGetApiCompIdDancers } from '@hookgen/competition/competition';
+import { useGetApiCompId } from '@hookgen/competition/competition';
+import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
 
 import { type Competition, type CompetitionId } from "@hookgen/model";
 import { Link, useParams } from "react-router";
@@ -26,7 +27,7 @@ function CompetitionDetails() {
         data: dataBib,
         isLoading: isLoadingBib,
         error: errorBib
-    } = useGetApiCompIdDancers(id_competition_number);
+    } = useGetApiCompIdBibs(id_competition_number);
     const bib_list = dataBib?.bibs ?? [];
 
     console.log("bib_list", bib_list, isLoadingBib, errorBib);
