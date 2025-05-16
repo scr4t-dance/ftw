@@ -1,0 +1,10 @@
+
+; Rules for generating the openapi docs
+(rule
+  (target new_openapi.json)
+  (action (run ftw openapi %{target})))
+
+(rule
+  (alias runtest)
+  (package ftw)
+  (action (diff openapi.json new_openapi.json)))

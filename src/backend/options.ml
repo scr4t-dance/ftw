@@ -11,6 +11,10 @@ type server = {
   server_port : int;
 }
 
+type openapi = {
+  file : string;
+}
+
 type import = {
   db_path : string;
   ev_path : string;
@@ -24,6 +28,7 @@ type export = {
 
 type t =
   | Server of server
+  | Openapi of openapi
   | Import of import
   | Export of export
 
@@ -89,6 +94,21 @@ let server =
   setup_log logs_style logs_level;
   Server { db_path; server_port; }
 
+(* Openapi options *)
+(* ************************************************************************* *)
+
+let openapi =
+  let open Term.Syntax in
+  let+ bt
+  and+ logs_level
+  and+ logs_style
+  and+ file =
+    let doc = "Output file for the openapi doc" in
+    Arg.(required & pos 0 (some string) None & info [] ~doc ~docv:"FILE")
+  in
+  setup_bt bt;
+  setup_log logs_style logs_level;
+  Openapi { file; }
 
 (* Import options *)
 (* ************************************************************************* *)
@@ -110,7 +130,6 @@ let import =
   setup_log logs_style logs_level;
   Import { db_path; ev_path; }
 
-
 (* Import options *)
 (* ************************************************************************* *)
 
@@ -130,3 +149,4 @@ let export =
   setup_bt bt;
   setup_log logs_style logs_level;
   Export { db_path; out_path; ev_id; }
+
