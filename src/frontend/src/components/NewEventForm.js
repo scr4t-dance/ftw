@@ -7,7 +7,7 @@ import PageTitle from "./PageTitle";
 
 function NewEventForm() {
 
-    const navigate = useNavigate();
+     /* const navigate = useNavigate(); */
 
     const [formData, setFormData] = useState({
         title: '',
