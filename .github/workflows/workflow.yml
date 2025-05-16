@@ -53,8 +53,8 @@ jobs:
     # Setup ocaml/opam
     - name: Set-up OCaml
       uses: ocaml/setup-ocaml@v3
-        with:
-          ocaml-compiler: ${{ matrix.ocaml-compiler }}
+      with:
+        ocaml-compiler: ${{ matrix.ocaml-compiler }}
     # Setup node/JS
     - name: Set-up node
       uses: actions/setup-node@v4
