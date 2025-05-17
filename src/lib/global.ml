@@ -7,7 +7,7 @@ type 'a t = {
 
 let () =
   State.add_init ~name:"global" (fun st ->
-      Sqlite3_utils.exec0_exn st {|
+      State.exec ~st {|
         CREATE TABLE IF NOT EXISTS globals (
         name TEXT PRIMARY KEY,
         value TEXT

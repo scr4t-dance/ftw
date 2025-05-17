@@ -10,6 +10,7 @@ module Descr : sig
     | Ranking
     | Yans of { criterion : string list; }
   [@@deriving yojson]
+  (** Description of artefact types.*)
 
   val ranking : t
   val yans : string list -> t

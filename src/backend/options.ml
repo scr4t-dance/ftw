@@ -11,6 +11,10 @@ type server = {
   server_port : int;
 }
 
+type openapi = {
+  file : string;
+}
+
 type import = {
   db_path : string;
   ev_path : string;
@@ -24,6 +28,7 @@ type export = {
 
 type t =
   | Server of server
+  | Openapi of openapi
   | Import of import
   | Export of export
 
@@ -37,7 +42,20 @@ let logs_style = Fmt_cli.style_renderer ()
 let setup_log style_renderer level =
   Fmt_tty.setup_std_outputs ?style_renderer ();
   Logs.set_level ~all:true level;
-  Logs.set_reporter (Logs_fmt.reporter ())
+  Logs.set_reporter (Logs_fmt.reporter ());
+  begin match level with
+    | Some lev -> let dream_log_level : Dream.log_level = begin match lev with
+        | Logs.Error -> `Error
+        | Logs.Warning -> `Warning
+        | Logs.Info -> `Info
+        | Logs.Debug -> `Debug
+        | Logs.App -> `Info
+      end
+      in
+      Dream.initialize_log ~level:dream_log_level ()
+    | None -> ()
+  end;
+  Logs.app (fun k->k "Log level: %s" (Logs.level_to_string @@ Logs.level ()))
 
 let bt =
   let doc = "Enable backtraces" in
@@ -65,14 +83,32 @@ let db_path =
 let server =
   let open Term.Syntax in
   let+ bt
+  and+ logs_level
+  and+ logs_style
   and+ db_path
   and+ server_port =
     let doc = "Port to listen on" in
     Arg.(value & opt int 8080 & info ["p"; "port"] ~doc)
   in
   setup_bt bt;
+  setup_log logs_style logs_level;
   Server { db_path; server_port; }
 
+(* Openapi options *)
+(* ************************************************************************* *)
+
+let openapi =
+  let open Term.Syntax in
+  let+ bt
+  and+ logs_level
+  and+ logs_style
+  and+ file =
+    let doc = "Output file for the openapi doc" in
+    Arg.(required & pos 0 (some string) None & info [] ~doc ~docv:"FILE")
+  in
+  setup_bt bt;
+  setup_log logs_style logs_level;
+  Openapi { file; }
 
 (* Import options *)
 (* ************************************************************************* *)
@@ -93,7 +129,6 @@ let import =
   setup_bt bt;
   setup_log logs_style logs_level;
   Import { db_path; ev_path; }
-
 
 (* Import options *)
 (* ************************************************************************* *)

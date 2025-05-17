@@ -63,6 +63,8 @@ namely: `Novice`, `Intermediate`, and `Advanced`. Note however, that these names
 are purely internal (and could have as well been named `Division1`, `Division2`,
 and `Division3`, but that would have been anooying to work with).
 
+Divisions are a subset of competition categories.
+
 
 Category
 --------
@@ -100,7 +102,7 @@ Prelims (of the Initié division of the P4T), Semifinal, Finals
 ### Data
 
 - Parent competition
-- Phase order: Finals, Semifinals, quarter-finals, preliminaries, ...
+- Round: Finals, Semifinals, quarter-finals, preliminaries, ...
 - Artefact kind for judges
   + artefact kinds for head judge
   + ranking algorithm
