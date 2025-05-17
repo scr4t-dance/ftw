@@ -13,9 +13,15 @@ FRONTEND_DEPS=\
 	src/frontend/src/components/* \
 	src/frontend/src/hooks/*
 
+# Aliases
 all: build
 
 build: backend
+
+
+####################
+# Main Build rules #
+####################
 
 configure:
 	opam install . --deps-only --yes
@@ -27,6 +33,30 @@ $(FRONTEND_TARGET): $(FRONTEND_DEPS)
 backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
 
+
+######################
+# Tests, Docs & misc #
+######################
+
+tests: backend
+	@dune runtest \
+		|| echo -e "\n\e[01;31m!!! TESTS FAILED !!!\e[0m\n-> run 'make promote' to update the tests result files"
+
+promote:
+	dune promote
+
+doc:
+	dune build $(FLAGS) @doc
+
+clean:
+	dune clean
+	rm -rf $(FRONTEND_TARGET)
+
+
+################
+# Helper Rules #
+################
+
 debug: backend
 	dune exec -- ftw --db=tests/test.db -b -v -v
 
@@ -36,20 +66,7 @@ run: backend
 frontend_dev: backend
 	./deploy_frontend_dev.sh
 
-tests: backend
-	dune runtest
-
-promote:
-	dune promote
-
-clean:
-	dune clean
-	rm -rf $(FRONTEND_TARGET)
-
 top:
 	dune utop
-
-doc:
-	dune build $(FLAGS) @doc
 
 .PHONY: all build top doc run debug frontend_dev tests promote clean
