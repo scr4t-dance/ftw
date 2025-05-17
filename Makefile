@@ -79,4 +79,4 @@ top:
 	dune utop
 
 .PHONY: all build top doc run debug frontend_dev tests promote clean
-	hookgen hookgen_init
+	hookgen
