@@ -89,20 +89,6 @@ run: backend
 frontend_dev: backend
 	./bin/deploy_frontend_dev.sh
 
-
-################
-# Helper Rules #
-################
-
-debug: backend
-	dune exec -- ftw --db=tests/test.db -b -v -v
-
-run: backend
-	dune exec -- ftw --db=tests/test.db
-
-frontend_dev: backend
-	./deploy_frontend_dev.sh
-
 top:
 	dune utop
 
