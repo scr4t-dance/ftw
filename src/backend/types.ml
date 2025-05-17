@@ -326,7 +326,7 @@ end
 (* Competition Id list *)
 module CompetitionIdList = struct
   type t = {
-    comps : CompetitionId.t list;
+    competitions : CompetitionId.t list;
   } [@@deriving yojson]
 
   let ref, schema =
@@ -334,7 +334,7 @@ module CompetitionIdList = struct
       ~name:"CompetitionIdList"
       ~typ:object_
       ~properties:[
-        "comps", obj @@ S.make_schema ()
+        "competitions", obj @@ S.make_schema ()
           ~typ:array
           ~items:(ref CompetitionId.ref);
       ]
