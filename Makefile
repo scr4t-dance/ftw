@@ -14,9 +14,6 @@ FRONTEND_DEPS=\
 	src/frontend/package-lock.json \
 	src/frontend/public/* \
 	$(shell find src/frontend/src/ -type f)
-HOOKGEN_DEPS=\
-	$(shell find src/hookgen/ -type f)
-
 
 # Aliases
 all: build
@@ -38,6 +35,7 @@ hookgen: src/openapi.json
 
 $(FRONTEND_TARGET): hookgen $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
+	find src/frontend/app/ -type f > src/frontend/frontend.lock
 
 backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
@@ -49,10 +47,14 @@ backend: $(FRONTEND_TARGET)
 
 tests: backend
 	@dune runtest \
-		|| echo -e "\n\e[01;31m!!! TESTS FAILED !!!\e[0m\n-> run 'make promote' to update the tests result files"
+		|| echo -e "\n\e[01;31m!!! TESTS FAILED !!!\e[0m\n-> run 'make promote' to update the tests result files\nRun 'make openapi' if tests fail"
 
 promote:
 	dune promote
+
+openapi:
+	dune build $(FLAGS) @install
+	dune exec -- ftw openapi src/openapi.json
 
 doc:
 	dune build $(FLAGS) @doc
@@ -82,4 +84,4 @@ top:
 	dune utop
 
 .PHONY: all build top doc run debug frontend_dev tests promote clean
-	hookgen hookgen_init
+	hookgen

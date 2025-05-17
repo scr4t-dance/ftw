@@ -52,6 +52,30 @@ type row = {
   role : Role.t;
 }
 
+let bib_of_rows rows =
+  match rows with
+  (* Single case *)
+  | [ { dancer_id = target; role; _ } ] ->
+    Ok (Any (Single { target; role; }))
+  (* Couple cases;
+     the "ORDER BY" clause in the SQL query should ensure the order. *)
+  | [ { dancer_id = leader; role = Leader; bib = leader_bib; competition_id = competition_id_leader; };
+      { dancer_id = follower; role = Follower; bib = follower_bib; competition_id = competition_id_follower; } ]
+    when leader_bib = follower_bib && competition_id_leader = competition_id_follower ->
+    Ok (Any (Couple { leader; follower; }))
+  (* ensure identical competition id. *)
+  | [ { competition_id = competition_id_leader; _ };
+      { competition_id = competition_id_follower; _ } ]
+    when competition_id_leader != competition_id_follower ->
+    Error "Expected a unique competition_id, got two."
+  (* ensure identical bib id. *)
+  | [ { bib = leader_bib; competition_id = competition_id_leader; _ };
+      { bib = follower_bib; competition_id = competition_id_follower; _ } ]
+    when leader_bib != follower_bib && competition_id_leader = competition_id_follower ->
+    Error "Expected a unique bib id, got two"
+  | _::_::_ -> Error "Expected two rows or less"
+  | [] -> Error "Expected at least one row"
+
 let conv =
   Conv.mk Sqlite3_utils.Ty.[int;int;int;int]
     (fun dancer_id competition_id bib role ->
@@ -79,6 +103,34 @@ let get ~st ~competition ~bib =
   | exception Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND -> None
   (* This is an error (wrongly formatted database *)
   | _ -> assert false
+
+let list_from_comp ~st ~competition =
+  let update_aux acc (r : row) =
+    let new_value = match Id.Map.find_opt r.bib acc with
+      | None -> [r]
+      | Some l -> r::l
+    in
+    Id.Map.add r.bib new_value acc
+  in
+  let open Sqlite3_utils.Ty in
+  let row_list =
+    State.query_list_where ~st ~conv ~p:[int]
+      {| SELECT * FROM bibs WHERE competition_id = ? ORDER BY dancer_id,role |}
+      competition
+  in
+  let row_map = List.fold_left update_aux Id.Map.empty row_list in
+  let bib_map = Id.Map.map bib_of_rows row_map in
+  let target_map_result = Id.Map.fold
+      (fun key value acc -> match value, acc with
+         | Ok v, Ok a -> Ok (Id.Map.add key v a)
+         | Error e, Ok _ -> Error e
+         | Ok _, Error e -> Error e
+         | Error e, Error ae -> Error (ae ^ "\n" ^ e)
+      )
+      bib_map (Ok Id.Map.empty)
+  in
+  target_map_result
+
 
 let set_aux ~st ~competition ~dancer ~role ~bib =
   let open Sqlite3_utils.Ty in

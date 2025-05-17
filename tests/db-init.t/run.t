@@ -20,8 +20,20 @@ Run a query to init database
   $ curl -s http://localhost:8082/api/events
   {"events":[]}
 
+  $ sqlite3 "test.db" 'SELECT name FROM DATABASE_VERSION;'
+  2
+
 Print schema
+If the definition changes
+* bump version number in src/lib/state.ml
+* promote changes
+* save new schema in src/migration/schema_V.sql (with V the version number)
+* create migration script src/migration/migrate_V-1_to_V.sql
+* apply to existing database and tests data integrity (with a round trip of exported/imported data)
   $ sqlite3 "test.db" '.schema'
+  CREATE TABLE database_version (
+          id INTEGER PRIMARY KEY,
+          name TEXT UNIQUE);
   CREATE TABLE round_names (
           id INTEGER PRIMARY KEY,
           name TEXT UNIQUE);
@@ -90,6 +102,15 @@ Print schema
             leader_id INTEGER REFERENCES dancers(id),
             follower_id INTEGER REFERENCES dancers(id)
           );
+  CREATE TABLE bibs (
+            dancer_id INTEGER REFERENCES dancers(id),
+            competition_id INTEGER REFERENCES competitions(id),
+            bib INTEGER NOT NULL,
+            role INTEGER NOT NULL,
+
+            PRIMARY KEY(bib,competition_id,role)
+          );
+
 
 End & Cleanup
 -------------
