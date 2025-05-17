@@ -65,6 +65,7 @@ clean:
 	rm -rf src/frontend/node_modules
 	rm -rf src/hookgen/node_modules
 	rm -rf src/frontend/src/hookgen
+	rm -rf src/frontend/.react-router
 
 
 ################
