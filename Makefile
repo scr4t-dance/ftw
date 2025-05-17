@@ -13,7 +13,7 @@ FRONTEND_DEPS=\
 	src/frontend/package.json \
 	src/frontend/package-lock.json \
 	src/frontend/public/* \
-	$(shell find src/frontend/src/ -type f)
+	$(shell find src/frontend/app/ -type f)
 
 # Aliases
 all: build
@@ -35,7 +35,6 @@ hookgen: src/openapi.json
 
 $(FRONTEND_TARGET): hookgen $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
-	find src/frontend/app/ -type f > src/frontend/frontend.lock
 
 backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
@@ -64,7 +63,7 @@ clean:
 	rm -rf $(FRONTEND_TARGET)
 	rm -rf src/frontend/node_modules
 	rm -rf src/hookgen/node_modules
-	rm -rf src/frontend/src/hookgen
+	rm -rf src/frontend/app/hookgen
 	rm -rf src/frontend/.react-router
 
 
@@ -76,7 +75,7 @@ debug: backend
 	dune exec -- ftw --db=tests/test.db -vv
 
 run: backend
-	dune exec -- ftw --db=tests/test.db
+	./bin/deploy_production.sh
 
 frontend_dev: backend
 	./bin/deploy_frontend_dev.sh

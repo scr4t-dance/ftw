@@ -10,16 +10,24 @@
     "version": "1.0.1"
   },
   "paths": {
-    "/api/dancer": {
+    "/api/comp/{id}/bib": {
       "put": {
-        "tags": [ "dancer" ],
-        "summary": "Create a new dancer",
-        "parameters": [],
+        "tags": [ "bib", "competition", "dancer" ],
+        "summary": "Add dancer to competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Competition",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
         "requestBody": {
-          "description": "Details of the Dancer to create",
+          "description": "create bib",
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/Dancer" }
+              "schema": { "$ref": "#/components/schemas/Bib" }
             }
           },
           "required": true
@@ -29,12 +37,157 @@
             "description": "Successful operation",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/DancerId" }
+                "schema": { "$ref": "#/components/schemas/DancerIdList" }
               }
             }
           },
           "400": {
             "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [ "bib", "competition", "dancer" ],
+        "summary": "Add dancer to competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Competition",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Delete bib",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Bib" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DancerIdList" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [ "bib", "competition", "dancer" ],
+        "summary": "Add dancer to competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Competition",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Update existing bib",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Bib" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DancerIdList" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/comp/{id}/bibs": {
+      "get": {
+        "tags": [ "bib", "competition", "dancer" ],
+        "summary": "Get the list of dancers of a Competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Event",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BibList" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/Error" }
@@ -76,6 +229,88 @@
           },
           "404": {
             "description": "Dancer not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [ "dancer" ],
+        "summary": "Create a new dancer",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried dancer",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/DancerId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Details of the Dancer to create",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Dancer" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DancerId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Dancer not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dancer": {
+      "put": {
+        "tags": [ "dancer" ],
+        "summary": "Create a new dancer",
+        "parameters": [],
+        "requestBody": {
+          "description": "Details of the Dancer to create",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Dancer" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DancerId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/Error" }
@@ -255,89 +490,6 @@
           },
           "400": {
             "description": "Invalid input",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/comp/{id}/bib": {
-      "put": {
-        "tags": [ "competition", "dancer" ],
-        "summary": "Add dancer to competition",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Id of the queried Event",
-            "required": true,
-            "schema": { "$ref": "#/components/schemas/CompetitionId" }
-          }
-        ],
-        "requestBody": {
-          "description": "Details of the Competition to create",
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/Bib" }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful operation",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/DancerIdList" }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/comp/{id}/dancers": {
-      "get": {
-        "tags": [ "competition", "dancer" ],
-        "summary": "Get the list of dancers of a Competition",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Id of the queried Event",
-            "required": true,
-            "schema": { "$ref": "#/components/schemas/CompetitionId" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful operation",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/BibList" }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid Id supplied",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "404": {
-            "description": "Competition not found",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/Error" }
@@ -678,7 +830,8 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/EventId" }
           }
-        }
+        },
+        "required": [ "events" ]
       },
       "Event": {
         "type": "object",
@@ -686,7 +839,8 @@
           "name": { "type": "string" },
           "start_date": { "$ref": "#/components/schemas/Date" },
           "end_date": { "$ref": "#/components/schemas/Date" }
-        }
+        },
+        "required": [ "name", "start_date", "end_date" ]
       },
       "CompetitionId": { "type": "integer" },
       "CompetitionIdList": {
@@ -696,7 +850,8 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/CompetitionId" }
           }
-        }
+        },
+        "required": [ "competitions" ]
       },
       "Competition": {
         "type": "object",
@@ -707,7 +862,11 @@
           "category": { "$ref": "#/components/schemas/Category" },
           "n_leaders": { "type": "integer" },
           "n_follows": { "type": "integer" }
-        }
+        },
+        "required": [
+          "event", "name", "kind", "category", "leaders_count",
+          "followers_count"
+        ]
       },
       "YanCriterionWeights": {
         "type": "object",
@@ -790,7 +949,11 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/HeatId" }
           }
-        }
+        },
+        "required": [
+          "event", "name", "kind", "category", "leaders_count",
+          "followers_count"
+        ]
       },
       "DancerId": { "type": "integer" },
       "DancerIdList": {
@@ -800,7 +963,8 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/DancerId" }
           }
-        }
+        },
+        "required": [ "dancers" ]
       },
       "Dancer": {
         "type": "object",
@@ -820,7 +984,8 @@
           "target_type": { "type": "string", "enum": [ "single" ] },
           "target": { "$ref": "#/components/schemas/DancerId" },
           "role": { "$ref": "#/components/schemas/Role" }
-        }
+        },
+        "required": [ "target_type", "target", "role" ]
       },
       "CoupleTarget": {
         "type": "object",
@@ -828,7 +993,8 @@
           "target_type": { "type": "string", "enum": [ "couple" ] },
           "leader": { "$ref": "#/components/schemas/DancerId" },
           "follower": { "$ref": "#/components/schemas/DancerId" }
-        }
+        },
+        "required": [ "target_type", "leader", "follower" ]
       },
       "Target": {
         "type": "object",
@@ -843,7 +1009,8 @@
           "competition": { "$ref": "#/components/schemas/CompetitionId" },
           "bib": { "type": "integer" },
           "target": { "$ref": "#/components/schemas/Target" }
-        }
+        },
+        "required": [ "competition", "bib", "target" ]
       },
       "BibList": {
         "type": "object",
@@ -852,7 +1019,8 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/Bib" }
           }
-        }
+        },
+        "required": [ "bibs" ]
       }
     }
   }
