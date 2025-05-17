@@ -35,28 +35,11 @@ configure:
 
 hookgen: src/openapi.json
 	cd src/hookgen && ./node_modules/.bin/orval --config ./orval.config.js
-	@echo "Hookgen was updated, run 'make hookgen_validate' if there are diffs with src/hookgen/hookgen.lock"
-	@echo "starting diff ----"
-	@diff <(echo "$(HOOKGEN_TARGETS)" | tr ' ' '\n' | sort |uniq) \
-		<(find src/frontend/src/hookgen -type f |sort|uniq)
-	@echo "end of diff   ----"
-
-hookgen : ${HOOKGEN_TARGETS} hookgen_init
-
-hookgen_validate:
-	@echo "Following diff will be overwritten"
-	@echo "starting diff ----"
-	@diff \
-		<(echo "$(HOOKGEN_TARGETS)" | tr ' ' '\n' | sort |uniq) \
-	 	<(find src/frontend/src/hookgen -type f |sort|uniq) \
-		|| true
-	@echo "end of diff   ----"
-	find src/frontend/src/hookgen/ -type f > src/hookgen/hookgen.lock
 
 $(FRONTEND_TARGET): hookgen $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
 
-backend: hookgen_init $(FRONTEND_TARGET)
+backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
 
 
@@ -80,6 +63,7 @@ clean:
 	rm -rf src/frontend/node_modules
 	rm -rf src/hookgen/node_modules
 	rm -rf src/frontend/src/hookgen
+	rm -rf src/hookgen/raw_openapi.json
 
 
 ################
@@ -87,10 +71,7 @@ clean:
 ################
 
 debug: backend
-	dune exec -- ftw --db=tests/test.db -vv
-
-debug: backend
-	dune exec -- ftw --db=tests/test.db -b -v -v
+	dune exec -- ftw --db=tests/test.db -b -vv
 
 run: backend
 	dune exec -- ftw --db=tests/test.db
