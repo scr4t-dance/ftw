@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router';
+import { BrowserRouter, Routes, Route } from 'react-router';
 
 import HomePage from './components/HomePage';
 import EventList from './components/EventList';
@@ -12,61 +12,32 @@ import CompetitionPage from './components/CompetitionPage';
 import DancerList from './components/DancerList';
 import NewDancerForm from './components/NewDancerForm';
 import DancerPage from './components/DancerPage';
-
-const router = createBrowserRouter([
-	{
-		path: "/",
-		element: <HomePage />,
-	},
-	{
-		path: "index.html",
-		element: <HomePage />,
-	},
-	{
-		path: "/events",
-		element: <EventList />,
-	},
-	{
-		path: "/events/:id_event",
-		element: <EventPage />,
-	},
-	{
-		path: "/competitions/:id_competition",
-		element: <CompetitionPage />,
-	},
-	{
-		path: "/event",
-		element: <NewEventForm />,
-	},
-	{
-		path: "/dancer",
-		element: <DancerList />,
-	},
-	{
-		path: "/dancer/:id_dancer",
-		element: <DancerPage />,
-	},
-	{
-		path: "/dancer/new",
-		element: <NewDancerForm />,
-	},
-	{
-		path: "/about",
-		element: <About />,
-	},
-	{
-		path: "/new/event",
-		element: <NewEventForm />,
-	},
-	{
-		path:"/new/competition",
-		element: <NewCompetitionFormPage />
-	}
-]);
+import CompetitionList from './components/CompetitionList';
 
 const App = () => {
 	return (
-		<RouterProvider router={router} />
+		<BrowserRouter>
+			<Routes>
+				<Route index element={<HomePage />} />
+				<Route path='index.html' element={<HomePage />} />
+				<Route path='competitions'>
+					<Route index element={<CompetitionList />} />
+					<Route path='new' element={<NewCompetitionFormPage />} />
+					<Route path=':id_competition' element={<CompetitionPage />} />
+				</Route>
+				<Route path='events'>
+					<Route index element={<EventList />} />
+					<Route path='new' element={<NewEventForm />} />
+					<Route path=':id_event' element={<EventPage />} />
+				</Route>
+				<Route path='dancer'>
+					<Route index element={<DancerList />} />
+					<Route path='new' element={<NewDancerForm />} />
+					<Route path=':id_event' element={<DancerPage />} />
+				</Route>
+				<Route path='about' element={<About />} />
+			</Routes>
+		</BrowserRouter>
 	);
 }
 

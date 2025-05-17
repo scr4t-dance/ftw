@@ -17,7 +17,7 @@ OCaml and Opam, you can follow the following instructions:
 
 It is recommanded to use ocaml 5.0.0 (see issue #10).
 
-Once you have a working ocaml environment, 
+Once you have a working ocaml environment,
 run the following commands to create a switch and activate it.
 ```
 opam switch create scrat_ftw_switch 5.0.0
@@ -60,7 +60,7 @@ following command:
 make
 ```
 
-With this command, frontend code will be compacted in a production-ready form 
+With this command, frontend code will be compacted in a production-ready form
 and stored in `src/frontend/build` (symlinked to `src/backend/static`).
 Ocaml code will be compiled and ready to be deployed.
 
@@ -97,4 +97,3 @@ Develop
 
 Read the [documentation about concepts](doc/concepts.md) to know what should be developped.
 Then read how to [add a new concept](doc/coding_a_concept.md).
-

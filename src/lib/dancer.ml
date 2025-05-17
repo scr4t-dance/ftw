@@ -35,7 +35,7 @@ let print_compact fmt t =
 
 let () =
   State.add_init ~name:"dancer" (fun st ->
-      Sqlite3_utils.exec0_exn st {|
+      State.exec ~st {|
         CREATE TABLE IF NOT EXISTS dancers (
           id INTEGER PRIMARY KEY,
           birthday TEXT,

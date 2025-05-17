@@ -21,4 +21,3 @@ let get request callback =
   match Dream.field request field with
   | None -> failwith "no internal db state was found"
   | Some st -> callback st
-

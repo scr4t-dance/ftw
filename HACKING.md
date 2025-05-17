@@ -74,7 +74,6 @@ make promote
 Look at curl commands in `tests/api.t/run.t` to design new tests.
 
 
-
 Building a test DB
 ------------------
 
@@ -89,10 +88,12 @@ import), this is likely to fail with uninformative error messages. In the future
 the error messages should be improved.
 
 
-
-Hacks
------
+Hacks for vscode
+----------------
 
 In vscode, install Ocaml extension to get the button to create sandboxed terminals.
 
-Install `ocp-indent` to format files
+Install `ocp-indent` to format files.
+Extension OCaml Indentation by Zachary Palmer works, but you have to hardcode path to ocp-indent binary in settings. Then look for `format file` command.
+
+Remove trailing whitespaces with settings.
