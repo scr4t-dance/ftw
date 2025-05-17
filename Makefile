@@ -32,6 +32,9 @@ configure:
 # detect changes in hooks and frontend
 	find src/frontend/src/hookgen/ -type f > src/hookgen/hookgen.lock
 	find src/frontend/src/ -type f > src/frontend/frontend.lock
+# init static directory
+	mkdir -p src/frontend/build
+	touch src/frontend/build/index.html
 
 hookgen: src/openapi.json
 	cd src/hookgen && ./node_modules/.bin/orval --config ./orval.config.js
