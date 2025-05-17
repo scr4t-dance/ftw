@@ -34,6 +34,7 @@ let router () =
   |> Event.routes
   |> Competition.routes
   |> Phase.routes
+  |> Dancer.routes
 
 let server (options : Options.server) =
   (* Default routes to serve the clients files (pages, scripts and css) *)
@@ -130,4 +131,3 @@ let () =
   | Ok `Ok Options.Openapi options -> openapi options
   | Ok `Ok Options.Import options -> import options
   | Ok `Ok Options.Export options -> export options
-

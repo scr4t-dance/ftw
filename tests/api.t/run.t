@@ -53,7 +53,7 @@ Create some competitions
 Get the ids of competitions we created, and check their details
 
   $ curl -s http://localhost:8081/api/event/1/comps
-  {"comps":[1,2]}
+  {"competitions":[1,2]}
 
   $ curl -s http://localhost:8081/api/comp/1
   {"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Novice"],"n_leaders":0,"n_follows":0}
@@ -104,6 +104,44 @@ Update a phase
 
   $ curl -s localhost:8081/api/phase/2
 
+Dancer Management
+-----------------
+
+Create some dancers
+
+  $ curl -s -X PUT http://localhost:8081/api/dancer \
+  > -H "Content-Type: application/json" \
+  > -d '{"birthday":{"day":1, "month":2, "year":2000}, "last_name":"Dancer", "first_name":"False", "email":"false.dancer@example.com", "as_leader":["None"], "as_follower":["None"]}'
+  1
+
+  $ curl -s -X PUT http://localhost:8081/api/dancer \
+  > -H "Content-Type: application/json" \
+  > -d '{"birthday":{"day":1, "month":2, "year":2001}, "last_name":"Dancer2", "first_name":"False2", "email":"false2.dancer2@example.com", "as_leader":["Novice"], "as_follower":["Intermediate"]}'
+  2
+
+  $ curl -s -X PUT http://localhost:8081/api/dancer \
+  > -H "Content-Type: application/json" \
+  > -d '{"birthday":{"day":1, "month":2, "year":2001}, "last_name":"No", "first_name":"Email", "as_leader":["Novice"], "as_follower":["Intermediate"]}'
+  3
+
+  $ curl -s -X PUT http://localhost:8081/api/dancer \
+  > -H "Content-Type: application/json" \
+  > -d '{"last_name":"No", "first_name":"birthday", "email":"false2.dancer2@example.com", "as_leader":["Novice"], "as_follower":["Intermediate"]}'
+  4
+
+Get the ids of competitions we created, and check their details
+
+  $ curl -s http://localhost:8081/api/dancer/1
+  {"birthday":{"day":1,"month":2,"year":2000},"last_name":"Dancer","first_name":"False","email":"false.dancer@example.com","as_leader":["None"],"as_follower":["None"]}
+
+  $ curl -s http://localhost:8081/api/dancer/2
+  {"birthday":{"day":1,"month":2,"year":2001},"last_name":"Dancer2","first_name":"False2","email":"false2.dancer2@example.com","as_leader":["Novice"],"as_follower":["Intermediate"]}
+
+  $ curl -s http://localhost:8081/api/dancer/3
+  {"birthday":{"day":1,"month":2,"year":2001},"last_name":"No","first_name":"Email","as_leader":["Novice"],"as_follower":["Intermediate"]}
+
+  $ curl -s http://localhost:8081/api/dancer/4
+  {"last_name":"No","first_name":"birthday","email":"false2.dancer2@example.com","as_leader":["Novice"],"as_follower":["Intermediate"]}
 
 End & Cleanup
 -------------

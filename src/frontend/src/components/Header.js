@@ -14,7 +14,7 @@ function Header() {
                 <ul>
                     <li><a href="/">Page d'accueil</a></li>
                     <li><a href="/events">Événements</a></li>
-                    <li><a href="/dancers">Compétiteurs</a></li>
+                    <li><a href="/dancer">Compétiteurs</a></li>
                     <li><a href="/rules">Règles</a></li>
                     <li><a href="/faq">FAQ</a></li>
                     <li><a href="/about">À propos</a></li>
