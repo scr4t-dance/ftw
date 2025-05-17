@@ -2,7 +2,6 @@
 
 FLAGS=
 BINDIR=_build/install/default/bin
-API=src/openapi.json
 
 # Some variables for the frontend build
 FRONTEND_TARGET=src/frontend/build
@@ -18,8 +17,6 @@ FRONTEND_DEPS=\
 all: build
 
 build: backend
-
-api: $(API)
 
 
 ####################
