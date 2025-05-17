@@ -1,1 +1,599 @@
-{"openapi":"3.0.0","info":{"title":"FTW","description":"Api for the FTW dance competition scoring software","license":{"name":"GPL 3.0","url":"https://www.gnu.org/licenses/gpl-3.0.en.html"},"version":"1.0.1"},"paths":{"/api/phase/{id}":{"get":{"tags":["phase"],"summary":"Get the details of a Phase","parameters":[{"name":"id","in":"path","description":"Id of the queried phase","required":true,"schema":{"$ref":"#/components/schemas/PhaseId"}}],"responses":{"200":{"description":"Successful operation","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Phase"}}}},"400":{"description":"Invalid Id supplied","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"Phase not found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}},"delete":{"tags":["phase"],"summary":"Delete a Phase","parameters":[{"name":"id","in":"path","description":"Id of the phase to delete","required":true,"schema":{"$ref":"#/components/schemas/PhaseId"}}],"responses":{"200":{"description":"Successful operation","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Phase"}}}},"400":{"description":"Invalid Id supplied","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"Phase not found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}},"patch":{"tags":["phase"],"summary":"Update parameters of a Phase","parameters":[{"name":"id","in":"path","description":"Id of the queried phase","required":true,"schema":{"$ref":"#/components/schemas/PhaseId"}}],"requestBody":{"description":"Details of the Phase to update, cannot update competition. Beware when updating round !","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Phase"}}},"required":true},"responses":{"200":{"description":"Successful operation","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Phase"}}}},"400":{"description":"Invalid Id or Data supplied","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"Phase not found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/api/phase":{"put":{"tags":["phase"],"summary":"Create a new phase","parameters":[],"requestBody":{"description":"Details of the Phase to create","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Phase"}}},"required":true},"responses":{"200":{"description":"Successful operation","content":{"application/json":{"schema":{"$ref":"#/components/schemas/PhaseId"}}}},"400":{"description":"Invalid input","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/api/comp":{"put":{"tags":["competition"],"summary":"Create a new competition","parameters":[],"requestBody":{"description":"Details of the Competition to create","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Competition"}}},"required":true},"responses":{"200":{"description":"Successful operation","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CompetitionId"}}}},"400":{"description":"Invalid input","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/api/comp/{id}/phases":{"get":{"tags":["phase","competition"],"summary":"Get the list of phases of a Competition","parameters":[{"name":"id","in":"path","description":"Id of the queried Competition","required":true,"schema":{"$ref":"#/components/schemas/CompetitionId"}}],"responses":{"200":{"description":"Successful operation","content":{"application/json":{"schema":{"$ref":"#/components/schemas/PhaseIdList"}}}}}}},"/api/comp/{id}":{"get":{"tags":["competition"],"summary":"Get the details of a Competition","parameters":[{"name":"id","in":"path","description":"Id of the queried competition","required":true,"schema":{"$ref":"#/components/schemas/CompetitionId"}}],"responses":{"200":{"description":"Successful operation","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Competition"}}}},"400":{"description":"Invalid Id supplied","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"Competition not found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/api/event":{"put":{"tags":["event"],"summary":"Create a new event","parameters":[],"requestBody":{"description":"Details of the Event to create","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Event"}}},"required":true},"responses":{"200":{"description":"Successful operation","content":{"application/json":{"schema":{"$ref":"#/components/schemas/EventId"}}}},"400":{"description":"Invalid input","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"409":{"description":"Conflict object with same name, start date and end date already exists","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/api/event/{id}/comps":{"get":{"tags":["event","competition"],"summary":"Get the list of competitions of an Event","parameters":[{"name":"id","in":"path","description":"Id of the queried Event","required":true,"schema":{"$ref":"#/components/schemas/EventId"}}],"responses":{"200":{"description":"Successful operation","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CompetitionIdList"}}}},"400":{"description":"Invalid Id supplied","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"Event not found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/api/event/{id}":{"get":{"tags":["event"],"summary":"Get the details of a single Event","parameters":[{"name":"id","in":"path","description":"Id of the queried event","required":true,"schema":{"$ref":"#/components/schemas/EventId"}}],"responses":{"200":{"description":"Successful operation","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Event"}}}},"400":{"description":"Invalid Id supplied","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"404":{"description":"Event not found","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/api/events":{"get":{"tags":["event"],"summary":"Get the list of Events","parameters":[],"responses":{"200":{"description":"Succesful operation","content":{"application/json":{"schema":{"$ref":"#/components/schemas/EventIdList"}}}}}}}},"components":{"schemas":{"Ok":{"type":"null"},"Error":{"type":"object","properties":{"message":{"type":"string"}}},"Date":{"type":"object","properties":{"day":{"type":"integer"},"month":{"type":"integer"},"year":{"type":"integer"}},"required":["year","month","day"]},"Kind":{"type":"array","items":{"type":"string","enum":["Routine","Strictly","JJ_Strictly","Jack_and_Jill"]}},"Division":{"type":"array","items":{"type":"string","enum":["Novice","Intermediate","Advanced"]}},"Category":{"type":"array","items":{"type":"string","enum":["Novice","Intermediate","Advanced","Regular","Qualifying","Invited"]}},"Round":{"type":"string","enum":["Prelims","Octofinals","Quarterfinals","Semifinals","Finals"]},"EventId":{"type":"integer"},"EventIdList":{"type":"object","properties":{"events":{"type":"array","items":{"$ref":"#/components/schemas/EventId"}}}},"Event":{"type":"object","properties":{"name":{"type":"string"},"start_date":{"$ref":"#/components/schemas/Date"},"end_date":{"$ref":"#/components/schemas/Date"}}},"CompetitionId":{"type":"integer"},"CompetitionIdList":{"type":"object","properties":{"comps":{"type":"array","items":{"$ref":"#/components/schemas/CompetitionId"}}}},"Competition":{"type":"object","properties":{"event":{"$ref":"#/components/schemas/EventId"},"name":{"type":"string"},"kind":{"$ref":"#/components/schemas/Kind"},"category":{"$ref":"#/components/schemas/Category"},"n_leaders":{"type":"integer"},"n_follows":{"type":"integer"}}},"YanCriterionWeights":{"type":"object","properties":{"yes":{"type":"integer"},"alt":{"type":"integer"},"no":{"type":"integer"}}},"RankingYanWeighted":{"description":" Ranking algorithm for Yan_weighted ","type":"array","items":{"$ref":"#/components/schemas/YanCriterionWeights"}},"RankingAlgorithm":{"description":" algorithm is either ranking or yan.\n        For a ranking algorithm, ranking_algorithm property should be specified.\n        For a Yan_weighted algorithm, weights and head_weights properties should be set. ","type":"object","properties":{"algorithm":{"examples":["Yan_weighted","RPSS"],"type":"string"},"algorithm_data":{"oneOf":[{"type":"array","items":{"$ref":"#/components/schemas/YanCriterionWeights"}},{"type":"null"}]}}},"ArtefactDescription":{"description":" artefact is either ranking or yan.\n        For a ranking artefact, ranking_algorithm property should be specified.\n        For a yan artefact, yan_criterion property should be set. ","type":"object","properties":{"artefact":{"examples":["yan","ranking"],"type":"string"},"artefact_data":{"oneOf":[{"type":"array","items":{"type":"string"}},{"type":"null"}]}}},"PhaseId":{"examples":[42],"type":"integer"},"PhaseIdList":{"type":"object","properties":{"phases":{"type":"array","items":{"$ref":"#/components/schemas/PhaseId"}}}},"Phase":{"type":"object","properties":{"competition":{"$ref":"#/components/schemas/CompetitionId"},"round":{"$ref":"#/components/schemas/Round"},"judge_artefact_descr":{"$ref":"#/components/schemas/ArtefactDescription"},"head_judge_artefact_descr":{"$ref":"#/components/schemas/ArtefactDescription"},"ranking_algorithm":{"$ref":"#/components/schemas/RankingAlgorithm"}}},"DancerId":{"examples":[42],"type":"integer"},"DancerIdList":{"type":"object","properties":{"dancers":{"type":"array","items":{"$ref":"#/components/schemas/DancerId"}}}},"HeatId":{"examples":[42],"type":"integer"},"HeatIdList":{"type":"object","properties":{"heats":{"type":"array","items":{"$ref":"#/components/schemas/HeatId"}}}}}}}
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "FTW",
+    "description": "Api for the FTW dance competition scoring software",
+    "license": {
+      "name": "GPL 3.0",
+      "url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
+    },
+    "version": "1.0.1"
+  },
+  "paths": {
+    "/api/phase/{id}": {
+      "get": {
+        "tags": [ "phase" ],
+        "summary": "Get the details of a Phase",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Phase" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [ "phase" ],
+        "summary": "Delete a Phase",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the phase to delete",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Phase" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [ "phase" ],
+        "summary": "Update parameters of a Phase",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Details of the Phase to update, cannot update competition. Beware when updating round !",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Phase" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Phase" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id or Data supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase": {
+      "put": {
+        "tags": [ "phase" ],
+        "summary": "Create a new phase",
+        "parameters": [],
+        "requestBody": {
+          "description": "Details of the Phase to create",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Phase" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/comp": {
+      "put": {
+        "tags": [ "competition" ],
+        "summary": "Create a new competition",
+        "parameters": [],
+        "requestBody": {
+          "description": "Details of the Competition to create",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Competition" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CompetitionId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/comp/{id}/phases": {
+      "get": {
+        "tags": [ "phase", "competition" ],
+        "summary": "Get the list of phases of a Competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Competition",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseIdList" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/comp/{id}": {
+      "get": {
+        "tags": [ "competition" ],
+        "summary": "Get the details of a Competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried competition",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Competition" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/event": {
+      "put": {
+        "tags": [ "event" ],
+        "summary": "Create a new event",
+        "parameters": [],
+        "requestBody": {
+          "description": "Details of the Event to create",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Event" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/EventId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict object with same name, start date and end date already exists",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/event/{id}/comps": {
+      "get": {
+        "tags": [ "event", "competition" ],
+        "summary": "Get the list of competitions of an Event",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Event",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/EventId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionIdList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Event not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/event/{id}": {
+      "get": {
+        "tags": [ "event" ],
+        "summary": "Get the details of a single Event",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried event",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/EventId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Event" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Event not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events": {
+      "get": {
+        "tags": [ "event" ],
+        "summary": "Get the list of Events",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Succesful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/EventIdList" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Ok": { "type": "null" },
+      "Error": {
+        "type": "object",
+        "properties": { "message": { "type": "string" } }
+      },
+      "Date": {
+        "type": "object",
+        "properties": {
+          "day": { "type": "integer" },
+          "month": { "type": "integer" },
+          "year": { "type": "integer" }
+        },
+        "required": [ "year", "month", "day" ]
+      },
+      "Kind": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [ "Routine", "Strictly", "JJ_Strictly", "Jack_and_Jill" ]
+        }
+      },
+      "Division": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [ "Novice", "Intermediate", "Advanced" ]
+        }
+      },
+      "Category": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "Novice", "Intermediate", "Advanced", "Regular", "Qualifying",
+            "Invited"
+          ]
+        }
+      },
+      "Round": {
+        "type": "string",
+        "enum": [
+          "Prelims", "Octofinals", "Quarterfinals", "Semifinals", "Finals"
+        ]
+      },
+      "EventId": { "type": "integer" },
+      "EventIdList": {
+        "type": "object",
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/EventId" }
+          }
+        }
+      },
+      "Event": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "start_date": { "$ref": "#/components/schemas/Date" },
+          "end_date": { "$ref": "#/components/schemas/Date" }
+        }
+      },
+      "CompetitionId": { "type": "integer" },
+      "CompetitionIdList": {
+        "type": "object",
+        "properties": {
+          "comps": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        }
+      },
+      "Competition": {
+        "type": "object",
+        "properties": {
+          "event": { "$ref": "#/components/schemas/EventId" },
+          "name": { "type": "string" },
+          "kind": { "$ref": "#/components/schemas/Kind" },
+          "category": { "$ref": "#/components/schemas/Category" },
+          "n_leaders": { "type": "integer" },
+          "n_follows": { "type": "integer" }
+        }
+      },
+      "YanCriterionWeights": {
+        "type": "object",
+        "properties": {
+          "yes": { "type": "integer" },
+          "alt": { "type": "integer" },
+          "no": { "type": "integer" }
+        }
+      },
+      "RankingYanWeighted": {
+        "description": " Ranking algorithm for Yan_weighted ",
+        "type": "array",
+        "items": { "$ref": "#/components/schemas/YanCriterionWeights" }
+      },
+      "RankingAlgorithm": {
+        "description": " algorithm is either ranking or yan.\n        For a ranking algorithm, ranking_algorithm property should be specified.\n        For a Yan_weighted algorithm, weights and head_weights properties should be set. ",
+        "type": "object",
+        "properties": {
+          "algorithm": {
+            "examples": [ "Yan_weighted", "RPSS" ],
+            "type": "string"
+          },
+          "algorithm_data": {
+            "oneOf": [
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/YanCriterionWeights"
+                }
+              },
+              { "type": "null" }
+            ]
+          }
+        }
+      },
+      "ArtefactDescription": {
+        "description": " artefact is either ranking or yan.\n        For a ranking artefact, ranking_algorithm property should be specified.\n        For a yan artefact, yan_criterion property should be set. ",
+        "type": "object",
+        "properties": {
+          "artefact": { "examples": [ "yan", "ranking" ], "type": "string" },
+          "artefact_data": {
+            "oneOf": [
+              { "type": "array", "items": { "type": "string" } },
+              { "type": "null" }
+            ]
+          }
+        }
+      },
+      "PhaseId": { "examples": [ 42 ], "type": "integer" },
+      "PhaseIdList": {
+        "type": "object",
+        "properties": {
+          "phases": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        }
+      },
+      "Phase": {
+        "type": "object",
+        "properties": {
+          "competition": { "$ref": "#/components/schemas/CompetitionId" },
+          "round": { "$ref": "#/components/schemas/Round" },
+          "judge_artefact_descr": {
+            "$ref": "#/components/schemas/ArtefactDescription"
+          },
+          "head_judge_artefact_descr": {
+            "$ref": "#/components/schemas/ArtefactDescription"
+          },
+          "ranking_algorithm": {
+            "$ref": "#/components/schemas/RankingAlgorithm"
+          }
+        }
+      },
+      "DancerId": { "examples": [ 42 ], "type": "integer" },
+      "DancerIdList": {
+        "type": "object",
+        "properties": {
+          "dancers": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DancerId" }
+          }
+        }
+      },
+      "HeatId": { "examples": [ 42 ], "type": "integer" },
+      "HeatIdList": {
+        "type": "object",
+        "properties": {
+          "heats": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/HeatId" }
+          }
+        }
+      }
+    }
+  }
+}
