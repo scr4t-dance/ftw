@@ -8,6 +8,8 @@ import Header from "./Header";
 import Footer from "./Footer";
 import { EventId, Date } from "hookgen/model";
 import { useParams } from "react-router";
+import NewCompetitionForm from "./NewCompetitionForm";
+import CompetitionList from "./CompetitionList";
 
 function EventPage() {
 
@@ -35,9 +37,12 @@ function EventPage() {
             <PageTitle title={"Événement " + event?.name} />
             <Header />
             <div className="content-container">
+
                 <h1>{event?.name}</h1>
                 <p>Date de début : {formatDate(event?.start_date)}</p>
                 <p>Date de fin : {formatDate(event?.end_date)}</p>
+                <CompetitionList id_event={id_event_number}/>
+                <NewCompetitionForm default_event={id_event_number}/>
             </div>
             <Footer />
         </>

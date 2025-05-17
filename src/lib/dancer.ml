@@ -23,9 +23,9 @@ let id { id; _ } = id
 let birthday { birthday; _ } = birthday
 let last_name { last_name; _ } = last_name
 let first_name { first_name; _ } = first_name
+let email { email; _ } = email
 let as_leader { as_leader; _ } = as_leader
 let as_follower { as_follower; _ } = as_follower
-let email { email; _ } = email
 
 let print_compact fmt t =
   Format.fprintf fmt "%s %s" t.first_name t.last_name

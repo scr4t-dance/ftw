@@ -46,4 +46,3 @@ let string name default =
   let p = text in
   let conv = Conv.mk (p1 text) (fun s -> s) in
   mk name p conv default
-

@@ -103,4 +103,3 @@ let create st event_id
   in
   Logs.debug ~src:State.src (fun k->k "Competition created with id %d" t.id);
   t
-

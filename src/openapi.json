@@ -227,6 +227,22 @@
                 "schema": { "$ref": "#/components/schemas/PhaseIdList" }
               }
             }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
           }
         }
       }
@@ -446,6 +462,16 @@
           "enum": [ "Novice", "Intermediate", "Advanced" ]
         }
       },
+      "Divisions": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "None", "Novice", "Novice_Intermediate", "Intermediate",
+            "Intermediate_Advanced", "Advanced"
+          ]
+        }
+      },
       "Category": {
         "type": "array",
         "items": {
@@ -457,10 +483,13 @@
         }
       },
       "Round": {
-        "type": "string",
-        "enum": [
-          "Prelims", "Octofinals", "Quarterfinals", "Semifinals", "Finals"
-        ]
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "Prelims", "Octofinals", "Quarterfinals", "Semifinals", "Finals"
+          ]
+        }
       },
       "EventId": { "type": "integer" },
       "EventIdList": {
@@ -484,7 +513,7 @@
       "CompetitionIdList": {
         "type": "object",
         "properties": {
-          "comps": {
+          "competitions": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/CompetitionId" }
           }
@@ -574,6 +603,16 @@
           }
         }
       },
+      "HeatId": { "examples": [ 42 ], "type": "integer" },
+      "HeatIdList": {
+        "type": "object",
+        "properties": {
+          "heats": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/HeatId" }
+          }
+        }
+      },
       "DancerId": { "examples": [ 42 ], "type": "integer" },
       "DancerIdList": {
         "type": "object",
@@ -584,14 +623,15 @@
           }
         }
       },
-      "HeatId": { "examples": [ 42 ], "type": "integer" },
-      "HeatIdList": {
+      "Dancer": {
         "type": "object",
         "properties": {
-          "heats": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/HeatId" }
-          }
+          "birthday": { "$ref": "#/components/schemas/Date" },
+          "last_name": { "examples": [ "Bury" ], "type": "string" },
+          "first_name": { "examples": [ "Guillaume" ], "type": "string" },
+          "email": { "examples": [ "email@email.email" ], "type": "string" },
+          "as_leader": { "$ref": "#/components/schemas/Divisions" },
+          "as_follower": { "$ref": "#/components/schemas/Divisions" }
         }
       }
     }

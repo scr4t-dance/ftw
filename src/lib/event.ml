@@ -92,4 +92,3 @@ let create st name ~start_date ~end_date : Id.t =
   in
   Logs.debug ~src:State.src (fun k->k "Event created with id %d" id);
   id
-

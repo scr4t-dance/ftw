@@ -11,6 +11,7 @@ type t =
   | Intermediate
   | Intermediate_Advanced
   | Advanced (**)
+[@@deriving yojson]
 (** This represents the divisions accessible to a given dancer. Semantically,
     the [None] and [Novice] divisions are equivalent, but [None] is the
     initial divisions for dancers that have not yet danced in a role.
