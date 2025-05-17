@@ -29,19 +29,12 @@ configure:
 	opam install . --deps-only --yes
 	cd src/frontend && npm install
 	cd src/hookgen && npm install
-# detect changes in hooks and frontend
-	find src/frontend/src/hookgen/ -type f > src/hookgen/hookgen.lock
-	find src/frontend/src/ -type f > src/frontend/frontend.lock
-# init static directory
-	mkdir -p src/frontend/build
-	touch src/frontend/build/index.html
 
 hookgen: src/openapi.json
 	cd src/hookgen && ./node_modules/.bin/orval --config ./orval.config.js
 
 $(FRONTEND_TARGET): hookgen $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
-	find src/frontend/src/ -type f > src/frontend/frontend.lock
 
 backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
@@ -67,8 +60,6 @@ clean:
 	rm -rf src/frontend/node_modules
 	rm -rf src/hookgen/node_modules
 	rm -rf src/frontend/src/hookgen
-	rm -rf src/hookgen/pretty_print_openapi.json
-	rm -rf src/openapi.json.tmp
 
 
 ################
