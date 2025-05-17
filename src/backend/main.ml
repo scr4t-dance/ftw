@@ -9,13 +9,13 @@ let src = Logs.Src.create "ftw.backend"
 let loader _root path _request =
   Logs.debug ~src (fun m -> m "Loading static request for '%s'" path);
   match Static.read path with
-    | None ->
-      (* if the path is not found in the frontend, automatically redirect to `index.html` *)
-      begin match Static.read "index.html" with
-          | None -> assert false (* let's assume the frontend will always have an `index.html` *)
-          | Some asset -> Dream.html asset
-        end
-    | Some asset -> Dream.respond asset
+  | None ->
+    (* if the path is not found in the frontend, automatically redirect to `index.html` *)
+    begin match Static.read "index.html" with
+      | None -> assert false (* let's assume the frontend will always have an `index.html` *)
+      | Some asset -> Dream.html asset
+    end
+  | Some asset -> Dream.respond asset
 
 let router () =
   (* Setup the router with the base information for openapi *)
@@ -75,9 +75,9 @@ let server (options : Options.server) =
 let openapi (options : Options.openapi) =
   let router = router () in
   let spec = router.spec in
-  let json_string = Ftw.Misc.Json.print ~to_yojson:Spec.yojson_of_t spec in
   let ch = open_out options.file in
-  let () = output_string ch json_string in
+  let fmt = Format.formatter_of_out_channel ch in
+  Format.fprintf fmt "%a@." (Yojson.Safe.pretty_print ~std:false) (Spec.yojson_of_t spec);
   let () = close_out ch in
   ()
 

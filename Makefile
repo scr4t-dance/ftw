@@ -1,17 +1,22 @@
 # copyright (c) 2024, Guillaume Bury
 
+SHELL := /bin/bash
+
 FLAGS=
 BINDIR=_build/install/default/bin
 
 # Some variables for the frontend build
 FRONTEND_TARGET=src/frontend/build
 FRONTEND_DEPS=\
+	src/hookgen/package.json \
+	src/hookgen/package-lock.json \
 	src/frontend/package.json \
 	src/frontend/package-lock.json \
 	src/frontend/public/* \
-	src/frontend/src/* \
-	src/frontend/src/components/* \
-	src/frontend/src/hooks/*
+	$(shell find src/frontend/src/ -type f)
+HOOKGEN_DEPS=\
+	$(shell find src/hookgen/ -type f)
+
 
 # Aliases
 all: build
@@ -26,8 +31,12 @@ build: backend
 configure:
 	opam install . --deps-only --yes
 	cd src/frontend && npm install
+	cd src/hookgen && npm install
 
-$(FRONTEND_TARGET): $(FRONTEND_DEPS)
+hookgen: src/openapi.json
+	cd src/hookgen && ./node_modules/.bin/orval --config ./orval.config.js
+
+$(FRONTEND_TARGET): hookgen $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
 
 backend: $(FRONTEND_TARGET)
@@ -51,6 +60,9 @@ doc:
 clean:
 	dune clean
 	rm -rf $(FRONTEND_TARGET)
+	rm -rf src/frontend/node_modules
+	rm -rf src/hookgen/node_modules
+	rm -rf src/frontend/src/hookgen
 
 
 ################
@@ -58,15 +70,16 @@ clean:
 ################
 
 debug: backend
-	dune exec -- ftw --db=tests/test.db -b -v -v
+	dune exec -- ftw --db=tests/test.db -vv
 
 run: backend
 	dune exec -- ftw --db=tests/test.db
 
 frontend_dev: backend
-	./deploy_frontend_dev.sh
+	./bin/deploy_frontend_dev.sh
 
 top:
 	dune utop
 
 .PHONY: all build top doc run debug frontend_dev tests promote clean
+	hookgen hookgen_init

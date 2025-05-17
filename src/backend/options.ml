@@ -39,23 +39,25 @@ let logs_level = Logs_cli.level ()
 
 let logs_style = Fmt_cli.style_renderer ()
 
-let setup_log style_renderer level =
-  Fmt_tty.setup_std_outputs ?style_renderer ();
-  Logs.set_level ~all:true level;
-  Logs.set_reporter (Logs_fmt.reporter ());
-  begin match level with
-    | Some lev -> let dream_log_level : Dream.log_level = begin match lev with
+let set_dream_logs level =
+  let level : Dream.log_level option =
+    Option.map (fun l ->
+        match (l : Logs.level) with
         | Logs.Error -> `Error
         | Logs.Warning -> `Warning
         | Logs.Info -> `Info
         | Logs.Debug -> `Debug
         | Logs.App -> `Info
-      end
-      in
-      Dream.initialize_log ~level:dream_log_level ()
-    | None -> ()
-  end;
-  Logs.app (fun k->k "Log level: %s" (Logs.level_to_string @@ Logs.level ()))
+      ) level
+  in
+  Dream.initialize_log () ?level
+
+let setup_log style_renderer level =
+  Fmt_tty.setup_std_outputs ?style_renderer ();
+  Logs.set_level ~all:true level;
+  Logs.set_reporter (Logs_fmt.reporter ());
+  set_dream_logs level;
+  ()
 
 let bt =
   let doc = "Enable backtraces" in
