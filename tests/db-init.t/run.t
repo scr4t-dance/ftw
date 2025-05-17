@@ -102,13 +102,12 @@ If the definition changes
             leader_id INTEGER REFERENCES dancers(id),
             follower_id INTEGER REFERENCES dancers(id)
           );
-
   CREATE TABLE bibs (
             dancer_id INTEGER REFERENCES dancers(id),
             competition_id INTEGER REFERENCES competitions(id),
             bib INTEGER NOT NULL,
             role INTEGER NOT NULL,
-
+  
             PRIMARY KEY(bib,competition_id,role)
           );
 
