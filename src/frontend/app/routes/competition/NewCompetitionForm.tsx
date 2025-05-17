@@ -23,8 +23,8 @@ function NewCompetitionForm({ id_event }: { id_event: EventId }) {
             name: '',
             kind: [KindItem.Jack_and_Jill],
             category: [CategoryItem.Novice],
-            leaders_count: 50,
-            followers_count: 50
+            n_leaders: 50,
+            n_follows: 50
         }
     });
 
