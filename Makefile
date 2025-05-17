@@ -85,6 +85,7 @@ clean:
 	rm -rf src/frontend/node_modules
 	rm -rf src/hookgen/node_modules
 	rm -rf src/frontend/app/hookgen
+	rm -rf src/frontend/.react-router
 	rm -rf src/hookgen/raw_openapi.json
 
 top:
