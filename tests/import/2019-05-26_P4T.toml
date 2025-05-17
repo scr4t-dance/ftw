@@ -1,0 +1,130 @@
+
+# FTW Event Info
+
+[event]
+name = "Printemps 4 Temps"
+start_date = 2019-05-24
+end_date = 2019-05-26
+
+[event.comps.jj_debutants]
+name = "Débutants"
+kind = "Jack_and_Jill"
+category = "Regular"
+leaders = 0
+follows = 0
+
+[event.comps.jj_debutants.results]
+csv = """
+1	F	Daumal	Ange
+1	L	Khansa	Rémi
+
+2	F	Pébrier	Madeleine
+2	L	Jorge Do Marco	Romain
+
+3	F	Antoine	Louise
+3	L	Jeanson	Antonio
+
+F	L	Croenne-Ambroise	Aurélien
+F	L	Bartaud	Raphaël
+
+F	F	Gaurois	Alexia
+F	F	Law	Thalie
+"""
+
+[event.comps.jj_confirmes]
+name = "Confirmés"
+kind = "Jack_and_Jill"
+category = "Qualifying"
+leaders = 0
+follows = 0
+
+[event.comps.jj_confirmes.results]
+csv = """
+1	F	Parquier	Claire
+1	L	Franque	Guillaume
+
+2	F	Desseaux	Albane
+2	L	Rambaud	Matthieu
+
+3	F	Gaurois	Alexia
+3	L	Khansa	Rémi
+
+F	L	Ziakovic	Théo
+F	F	Lim	Melody
+
+F	L	Aron	Vincent
+F	F	Renoul	Louise
+
+F	L	Badescu	Rares
+F	F	Bivas	Irène
+
+F	L	Morel	Baptiste
+F	F	Dumon	Camille
+"""
+
+[event.comps.jj_invite_old]
+name = 'Invités "Old School"'
+kind = "Jack_and_Jill"
+category = "Invited"
+leaders = 0
+follows = 0
+
+[event.comps.jj_invite_old.results]
+csv = """
+# Podium
+1	F	Vallerio	Héloise
+1	L	Bury	Guillaume
+
+# Sorted people
+F	F	Cimelli	Léa
+F	L	Ben Kiran	Paul
+
+# Unsorted people
+F	F	Geneste-Samissof	Natacha
+F	F	Debu	Sandra
+F	F	Durand	Céline
+F	F	De Saint Léon	Aliénor
+F	F	Varieras	Mathilde
+F	F	Abella	Alexandra
+
+F	L	Kavokine	Nikita
+F	L	Escolier	Anthony
+F	L	Kreis	Alaa
+F	L	De Longuemar	Guillaume
+F	L	Lopez	Yann
+F	L	Monier	Ludovic
+"""
+
+[event.comps.jj_invite_moderne]
+name = 'Invités "Moderne"'
+kind = "Jack_and_Jill"
+category = "Invited"
+leaders = 0
+follows = 0
+
+[event.comps.jj_invite_moderne.results]
+csv = """
+# Podium
+1	F	Vallerio	Héloise
+1	L	Ben Kiran	Paul
+
+# Sorted people
+F	F	Cimelli	Léa
+F	L	De Longuemar	Guillaume
+
+F	F	Geneste-Samissof	Natacha
+F	L	Bury	Guillaume
+
+# Unsorted people
+F	F	Debu	Sandra
+F	F	Durand	Céline
+F	F	De Saint Léon	Aliénor
+F	F	Varieras	Mathilde
+F	F	Abella	Alexandra
+
+F	L	Kavokine	Nikita
+F	L	Escolier	Anthony
+F	L	Kreis	Alaa
+F	L	Lopez	Yann
+F	L	Monier	Ludovic
+"""

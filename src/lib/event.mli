@@ -29,6 +29,9 @@ val end_date : t -> Date.t
 val compare : t -> t -> int
 (** Comparison function. Compares the date before *)
 
+val print_compact : Format.formatter -> t -> unit
+(** Compact printing. *)
+
 
 (* DB interaction *)
 (* ************************************************************************* *)
@@ -38,8 +41,7 @@ val list : State.t -> t list
 
 val get : State.t -> id -> t
 (** Get an event from its id.
-    @raise Not_found if the event is not found. *)
+    @raise Stdlib.Not_found if the event is not found. *)
 
 val create : State.t -> string -> start_date:Date.t -> end_date:Date.t -> id
 (** Create a new event. *)
-

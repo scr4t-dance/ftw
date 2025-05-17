@@ -1,10 +1,13 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-(* Helper functions *)
+let src = Logs.Src.create "ftw.backend"
+
+(* Main Server *)
 (* ************************************************************************* *)
 
 let loader _root path _request =
+  Logs.debug ~src (fun m -> m "Loading static request for '%s'" path);
   match Static.read path with
   | None ->
     (* if the path is not found in the frontend, automatically redirect to `index.html` *)
@@ -14,25 +17,7 @@ let loader _root path _request =
     end
   | Some asset -> Dream.respond asset
 
-(* Main entrypoint *)
-(* ************************************************************************* *)
-
-let () =
-  (* Parse CLI options *)
-  let info = Cmdliner.Cmd.info ~version:"dev" "fourever" in
-  let cmd = Cmdliner.Cmd.v info Options.t in
-  let options =
-    match Cmdliner.Cmd.eval_value cmd with
-    | Ok `Ok options -> options
-    | Ok (`Help | `Version) -> exit 0
-    | Error `Parse -> exit Cmdliner.Cmd.Exit.cli_error
-    | Error (`Term | `Exn) -> exit Cmdliner.Cmd.Exit.internal_error
-  in
-  (* Defaul routes to serve the clients files (pages, scripts and css) *)
-  let default_routes = [
-    Dream.get "/" (loader "" "");
-    Dream.get "/**" (Dream.static ~loader "");
-  ] in
+let router () =
   (* Setup the router with the base information for openapi *)
   let router =
     Router.empty
@@ -45,13 +30,19 @@ let () =
         ~url:"https://www.gnu.org/licenses/gpl-3.0.en.html")
   in
   (* Add the routes for api endpoints *)
-  let router =
-    router
-    |> Event.routes
-    |> Competition.routes
-    |> Phase.routes
-    |> Dancer.routes
-  in
+  router
+  |> Event.routes
+  |> Competition.routes
+  |> Phase.routes
+
+let server (options : Options.server) =
+  (* Default routes to serve the clients files (pages, scripts and css) *)
+  let default_routes = [
+    Dream.get "/" (loader "" "");
+    Dream.get "/**" (Dream.static ~loader "");
+  ] in
+  (* Create the router *)
+  let router = router () in
   (* Define CORS middleware manually *)
   let cors_middleware handler request =
     match Dream.method_ request with
@@ -77,3 +68,65 @@ let () =
   @@ Dream.memory_sessions
   @@ State.init ~path:options.db_path
   @@ Router.build ~default_routes router
+
+(* Spec export *)
+(* ************************************************************************* *)
+
+let openapi (options : Options.openapi) =
+  let router = router () in
+  let spec = router.spec in
+  let json_string = Ftw.Misc.Json.print ~to_yojson:Spec.yojson_of_t spec in
+  let ch = open_out options.file in
+  let () = output_string ch json_string in
+  let () = close_out ch in
+  ()
+
+(* Event Import *)
+(* ************************************************************************* *)
+
+let import (options : Options.import) =
+  Ftw.State.atomically (Ftw.State.mk options.db_path)
+    ~f:(fun st ->
+        match Ftw.Import.import ~st options.ev_path with
+        | Ok () -> ()
+        | Error msg ->
+          Logs.err ~src (fun k->k "Import failed: %s" msg);
+          raise Exit
+      )
+
+(* Event Export *)
+(* ************************************************************************* *)
+
+let export (options : Options.export) =
+  Ftw.State.atomically (Ftw.State.mk options.db_path)
+    ~f:(fun st ->
+        match Ftw.Export.to_file ~st options.out_path options.ev_id with
+        | Ok _ -> ()
+        | Error () -> raise Exit
+      )
+
+(* Main entrypoint *)
+(* ************************************************************************* *)
+
+let () =
+  (* Parse CLI options *)
+  let info = Cmdliner.Cmd.info ~version:"dev" "ftw" in
+  let cmd =
+    let open Cmdliner in
+    Cmd.group ~default:Options.server info [
+      Cmd.v (Cmd.info "openapi") Options.openapi;
+      Cmd.v (Cmd.info "import") Options.import;
+      Cmd.v (Cmd.info "export") Options.export;
+    ]
+  in
+  match Cmdliner.Cmd.eval_value cmd with
+  (* Errors *)
+  | Error `Parse -> exit Cmdliner.Cmd.Exit.cli_error
+  | Error (`Term | `Exn) -> exit Cmdliner.Cmd.Exit.internal_error
+  (* Help / Version *)
+  | Ok (`Help | `Version) -> exit 0
+  (* Options parsed, run the code *)
+  | Ok `Ok Options.Server options -> server options
+  | Ok `Ok Options.Openapi options -> openapi options
+  | Ok `Ok Options.Import options -> import options
+  | Ok `Ok Options.Export options -> export options

@@ -4,7 +4,7 @@
 module.exports = {
     'ftw': {
         input: {
-            target: './openapi.json',
+            target: './pretty_print_openapi.json',
             validation: false,
         },
         output: {

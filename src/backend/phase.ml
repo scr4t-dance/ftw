@@ -1,6 +1,8 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+let src = Logs.Src.create "ftw.backend.phase"
+
 open Utils.Syntax
 
 (* Routes *)
@@ -119,7 +121,13 @@ and get_phase =
          try Ok (Ftw.Phase.get st id)
          with Not_found -> Error.(mk @@ not_found "Phase")
        in
-       let ret = Types.Phase.of_ftw phase in
+       let ret : Types.Phase.t = {
+         competition = Ftw.Phase.competition phase;
+         round = Ftw.Phase.round phase;
+         judge_artefact_descr = Ftw.Phase.judge_artefact_descr phase;
+         head_judge_artefact_descr = Ftw.Phase.head_judge_artefact_descr phase;
+         ranking_algorithm = Ftw.Phase.ranking_algorithm phase;
+       } in
        Ok ret
     )
 
@@ -132,32 +140,26 @@ and create_phase =
     ~to_yojson:Types.PhaseId.to_yojson
     (fun _req st (phase : Types.Phase.t) ->
        let id =
-         let (ranking_algorithm, judge_artefact_descr, head_judge_artefact_descr) =
-           Types.Phase.artefact_to_ftw phase
-         in
          Ftw.Phase.create ~st phase.competition phase.round
-           ~ranking_algorithm:ranking_algorithm
-           ~judge_artefact_descr:judge_artefact_descr
-           ~head_judge_artefact_descr:head_judge_artefact_descr
+           ~ranking_algorithm:phase.ranking_algorithm
+           ~judge_artefact_descr:phase.judge_artefact_descr
+           ~head_judge_artefact_descr:phase.head_judge_artefact_descr
        in
        Ok id)
 
 and update_phase =
   Api.put
     ~of_yojson:Types.Phase.of_yojson
-    ~to_yojson:Types.PhaseId.to_yojson
+    ~to_yojson:Types.Ok.to_yojson
     (
       fun req st (phase : Types.Phase.t) ->
         let+ id_phase = Utils.int_param req "id" in
-        let p = Ftw.Phase.get st id_phase in
-        let competition_p = Ftw.Phase.competition p in
-        let round_p = Ftw.Phase.round p in
-        let (ranking_algorithm, judge_artefact_descr, head_judge_artefact_descr) =
-          Types.Phase.artefact_to_ftw phase
-        in
-        let id_p =Ftw.Phase.update ~st competition_p round_p ~ranking_algorithm ~judge_artefact_descr
-            ~head_judge_artefact_descr in
-        Ok id_p
+        let judge_artefact_descr = phase.judge_artefact_descr in
+        let head_judge_artefact_descr = phase.head_judge_artefact_descr in
+        let ranking_algorithm = phase.ranking_algorithm in
+        let () = Ftw.Phase.update ~st id_phase
+            ~ranking_algorithm ~judge_artefact_descr ~head_judge_artefact_descr in
+        Ok ()
     )
 
 and delete_phase =

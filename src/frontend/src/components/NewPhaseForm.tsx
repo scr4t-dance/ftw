@@ -18,8 +18,8 @@ function NewPhaseForm({ default_competition = -1 }: { default_competition?: Comp
     const [phase, setPhase] = useState<Phase>({
         competition: default_competition,
         round: [RoundItem.Finals],
-        judge_artefact_description: {ranking:'RPSS'},
-        head_judge_artefact_description: {ranking:'RPSS'}
+        judge_artefact_descr: {artefact:"ranking", artefact_data: null},
+        head_judge_artefact_descr: {artefact:"ranking", artefact_data: null},
     });
 
     const [selectedEvent, setSelectedEvent] = useState<EventId>(1)
@@ -152,14 +152,14 @@ function NewPhaseForm({ default_competition = -1 }: { default_competition?: Comp
                 <label>judge_artefact_description</label>
                 <ArtefactFormElement
                     attribute_name="judge_artefact_description"
-                    artefact_value={phase.judge_artefact_description as ArtefactDescription}
+                    artefact_value={phase.judge_artefact_descr as ArtefactDescription}
                     callback={setPhase}
                 />
 
                 <label>head_judge_artefact_description</label>
                 <ArtefactFormElement
                     attribute_name="head_judge_artefact_description"
-                    artefact_value={phase.head_judge_artefact_description as ArtefactDescription}
+                    artefact_value={phase.head_judge_artefact_descr as ArtefactDescription}
                     callback={setPhase}
                 />
 

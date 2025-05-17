@@ -11,6 +11,19 @@ type t =
   | Semifinals
   | Finals
 
+(* Serialization *)
+(* ************************************************************************* *)
+
+let to_string = function
+  | Prelims -> "prelims"
+  | Finals -> "finals"
+  | Semifinals -> "semifinals"
+  | Quarterfinals -> "quarterfinals"
+  | Octofinals -> "octofinals"
+
+let toml_key t = to_string t
+
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
@@ -35,16 +48,18 @@ let conv = Conv.mk p of_int
 let () =
   State.add_init_descr_table
     ~table_name:"round_names" ~to_int
-    ~values:[
-      Prelims, "Prelims";
-      Finals, "Finals";
-      Semifinals, "Semifinals";
-      Quarterfinals, "Quarterfinals";
-      Octofinals, "Octofinals";
+    ~to_descr:to_string ~values:[
+      Prelims; Finals;
+      Semifinals;
+      Quarterfinals;
+      Octofinals;
     ]
 
 (* Usual functions *)
 (* ************************************************************************* *)
+
+let print fmt t =
+  Format.fprintf fmt "%s" (to_string t)
 
 let compare k k' =
   Stdlib.compare (to_int k) (to_int k')

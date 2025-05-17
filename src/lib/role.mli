@@ -11,6 +11,17 @@ type t =
 (** Type for dancer roles of competitions. *)
 
 
+(* Serialization *)
+(* ************************************************************************* *)
+
+val to_toml : t -> Otoml.t
+(** Serialization to toml. *)
+
+val of_toml : Otoml.t -> t
+(** Deserialization from toml.
+    @raise Otoml.Type_error *)
+
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
@@ -19,7 +30,7 @@ val to_int : t -> int
 
 val of_int : int -> t
 (** Conversion from integer.
-    @raise Failure _ if the int is out of range *)
+    @raise Stdlib.Failure _ if the int is out of range *)
 
 val p : (int -> 'a, 'a) Sqlite3_utils.Ty.t
 (** Sqlite query "type" for roles *)
@@ -37,9 +48,11 @@ val equal : t -> t -> bool
 val compare : t -> t -> int
 (** Comparison function. *)
 
+val print_compact : Format.formatter -> t -> unit
+(** Compact printing. *)
+
 module Set : Set.S with type elt = t
 (** Sets for identifiers *)
 
 module Map : Map.S with type key = t
 (** Maps for identifiers *)
-

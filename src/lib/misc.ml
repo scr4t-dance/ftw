@@ -1,6 +1,41 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+(* Result monadic operators *)
+(* ************************************************************************* *)
+
+module Result = struct
+
+  let (let+) = Result.bind
+
+end
+
+(* Common Errors *)
+(* ************************************************************************* *)
+
+module Error = struct
+
+  exception Deserialization_error of {
+      payload : string;
+      expected : string;
+    }
+
+  let deserialization ~payload ~expected =
+    raise (Deserialization_error { payload; expected; })
+
+end
+
+(* Lists *)
+(* ************************************************************************* *)
+
+module Lists = struct
+
+  let all_the_same ~eq = function
+    | [] -> None
+    | h :: r -> if List.for_all (eq h) r then Some h else None
+
+end
+
 (* Bitwise manipulations *)
 (* ************************************************************************* *)
 
@@ -32,5 +67,20 @@ module Json = struct
     match parse ~of_yojson s with
     | Ok res -> res
     | Error msg -> failwith ("Misc.Json.parse_exn: " ^ msg)
+
+end
+
+(* Toml helpers *)
+(* ************************************************************************* *)
+
+module Toml = struct
+
+  let add name f x l =
+    (name, f x) :: l
+
+  let add_opt name f o l =
+    match o with
+    | None -> l
+    | Some x -> add name f x l
 
 end

@@ -21,6 +21,17 @@ type t =
 (** Type for the kind of competitions. *)
 
 
+(* Serialization *)
+(* ************************************************************************* *)
+
+val to_toml : t -> Otoml.t
+(** Serialization to toml. *)
+
+val of_toml : Otoml.t -> t
+(** Deserialization from toml.
+    @raise Otoml.Type_error *)
+
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
@@ -29,7 +40,7 @@ val to_int : t -> int
 
 val of_int : int -> t
 (** Conversion from integer.
-    @raise Failure _ if the int is out of range *)
+    @raise Stdlib.Failure _ if the int is out of range *)
 
 val p : (int -> 'a, 'a) Sqlite3_utils.Ty.t
 (** Sqlite query "type" for identifiers *)
@@ -40,6 +51,9 @@ val conv : t Conv.t
 
 (* Usual functions *)
 (* ************************************************************************* *)
+
+val print : Format.formatter -> t -> unit
+(** Printing function (note: for debug only). *)
 
 val equal : t -> t -> bool
 (** Equality function *)
@@ -52,4 +66,3 @@ module Set : Set.S with type elt = t
 
 module Map : Map.S with type key = t
 (** Maps for identifiers *)
-

@@ -1,0 +1,13 @@
+{0 For The Win: a dance competition software}
+
+For The Win is a web server meant to help organize dance competitions, and archive their results.
+
+It offers a web interface allowing competition organizer to create competitions,
+register participants, generated pools of dancers according to configurable parameters,
+register judges notes or rankings, and computes the ranking for each rounds of a competition.
+Finally, the web interface also show results of past competitions, and handles a point and
+divisions system.
+
+{1 References}
+
+See {!Ftw}

@@ -5,7 +5,7 @@
 (* ************************************************************************* *)
 
 (* TODO: find a decent/better name for an occurrence of a dancer in a heat *)
-type passage_id = Id.t [@@deriving yojson]
+type target_id = Id.t [@@deriving yojson]
 type passage_kind =
   | Only
   | Multiple of { nth : int; }
@@ -13,7 +13,7 @@ type passage_kind =
 (* Jack&Jill heats *)
 
 type single = {
-  passage_id : passage_id;
+  target_id : target_id;
   dancer : Dancer.id;
 }
 
@@ -30,7 +30,7 @@ type singles_heats = {
 (* Couples heats *)
 
 type couple = {
-  passage_id : passage_id;
+  target_id : target_id;
   leader : Dancer.id;
   follower : Dancer.id;
 }
@@ -43,8 +43,6 @@ type couples_heat = {
 type couples_heats = {
   couples_heats : couples_heat array;
 }
-
-
 
 (* DB interaction *)
 (* ************************************************************************* *)

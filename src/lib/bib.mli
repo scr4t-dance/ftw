@@ -16,7 +16,9 @@ type 'kind target =
   (** *)
 (** The target that a bib can have: a bib can sometime refer to a single
     dancer (e.g. during a Jack&Jill), but also to a couple (e.g. in a
-    Strictly). *)
+    Strictly).
+    In case of couple, give them both the same bib.
+    *)
 
 type any_target = Any : _ target -> any_target
 (** Existencial wrapper around the GADT. *)
@@ -31,7 +33,13 @@ val get : st:State.t -> competition:Competition.id -> bib:t -> any_target option
 val set :
   st:State.t -> competition:Competition.id ->
   target:any_target -> bib:t -> unit
-(** Set the bib for a given target in a competition. *)
+(** Set the bib for a given target in a competition.
+
+    The primary key for bib table is bib,competition_id,role.
+    It allows to work with either
+    * same bib for dancer as lead and follow
+    * different bibs for leaders and followers
+*)
 
 
 (* Usual functions *)
@@ -48,4 +56,3 @@ module Set : Set.S with type elt = t
 
 module Map : Map.S with type key = t
 (** Maps for identifiers *)
-

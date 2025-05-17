@@ -24,7 +24,10 @@ type t =
 
 val equal : t -> t -> bool
 val compare : t -> t -> int
+val max : t -> t -> t
 val print : Format.formatter -> t -> unit
+
+val includes : Division.t -> t -> bool
 
 
 (* DB interaction *)
@@ -35,7 +38,7 @@ val to_int : t -> int
 
 val of_int : int -> t
 (** Conversion from integer.
-    @raise Failure _ if the int is out of range *)
+    @raise Stdlib.Failure _ if the int is out of range *)
 
 val p : (int -> 'a, 'a) Sqlite3_utils.Ty.t
 (** Sqlite query "type" for identifiers *)

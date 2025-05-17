@@ -74,9 +74,26 @@ make promote
 Look at curl commands in `tests/api.t/run.t` to design new tests.
 
 
-Hacks
------
+Building a test DB
+------------------
+
+You can build a test DB by executing the following from the root of the project.
+
+```
+$ dune exec -- ftw import --db=tmp.sqlite tests/import
+```
+
+Note that if `tmp.sqlite` already exists a contains data (e.g. from a previous
+import), this is likely to fail with uninformative error messages. In the future
+the error messages should be improved.
+
+
+Hacks for vscode
+----------------
 
 In vscode, install Ocaml extension to get the button to create sandboxed terminals.
 
-Install `ocp-indent` to format files
+Install `ocp-indent` to format files.
+Extension OCaml Indentation by Zachary Palmer works, but you have to hardcode path to ocp-indent binary in settings. Then look for `format file` command.
+
+Remove trailing whitespaces with settings.

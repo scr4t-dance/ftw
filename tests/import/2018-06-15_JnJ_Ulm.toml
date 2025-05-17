@@ -1,0 +1,51 @@
+
+# FTW Event Info
+
+[event]
+name = "Jack&Jill Ulm"
+start_date = 2018-06-15
+end_date = 2018-06-15
+
+[event.comps.jj_classic]
+name = "Classique"
+kind = "Jack_and_Jill"
+category = "Regular"
+leaders = 0
+follows = 0
+
+[event.comps.jj_classic.results]
+csv = """
+1	L	Duchon-Doris	Cyril
+1	F	Castro Scherianz	Maria
+
+2	L	Morel	Baptiste
+2	F	Rabreaud	Agathe
+
+3	L	Robin	Paul
+3	F	Hacquin	Anne-Sophie
+"""
+
+[event.comps.jj_veteran]
+name = "Vétéran"
+kind = "Jack_and_Jill"
+category = "Regular"
+leaders = 0
+follows = 0
+
+[event.comps.jj_veteran.results]
+csv = """
+1	L	Chen	Frédéric
+1	F	Gadon-Ferreira	Justine
+
+2	L	Bury	Guillaume
+2	F	Cimelli	Léa
+
+3	L	Kavokine	Nikita
+3	F	Debu	Sandra
+
+F	L	De Longuemar	Guillaume
+F	L	Lamusse	Olivier
+
+F	F	Durand	Céline
+F	F	De Saint Léon	Aliénor
+"""

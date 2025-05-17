@@ -30,7 +30,7 @@ let rec routes router =
       "404", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Competition not found";
     ]
-  (* Competition phases query *)
+    (* Competition phases query *)
   |> Router.get "/api/comp/:id/phases" get_phases
     ~tags:["phase"; "competition"]
     ~summary:"Get the list of phases of a Competition"
@@ -48,6 +48,10 @@ let rec routes router =
           Spec.json,
           Spec.make_media_type_object () ~schema:(Types.(ref PhaseIdList.ref));
         ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid Id supplied";
+      "404", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Competition not found";
     ]
   |> Router.put "/api/comp" create_comp
     ~tags:["competition"]
@@ -90,6 +94,8 @@ and get_comp =
          name = Ftw.Competition.name comp;
          kind = Ftw.Competition.kind comp;
          category;
+         n_leaders = Ftw.Competition.n_leaders comp;
+         n_follows = Ftw.Competition.n_follows comp;
        } in
        Ok ret
     )
@@ -106,8 +112,6 @@ and get_phases =
     )
 
 
-
-
 (* Competition creation *)
 (* ************************************************************************* *)
 
@@ -117,7 +121,9 @@ and create_comp =
     ~to_yojson:Types.CompetitionId.to_yojson
     (fun _req st (comp : Types.Competition.t) ->
        let category = Types.Category.to_ftw comp.category in
-       let id =
-         Ftw.Competition.create st comp.event comp.name comp.kind category
+       let competition =
+         Ftw.Competition.create st
+           comp.event comp.name comp.kind category
+           ~n_leaders:comp.n_leaders ~n_follows:comp.n_follows
        in
-       Ok id)
+       Ok (Ftw.Competition.id competition))

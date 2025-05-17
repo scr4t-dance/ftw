@@ -61,6 +61,10 @@ let rec routes router =
           Spec.json,
           Spec.make_media_type_object () ~schema:(Types.(ref CompetitionIdList.ref));
         ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid Id supplied";
+      "404", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Event not found";
     ]
   (* Event creation *)
   |> Router.put "/api/event" create_event
@@ -83,6 +87,8 @@ let rec routes router =
         ];
       "400", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Invalid input";
+      "409", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Conflict object with same name, start date and end date already exists";
     ]
 
 
@@ -93,9 +99,9 @@ and event_list =
   Api.get
     ~to_yojson:Types.EventIdList.to_yojson
     (fun _req st ->
-      let events = List.map Ftw.Event.id (Ftw.Event.list st) in
-      let res : Types.EventIdList.t = { events; } in
-      Ok res
+       let events = List.map Ftw.Event.id (Ftw.Event.list st) in
+       let res : Types.EventIdList.t = { events; } in
+       Ok res
     )
 
 (* Event query *)

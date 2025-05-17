@@ -1,0 +1,26 @@
+# FTW Event Info
+
+[event]
+name = "Concours Chorégraphie ENS Ulm"
+start_date = 2017-04-29
+end_date = 2017-04-29
+
+[event.comps.cc]
+name = ""
+kind = "Routine"
+category = "Regular"
+leaders = 0
+follows = 0
+
+[event.comps.cc.results]
+csv = """
+1	L	Laurent	Théo
+1	F	Cimelli	Léa
+
+2	L	Journel	Lucas
+2	F	L'Huillier	Alice
+
+3	L	De Longuemar	Guillaume
+3	F	Gadon-Ferreira	Justine
+"""
+

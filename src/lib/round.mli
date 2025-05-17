@@ -14,6 +14,13 @@ type t =
     There cannot be two phases with the same round type in a competition. *)
 
 
+(* Serialization *)
+(* ************************************************************************* *)
+
+val toml_key : t -> string
+(** Suitable key for toml *)
+
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
@@ -22,7 +29,7 @@ val to_int : t -> int
 
 val of_int : int -> t
 (** Conversion from integer.
-    @raise Failure _ if the int is out of range *)
+    @raise Stdlib.Failure _ if the int is out of range *)
 
 val p : (int -> 'a, 'a) Sqlite3_utils.Ty.t
 (** Sqlite query "type" for identifiers *)
@@ -33,6 +40,9 @@ val conv : t Conv.t
 
 (* Usual functions *)
 (* ************************************************************************* *)
+
+val print : Format.formatter -> t -> unit
+(** Printing *)
 
 val equal : t -> t -> bool
 (** Equality function *)

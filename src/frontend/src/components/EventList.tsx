@@ -72,7 +72,7 @@ function EventList() {
             <Header />
             <div className="content-container">
 
-                <Link to={`/event`}>
+                <Link to={`/events/new`}>
                     Créer un nouvel événement
                 </Link>
                 <h1>Événements partenaires</h1>

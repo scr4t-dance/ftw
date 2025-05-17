@@ -13,6 +13,12 @@ type t = int
 let p = Sqlite3_utils.Ty.([int])
 let conv : t Conv.t = Conv.mk p (fun id -> id)
 
+(* Serialization *)
+(* ************************************************************************* *)
+
+let to_toml i = Otoml.integer i
+let of_toml t = Otoml.get_integer t
+
 (* Usual functions *)
 (* ************************************************************************* *)
 

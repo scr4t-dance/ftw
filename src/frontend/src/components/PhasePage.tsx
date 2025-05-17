@@ -50,12 +50,12 @@ function PhasePage() {
                 </p>
                 <div>Notation juges :
                     <ArtefactDescriptionComponent
-                        artefact_description={phase?.judge_artefact_description as ArtefactDescription}
+                        artefact_description={phase?.judge_artefact_descr as ArtefactDescription}
                     />
                 </div>
                 <div>Notation head juge :
                     <ArtefactDescriptionComponent
-                        artefact_description={phase?.head_judge_artefact_description as ArtefactDescription}
+                        artefact_description={phase?.head_judge_artefact_descr as ArtefactDescription}
                     />
                 </div>
                 <p>Catégorie : {competition?.category}</p>

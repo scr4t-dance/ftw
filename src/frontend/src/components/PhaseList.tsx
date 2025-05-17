@@ -78,12 +78,12 @@ function PhaseDetails({ id, index }: { id: CompetitionId, index: number }) {
             </td>
             <td>
                 <ArtefactDescriptionComponent
-                    artefact_description={phase?.judge_artefact_description as ArtefactDescription}
+                    artefact_description={phase?.judge_artefact_descr as ArtefactDescription}
                 />
             </td>
             <td>
                 <ArtefactDescriptionComponent
-                    artefact_description={phase?.head_judge_artefact_description as ArtefactDescription}
+                    artefact_description={phase?.head_judge_artefact_descr as ArtefactDescription}
                 />
             </td>
         </tr>
