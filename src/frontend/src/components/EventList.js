@@ -63,9 +63,10 @@ function EventList() {
         data,
         error,
         loading,
+        /* comment unused var for CI
         createEvent,
         getEventDetails,
-        getEventComps,
+        getEventComps, */
         getAllEvents,
     } = useEventApi();
 
