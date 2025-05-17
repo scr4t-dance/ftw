@@ -1,26 +1,24 @@
 import "../styles/ContentStyle.css";
 
 import React from 'react';
-import { useGetApiEventId } from '../hookgen/event/event';
+import { useGetApiDancerId } from '../hookgen/dancer/dancer';
 
 import PageTitle from "./PageTitle";
 import Header from "./Header";
 import Footer from "./Footer";
-import { EventId, Date } from "hookgen/model";
+import { DancerId, Date } from "hookgen/model";
 import { useParams } from "react-router";
-import NewCompetitionForm from "./NewCompetitionForm";
-import CompetitionList from "./CompetitionList";
 
-function EventPage() {
+function DancerPage() {
 
-    let { id_event } = useParams();
-    let id_event_number = Number(id_event) as EventId;
-    const { data, isLoading, isError, error } = useGetApiEventId(id_event_number);
+    let { id_dancer } = useParams();
+    let id_dancer_number = Number(id_dancer) as DancerId;
+    const { data, isLoading, isError, error } = useGetApiDancerId(id_dancer_number);
 
     if (isLoading) return <div>Chargement...</div>;
     if (!data) return null;
 
-    const event = data.data;
+    const dancer = data.data;
 
     if (isLoading) return <div>Chargement des événements...</div>;
     if (isError) return <div>Erreur: {(error as any).message}</div>;
@@ -34,19 +32,19 @@ function EventPage() {
 
     return (
         <>
-            <PageTitle title={"Événement " + event?.name} />
+            <PageTitle title={"Compétiteurice " + dancer?.last_name + " " + dancer.first_name} />
             <Header />
             <div className="content-container">
 
-                <h1>{event?.name}</h1>
-                <p>Date de début : {formatDate(event?.start_date)}</p>
-                <p>Date de fin : {formatDate(event?.end_date)}</p>
-                <CompetitionList id_event={id_event_number}/>
-                <NewCompetitionForm default_event={id_event_number}/>
+                <h1>{dancer?.last_name + " " + dancer.first_name}</h1>
+                <p>Division follower : {dancer?.as_follower}</p>
+                <p>Division leader : {dancer?.as_leader}</p>
+                <p>Birthday: "Hidden"</p>
+                <p>Email : "Hidden"</p>
             </div>
             <Footer />
         </>
     );
 }
 
-export default EventPage;
+export default DancerPage;

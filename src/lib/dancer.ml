@@ -65,13 +65,17 @@ let for_all ~st ~f =
   State.query_all ~f ~st ~conv
     {| SELECT * FROM dancers |}
 
+let list ~st =
+  State.query_list ~st ~conv
+    {| SELECT * FROM dancers |}
+
 let add ~st ?birthday ~first_name ~last_name ?email ~as_leader ~as_follower () =
   let open Sqlite3_utils.Ty in
   let email = Option.value ~default:"" email in
   let dob = Option.fold ~none:"" ~some:Date.to_string birthday in
   Logs.debug (fun k->
       k "@[<hv 2>Adding dancer with@ first: %s / last: %s@ birthday: %s / email : %s@ \
-                 leader: %a / follower: %a@]"
+         leader: %a / follower: %a@]"
         first_name last_name dob email
         Divisions.print as_leader Divisions.print as_follower);
   State.insert ~st ~ty:[ text; text; text; text; int; int ]

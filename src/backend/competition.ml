@@ -48,6 +48,10 @@ let rec routes router =
           Spec.json,
           Spec.make_media_type_object () ~schema:(Types.(ref PhaseIdList.ref));
         ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid Id supplied";
+      "404", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Competition not found";
     ]
   |> Router.put "/api/comp" create_comp
     ~tags:["competition"]

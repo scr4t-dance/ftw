@@ -14,9 +14,6 @@ FRONTEND_DEPS=\
 	src/frontend/package-lock.json \
 	src/frontend/public/* \
 	$(shell find src/frontend/src/ -type f)
-HOOKGEN_DEPS=\
-	$(shell find src/hookgen/ -type f)
-
 
 # Aliases
 all: build
@@ -39,7 +36,7 @@ hookgen: src/openapi.json
 $(FRONTEND_TARGET): hookgen $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
 
-backend: $(FRONTEND_TARGET)
+backend: hookgen_init $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
 
 
@@ -82,4 +79,4 @@ top:
 	dune utop
 
 .PHONY: all build top doc run debug frontend_dev tests promote clean
-	hookgen hookgen_init
+	hookgen

@@ -111,13 +111,13 @@ module Date = struct
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
           *)
-          (* ~examples:[`Int 1; `Int 31] *);
+        (* ~examples:[`Int 1; `Int 31] *);
         "month", obj @@ S.make_schema ()
           ~typ:int
-          (* ~examples:[`Int 1; `Int 12] *);
+        (* ~examples:[`Int 1; `Int 12] *);
         "year", obj @@ S.make_schema ()
           ~typ:int
-          (* ~examples:[`Int 2019; `Int 2024] *);
+        (* ~examples:[`Int 2019; `Int 2024] *);
       ]
 end
 
@@ -167,6 +167,34 @@ module Division = struct
             `String "Advanced";
           ]
       )
+end
+
+(* Dancer Division *)
+module Divisions = struct
+  type t = Ftw.Divisions.t =
+    | None
+    | Novice
+    | Novice_Intermediate
+    | Intermediate
+    | Intermediate_Advanced
+    | Advanced
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Divisions"
+      ~typ:array
+      ~items:(
+        obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[
+            `String "None";
+            `String "Novice";
+            `String "Novice_Intermediate";
+            `String "Intermediate";
+            `String "Intermediate_Advanced";
+            `String "Advanced";
+          ])
 end
 
 (* Competition Category *)
@@ -298,7 +326,7 @@ module Event = struct
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
           *)
-          (* ~examples:[`String "P4T"] *);
+        (* ~examples:[`String "P4T"] *);
         "start_date", ref Date.ref;
         "end_date", ref Date.ref;
       ]
@@ -326,7 +354,7 @@ end
 (* Competition Id list *)
 module CompetitionIdList = struct
   type t = {
-    comps : CompetitionId.t list;
+    competitions : CompetitionId.t list;
   } [@@deriving yojson]
 
   let ref, schema =
@@ -334,7 +362,7 @@ module CompetitionIdList = struct
       ~name:"CompetitionIdList"
       ~typ:object_
       ~properties:[
-        "comps", obj @@ S.make_schema ()
+        "competitions", obj @@ S.make_schema ()
           ~typ:array
           ~items:(ref CompetitionId.ref);
       ]
@@ -364,7 +392,7 @@ module Competition = struct
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
           *)
-          (* ~examples:[`String "P4T"]*) ;
+        (* ~examples:[`String "P4T"]*) ;
         "kind", ref Kind.ref;
         "category", ref Category.ref;
         "n_leaders", obj @@ S.make_schema () ~typ:int;
@@ -696,4 +724,71 @@ module HeatIdList = struct
           ~typ:array
           ~items:(ref HeatId.ref);
       ]
+end
+
+
+
+(* Dancers *)
+(* ************************************************************************* *)
+
+(* Dancer Ids *)
+module DancerId = struct
+  type t = Ftw.Dancer.id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"DancerId"
+      ~typ:int
+      (*
+      TODO raise issue at openapi_router
+      https://swagger.io/docs/specification/v3_0/adding-examples/
+      Note that schemas and properties support single example but not multiple examples.
+      *)
+      (* ~examples:[`Int 42] *)
+end
+
+(* Dancer Id list *)
+module DancerIdList = struct
+  type t = {
+    dancers : DancerId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"DancerIdList"
+      ~typ:object_
+      ~properties:[
+        "dancers", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref DancerId.ref);
+      ]
+end
+
+(* Dancer specification *)
+module Dancer = struct
+  type t = {
+    birthday : Date.t option;
+    last_name : string;
+    first_name : string;
+    email : string option;
+    as_leader : Divisions.t;
+    as_follower : Divisions.t;
+  } [@@deriving yojson { strict = false }]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Dancer"
+      ~typ:(Obj Object)
+      ~properties:[
+        "birthday", ref Date.ref;
+        "last_name", obj @@ S.make_schema ()
+          ~typ:string;
+        "first_name", obj @@ S.make_schema ()
+          ~typ:string;
+        "email", obj @@ S.make_schema ()
+          ~typ:string;
+        "as_leader", ref Divisions.ref;
+        "as_follower", ref Divisions.ref;
+      ]
+      ~required:["last_name"; "first_name"; "as_leader"; "as_follower"]
 end
