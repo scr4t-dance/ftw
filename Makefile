@@ -13,7 +13,7 @@ FRONTEND_DEPS=\
 	src/frontend/package.json \
 	src/frontend/package-lock.json \
 	src/frontend/public/* \
-	$(shell cat src/frontend/frontend.lock)
+	$(shell find src/frontend/src/ -type f)
 
 # Aliases
 all: build
@@ -29,29 +29,14 @@ configure:
 	opam install . --deps-only --yes
 	cd src/frontend && npm install
 	cd src/hookgen && npm install
-# detect changes in hooks and frontend
-	find src/frontend/src/hookgen/ -type f > src/hookgen/hookgen.lock
-	find src/frontend/src/ -type f > src/frontend/frontend.lock
-# init static directory
-	mkdir -p src/frontend/build
-	touch src/frontend/build/index.html
 
-hookgen_init src/openapi.json:
-	dune build $(FLAGS) @install
-	dune exec -- ftw openapi src/openapi.json.tmp
-	diff src/openapi.json.tmp src/openapi.json || mv src/openapi.json.tmp src/openapi.json
-
-hookgen src/hookgen/hookgen.lock: src/openapi.json
-	@echo "Running hooks generation"
-	cd src/hookgen && node pretty_print_openapi_json.js
+hookgen: src/openapi.json
 	cd src/hookgen && ./node_modules/.bin/orval --config ./orval.config.js
-	find src/frontend/src/hookgen/ -type f > src/hookgen/hookgen.lock
 
-$(FRONTEND_TARGET): src/hookgen/hookgen.lock $(FRONTEND_DEPS)
+$(FRONTEND_TARGET): hookgen $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
-	find src/frontend/src/ -type f > src/frontend/frontend.lock
 
-backend: hookgen_init $(FRONTEND_TARGET)
+backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
 
 
@@ -75,8 +60,6 @@ clean:
 	rm -rf src/frontend/node_modules
 	rm -rf src/hookgen/node_modules
 	rm -rf src/frontend/src/hookgen
-	rm -rf src/hookgen/pretty_print_openapi.json
-	rm -rf src/openapi.json.tmp
 
 
 ################
