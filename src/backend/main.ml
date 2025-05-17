@@ -10,7 +10,6 @@ let loader _root path _request =
   Logs.debug ~src (fun m -> m "Loading static request for '%s'" path);
   match Static.read path with
   | None ->
-    Printf.printf "\nNot found %s default to index.html\n" path; flush_all();
     (* if the path is not found in the frontend, automatically redirect to `index.html` *)
     begin match Static.read "index.html" with
       | None -> assert false (* let's assume the frontend will always have an `index.html` *)
