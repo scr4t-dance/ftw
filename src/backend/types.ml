@@ -786,10 +786,10 @@ end
 (* Dancer specification *)
 module Dancer = struct
   type t = {
-    birthday : Date.t option;
+    birthday : Date.t option [@default None];
     last_name : string;
     first_name : string;
-    email : string option;
+    email : string option [@default None];
     as_leader : Divisions.t;
     as_follower : Divisions.t;
   } [@@deriving yojson { strict = false }]
