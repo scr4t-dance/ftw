@@ -13,15 +13,19 @@ FRONTEND_DEPS=\
 	src/frontend/package.json \
 	src/frontend/package-lock.json \
 	src/frontend/public/* \
-	src/frontend/src/* \
-	src/frontend/src/components/* \
-	src/frontend/src/hooks/*
+	$(shell cat src/frontend/frontend.lock)
 
 HOOKGEN_TARGETS := $(shell cat src/hookgen/hookgen.lock)
 
+# Aliases
 all: build
 
 build: backend
+
+
+####################
+# Main Build rules #
+####################
 
 configure:
 	opam install . --deps-only --yes
@@ -65,20 +69,20 @@ $(FRONTEND_TARGET): ${HOOKGEN_TARGETS} $(FRONTEND_DEPS)
 backend: hookgen_init $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
 
-debug: backend
-	dune exec -- ftw --db=tests/test.db -b -v -v
 
-run: backend
-	dune exec -- ftw --db=tests/test.db
-
-frontend_dev: backend
-	./bin/deploy_frontend_dev.sh
+######################
+# Tests, Docs & misc #
+######################
 
 tests: backend
-	dune runtest
+	@dune runtest \
+		|| echo -e "\n\e[01;31m!!! TESTS FAILED !!!\e[0m\n-> run 'make promote' to update the tests result files"
 
 promote:
 	dune promote
+
+doc:
+	dune build $(FLAGS) @doc
 
 clean:
 	dune clean
@@ -88,11 +92,22 @@ clean:
 	rm -rf src/frontend/src/hookgen
 	rm -rf src/hookgen/raw_openapi.json
 
+
+################
+# Helper Rules #
+################
+
+debug: backend
+	dune exec -- ftw --db=tests/test.db -b -v -v
+
+run: backend
+	dune exec -- ftw --db=tests/test.db
+
+frontend_dev: backend
+	./bin/deploy_frontend_dev.sh
+
 top:
 	dune utop
-
-doc:
-	dune build $(FLAGS) @doc
 
 .PHONY: all build top doc run debug frontend_dev tests promote clean
 	hookgen hookgen_init hookgen_validate
