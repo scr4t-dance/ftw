@@ -2,7 +2,7 @@
 ; Rules for generating the openapi docs
 (rule
   (target new_openapi.json)
-  (action (run ftw openapi %{target})))
+  (action (run ftw openapi -q %{target})))
 
 (rule
   (alias runtest)

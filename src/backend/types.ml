@@ -111,13 +111,13 @@ module Date = struct
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
           *)
-        (* ~examples:[`Int 1; `Int 31] *);
+          (* ~examples:[`Int 1; `Int 31] *);
         "month", obj @@ S.make_schema ()
           ~typ:int
-        (* ~examples:[`Int 1; `Int 12] *);
+          (* ~examples:[`Int 1; `Int 12] *);
         "year", obj @@ S.make_schema ()
           ~typ:int
-        (* ~examples:[`Int 2019; `Int 2024] *);
+          (* ~examples:[`Int 2019; `Int 2024] *);
       ]
 end
 
@@ -330,7 +330,7 @@ module Event = struct
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
           *)
-        (* ~examples:[`String "P4T"] *);
+          (* ~examples:[`String "P4T"] *);
         "start_date", ref Date.ref;
         "end_date", ref Date.ref;
       ]
@@ -396,7 +396,7 @@ module Competition = struct
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
           *)
-        (* ~examples:[`String "P4T"]*) ;
+          (* ~examples:[`String "P4T"]*) ;
         "kind", ref Kind.ref;
         "category", ref Category.ref;
         "n_leaders", obj @@ S.make_schema () ~typ:int;
