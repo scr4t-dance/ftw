@@ -1,4 +1,4 @@
-import { ArtefactDescription, Phase } from 'hookgen/model';
+import type { ArtefactDescription, Phase } from '@hookgen/model';
 import React, { useEffect, useState } from 'react';
 
 export function ArtefactFormElement({ attribute_name, artefact_value, callback }: { attribute_name: string; artefact_value: ArtefactDescription; callback: React.Dispatch<React.SetStateAction<Phase>>; }) {

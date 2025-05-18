@@ -127,22 +127,3 @@ and create_comp =
            ~n_leaders:comp.n_leaders ~n_follows:comp.n_follows
        in
        Ok (Ftw.Competition.id competition))
-and list_dancers =
-  Api.get
-    ~to_yojson:Types.BibList.to_yojson
-    (fun req st ->
-       let+ id = Utils.int_param req "id" in
-       let bib_map_result = Ftw.Bib.list_from_comp ~st ~competition:id in
-       let bib_converter (bib, t) : Types.Bib.t =
-         {competition=id; bib=bib;target= Types.Target.of_ftw t}
-       in
-       let aux bib_map : Types.Bib.t list =
-         Ftw.Id.Map.to_seq bib_map
-         |> List.of_seq
-         |> List.map bib_converter
-       in
-       let bib_list_result = Result.map aux bib_map_result in
-       let bib_list_with_error = Result.map_error
-           Error.generic bib_list_result
-       in Result.map (fun bibs : Types.BibList.t -> { bibs; }) bib_list_with_error
-    )

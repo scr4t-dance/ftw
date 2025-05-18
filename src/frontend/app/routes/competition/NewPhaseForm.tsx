@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 // import { useNavigate } from "react-router";
 
-import { useGetApiEventIdComps, useGetApiEvents } from '../hookgen/event/event';
-import { usePutApiPhase } from '../hookgen/phase/phase';
+import { useGetApiEventIdComps, useGetApiEvents } from '@hookgen/event/event';
+import { usePutApiPhase } from '@hookgen/phase/phase';
 
-import {
-    Phase, EventId, RoundItem, ArtefactDescription,
+import type {
+    Phase, EventId, ArtefactDescription,
     CompetitionId
-} from 'hookgen/model';
+} from '@hookgen/model';
+import {RoundItem} from "@hookgen/model";
 import { ArtefactFormElement } from './ArtefactFormElement';
 import { AxiosError } from 'axios';
 
@@ -30,10 +31,10 @@ function NewPhaseForm({ default_competition = -1 }: { default_competition?: Comp
     const { mutate: updatePhase, isError, error, isSuccess } = usePutApiPhase();
 
     const { data: dataEventList } = useGetApiEvents();
-    const event_list = dataEventList?.data.events
+    const event_list = dataEventList?.events;
 
     const { data: dataCompetitionList } = useGetApiEventIdComps(selectedEvent);
-    const competition_list = dataCompetitionList?.data.competitions;
+    const competition_list = dataCompetitionList?.competitions;
 
     // Handle changes to input fields
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -174,7 +175,6 @@ function NewPhaseForm({ default_competition = -1 }: { default_competition?: Comp
                     <div className="error_message">
                         <span>&#x26A0; </span>
                         <p>{error.message}</p>
-                        <p>{error.response?.data.message}</p>
                     </div>
                 }
 

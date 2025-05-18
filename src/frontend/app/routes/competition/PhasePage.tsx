@@ -1,15 +1,12 @@
-import "../styles/ContentStyle.css";
+import "~/styles/ContentStyle.css";
 
 import React from 'react';
-import { useGetApiCompId } from '../hookgen/competition/competition';
+import { useGetApiCompId } from '@hookgen/competition/competition';
 
-import PageTitle from "./PageTitle";
-import Header from "./Header";
-import Footer from "./Footer";
-import { ArtefactDescription, CompetitionId, EventId, PhaseId } from "hookgen/model";
+import type { ArtefactDescription, CompetitionId, EventId, PhaseId } from "@hookgen/model";
 import { Link, useParams } from "react-router";
-import { useGetApiEventId } from "hookgen/event/event";
-import { useGetApiPhaseId } from "hookgen/phase/phase";
+import { useGetApiEventId } from "@hookgen/event/event";
+import { useGetApiPhaseId } from "@hookgen/phase/phase";
 import ArtefactDescriptionComponent from "./ArtefactDescription";
 
 function PhasePage() {
@@ -19,22 +16,18 @@ function PhasePage() {
     const { data, isLoading } = useGetApiPhaseId(id_phase_number);
 
 
-    const phase = data?.data;
+    const phase = data;
 
     const { data: dataComp } = useGetApiCompId(phase?.competition as CompetitionId)
-    const competition = dataComp?.data;
+    const competition = dataComp;
     const { data: dataEvent } = useGetApiEventId(competition?.event as EventId);
-    const event = dataEvent?.data;
+    const event = dataEvent;
 
     if (isLoading) return <div>Chargement...</div>;
     if (!data) return null;
 
     return (
         <>
-            <PageTitle title={"Phase " + phase?.round + " " + competition?.name} />
-            <Header />
-            <div className="content-container">
-
                 <h1>Phase {phase?.round} {competition?.name}</h1>
 
 
@@ -60,8 +53,6 @@ function PhasePage() {
                 </div>
                 <p>Catégorie : {competition?.category}</p>
 
-            </div>
-            <Footer />
         </>
     );
 }

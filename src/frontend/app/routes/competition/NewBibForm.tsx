@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 // import { useNavigate } from "react-router";
-import { useForm, type SubmitHandler, type UseFormRegister, type UseFormReturn } from 'react-hook-form';
+import { useForm, type SubmitHandler, type UseFormReturn } from 'react-hook-form';
 
 import { useGetApiEventIdComps } from '@hookgen/event/event'
 import { useGetApiCompId } from '@hookgen/competition/competition';

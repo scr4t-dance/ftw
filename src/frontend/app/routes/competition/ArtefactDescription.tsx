@@ -1,9 +1,8 @@
-import "../styles/ContentStyle.css";
+import "~/styles/ContentStyle.css";
 
 import React from 'react';
 
-import { ArtefactDescription } from "hookgen/model";
-import { Link } from "react-router";
+import type { ArtefactDescription } from "@hookgen/model";
 
 function ArtefactDescriptionComponent({ artefact_description }: { artefact_description: ArtefactDescription }) {
 

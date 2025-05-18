@@ -19,5 +19,10 @@ export default [
     route(":id_dancer", "routes/dancer/DancerPage.tsx"),
     route("new", "routes/dancer/NewDancerForm.tsx"),
   ]),
+  route("phases", "routes/competition/PhaseHome.tsx", [
+    index("routes/competition/PhaseList.tsx"),
+    route(":id_phase", "routes/competition/PhasePage.tsx"),
+    route("new", "routes/competition/NewPhaseForm.tsx"),
+  ]),
 
 ] satisfies RouteConfig;

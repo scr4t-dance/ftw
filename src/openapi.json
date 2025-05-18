@@ -955,27 +955,6 @@
           "followers_count"
         ]
       },
-      "DancerId": { "examples": [ 42 ], "type": "integer" },
-      "DancerIdList": {
-        "type": "object",
-        "properties": {
-          "dancers": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/DancerId" }
-          }
-        }
-      },
-      "Dancer": {
-        "type": "object",
-        "properties": {
-          "birthday": { "$ref": "#/components/schemas/Date" },
-          "last_name": { "examples": [ "Bury" ], "type": "string" },
-          "first_name": { "examples": [ "Guillaume" ], "type": "string" },
-          "email": { "examples": [ "email@email.email" ], "type": "string" },
-          "as_leader": { "$ref": "#/components/schemas/Divisions" },
-          "as_follower": { "$ref": "#/components/schemas/Divisions" }
-        }
-      },
       "DancerId": { "type": "integer" },
       "DancerIdList": {
         "type": "object",
@@ -991,9 +970,9 @@
         "type": "object",
         "properties": {
           "birthday": { "$ref": "#/components/schemas/Date" },
-          "last_name": { "type": "string" },
-          "first_name": { "type": "string" },
-          "email": { "type": "string" },
+          "last_name": { "examples": [ "Bury" ], "type": "string" },
+          "first_name": { "examples": [ "Guillaume" ], "type": "string" },
+          "email": { "examples": [ "email@email.email" ], "type": "string" },
           "as_leader": { "$ref": "#/components/schemas/Divisions" },
           "as_follower": { "$ref": "#/components/schemas/Divisions" }
         },

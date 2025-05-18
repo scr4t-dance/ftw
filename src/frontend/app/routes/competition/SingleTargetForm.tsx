@@ -1,6 +1,6 @@
 // components/SingleTargetForm.tsx
 import { Field } from "@routes/index/field";
-import { type UseFormRegister, type FieldErrors, type UseFormReturn } from "react-hook-form";
+import { type UseFormReturn } from "react-hook-form";
 import { type Bib, RoleItem, type SingleTarget } from "@hookgen/model";
 
 export interface SingleBib extends Omit<Bib, "target"> {

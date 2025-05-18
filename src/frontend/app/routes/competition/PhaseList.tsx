@@ -1,11 +1,11 @@
-import "../styles/ContentStyle.css";
+import "~/styles/ContentStyle.css";
 
 import React from 'react';
-import { useGetApiCompId } from '../hookgen/competition/competition';
+import { useGetApiCompId } from '@hookgen/competition/competition';
 
-import { ArtefactDescription, CompetitionId } from "hookgen/model";
+import type { ArtefactDescription, CompetitionId } from "@hookgen/model";
 import { Link } from "react-router";
-import { useGetApiCompIdPhases, useGetApiPhaseId } from "hookgen/phase/phase";
+import { useGetApiCompIdPhases, useGetApiPhaseId } from "@hookgen/phase/phase";
 import ArtefactDescriptionComponent from "./ArtefactDescription";
 
 const phaseListlink = "phases/"
@@ -14,7 +14,7 @@ function PhaseList({ id_competition }: { id_competition: CompetitionId }) {
 
     const { data, isLoading, isError, error } = useGetApiCompIdPhases(id_competition);
 
-    console.log(data?.data.phases)
+    console.log(data?.phases)
 
     if (isLoading) return <div>Chargement des phases...</div>;
     if (isError) return <div>Erreur: {(error as any).message}</div>;
@@ -32,7 +32,7 @@ function PhaseList({ id_competition }: { id_competition: CompetitionId }) {
                         <th>Artefact Head Juge</th>
                     </tr>
 
-                    {data?.data.phases && data?.data.phases.map((phaseId, index) => (
+                    {data?.phases && data?.phases.map((phaseId, index) => (
                         <PhaseDetails key={phaseId} id={phaseId} index={index} />
                     ))}
                 </tbody>
@@ -45,7 +45,7 @@ function PhaseList({ id_competition }: { id_competition: CompetitionId }) {
 function PhaseDetails({ id, index }: { id: CompetitionId, index: number }) {
     const { data, isLoading } = useGetApiPhaseId(id);
 
-    const phase = data?.data;
+    const phase = data;
     const { data: dataComp } = useGetApiCompId(phase?.competition as CompetitionId);
 
     if (isLoading) return (
@@ -57,7 +57,7 @@ function PhaseDetails({ id, index }: { id: CompetitionId, index: number }) {
     );
     if (!data) return null;
 
-    const competition = dataComp?.data;
+    const competition = dataComp;
 
     return (
         <tr key={id}

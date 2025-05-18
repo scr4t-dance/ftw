@@ -1,11 +1,10 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router';
 
 import { useGetApiEvents, getGetApiEventIdCompsQueryKey } from '@hookgen/event/event';
 import { usePutApiComp } from '@hookgen/competition/competition';
 
-import { KindItem, CategoryItem, type Competition, type EventId, type EventIdList, type CompetitionIdList } from '@hookgen/model';
+import { KindItem, CategoryItem, type Competition, type EventId, type EventIdList } from '@hookgen/model';
 import { useQueryClient } from '@tanstack/react-query';
 
 function NewCompetitionForm({ id_event }: { id_event: EventId }) {

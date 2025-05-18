@@ -14,7 +14,7 @@ import {
 } from "@hookgen/model";
 
 import { useGetApiCompIdBibs, useDeleteApiCompIdBib, getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib } from "@hookgen/bib/bib";
-import { useForm, type SubmitHandler, type UseFormRegister, type UseFormReturn } from "react-hook-form";
+import { useForm, type SubmitHandler, type UseFormReturn } from "react-hook-form";
 import { Field } from "../index/field";
 import { RoleField, SingleDancerField, type SingleBib } from "./SingleTargetForm";
 import { CoupleTargetForm, type CoupleBib } from "./CoupleTargetForm";

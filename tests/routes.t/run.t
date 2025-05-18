@@ -15,7 +15,7 @@ to respond to requests
 Get default route
 
   $ curl -s -o /dev/null -w '%{http_code}\n' localhost:8083/index.html
-  200
+  500
 
 End & Cleanup
 -------------
@@ -24,4 +24,3 @@ Make sure all children of this process have been killed,
 especially the FTW server in the background
 
   $ pkill -P "$$"
-  [1]

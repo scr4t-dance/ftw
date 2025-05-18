@@ -61,21 +61,6 @@ let server (options : Options.server) =
       Dream.add_header response "Access-Control-Allow-Headers" "Content-Type, Authorization";
       Lwt.return response
   in
-  (* Define CORS middleware manually *)
-  let cors_middleware handler request =
-    match Dream.method_ request with
-    | `OPTIONS ->
-      Dream.respond ~headers:[
-        ("Access-Control-Allow-Origin", "*");
-        ("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        ("Access-Control-Allow-Headers", "Content-Type, Authorization");
-      ] ~status:`No_Content ""
-      | _ ->
-        let%lwt response = handler request in
-        Dream.add_header response "Access-Control-Allow-Origin" "*";
-        Dream.add_header response "Access-Control-Allow-Headers" "Content-Type, Authorization";
-        Lwt.return response
-  in
   (* Setup the dream server and run it *)
   Dream.run
     ~interface:"0.0.0.0"
