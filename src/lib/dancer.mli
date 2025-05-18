@@ -17,13 +17,15 @@ type t
 val id : t -> id
 (** Dancer id. *)
 
-val email : t -> string option
 val birthday : t -> Date.t option
 (** Email & Birthday (optional). *)
 
 val last_name : t -> string
 val first_name : t -> string
 (** Names of the dancer. *)
+
+val email : t -> string option
+(** email of the dancer. *)
 
 val as_leader : t -> Divisions.t
 val as_follower : t -> Divisions.t
