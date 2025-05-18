@@ -9,7 +9,7 @@ import type {
     CompetitionId
 } from '@hookgen/model';
 import {RoundItem} from "@hookgen/model";
-import { ArtefactFormElement } from './ArtefactFormElement';
+import { ArtefactFormElement } from '@routes/competition/ArtefactFormElement';
 import { AxiosError } from 'axios';
 
 function NewPhaseForm({ default_competition = -1 }: { default_competition?: CompetitionId }) {

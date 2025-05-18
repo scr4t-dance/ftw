@@ -9,7 +9,7 @@ function EventHome() {
 
     return (
         <>
-            <PageTitle title="Compétition" />
+            <PageTitle title="Evénements" />
             <Header />
             <div className="content-container">
 

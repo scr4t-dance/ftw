@@ -5,7 +5,7 @@ import React from 'react';
 import { getApiEventId } from '@hookgen/event/event';
 
 import { type EventId, type Date } from "@hookgen/model";
-import CompetitionList from "@routes/competition/CompetitionList";
+import CompetitionList from "~/routes/competition/CompetitionList";
 import NewCompetitionForm from "../competition/NewCompetitionForm";
 
 export async function loader({ params }: Route.LoaderArgs) {

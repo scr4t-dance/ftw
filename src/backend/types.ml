@@ -424,7 +424,7 @@ module Competition = struct
         "n_leaders", obj @@ S.make_schema () ~typ:int;
         "n_follows", obj @@ S.make_schema () ~typ:int;
       ]
-      ~required:["event"; "name"; "kind"; "category"; "leaders_count"; "followers_count"]
+      ~required:["event"; "name"; "kind"; "category"; "n_leaders"; "n_follows"]
 end
 
 (* Artefact *)
@@ -445,6 +445,7 @@ module YanCriterionWeights = struct
         "no", obj @@ S.make_schema ()
           ~typ:int;
       ]
+      ~required:["yes"; "alt"; "no"]
 end
 
 module RankingYanWeighted = struct
@@ -504,6 +505,7 @@ module RankingAlgorithm = struct
               ~typ:(obj S.Null)
           ]
       ]
+      ~required:["algorithm"; "algorithm_data"]
 
 
 
@@ -598,6 +600,7 @@ module ArtefactDescription = struct
               ~typ:(obj S.Null)
           ]
       ]
+      ~required:["artefact"; "artefact_data"]
 
 
   let of_yojson json =
@@ -662,6 +665,7 @@ module PhaseIdList = struct
           ~typ:array
           ~items:(ref PhaseId.ref);
       ]
+      ~required:["phases"]
 end
 
 (* Phase specification *)
@@ -685,6 +689,8 @@ module Phase = struct
         "head_judge_artefact_descr", ref ArtefactDescription.ref;
         "ranking_algorithm", ref RankingAlgorithm.ref;
       ]
+      ~required:["competition"; "round"; "judge_artefact_descr"; "head_judge_artefact_descr";
+                 "ranking_algorithm"]
 
 end
 
@@ -718,7 +724,7 @@ module HeatIdList = struct
           ~typ:array
           ~items:(ref HeatId.ref);
       ]
-      ~required:["event"; "name"; "kind"; "category"; "leaders_count"; "followers_count"]
+      ~required:["heats"]
 end
 
 

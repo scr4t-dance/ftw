@@ -7,7 +7,7 @@ import type { ArtefactDescription, CompetitionId, EventId, PhaseId } from "@hook
 import { Link, useParams } from "react-router";
 import { useGetApiEventId } from "@hookgen/event/event";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
-import ArtefactDescriptionComponent from "./ArtefactDescription";
+import ArtefactDescriptionComponent from "../competition/ArtefactDescription";
 
 function PhasePage() {
 

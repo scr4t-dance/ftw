@@ -6,7 +6,7 @@ import { useGetApiCompId } from '@hookgen/competition/competition';
 import type { ArtefactDescription, CompetitionId } from "@hookgen/model";
 import { Link } from "react-router";
 import { useGetApiCompIdPhases, useGetApiPhaseId } from "@hookgen/phase/phase";
-import ArtefactDescriptionComponent from "./ArtefactDescription";
+import ArtefactDescriptionComponent from "../competition/ArtefactDescription";
 
 const phaseListlink = "phases/"
 
