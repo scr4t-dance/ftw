@@ -7,6 +7,9 @@ import NewEventForm from './components/NewEventForm';
 import About from './components/About';
 import React from 'react';
 import EventPage from './components/EventPage';
+import NewCompetitionFormPage from './components/NewCompetitionFormPage';
+import CompetitionPage from './components/CompetitionPage';
+import CompetitionList from './components/CompetitionList';
 
 const App = () => {
 	return (
@@ -14,6 +17,11 @@ const App = () => {
 			<Routes>
 				<Route index element={<HomePage />} />
 				<Route path='index.html' element={<HomePage />} />
+				<Route path='competitions'>
+					<Route index element={<CompetitionList />} />
+					<Route path='new' element={<NewCompetitionFormPage />} />
+					<Route path=':id_competition' element={<CompetitionPage />} />
+				</Route>
 				<Route path='events'>
 					<Route index element={<EventList />} />
 					<Route path='new' element={<NewEventForm />} />

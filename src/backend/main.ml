@@ -130,4 +130,3 @@ let () =
   | Ok `Ok Options.Openapi options -> openapi options
   | Ok `Ok Options.Import options -> import options
   | Ok `Ok Options.Export options -> export options
-
