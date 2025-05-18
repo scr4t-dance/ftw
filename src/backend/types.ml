@@ -92,7 +92,7 @@ end
 
 (* Dates, identifying a day. *)
 module Date = struct
-  type t = {
+  type t = Ftw.Date.t = {
     day : int;
     month : int;
     year : int;
@@ -169,6 +169,35 @@ module Division = struct
       )
 end
 
+(* Dancer Divisions *)
+module Divisions = struct
+  type t = Ftw.Divisions.t =
+    | None
+    | Novice
+    | Novice_Intermediate
+    | Intermediate
+    | Intermediate_Advanced
+    | Advanced
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Divisions"
+      ~typ:array
+      ~items:(
+        obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[
+            `String "None";
+            `String "Novice";
+            `String "Novice_Intermediate";
+            `String "Intermediate";
+            `String "Intermediate_Advanced";
+            `String "Advanced";
+          ]
+      )
+end
+
 (* Competition Category *)
 module Category = struct
   type t =
@@ -229,15 +258,18 @@ module Round = struct
   let ref, schema =
     make_schema ()
       ~name:"Round"
-      ~typ:string
-      ~enum:[
-        `String "Prelims";
-        `String "Octofinals";
-        `String "Quarterfinals";
-        `String "Semifinals";
-        `String "Finals";
-
-      ]
+      ~typ:array
+      ~items:(
+        obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[
+            `String "Prelims";
+            `String "Octofinals";
+            `String "Quarterfinals";
+            `String "Semifinals";
+            `String "Finals";
+          ]
+      )
 end
 
 
@@ -454,8 +486,8 @@ module RankingAlgorithm = struct
 
   let of_yojson json =
     Logs.debug ~src (fun k->
-      k "@[<hv 2> Parsing '%s'" (Yojson.Safe.pretty_to_string json)
-    );
+        k "@[<hv 2> Parsing '%s'" (Yojson.Safe.pretty_to_string json)
+      );
     let open Yojson.Safe.Util in
     match json with
     | `Assoc _ ->
@@ -547,8 +579,8 @@ module ArtefactDescription = struct
 
   let of_yojson json =
     Logs.debug ~src (fun k->
-      k "@[<hv 2> Parsing '%s'" (Yojson.Safe.pretty_to_string json)
-    );
+        k "@[<hv 2> Parsing '%s'" (Yojson.Safe.pretty_to_string json)
+      );
     let open Yojson.Safe.Util in
     let artefact = json |> member "artefact" |> to_string in
     match artefact with
@@ -633,40 +665,6 @@ module Phase = struct
 
 end
 
-
-(* Dancers *)
-(* ************************************************************************* *)
-
-(* Dancer Ids *)
-module DancerId = struct
-  type t = Ftw.Dancer.id [@@deriving yojson]
-
-  let ref, schema =
-    make_schema ()
-      ~name:"DancerId"
-      ~typ:int
-      ~examples:[`Int 42]
-end
-
-(* Dancer Id list *)
-module DancerIdList = struct
-  type t = {
-    phases : DancerId.t list;
-  } [@@deriving yojson]
-
-  let ref, schema =
-    make_schema ()
-      ~name:"DancerIdList"
-      ~typ:object_
-      ~properties:[
-        "dancers", obj @@ S.make_schema ()
-          ~typ:array
-          ~items:(ref DancerId.ref);
-      ]
-end
-
-
-
 (* Heats *)
 (* ************************************************************************* *)
 
@@ -695,5 +693,74 @@ module HeatIdList = struct
         "heats", obj @@ S.make_schema ()
           ~typ:array
           ~items:(ref HeatId.ref);
+      ]
+end
+
+(* Dancers *)
+(* ************************************************************************* *)
+
+(* Dancer Ids *)
+module DancerId = struct
+  type t = Ftw.Dancer.id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"DancerId"
+      ~typ:int
+      ~examples:[`Int 42]
+end
+
+(* Dancer Id list *)
+module DancerIdList = struct
+  type t = {
+    dancers : DancerId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"DancerIdList"
+      ~typ:object_
+      ~properties:[
+        "dancers", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref DancerId.ref);
+      ]
+end
+
+
+(* Dancer specification *)
+module Dancer = struct
+  type t = {
+    birthday : Date.t option;
+    last_name : string;
+    first_name : string;
+    email : string;
+    as_leader : Divisions.t;
+    as_follower : Divisions.t;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Dancer"
+      ~typ:(Obj Object)
+      ~properties:[
+        "birthday", ref Date.ref;
+        "last_name", obj @@ S.make_schema ()
+          ~typ:string
+          ~examples:[
+            `String "Bury";
+          ];
+        "first_name", obj @@ S.make_schema ()
+          ~typ:string
+          ~examples:[
+            `String "Guillaume";
+          ];
+        "email", obj @@ S.make_schema ()
+          ~typ:string
+          ~examples:[
+            `String "email@email.email";
+          ];
+        "as_leader", ref Divisions.ref;
+        "as_follower", ref Divisions.ref;
       ]
 end

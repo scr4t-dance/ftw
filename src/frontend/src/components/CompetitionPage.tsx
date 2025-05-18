@@ -9,6 +9,8 @@ import Footer from "./Footer";
 import { CompetitionId } from "hookgen/model";
 import { Link, useParams } from "react-router";
 import { useGetApiEventId } from "hookgen/event/event";
+import NewPhaseForm from "./NewPhaseForm";
+import PhaseList from "./PhaseList";
 
 function CompetitionPage() {
 
@@ -39,6 +41,8 @@ function CompetitionPage() {
                 </Link></p>
                 <p>Type : {competition?.kind}</p>
                 <p>Catégorie : {competition?.category}</p>
+                <PhaseList id_competition={id_competition_number} />
+                <NewPhaseForm default_competition={id_competition_number} />
             </div>
             <Footer />
         </>

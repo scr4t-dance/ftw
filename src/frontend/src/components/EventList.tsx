@@ -128,7 +128,7 @@ function EventList() {
 function EventDetails({ id, index }: { id: EventId, index: number }) {
   const { data, isLoading } = useGetApiEventId(id);
 
-  if (isLoading) return <div>Chargement...</div>;
+  if (isLoading) return <tr><td>Chargement...</td></tr>;
   if (!data) return null;
 
   const event = data.data;
