@@ -129,7 +129,7 @@ let () =
         )
       |})
 
-let get ~st ~(judge:Judge.id) ~(target:Dancer.id) ~descr =
+let get ~st ~(judge:Judge.id) ~(target: Heat.target_id) ~descr =
   let open Sqlite3_utils.Ty in
   State.query_one_where ~st ~p:[int;int] ~conv:(conv ~descr)
     {| SELECT artefact FROM artefacts WHERE target_id = ? AND judge = ? |}

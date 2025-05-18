@@ -46,14 +46,14 @@ type t =
 val get :
   st:State.t ->
   judge:Judge.id ->
-  target:Id.t ->
+  target:Heat.target_id ->
   descr:Descr.t ->
   t
 
 val set :
   st:State.t ->
   judge:Judge.id ->
-  target:Id.t ->
+  target:Heat.target_id ->
   t -> unit
 
 
