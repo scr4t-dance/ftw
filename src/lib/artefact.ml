@@ -129,7 +129,10 @@ let () =
         )
       |})
 
-let get ~st ~(judge:Judge.id) ~(target: Heat.target_id) ~descr =
+(* Note: the target here is a Heat.target_id;
+    however we cannot put these annotations explicitly because
+    of circular dependencies *)
+let get ~st ~judge ~target ~descr =
   let open Sqlite3_utils.Ty in
   State.query_one_where ~st ~p:[int;int] ~conv:(conv ~descr)
     {| SELECT artefact FROM artefacts WHERE target_id = ? AND judge = ? |}
