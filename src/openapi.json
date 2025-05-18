@@ -227,6 +227,22 @@
                 "schema": { "$ref": "#/components/schemas/PhaseIdList" }
               }
             }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
           }
         }
       }
@@ -484,7 +500,7 @@
       "CompetitionIdList": {
         "type": "object",
         "properties": {
-          "comps": {
+          "competitions": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/CompetitionId" }
           }

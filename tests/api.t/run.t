@@ -53,7 +53,7 @@ Create some competitions
 Get the ids of competitions we created, and check their details
 
   $ curl -s http://localhost:8081/api/event/1/comps
-  {"comps":[1,2]}
+  {"competitions":[1,2]}
 
   $ curl -s http://localhost:8081/api/comp/1
   {"event":1,"name":"","kind":["Jack_and_Jill"],"category":["Novice"],"n_leaders":0,"n_follows":0}

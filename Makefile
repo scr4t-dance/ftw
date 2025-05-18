@@ -14,9 +14,6 @@ FRONTEND_DEPS=\
 	src/frontend/package-lock.json \
 	src/frontend/public/* \
 	$(shell find src/frontend/src/ -type f)
-HOOKGEN_DEPS=\
-	$(shell find src/hookgen/ -type f)
-
 
 # Aliases
 all: build
@@ -82,4 +79,4 @@ top:
 	dune utop
 
 .PHONY: all build top doc run debug frontend_dev tests promote clean
-	hookgen hookgen_init
+	hookgen
