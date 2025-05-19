@@ -10,38 +10,6 @@ import ArtefactDescriptionComponent from "../competition/ArtefactDescription";
 
 const phaseListlink = "phases/"
 
-function PhaseList({ id_competition }: { id_competition: CompetitionId }) {
-
-    const { data, isLoading, isError, error } = useGetApiCompIdPhases(id_competition);
-
-    console.log(data?.phases)
-
-    if (isLoading) return <div>Chargement des phases...</div>;
-    if (isError) return <div>Erreur: {(error as any).message}</div>;
-
-    return (
-        <>
-            <h1>Liste Phases</h1>
-            <table>
-                <tbody>
-                    <tr>
-                        <th>Phase</th>
-                        <th>Compétition</th>
-                        <th>Round</th>
-                        <th>Artefact Juges</th>
-                        <th>Artefact Head Juge</th>
-                    </tr>
-
-                    {data?.phases && data?.phases.map((phaseId, index) => (
-                        <PhaseDetails key={phaseId} id={phaseId} index={index} />
-                    ))}
-                </tbody>
-            </table>
-        </>
-    );
-}
-
-
 function PhaseDetails({ id, index }: { id: CompetitionId, index: number }) {
     const { data, isLoading } = useGetApiPhaseId(id);
 
@@ -91,4 +59,33 @@ function PhaseDetails({ id, index }: { id: CompetitionId, index: number }) {
     );
 }
 
-export default PhaseList;
+export function PhaseList({ id_competition }: { id_competition: CompetitionId }) {
+
+    const { data, isLoading, isError, error } = useGetApiCompIdPhases(id_competition);
+
+    console.log("PhaseList", id_competition, data?.phases);
+
+    if (isLoading) return <div>Chargement des phases...</div>;
+    if (isError) return <div>Erreur: {(error as any).message}</div>;
+
+    return (
+        <>
+            <h1>Liste Phases</h1>
+            <table>
+                <tbody>
+                    <tr>
+                        <th>Phase</th>
+                        <th>Compétition</th>
+                        <th>Round</th>
+                        <th>Artefact Juges</th>
+                        <th>Artefact Head Juge</th>
+                    </tr>
+
+                    {data?.phases && data?.phases.map((phaseId, index) => (
+                        <PhaseDetails key={phaseId} id={phaseId} index={index} />
+                    ))}
+                </tbody>
+            </table>
+        </>
+    );
+}

@@ -124,9 +124,9 @@ and get_phase =
        let ret : Types.Phase.t = {
          competition = Ftw.Phase.competition phase;
          round = Ftw.Phase.round phase;
-         judge_artefact_descr = Ftw.Phase.judge_artefact_descr phase;
-         head_judge_artefact_descr = Ftw.Phase.head_judge_artefact_descr phase;
-         ranking_algorithm = Ftw.Phase.ranking_algorithm phase;
+         judge_artefact_descr = Types.ArtefactDescription.of_ftw (Ftw.Phase.judge_artefact_descr phase);
+         head_judge_artefact_descr = Types.ArtefactDescription.of_ftw (Ftw.Phase.head_judge_artefact_descr phase);
+         ranking_algorithm = Types.RankingAlgorithm.of_ftw (Ftw.Phase.ranking_algorithm phase);
        } in
        Ok ret
     )
@@ -140,10 +140,13 @@ and create_phase =
     ~to_yojson:Types.PhaseId.to_yojson
     (fun _req st (phase : Types.Phase.t) ->
        let id =
+         let judge_artefact_descr = Types.ArtefactDescription.to_ftw phase.judge_artefact_descr in
+         let head_judge_artefact_descr = Types.ArtefactDescription.to_ftw phase.head_judge_artefact_descr in
+         let ranking_algorithm = Types.RankingAlgorithm.to_ftw phase.ranking_algorithm in
          Ftw.Phase.create ~st phase.competition phase.round
-           ~ranking_algorithm:phase.ranking_algorithm
-           ~judge_artefact_descr:phase.judge_artefact_descr
-           ~head_judge_artefact_descr:phase.head_judge_artefact_descr
+           ~ranking_algorithm:ranking_algorithm
+           ~judge_artefact_descr:judge_artefact_descr
+           ~head_judge_artefact_descr:head_judge_artefact_descr
        in
        Ok id)
 
@@ -154,9 +157,9 @@ and update_phase =
     (
       fun req st (phase : Types.Phase.t) ->
         let+ id_phase = Utils.int_param req "id" in
-        let judge_artefact_descr = phase.judge_artefact_descr in
-        let head_judge_artefact_descr = phase.head_judge_artefact_descr in
-        let ranking_algorithm = phase.ranking_algorithm in
+        let judge_artefact_descr = Types.ArtefactDescription.to_ftw phase.judge_artefact_descr in
+        let head_judge_artefact_descr = Types.ArtefactDescription.to_ftw phase.head_judge_artefact_descr in
+        let ranking_algorithm = Types.RankingAlgorithm.to_ftw phase.ranking_algorithm in
         let () = Ftw.Phase.update ~st id_phase
             ~ranking_algorithm ~judge_artefact_descr ~head_judge_artefact_descr in
         Ok ()

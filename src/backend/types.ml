@@ -448,8 +448,9 @@ module YanCriterionWeights = struct
       ~required:["yes"; "alt"; "no"]
 end
 
-module RankingYanWeighted = struct
+module RankingAlgorithmYanWeighted = struct
   type t = {
+    algorithm: string;
     weights: YanCriterionWeights.t list;
     head_weights: YanCriterionWeights.t list;
   }
@@ -458,181 +459,241 @@ module RankingYanWeighted = struct
   let ref, schema =
     make_schema ()
       ~name:"RankingYanWeighted"
-      ~typ:array
-      ~description: {| Ranking algorithm for Yan_weighted |}
-      ~items:(ref YanCriterionWeights.ref)
+      ~typ:(Obj Object)
+      ~properties:[
+        "algorithm", obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[`String "Yan_weighted"];
+        "weights", obj @@ S.make_schema ()
+          ~typ:array
+          ~description: {| Ranking algorithm for Yan_weighted |}
+          ~items:(ref YanCriterionWeights.ref);
+        "head_weights", obj @@ S.make_schema ()
+          ~typ:array
+          ~description: {| Ranking algorithm for Yan_weighted |}
+          ~items:(ref YanCriterionWeights.ref);
+      ]
+      ~required:["weights"; "head_weights"]
+
 
   let of_ftw criterion_weights =
     match criterion_weights with
     | Ftw.Ranking.Algorithm.Yan_weighted { weights; head_weights} ->
-      {weights=weights;head_weights=head_weights;}
+      {algorithm="Yan_weighted";weights=weights;head_weights=head_weights;}
     | _ -> assert false
 
-  let to_ftw {weights;head_weights;} =
+  let to_ftw {weights;head_weights;_} =
     Ftw.Ranking.Algorithm.Yan_weighted {weights=weights;head_weights=head_weights}
+end
+
+module RankingAlgorithmRanking = struct
+
+  let src = Logs.Src.create "backend.types.ArtfDescr"
+
+  type t = {
+    algorithm: string;
+    algorithm_name: string;
+  }
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"RankingAlgorithmRanking"
+      ~description: {| artefact is either ranking or yan. |}
+      ~typ:(Obj Object)
+      ~properties:[
+        "algorithm", obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[`String "ranking"];
+        "algorithm_name", obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[`String "SPSS"];
+      ]
+      ~required:["algorithm"; "algorithm_name"]
+
 end
 
 
 module RankingAlgorithm = struct
-
-  let src = Logs.Src.create "backend.types.RkgAlgo"
-
-  type t = Ftw.Ranking.Algorithm.t =
-    | RPSS
-    | Yan_weighted of {
-        weights : YanCriterionWeights.t list;
-        head_weights : YanCriterionWeights.t list;
-      }
+  type t =
+    | Yan_weighted of {algorithm: RankingAlgorithmYanWeighted.t}
+    | Ranking of {algorithm: RankingAlgorithmRanking.t}
   [@@deriving yojson]
 
   let ref, schema =
     make_schema ()
       ~name:"RankingAlgorithm"
-      ~description: {| algorithm is either ranking or yan.
-        For a ranking algorithm, ranking_algorithm property should be specified.
-        For a Yan_weighted algorithm, weights and head_weights properties should be set. |}
-      ~typ:(Obj Object)
-      ~properties:[
-        "algorithm", obj @@ S.make_schema ()
-          ~typ:string
-          ~examples:[`String "Yan_weighted"; `String "RPSS"];
-        "algorithm_data", obj @@ S.make_schema ()
-          ~one_of:[
-            obj @@ S.make_schema ()
-              ~typ:array
-              ~items:(ref YanCriterionWeights.ref);
-            obj @@ S.make_schema ()
-              ~typ:(obj S.Null)
-          ]
+      ~typ:object_
+      ~one_of:[
+        (ref RankingAlgorithmYanWeighted.ref);
+        (ref RankingAlgorithmRanking.ref);
       ]
-      ~required:["algorithm"; "algorithm_data"]
+      ~required:["algorithm"]
+
+  let of_ftw s =
+    match s with
+    | Ftw.Ranking.Algorithm.Yan_weighted {weights;head_weights} -> Yan_weighted {algorithm={algorithm="Yan_weighted";weights=weights;head_weights=head_weights}}
+    | Ftw.Ranking.Algorithm.RPSS -> Ranking {algorithm={algorithm="ranking";algorithm_name="RPSS"}}
+
+  let to_ftw s =
+    match s with
+    | Yan_weighted {algorithm={weights;head_weights; _}} -> Ftw.Ranking.Algorithm.Yan_weighted {weights;head_weights}
+    | Ranking {algorithm={algorithm_name="RPSS";_}} -> Ftw.Ranking.Algorithm.RPSS
+    | Ranking {algorithm=_} -> Ftw.Ranking.Algorithm.RPSS
 
 
+  let to_yojson target =
+    match target with
+    | Yan_weighted {algorithm=t} ->
+      let schema_fields =
+        begin match RankingAlgorithmYanWeighted.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("algorithm", `String "yan");] @ schema_fields)
+    | Ranking {algorithm=t} ->
+      let schema_fields =
+        begin match RankingAlgorithmRanking.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("algorithm", `String "ranking");] @ schema_fields)
 
   let of_yojson json =
-    Logs.debug ~src (fun k->
-        k "@[<hv 2> Parsing '%s'" (Yojson.Safe.pretty_to_string json)
-      );
-    let open Yojson.Safe.Util in
     match json with
-    | `Assoc _ ->
-      let algo = json |> member "algorithm" |> to_string in
-      let data = json |> member "algorithm_data" in
-      begin match algo with
-        | "Yan_weighted" ->
-          let weights = data |> member "weights" |> to_list in
-          let head_weights = data |> member "head_weights" |> to_list in
+    | `Assoc fields -> (
+        match List.assoc_opt "algorithm" fields with
+        | Some (`String "Yan_weighted") -> RankingAlgorithmYanWeighted.of_yojson json |> Result.map (fun s -> Yan_weighted {algorithm=s})
+        | Some (`String "ranking") -> RankingAlgorithmRanking.of_yojson json |> Result.map (fun s -> Ranking {algorithm=s})
+        | Some (`String unknown) -> Error ("Unrecognised algorithm: " ^ unknown)
+        | Some _  -> Error ("Unrecognised algorithm")
+        | None -> Error "Missing key: algorithm"
+      )
+    | _ -> Error "Expected JSON object for ArtefactDescription"
+end
 
-          let sequence (lst : ('a, 'e) result list) : ('a list, 'e) result =
-            List.fold_right
-              (fun res acc ->
-                 match res, acc with
-                 | Ok x, Ok xs -> Ok (x :: xs)
-                 | Error e, _ -> Error e
-                 | _, Error e -> Error e)
-              lst (Ok [])
-          in
-          let weights = sequence (List.map YanCriterionWeights.of_yojson weights) in
-          let head_weights = sequence (List.map YanCriterionWeights.of_yojson head_weights) in
 
-          begin match weights, head_weights with
-            | Ok w, Ok hw -> Ok (Yan_weighted { weights=w; head_weights=hw })
-            | Error e, Ok _ -> Error e
-            | Ok _, Error e -> Error e
-            | Error w_e, Error _ -> Error w_e
-          end
+(* Artefact Description *)
+(* *************************************************************** *)
 
-        | "RPSS" -> Ok RPSS
+module ArtefactDescriptionYans = struct
 
-        | other ->
-          Error ("Unknown algorithm: " ^ other)
-      end
-    | _ -> Error "Expected JSON object"
+  let src = Logs.Src.create "backend.types.ArtfDescr"
 
-  let to_yojson algorithm =
-    match algorithm with
-    | Yan_weighted {weights; head_weights} ->
-      `Assoc [
-        ("algorithm", `String "yan");
-        ("algorithm_data", `Assoc [
-            ("weights", `List (List.map YanCriterionWeights.to_yojson weights));
-            ("head_weights", `List (List.map YanCriterionWeights.to_yojson head_weights));
-          ]
-        );
+  type t = {
+    artefact: string;
+    artefact_data: string list;
+  }
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"ArtefactDescriptionYans"
+      ~description: {| artefact is either ranking or yan. |}
+      ~typ:(Obj Object)
+      ~properties:[
+        "artefact", obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[`String "yan";];
+        "artefact_data", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(
+            obj @@ S.make_schema ()
+              ~typ:string
+          );
       ]
-    | RPSS ->
-      `Assoc [
-        ("algorithm", `String "RPSS");
-        ("algorithm_data", `Null);
+      ~required:["artefact"; "artefact_data"]
+
+
+end
+
+
+module ArtefactDescriptionRanking = struct
+
+  let src = Logs.Src.create "backend.types.ArtfDescr"
+
+  type t = {
+    artefact: string;
+    artefact_data: unit;
+  }
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"ArtefactDescriptionRanking"
+      ~description: {| artefact is either ranking or yan. |}
+      ~typ:(Obj Object)
+      ~properties:[
+        "artefact", obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[`String "ranking"];
+        "artefact_data", obj @@ S.make_schema ()
+          ~typ:(obj S.Null)
+
       ]
+      ~required:["artefact"; "artefact_data"]
 
 end
 
 module ArtefactDescription = struct
-
-  let src = Logs.Src.create "backend.types.ArtfDescr"
-
-  type t = Ftw.Artefact.Descr.t =
-    | Ranking
-    | Yans of { criterion : string list; }
+  type t =
+    | YanArtefact of {artefact: ArtefactDescriptionYans.t}
+    | RankingArtefact of {artefact: ArtefactDescriptionRanking.t}
   [@@deriving yojson]
 
   let ref, schema =
     make_schema ()
       ~name:"ArtefactDescription"
-      ~description: {| artefact is either ranking or yan.
-        For a ranking artefact, ranking_algorithm property should be specified.
-        For a yan artefact, yan_criterion property should be set. |}
-      ~typ:(Obj Object)
-      ~properties:[
-        "artefact", obj @@ S.make_schema ()
-          ~typ:string
-          ~examples:[`String "yan"; `String "ranking"];
-        "artefact_data", obj @@ S.make_schema ()
-          ~one_of:[
-            obj @@ S.make_schema ()
-              ~typ:array
-              ~items:(
-                obj @@ S.make_schema ()
-                  ~typ:string
-              );
-            obj @@ S.make_schema ()
-              ~typ:(obj S.Null)
-          ]
+      ~typ:object_
+      ~one_of:[
+        (ref ArtefactDescriptionYans.ref);
+        (ref ArtefactDescriptionRanking.ref);
       ]
       ~required:["artefact"; "artefact_data"]
 
+  let of_ftw s =
+    match s with
+    | Ftw.Artefact.Descr.Yans {criterion;} -> YanArtefact {artefact={artefact="yan";artefact_data=criterion}}
+    | Ftw.Artefact.Descr.Ranking -> RankingArtefact {artefact={artefact="ranking";artefact_data=()}}
+
+  let to_ftw s =
+    match s with
+    | YanArtefact {artefact={artefact_data; _}} -> Ftw.Artefact.Descr.Yans {criterion=artefact_data;}
+    | RankingArtefact {artefact=_} -> Ftw.Artefact.Descr.Ranking
+
+
+  let to_yojson target =
+    match target with
+    | YanArtefact {artefact=t} ->
+      let schema_fields =
+        begin match ArtefactDescriptionYans.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("artefact", `String "yan");] @ schema_fields)
+    | RankingArtefact {artefact=t} ->
+      let schema_fields =
+        begin match ArtefactDescriptionRanking.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("artefact", `String "ranking");] @ schema_fields)
 
   let of_yojson json =
-    Logs.debug ~src (fun k->
-        k "@[<hv 2> Parsing '%s'" (Yojson.Safe.pretty_to_string json)
-      );
-    let open Yojson.Safe.Util in
-    let artefact = json |> member "artefact" |> to_string in
-    match artefact with
-    | "yan" ->
-      let criterion = json |> member "artefact_data" |> to_list |> List.map to_string in
-      Ok (Yans { criterion })
-    | "ranking" ->
-      let data = json |> member "artefact_data" in
-      if data = `Null then Ok Ranking else Error "artefact_data expected to be null for RPSS"
-    | other ->
-      Error ("Unknown artefact type: " ^ other)
-
-  let to_yojson artefact =
-    match artefact with
-    | Yans {criterion} ->
-      `Assoc [
-        ("artefact", `String "yan");
-        ("artefact_data", `List (List.map (fun s -> `String s) criterion));
-      ]
-
-    | Ranking ->
-      `Assoc [
-        ("artefact", `String "ranking");
-        ("artefact_data", `Null);
-      ]
-
+    match json with
+    | `Assoc fields -> (
+        match List.assoc_opt "artefact" fields with
+        | Some (`String "yan") -> ArtefactDescriptionYans.of_yojson json |> Result.map (fun s -> YanArtefact {artefact=s})
+        | Some (`String "ranking") -> ArtefactDescriptionRanking.of_yojson json |> Result.map (fun s -> RankingArtefact {artefact=s})
+        | Some (`String unknown) -> Error ("Unrecognised artefact: " ^ unknown)
+        | Some _  -> Error ("Unrecognised artefact")
+        | None -> Error "Missing key: artefact"
+      )
+    | _ -> Error "Expected JSON object for ArtefactDescription"
 end
 
 

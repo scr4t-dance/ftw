@@ -864,8 +864,7 @@
           "n_follows": { "type": "integer" }
         },
         "required": [
-          "event", "name", "kind", "category", "leaders_count",
-          "followers_count"
+          "event", "name", "kind", "category", "n_leaders", "n_follows"
         ]
       },
       "YanCriterionWeights": {
@@ -874,46 +873,68 @@
           "yes": { "type": "integer" },
           "alt": { "type": "integer" },
           "no": { "type": "integer" }
-        }
+        },
+        "required": [ "yes", "alt", "no" ]
       },
       "RankingYanWeighted": {
-        "description": " Ranking algorithm for Yan_weighted ",
-        "type": "array",
-        "items": { "$ref": "#/components/schemas/YanCriterionWeights" }
+        "type": "object",
+        "properties": {
+          "algorithm": { "type": "string", "enum": [ "Yan_weighted" ] },
+          "weights": {
+            "description": " Ranking algorithm for Yan_weighted ",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/YanCriterionWeights" }
+          },
+          "head_weights": {
+            "description": " Ranking algorithm for Yan_weighted ",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/YanCriterionWeights" }
+          }
+        },
+        "required": [ "weights", "head_weights" ]
+      },
+      "RankingAlgorithmRanking": {
+        "description": " artefact is either ranking or yan. ",
+        "type": "object",
+        "properties": {
+          "algorithm": { "type": "string", "enum": [ "ranking" ] },
+          "algorithm_name": { "type": "string", "enum": [ "SPSS" ] }
+        },
+        "required": [ "algorithm", "algorithm_name" ]
       },
       "RankingAlgorithm": {
-        "description": " algorithm is either ranking or yan.\n        For a ranking algorithm, ranking_algorithm property should be specified.\n        For a Yan_weighted algorithm, weights and head_weights properties should be set. ",
+        "type": "object",
+        "required": [ "algorithm" ],
+        "oneOf": [
+          { "$ref": "#/components/schemas/RankingYanWeighted" },
+          { "$ref": "#/components/schemas/RankingAlgorithmRanking" }
+        ]
+      },
+      "ArtefactDescriptionYans": {
+        "description": " artefact is either ranking or yan. ",
         "type": "object",
         "properties": {
-          "algorithm": {
-            "examples": [ "Yan_weighted", "RPSS" ],
-            "type": "string"
-          },
-          "algorithm_data": {
-            "oneOf": [
-              {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/YanCriterionWeights"
-                }
-              },
-              { "type": "null" }
-            ]
-          }
-        }
+          "artefact": { "type": "string", "enum": [ "yan" ] },
+          "artefact_data": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": [ "artefact", "artefact_data" ]
+      },
+      "ArtefactDescriptionRanking": {
+        "description": " artefact is either ranking or yan. ",
+        "type": "object",
+        "properties": {
+          "artefact": { "type": "string", "enum": [ "ranking" ] },
+          "artefact_data": { "type": "null" }
+        },
+        "required": [ "artefact", "artefact_data" ]
       },
       "ArtefactDescription": {
-        "description": " artefact is either ranking or yan.\n        For a ranking artefact, ranking_algorithm property should be specified.\n        For a yan artefact, yan_criterion property should be set. ",
         "type": "object",
-        "properties": {
-          "artefact": { "examples": [ "yan", "ranking" ], "type": "string" },
-          "artefact_data": {
-            "oneOf": [
-              { "type": "array", "items": { "type": "string" } },
-              { "type": "null" }
-            ]
-          }
-        }
+        "required": [ "artefact", "artefact_data" ],
+        "oneOf": [
+          { "$ref": "#/components/schemas/ArtefactDescriptionYans" },
+          { "$ref": "#/components/schemas/ArtefactDescriptionRanking" }
+        ]
       },
       "PhaseId": { "examples": [ 42 ], "type": "integer" },
       "PhaseIdList": {
@@ -923,7 +944,8 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/PhaseId" }
           }
-        }
+        },
+        "required": [ "phases" ]
       },
       "Phase": {
         "type": "object",
@@ -939,7 +961,11 @@
           "ranking_algorithm": {
             "$ref": "#/components/schemas/RankingAlgorithm"
           }
-        }
+        },
+        "required": [
+          "competition", "round", "judge_artefact_descr",
+          "head_judge_artefact_descr", "ranking_algorithm"
+        ]
       },
       "HeatId": { "examples": [ 42 ], "type": "integer" },
       "HeatIdList": {
@@ -950,10 +976,7 @@
             "items": { "$ref": "#/components/schemas/HeatId" }
           }
         },
-        "required": [
-          "event", "name", "kind", "category", "leaders_count",
-          "followers_count"
-        ]
+        "required": [ "heats" ]
       },
       "DancerId": { "type": "integer" },
       "DancerIdList": {

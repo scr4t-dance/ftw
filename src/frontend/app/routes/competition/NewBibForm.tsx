@@ -20,9 +20,11 @@ import { type SingleBib, SingleTargetForm } from './SingleTargetForm';
 import { type CoupleBib, CoupleTargetForm } from './CoupleTargetForm';
 import { useQueryClient } from '@tanstack/react-query';
 
-function NewBibForm({ default_competition = -1 }: { default_competition?: CompetitionId }) {
+export function NewBibForm({ default_competition = -1 }: { default_competition?: CompetitionId }) {
 
   // const navigate = useNavigate();
+
+  console.log("NewBibForm", default_competition);
 
   const default_single_target: SingleTarget = { target_type: "single", target: 1, role: [RoleItem.Follower] };
   const default_couple_target: CoupleTarget = { target_type: "couple", follower: 1, leader: 2 };
@@ -154,5 +156,3 @@ function NewBibForm({ default_competition = -1 }: { default_competition?: Compet
     </>
   );
 }
-
-export default NewBibForm;

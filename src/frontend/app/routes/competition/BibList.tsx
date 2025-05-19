@@ -54,9 +54,6 @@ function convert_bib_to_single_target(bib: Bib): Bib[] {
 
 export function BareBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
 
-    //const single_target_array = bib_list.flatMap((bib, index) => convert_bib_to_single_target(bib));
-    //console.log(single_target_array);
-
     return (
         <>
             <h1>Liste Compétiteur-ices</h1>
@@ -299,6 +296,7 @@ function EditableBibDetails({ bib_object, index }: { bib_object: Bib, index: num
 
 function BibListComponent({ id_competition }: { id_competition: CompetitionId }) {
 
+    console.log("BibListComponent", id_competition);
     const { data, isLoading, error } = useGetApiCompIdBibs(id_competition);
 
     const bib_list = data as BibList;

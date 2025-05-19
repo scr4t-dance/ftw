@@ -9,26 +9,6 @@ import { Link } from "react-router";
 import { useQueries } from "@tanstack/react-query";
 
 
-export default function CompetitionList({ id_event }: { id_event: EventId }) {
-
-    const { data: competitionList, isLoading, isError, error } = useGetApiEventIdComps(
-        id_event,
-    );
-
-    if (isLoading) return <div>Chargement des compétitions...</div>;
-    if (isError) return <div>Erreur: {(error as any).message}</div>;
-
-    if (!competitionList || !competitionList.competitions || competitionList.competitions.length === 0) {
-        return <div>Aucune compétition disponible pour cet événement.</div>;
-    }
-
-    return (
-        <>
-            <CompetitionTable competition_id_list={competitionList as CompetitionIdList} />
-        </>
-    );
-}
-
 function CompetitionTable({ competition_id_list }: { competition_id_list: CompetitionIdList }) {
 
     const competitionDetailsQueries = useQueries({
@@ -86,6 +66,28 @@ function CompetitionTable({ competition_id_list }: { competition_id_list: Compet
                     })}
                 </tbody>
             </table>
+        </>
+    );
+}
+
+export default function CompetitionList({ id_event }: { id_event: EventId }) {
+
+    console.log("CompetitionList", id_event);
+
+    const { data: competitionList, isLoading, isError, error } = useGetApiEventIdComps(
+        id_event,
+    );
+
+    if (isLoading) return <div>Chargement des compétitions...</div>;
+    if (isError) return <div>Erreur: {(error as any).message}</div>;
+
+    if (!competitionList || !competitionList.competitions || competitionList.competitions.length === 0) {
+        return <div>Aucune compétition disponible pour cet événement.</div>;
+    }
+
+    return (
+        <>
+            <CompetitionTable competition_id_list={competitionList as CompetitionIdList} />
         </>
     );
 }
