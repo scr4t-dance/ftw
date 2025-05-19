@@ -111,13 +111,13 @@ module Date = struct
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
           *)
-          (* ~examples:[`Int 1; `Int 31] *);
+        (* ~examples:[`Int 1; `Int 31] *);
         "month", obj @@ S.make_schema ()
           ~typ:int
-          (* ~examples:[`Int 1; `Int 12] *);
+        (* ~examples:[`Int 1; `Int 12] *);
         "year", obj @@ S.make_schema ()
           ~typ:int
-          (* ~examples:[`Int 2019; `Int 2024] *);
+        (* ~examples:[`Int 2019; `Int 2024] *);
       ]
 end
 
@@ -169,7 +169,7 @@ module Division = struct
       )
 end
 
-(* Dancer Divisions *)
+(* Dancer Division *)
 module Divisions = struct
   type t = Ftw.Divisions.t =
     | None
@@ -194,8 +194,7 @@ module Divisions = struct
             `String "Intermediate";
             `String "Intermediate_Advanced";
             `String "Advanced";
-          ]
-      )
+          ])
 end
 
 (* Competition Category *)
@@ -273,6 +272,26 @@ module Round = struct
 end
 
 
+(* Role *)
+module Role = struct
+  type t = Ftw.Role.t =
+    | Leader
+    | Follower
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Role"
+      ~typ:array
+      ~items:(
+        obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[
+            `String "Leader";
+            `String "Follower";
+          ]
+      )
+end
 
 (* Events *)
 (* ************************************************************************* *)
@@ -308,6 +327,7 @@ module EventIdList = struct
           ~typ:array
           ~items:(ref EventId.ref);
       ]
+      ~required:["events"]
 end
 
 (* Event specification *)
@@ -330,10 +350,11 @@ module Event = struct
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
           *)
-          (* ~examples:[`String "P4T"] *);
+        (* ~examples:[`String "P4T"] *);
         "start_date", ref Date.ref;
         "end_date", ref Date.ref;
       ]
+      ~required:["name"; "start_date"; "end_date"]
 end
 
 (* Competitions *)
@@ -370,6 +391,7 @@ module CompetitionIdList = struct
           ~typ:array
           ~items:(ref CompetitionId.ref);
       ]
+      ~required:["competitions"]
 end
 
 (* Competition specification *)
@@ -396,12 +418,13 @@ module Competition = struct
           https://swagger.io/docs/specification/v3_0/adding-examples/
           Note that schemas and properties support single example but not multiple examples.
           *)
-          (* ~examples:[`String "P4T"]*) ;
+        (* ~examples:[`String "P4T"]*) ;
         "kind", ref Kind.ref;
         "category", ref Category.ref;
         "n_leaders", obj @@ S.make_schema () ~typ:int;
         "n_follows", obj @@ S.make_schema () ~typ:int;
       ]
+      ~required:["event"; "name"; "kind"; "category"; "n_leaders"; "n_follows"]
 end
 
 (* Artefact *)
@@ -422,10 +445,12 @@ module YanCriterionWeights = struct
         "no", obj @@ S.make_schema ()
           ~typ:int;
       ]
+      ~required:["yes"; "alt"; "no"]
 end
 
-module RankingYanWeighted = struct
+module RankingAlgorithmYanWeighted = struct
   type t = {
+    algorithm: string;
     weights: YanCriterionWeights.t list;
     head_weights: YanCriterionWeights.t list;
   }
@@ -434,179 +459,241 @@ module RankingYanWeighted = struct
   let ref, schema =
     make_schema ()
       ~name:"RankingYanWeighted"
-      ~typ:array
-      ~description: {| Ranking algorithm for Yan_weighted |}
-      ~items:(ref YanCriterionWeights.ref)
+      ~typ:(Obj Object)
+      ~properties:[
+        "algorithm", obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[`String "Yan_weighted"];
+        "weights", obj @@ S.make_schema ()
+          ~typ:array
+          ~description: {| Ranking algorithm for Yan_weighted |}
+          ~items:(ref YanCriterionWeights.ref);
+        "head_weights", obj @@ S.make_schema ()
+          ~typ:array
+          ~description: {| Ranking algorithm for Yan_weighted |}
+          ~items:(ref YanCriterionWeights.ref);
+      ]
+      ~required:["weights"; "head_weights"]
+
 
   let of_ftw criterion_weights =
     match criterion_weights with
     | Ftw.Ranking.Algorithm.Yan_weighted { weights; head_weights} ->
-      {weights=weights;head_weights=head_weights;}
+      {algorithm="Yan_weighted";weights=weights;head_weights=head_weights;}
     | _ -> assert false
 
-  let to_ftw {weights;head_weights;} =
+  let to_ftw {weights;head_weights;_} =
     Ftw.Ranking.Algorithm.Yan_weighted {weights=weights;head_weights=head_weights}
+end
+
+module RankingAlgorithmRanking = struct
+
+  let src = Logs.Src.create "backend.types.ArtfDescr"
+
+  type t = {
+    algorithm: string;
+    algorithm_name: string;
+  }
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"RankingAlgorithmRanking"
+      ~description: {| artefact is either ranking or yan. |}
+      ~typ:(Obj Object)
+      ~properties:[
+        "algorithm", obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[`String "ranking"];
+        "algorithm_name", obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[`String "SPSS"];
+      ]
+      ~required:["algorithm"; "algorithm_name"]
+
 end
 
 
 module RankingAlgorithm = struct
-
-  let src = Logs.Src.create "backend.types.RkgAlgo"
-
-  type t = Ftw.Ranking.Algorithm.t =
-    | RPSS
-    | Yan_weighted of {
-        weights : YanCriterionWeights.t list;
-        head_weights : YanCriterionWeights.t list;
-      }
+  type t =
+    | Yan_weighted of {algorithm: RankingAlgorithmYanWeighted.t}
+    | Ranking of {algorithm: RankingAlgorithmRanking.t}
   [@@deriving yojson]
 
   let ref, schema =
     make_schema ()
       ~name:"RankingAlgorithm"
-      ~description: {| algorithm is either ranking or yan.
-        For a ranking algorithm, ranking_algorithm property should be specified.
-        For a Yan_weighted algorithm, weights and head_weights properties should be set. |}
-      ~typ:(Obj Object)
-      ~properties:[
-        "algorithm", obj @@ S.make_schema ()
-          ~typ:string
-          ~examples:[`String "Yan_weighted"; `String "RPSS"];
-        "algorithm_data", obj @@ S.make_schema ()
-          ~one_of:[
-            obj @@ S.make_schema ()
-              ~typ:array
-              ~items:(ref YanCriterionWeights.ref);
-            obj @@ S.make_schema ()
-              ~typ:(obj S.Null)
-          ]
+      ~typ:object_
+      ~one_of:[
+        (ref RankingAlgorithmYanWeighted.ref);
+        (ref RankingAlgorithmRanking.ref);
       ]
+      ~required:["algorithm"]
+
+  let of_ftw s =
+    match s with
+    | Ftw.Ranking.Algorithm.Yan_weighted {weights;head_weights} -> Yan_weighted {algorithm={algorithm="Yan_weighted";weights=weights;head_weights=head_weights}}
+    | Ftw.Ranking.Algorithm.RPSS -> Ranking {algorithm={algorithm="ranking";algorithm_name="RPSS"}}
+
+  let to_ftw s =
+    match s with
+    | Yan_weighted {algorithm={weights;head_weights; _}} -> Ftw.Ranking.Algorithm.Yan_weighted {weights;head_weights}
+    | Ranking {algorithm={algorithm_name="RPSS";_}} -> Ftw.Ranking.Algorithm.RPSS
+    | Ranking {algorithm=_} -> Ftw.Ranking.Algorithm.RPSS
 
 
+  let to_yojson target =
+    match target with
+    | Yan_weighted {algorithm=t} ->
+      let schema_fields =
+        begin match RankingAlgorithmYanWeighted.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("algorithm", `String "yan");] @ schema_fields)
+    | Ranking {algorithm=t} ->
+      let schema_fields =
+        begin match RankingAlgorithmRanking.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("algorithm", `String "ranking");] @ schema_fields)
 
   let of_yojson json =
-    Logs.debug ~src (fun k->
-        k "@[<hv 2> Parsing '%s'" (Yojson.Safe.pretty_to_string json)
-      );
-    let open Yojson.Safe.Util in
     match json with
-    | `Assoc _ ->
-      let algo = json |> member "algorithm" |> to_string in
-      let data = json |> member "algorithm_data" in
-      begin match algo with
-        | "Yan_weighted" ->
-          let weights = data |> member "weights" |> to_list in
-          let head_weights = data |> member "head_weights" |> to_list in
+    | `Assoc fields -> (
+        match List.assoc_opt "algorithm" fields with
+        | Some (`String "Yan_weighted") -> RankingAlgorithmYanWeighted.of_yojson json |> Result.map (fun s -> Yan_weighted {algorithm=s})
+        | Some (`String "ranking") -> RankingAlgorithmRanking.of_yojson json |> Result.map (fun s -> Ranking {algorithm=s})
+        | Some (`String unknown) -> Error ("Unrecognised algorithm: " ^ unknown)
+        | Some _  -> Error ("Unrecognised algorithm")
+        | None -> Error "Missing key: algorithm"
+      )
+    | _ -> Error "Expected JSON object for ArtefactDescription"
+end
 
-          let sequence (lst : ('a, 'e) result list) : ('a list, 'e) result =
-            List.fold_right
-              (fun res acc ->
-                 match res, acc with
-                 | Ok x, Ok xs -> Ok (x :: xs)
-                 | Error e, _ -> Error e
-                 | _, Error e -> Error e)
-              lst (Ok [])
-          in
-          let weights = sequence (List.map YanCriterionWeights.of_yojson weights) in
-          let head_weights = sequence (List.map YanCriterionWeights.of_yojson head_weights) in
 
-          begin match weights, head_weights with
-            | Ok w, Ok hw -> Ok (Yan_weighted { weights=w; head_weights=hw })
-            | Error e, Ok _ -> Error e
-            | Ok _, Error e -> Error e
-            | Error w_e, Error _ -> Error w_e
-          end
+(* Artefact Description *)
+(* *************************************************************** *)
 
-        | "RPSS" -> Ok RPSS
+module ArtefactDescriptionYans = struct
 
-        | other ->
-          Error ("Unknown algorithm: " ^ other)
-      end
-    | _ -> Error "Expected JSON object"
+  let src = Logs.Src.create "backend.types.ArtfDescr"
 
-  let to_yojson algorithm =
-    match algorithm with
-    | Yan_weighted {weights; head_weights} ->
-      `Assoc [
-        ("algorithm", `String "yan");
-        ("algorithm_data", `Assoc [
-            ("weights", `List (List.map YanCriterionWeights.to_yojson weights));
-            ("head_weights", `List (List.map YanCriterionWeights.to_yojson head_weights));
-          ]
-        );
+  type t = {
+    artefact: string;
+    artefact_data: string list;
+  }
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"ArtefactDescriptionYans"
+      ~description: {| artefact is either ranking or yan. |}
+      ~typ:(Obj Object)
+      ~properties:[
+        "artefact", obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[`String "yan";];
+        "artefact_data", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(
+            obj @@ S.make_schema ()
+              ~typ:string
+          );
       ]
-    | RPSS ->
-      `Assoc [
-        ("algorithm", `String "RPSS");
-        ("algorithm_data", `Null);
+      ~required:["artefact"; "artefact_data"]
+
+
+end
+
+
+module ArtefactDescriptionRanking = struct
+
+  let src = Logs.Src.create "backend.types.ArtfDescr"
+
+  type t = {
+    artefact: string;
+    artefact_data: unit;
+  }
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"ArtefactDescriptionRanking"
+      ~description: {| artefact is either ranking or yan. |}
+      ~typ:(Obj Object)
+      ~properties:[
+        "artefact", obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[`String "ranking"];
+        "artefact_data", obj @@ S.make_schema ()
+          ~typ:(obj S.Null)
+
       ]
+      ~required:["artefact"; "artefact_data"]
 
 end
 
 module ArtefactDescription = struct
-
-  let src = Logs.Src.create "backend.types.ArtfDescr"
-
-  type t = Ftw.Artefact.Descr.t =
-    | Ranking
-    | Yans of { criterion : string list; }
+  type t =
+    | YanArtefact of {artefact: ArtefactDescriptionYans.t}
+    | RankingArtefact of {artefact: ArtefactDescriptionRanking.t}
   [@@deriving yojson]
 
   let ref, schema =
     make_schema ()
       ~name:"ArtefactDescription"
-      ~description: {| artefact is either ranking or yan.
-        For a ranking artefact, ranking_algorithm property should be specified.
-        For a yan artefact, yan_criterion property should be set. |}
-      ~typ:(Obj Object)
-      ~properties:[
-        "artefact", obj @@ S.make_schema ()
-          ~typ:string
-          ~examples:[`String "yan"; `String "ranking"];
-        "artefact_data", obj @@ S.make_schema ()
-          ~one_of:[
-            obj @@ S.make_schema ()
-              ~typ:array
-              ~items:(
-                obj @@ S.make_schema ()
-                  ~typ:string
-              );
-            obj @@ S.make_schema ()
-              ~typ:(obj S.Null)
-          ]
+      ~typ:object_
+      ~one_of:[
+        (ref ArtefactDescriptionYans.ref);
+        (ref ArtefactDescriptionRanking.ref);
       ]
+      ~required:["artefact"; "artefact_data"]
 
+  let of_ftw s =
+    match s with
+    | Ftw.Artefact.Descr.Yans {criterion;} -> YanArtefact {artefact={artefact="yan";artefact_data=criterion}}
+    | Ftw.Artefact.Descr.Ranking -> RankingArtefact {artefact={artefact="ranking";artefact_data=()}}
+
+  let to_ftw s =
+    match s with
+    | YanArtefact {artefact={artefact_data; _}} -> Ftw.Artefact.Descr.Yans {criterion=artefact_data;}
+    | RankingArtefact {artefact=_} -> Ftw.Artefact.Descr.Ranking
+
+
+  let to_yojson target =
+    match target with
+    | YanArtefact {artefact=t} ->
+      let schema_fields =
+        begin match ArtefactDescriptionYans.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("artefact", `String "yan");] @ schema_fields)
+    | RankingArtefact {artefact=t} ->
+      let schema_fields =
+        begin match ArtefactDescriptionRanking.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("artefact", `String "ranking");] @ schema_fields)
 
   let of_yojson json =
-    Logs.debug ~src (fun k->
-        k "@[<hv 2> Parsing '%s'" (Yojson.Safe.pretty_to_string json)
-      );
-    let open Yojson.Safe.Util in
-    let artefact = json |> member "artefact" |> to_string in
-    match artefact with
-    | "yan" ->
-      let criterion = json |> member "artefact_data" |> to_list |> List.map to_string in
-      Ok (Yans { criterion })
-    | "ranking" ->
-      let data = json |> member "artefact_data" in
-      if data = `Null then Ok Ranking else Error "artefact_data expected to be null for RPSS"
-    | other ->
-      Error ("Unknown artefact type: " ^ other)
-
-  let to_yojson artefact =
-    match artefact with
-    | Yans {criterion} ->
-      `Assoc [
-        ("artefact", `String "yan");
-        ("artefact_data", `List (List.map (fun s -> `String s) criterion));
-      ]
-
-    | Ranking ->
-      `Assoc [
-        ("artefact", `String "ranking");
-        ("artefact_data", `Null);
-      ]
-
+    match json with
+    | `Assoc fields -> (
+        match List.assoc_opt "artefact" fields with
+        | Some (`String "yan") -> ArtefactDescriptionYans.of_yojson json |> Result.map (fun s -> YanArtefact {artefact=s})
+        | Some (`String "ranking") -> ArtefactDescriptionRanking.of_yojson json |> Result.map (fun s -> RankingArtefact {artefact=s})
+        | Some (`String unknown) -> Error ("Unrecognised artefact: " ^ unknown)
+        | Some _  -> Error ("Unrecognised artefact")
+        | None -> Error "Missing key: artefact"
+      )
+    | _ -> Error "Expected JSON object for ArtefactDescription"
 end
 
 
@@ -639,6 +726,7 @@ module PhaseIdList = struct
           ~typ:array
           ~items:(ref PhaseId.ref);
       ]
+      ~required:["phases"]
 end
 
 (* Phase specification *)
@@ -662,8 +750,11 @@ module Phase = struct
         "head_judge_artefact_descr", ref ArtefactDescription.ref;
         "ranking_algorithm", ref RankingAlgorithm.ref;
       ]
+      ~required:["competition"; "round"; "judge_artefact_descr"; "head_judge_artefact_descr";
+                 "ranking_algorithm"]
 
 end
+
 
 (* Heats *)
 (* ************************************************************************* *)
@@ -694,7 +785,10 @@ module HeatIdList = struct
           ~typ:array
           ~items:(ref HeatId.ref);
       ]
+      ~required:["heats"]
 end
+
+
 
 (* Dancers *)
 (* ************************************************************************* *)
@@ -707,7 +801,12 @@ module DancerId = struct
     make_schema ()
       ~name:"DancerId"
       ~typ:int
-      ~examples:[`Int 42]
+      (*
+      TODO raise issue at openapi_router
+      https://swagger.io/docs/specification/v3_0/adding-examples/
+      Note that schemas and properties support single example but not multiple examples.
+      *)
+      (* ~examples:[`Int 42] *)
 end
 
 (* Dancer Id list *)
@@ -725,19 +824,19 @@ module DancerIdList = struct
           ~typ:array
           ~items:(ref DancerId.ref);
       ]
+      ~required:["dancers"]
 end
-
 
 (* Dancer specification *)
 module Dancer = struct
   type t = {
-    birthday : Date.t option;
+    birthday : Date.t option [@default None];
     last_name : string;
     first_name : string;
-    email : string;
+    email : string option [@default None];
     as_leader : Divisions.t;
     as_follower : Divisions.t;
-  } [@@deriving yojson]
+  } [@@deriving yojson { strict = false }]
 
   let ref, schema =
     make_schema ()
@@ -763,4 +862,159 @@ module Dancer = struct
         "as_leader", ref Divisions.ref;
         "as_follower", ref Divisions.ref;
       ]
+      ~required:["last_name"; "first_name"; "as_leader"; "as_follower"]
+end
+
+
+(* Bibs *)
+(* ************************************************************************* *)
+
+
+module SingleTarget = struct
+  type t = {
+    target_type: string;
+    target : DancerId.t;
+    role : Role.t;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"SingleTarget"
+      ~typ:object_
+      ~properties:[
+        "target_type", obj @@ S.make_schema()
+          ~typ:string
+          ~enum:[`String "single"];
+        "target", ref DancerId.ref;
+        "role", ref Role.ref;
+      ]
+      ~required:["target_type"; "target"; "role"]
+end
+
+
+module CoupleTarget = struct
+  type t = {
+    target_type: string;
+    leader : DancerId.t;
+    follower : DancerId.t;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"CoupleTarget"
+      ~typ:object_
+      ~properties:[
+        "target_type", obj @@ S.make_schema()
+          ~typ:string
+          ~enum:[`String "couple"];
+        "leader", ref DancerId.ref;
+        "follower", ref DancerId.ref;
+      ]
+      ~required:["target_type"; "leader"; "follower"]
+end
+
+module Target = struct
+  type t =
+    | TargetSingle of {target: SingleTarget.t}
+    | TargetCouple of {target: CoupleTarget.t}
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Target"
+      ~typ:object_
+      ~one_of:[
+        (ref SingleTarget.ref);
+        (ref CoupleTarget.ref);
+      ]
+
+
+  let dancers target =
+    match target with
+    | TargetSingle {target=s} -> [s.target]
+    | TargetCouple {target=s} -> [s.leader;s.follower]
+
+  let of_ftw s =
+    match s with
+    | Ftw.Bib.Any (Single {target;role}) -> TargetSingle {target={target;role;target_type="single"}}
+    | Ftw.Bib.Any (Couple {leader;follower}) -> TargetCouple {target={leader;follower;target_type="couple"}}
+
+  let to_ftw s =
+    match s with
+    | TargetSingle {target={target;role; _}} -> Ftw.Bib.Any (Single {target;role})
+    | TargetCouple {target={leader;follower; _}} -> Ftw.Bib.Any (Couple {leader;follower})
+
+
+  let to_yojson target =
+    match target with
+    | TargetSingle {target=t} ->
+      let schema_fields =
+        begin match SingleTarget.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("target_type", `String "single");] @ schema_fields)
+    | TargetCouple {target=t} ->
+      let schema_fields =
+        begin match CoupleTarget.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("target_type", `String "couple");] @ schema_fields)
+
+  let of_yojson json =
+    match json with
+    | `Assoc fields -> (
+        match List.assoc_opt "target_type" fields with
+        | Some (`String "single") -> SingleTarget.of_yojson json |> Result.map (fun s -> TargetSingle {target=s})
+        | Some (`String "couple") -> CoupleTarget.of_yojson json |> Result.map (fun s -> TargetCouple {target=s})
+        | Some (`String unknown) -> Error ("Unrecognised target_type: " ^ unknown)
+        | Some _  -> Error ("Unrecognised target_type")
+        | None -> Error "Missing key: target_type"
+      )
+    | _ -> Error "Expected JSON object for Target"
+end
+
+module Bib = struct
+
+  type t = {
+    competition : CompetitionId.t;
+    bib : int;
+    target : Target.t;
+  } [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Bib"
+      ~typ:(Obj Object)
+      ~properties:[
+        "competition", ref CompetitionId.ref;
+        "bib", obj @@ S.make_schema()
+          ~typ:int;
+        "target", ref Target.ref;
+      ]
+      ~required:["competition"; "bib"; "target"]
+
+end
+
+(* BibSingle list *)
+module BibList = struct
+  type t = {
+    bibs : Bib.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"BibList"
+      ~typ:object_
+      ~properties:[
+        "bibs", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref Bib.ref);
+      ]
+      ~required:["bibs"]
+
 end
