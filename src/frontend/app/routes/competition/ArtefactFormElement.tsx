@@ -1,14 +1,14 @@
 import type { ArtefactDescription, Phase } from '@hookgen/model';
 import React, { useEffect, useState } from 'react';
-import { useFieldArray, type UseFormReturn } from 'react-hook-form';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Field } from '../index/field';
 
 
 interface Props {
-    formObject: UseFormReturn<Phase, any, Phase>;
+    artefact_description_name: string
 }
 
-export function ArtefactFormElement({ formObject }: Props) {
+export function ArtefactFormElement({ artefact_description_name }: Props) {
 
     const {
         register,
@@ -16,17 +16,17 @@ export function ArtefactFormElement({ formObject }: Props) {
         reset,
         control,
         formState: { errors },
-    } = formObject;
+    } = useFormContext();
 
     const defaultYanArtefact: ArtefactDescription = { artefact: "yan", artefact_data: ["total"] };
     const defaultRankingArtefact: ArtefactDescription = { artefact: "ranking", artefact_data: null };
 
-    const artefactType = watch("judge_artefact_descr.artefact");
-
-    const { fields, append, remove } = useFieldArray<Phase, "judge_artefact_descr.artefact_data">({
-        control:control,
-        name: "judge_artefact_descr.artefact_data",
+    const { fields, append, remove } = useFieldArray({
+        control: control,
+        name: `${artefact_description_name}.artefact_data`,
     });
+
+    const artefactType = watch(`${artefact_description_name}.artefact`);
 
     useEffect(() => {
         // Reset the entire 'target' field when 'target.target_type' changes
@@ -38,9 +38,9 @@ export function ArtefactFormElement({ formObject }: Props) {
 
     return (
         <>
-            <Field label="Type d'artefact" error={errors.artefact?.message}>
+            <Field label="Type d'artefact" error={errors.root?.message}>
                 <select
-                    {...register("artefact", { required: true })}
+                    {...register(`${artefact_description_name}.artefact`, { required: true })}
                 >
                     {["yan", "ranking"].map(key => {
                         return <option key={key} value={key}>{key}</option>;
@@ -58,14 +58,12 @@ export function ArtefactFormElement({ formObject }: Props) {
                         </tr>
                     </thead>
                     <tbody>
-                        {artefact.artefact_data && artefact.artefact_data.map((key, index) => (
-                            <tr key={index}>
+                        {fields && fields.map((key, index) => (
+                            <tr key={key.id}>
                                 <td>
-                                    <input
-                                        type="text"
-                                        name={key}
-                                        value={key || ''}
-                                        onChange={(e) => handleYanCriterionChange(key, 'key', e.target.value)} />
+
+                                    <input {...register(`${artefact_description_name}.artefact_data.${index}`)} />
+                                    <button type="button" onClick={() => remove(index)}>Delete</button>
 
                                 </td>
                                 <td>yes</td>
@@ -75,8 +73,11 @@ export function ArtefactFormElement({ formObject }: Props) {
                         ))}
                         <tr>
                             <td>
-                                <button type='button' onClick={(e) => handleYanCriterionChange('critere', 'newkey', 'critere')}>
-                                    Add row
+                                <button
+                                    type="button"
+                                    onClick={() => append("criterion")}
+                                >
+                                    append
                                 </button>
                             </td>
                         </tr>

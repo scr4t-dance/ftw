@@ -10,7 +10,7 @@ import type {
 } from '@hookgen/model';
 import { RoundItem } from "@hookgen/model";
 import { ArtefactFormElement } from '@routes/competition/ArtefactFormElement';
-import { useFieldArray, useForm, type SubmitHandler } from 'react-hook-form';
+import { FormProvider, useFieldArray, useForm, type SubmitHandler } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { Field } from '@routes/index/field';
 
@@ -26,7 +26,7 @@ export function NewPhaseForm({ default_competition }: { default_competition: Com
             round: [RoundItem.Finals],
             judge_artefact_descr: { artefact: "yan", artefact_data: ["total"] },
             head_judge_artefact_descr: { artefact: "yan", artefact_data: ["total"] },
-            ranking_algorithm: { algorithm: "Yan_weighted", weights:[{yes:3,alt:2,no:1}], head_weights:[{yes:3,alt:2,no:1}], }
+            ranking_algorithm: { algorithm: "Yan_weighted", weights: [{ yes: 3, alt: 2, no: 1 }], head_weights: [{ yes: 3, alt: 2, no: 1 }], }
         }
     });
 
@@ -74,77 +74,63 @@ export function NewPhaseForm({ default_competition }: { default_competition: Com
 
     const round = watch("round");
 
-    const { fields, append, remove } = useFieldArray({
-        control: control,
-        name: "judge_artefact_descr.artefact_data",
-    });
-
     return (
         <>
             <h1>Ajouter une phase</h1>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <FormProvider {...formObject}>
+                <form onSubmit={handleSubmit(onSubmit)}>
 
-                {isSuccess &&
-                    <div className="error_message">
-                        <span>&#x26A0; </span>
-                        Successfully added phase "{round}" to competition {default_competition}
-                    </div>
-                }
+                    {isSuccess &&
+                        <div className="error_message">
+                            <span>&#x26A0; </span>
+                            Successfully added phase "{round}" to competition {default_competition}
+                        </div>
+                    }
 
-                <Field label="Compétition parent">
-                    <select
-                        {...register("competition", { valueAsNumber: true, required: true })}
-                    >
-                        {competition_list && competition_list.map((compId, index) => (
-                            <option key={index} value={compId}>{compId}</option>
-                        ))}
-                    </select>
-                </Field>
+                    <Field label="Compétition parent">
+                        <select
+                            {...register("competition", { valueAsNumber: true, required: true })}
+                        >
+                            {competition_list && competition_list.map((compId, index) => (
+                                <option key={index} value={compId}>{compId}</option>
+                            ))}
+                        </select>
+                    </Field>
 
-                <div className="form_subelem">
-                    <label>Round de compétition</label>
-                    <select
-                        {...register("round.0", { required: true })}
-                    >
-                        {RoundItem && Object.keys(RoundItem).map(key => {
-                            const value = RoundItem[key as keyof typeof RoundItem];
-                            return <option key={key} value={value}>{value}</option>;
-                        })}
-                    </select>
-                </div>
+                    <Field label='Round de compétition'>
+                        <select
+                            {...register("round.0", { required: true })}
+                        >
+                            {RoundItem && Object.keys(RoundItem).map(key => {
+                                const value = RoundItem[key as keyof typeof RoundItem];
+                                return <option key={key} value={value}>{value}</option>;
+                            })}
+                        </select>
+                    </Field>
 
-                <ul>
-                    {fields.map((item, index) => (
-                        <li key={item.id}>
-                            <input {...register(`judge_artefact_descr.artefact_data.${index}`)} />
-                            <button type="button" onClick={() => remove(index)}>Delete</button>
-                        </li>
-                    ))}
-                </ul>
-                <button
-                    type="button"
-                    onClick={() => append("criterion")}
-                >
-                    append
-                </button>
+                    <h2>Artefact Juges</h2>
+                    <ArtefactFormElement artefact_description_name='judge_artefact_descr' />
+                    <h2>Artefact Head Juges</h2>
+                    <ArtefactFormElement artefact_description_name='head_judge_artefact_descr' />
 
-                {phaseValidationError !== '' &&
-                    <div className="error_message">
-                        <span>&#x26A0; </span>
-                        phaseValidationError
-                        {phaseValidationError}
-                    </div>
-                }
-                {isError &&
-                    <div className="error_message">
-                        <span>&#x26A0; </span>
-                        <p>{error.message}</p>
-                    </div>
-                }
+                    {phaseValidationError !== '' &&
+                        <div className="error_message">
+                            <span>&#x26A0; </span>
+                            phaseValidationError
+                            {phaseValidationError}
+                        </div>
+                    }
+                    {isError &&
+                        <div className="error_message">
+                            <span>&#x26A0; </span>
+                            <p>{error.message}</p>
+                        </div>
+                    }
 
-                <button type="submit" >Valider l'événement</button>
+                    <button type="submit" >Créer la phase</button>
 
-            </form>
+                </form>
+            </FormProvider>
         </>
     );
 }
