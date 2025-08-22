@@ -134,7 +134,7 @@ function RulesV1() {
                 </tbody>
             </table>
             <p>Dans tous les cas, si un•e compétiteur•ice marque 1 point dans une division, iel n'a plus accès aux divisions précédentes dans le rôle où le point a été obtenu.</p>
-            <p>Des dérogations ponctuelles à ces règles sont possibles : voir <a href="/rules#petition">"Demandes de dérogation"</a></p>
+            <p>Des dérogations ponctuelles à ces règles sont possibles : voir <a href="#petition">"Demandes de dérogation"</a></p>
             <div className="nb">
                 <b>NB : </b>des changements dans le nombre de divisions ou le nombre de points nécessaires pour passer d'une division à une autre seront possibles dans le futur, si le nombre de compétitions SCR4T et/ou de compétiteur-ices augmente. Aucun changement ne sera rétro-actif et tous seront annoncés préalablement. Une personne en division Intermédiaire (resp. Avancé), ne peut pas être privée de son droit de participer en division Intermédiaire (resp. Avancé). Une personne ayant gagné des points ne peut pas perdre ses points, sauf si la compétition à laquelle elle a participé n'a pas respecté les conditions pour rejoindre le SCR4T.
             </div>
