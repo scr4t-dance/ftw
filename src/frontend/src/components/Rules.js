@@ -5,13 +5,26 @@ import Header from "./Header"
 import Footer from "./Footer";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import RulesV0 from "./rules/RulesV0";
 import RulesV1 from "./rules/RulesV1";
 import RulesV2 from "./rules/RulesV2";
 
 function Rules() {
 
+    // scroll to the anchor
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.hash) {
+        const element = document.getElementById(location.hash.substring(1));
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+        }
+        }
+    }, [location]);
+
+    // render the rules version
     const [searchParams, setSearchParams] = useSearchParams();
     const [currentVersion, setCurrentVersion] = useState(1);
 
