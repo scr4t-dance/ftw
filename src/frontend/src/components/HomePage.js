@@ -43,8 +43,8 @@ function HomePage() {
 
                 <h2>Changements au 9 Juillet 2025</h2>
                 <ul>
-                    <li>Augmentation des barres d’accès de chaque division : il faudra à présent 15 points initiés pour pouvoir accéder à la division intermédiaire et 30 points intermédiaires pour pouvoir accéder à la division avancé. <a href="/rules#divisions">En savoir plus</a>.</li>
-                    <li>Ajout d’un 6ème tier de compétition au-delà de 65 compétiteurs dans un rôle. <a href="/rules#phases">En savoir plus</a>.</li>
+                    <li>Augmentation des barres d'accès de chaque division : il faudra à présent 15 points initiés pour pouvoir accéder à la division intermédiaire et 30 points intermédiaires pour pouvoir accéder à la division avancé. <a href="/rules#divisions">En savoir plus</a>.</li>
+                    <li>Ajout d'un 6ème tier de compétition au-delà de 65 compétiteurs dans un rôle. <a href="/rules#phases">En savoir plus</a>.</li>
                     <li>Légère révision à la baisse de la grille des point obtenus selon le classement. <a href="/rules#points">En savoir plus</a>.</li>
                 </ul>
 
