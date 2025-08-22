@@ -36,9 +36,16 @@ function HomePage() {
 
                 <h2>Changements au 1er Janvier 2025</h2>
                 <ul>
-                    <li>Création d'une division Avancé et définition des conditions d'accès à cette division, <a href="/rules#divisions">en savoir plus</a>.</li>
-                    <li>Ajustement des points gagnés par les demi-finalistes, <a href="/rules#points">en savoir plus</a>.</li>
-                    <li>Changement du fonctionnement des dérogations pour participer à une division pour laquelle on ne remplit pas les conditions d'inscriptions, <a href="/rules#petition">en savoir plus</a>.</li>
+                    <li>Création d'une division Avancé et définition des conditions d'accès à cette division. <a href="/rules#divisions">En savoir plus</a>.</li>
+                    <li>Ajustement des points gagnés par les demi-finalistes. <a href="/rules#points">En savoir plus</a>.</li>
+                    <li>Changement du fonctionnement des dérogations pour participer à une division pour laquelle on ne remplit pas les conditions d'inscriptions. <a href="/rules#petition">En savoir plus</a>.</li>
+                </ul>
+
+                <h2>Changements au 9 Juillet 2025</h2>
+                <ul>
+                    <li>Augmentation des barres d’accès de chaque division : il faudra à présent 15 points initiés pour pouvoir accéder à la division intermédiaire et 30 points intermédiaires pour pouvoir accéder à la division avancé. <a href="/rules#divisions">En savoir plus</a>.</li>
+                    <li>Ajout d’un 6ème tier de compétition au-delà de 65 compétiteurs dans un rôle. <a href="/rules#phases">En savoir plus</a>.</li>
+                    <li>Légère révision à la baisse de la grille des point obtenus selon le classement. <a href="/rules#points">En savoir plus</a>.</li>
                 </ul>
 
                 <h2>Nos engagements</h2>
