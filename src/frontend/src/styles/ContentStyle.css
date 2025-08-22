@@ -19,8 +19,14 @@ body {
 	--link-color: #3182ce;
 	--link-color-hover: #2c5282;
 
+    --clear_background: #eaf4ff;
+
     --button: #617489;
     --button-hover: #4a5c6e;
+
+    --warning-text: #842029;
+    --warning-background: #f8d7da;
+    --warning-border: #f5c2c7;
 
     --error-background: rgb(251, 218, 218);
 }
@@ -54,6 +60,15 @@ h3 {
     text-align: left;
 }
 
+h5 {
+    margin: 0.2rem 0 0.8rem 0;
+
+    font-size: 1.3rem;
+    font-weight: 500;
+
+    text-align: left;
+}
+
 
 /*=========================================+
 |                   TEXT                   |
@@ -77,14 +92,41 @@ a:hover {
     color: var(--link-color-hover);
 }
 
-ul {
-    margin: 0;
+ul, ol {
+    margin: 0 0 0.8rem 0;
+}
+
+ul li, ol li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6rem;
 }
 
 ul li {
-    margin-bottom: 0.5rem;
     list-style-type: disc;
-    line-height: 1.6rem;
+}
+
+
+/*=========================================+
+|                 NOTA BENE                |
++=========================================*/
+
+.nb {
+    margin: 10px 0;
+    padding: 10px 15px;
+
+    background-color: var(--clear_background);
+    border-radius: 8px;
+}
+
+.nb b {
+    font-weight: 600;
+}
+
+.nb-warning {
+    padding: 20px;
+    background-color: var(--warning-background);
+    color: var(--warning-text);
+    border: solid 1px var(--warning-border);
 }
 
 
@@ -99,11 +141,49 @@ ul li {
 
 
 /*=========================================+
+|                  BUTTONS                 |
++=========================================*/
+
+#rules-ver-buttons-container {
+    display: flex;
+    flex-wrap: nowrap;
+    margin: 10px 0 25px 0;
+}
+
+.btn {
+    padding: 0.5rem 1rem;
+    margin-right: 20px;
+
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid #4a5c6e;
+    
+    transition: all 0.3s ease;
+}
+
+.btn a {
+    text-wrap: wrap;
+    color: #4a5c6e;
+    text-decoration: none;
+}
+
+.selected, .btn:hover {
+    background-color: #4a5c6e;
+}
+
+.selected a, .btn:hover a {
+    color: white;
+}
+
+
+/*=========================================+
 |                  TABLES                  |
 +=========================================*/
 
 table {
+    margin-bottom: 25px;
     width: 100%;
+    
     background-color: white;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     border-radius: 0.5rem;
@@ -116,10 +196,11 @@ table tr {
 }
 
 table td, table th {
-    padding: 0.5rem 1rem;
+    padding: 0.6rem 1rem;
 }
 
 table th {
+    font-weight: 600;
     border-bottom: solid 3px;
 }
 
@@ -129,6 +210,10 @@ table th {
 
 .odd-row {
     background-color: white;
+}
+
+.large-table td, .large-table th {
+    padding: 0.6rem 0.3rem;
 }
 
 

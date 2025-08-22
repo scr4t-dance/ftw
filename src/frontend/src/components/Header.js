@@ -22,7 +22,7 @@ function Header() {
             </nav>
 
             <div className="contact-button">
-                <a href="mailto:scr4t.danse@gmail.com" className="btn">Nous contacter</a>
+                <a href="mailto:scr4t.danse@gmail.com" className="header-btn">Nous contacter</a>
             </div>
         </header>
     );
