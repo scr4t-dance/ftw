@@ -1,22 +1,42 @@
 import type { ArtefactDescription, Phase } from '@hookgen/model';
-import React, { useEffect, useState } from 'react';
-import { useFieldArray, useFormContext } from 'react-hook-form';
+import React, { useEffect } from 'react';
+import { get, useFieldArray, useFormContext } from 'react-hook-form';
 import { Field } from '../index/field';
 
+type KeysOfType<T, ValueType> = {
+    [K in keyof T]: T[K] extends ValueType ? K : never;
+}[keyof T];
+type PhaseArtefactDescriptionKeys = KeysOfType<Phase, ArtefactDescription>;
+
+
+const defaultYanWeight = { yes: 3, alt: 2, no: 1 };
+
+const ArtefactDescriptionToWeightsMap = {
+    judge_artefact_descr: "weights",
+    head_judge_artefact_descr: "head_weights",
+};
 
 interface Props {
-    artefact_description_name: string
+    artefact_description_name: PhaseArtefactDescriptionKeys
 }
+
+function isPhaseCoherent(p: Phase) {
+    const identical_artefact = p.head_judge_artefact_descr.artefact === p.judge_artefact_descr.artefact;
+    const artefact_coherent_with_algorithm = (p.ranking_algorithm.algorithm === "ranking") ?
+        p.judge_artefact_descr.artefact === "ranking" : p.judge_artefact_descr.artefact === "yan";
+    return identical_artefact && artefact_coherent_with_algorithm;
+}
+
 
 export function ArtefactFormElement({ artefact_description_name }: Props) {
 
     const {
         register,
         watch,
-        reset,
         control,
-        formState: { errors },
+        formState: { errors, defaultValues },
         setValue,
+        getValues,
     } = useFormContext();
 
     const defaultYanArtefact: ArtefactDescription = { artefact: "yan", artefact_data: ["total"] };
@@ -28,20 +48,32 @@ export function ArtefactFormElement({ artefact_description_name }: Props) {
     });
 
     const artefactType = watch(`${artefact_description_name}.artefact`);
+    const propName = `ranking_algorithm.${ArtefactDescriptionToWeightsMap[artefact_description_name]}`;
+    const currentWeights = watch(propName) || [];
 
     useEffect(() => {
-        // Reset the entire 'target' field when 'target.target_type' changes
-        reset((prevValues: Phase) => ({
-            ...prevValues,
-            judge_artefact_descr: (artefactType === "yan" ? defaultYanArtefact : defaultRankingArtefact)
-        }));
-    }, [artefactType, reset]);
+        setValue(
+            `${artefact_description_name}.artefact_data`,
+            artefactType === "yan"
+                ? defaultYanArtefact.artefact_data
+                : defaultRankingArtefact.artefact_data,
+            { shouldValidate: true, shouldDirty: true }
+        );
+        setValue(propName, [defaultYanWeight]);
+    }, [artefactType, getValues, setValue]);
 
     return (
         <>
-            <Field label="Type d'artefact" error={errors.root?.message}>
+            <Field
+                label="Type d'artefact"
+                error={get(errors, `${artefact_description_name}.artefact.message`)}
+            >
                 <select
-                    {...register(`${artefact_description_name}.artefact`, { required: true })}
+                    {...register(`${artefact_description_name}.artefact`, {
+                        required: "required",
+                        validate: (value, formValues) =>
+                            isPhaseCoherent(formValues as Phase) || "Artefact description inconsistent with ranking algorithm.",
+                    })}
                 >
                     {["yan", "ranking"].map(key => {
                         return <option key={key} value={key}>{key}</option>;
@@ -62,25 +94,21 @@ export function ArtefactFormElement({ artefact_description_name }: Props) {
                         {fields && fields.map((key, index) => (
                             <tr key={key.id}>
                                 <td>
-
-                                    <input {...register(`${artefact_description_name}.artefact_data.${index}`)} />
+                                    <Field
+                                        error={get(errors, `${artefact_description_name}.artefact_data.${index}.message`)}
+                                    >
+                                        <input {...register(`${artefact_description_name}.artefact_data.${index}`,
+                                            {
+                                                required: "Name should not be empty"
+                                            }
+                                        )} />
+                                    </Field>
                                     <button type="button" onClick={() => {
                                         remove(index);
 
-                                        // also remove corresponding weight or head_weight
-                                        if (artefact_description_name === "judge_artefact_descr") {
-                                            const currentWeights = watch("ranking_algorithm.weights") || [];
-                                            const newWeights = [...currentWeights];
-                                            newWeights.splice(index, 1);
-                                            setValue("ranking_algorithm.weights", newWeights);
-                                        }
-
-                                        if (artefact_description_name === "head_judge_artefact_descr") {
-                                            const currentHeadWeights = watch("ranking_algorithm.head_weights") || [];
-                                            const newHeadWeights = [...currentHeadWeights];
-                                            newHeadWeights.splice(index, 1);
-                                            setValue("ranking_algorithm.head_weights", newHeadWeights);
-                                        }
+                                        const newWeights = [...currentWeights];
+                                        newWeights.splice(index, 1);
+                                        setValue(propName, newWeights);
 
                                     }}>Delete</button>
 
@@ -97,18 +125,8 @@ export function ArtefactFormElement({ artefact_description_name }: Props) {
                                     onClick={() => {
                                         append("criterion");
 
-                                        // also remove corresponding weight or head_weight
-                                        const defaultYanWeight = { yes: 3, alt: 2, no: 1 };
-                                        if (artefact_description_name === "judge_artefact_descr") {
-                                            const currentWeights = watch("ranking_algorithm.weights") || [];
-                                            setValue("ranking_algorithm.weights", [...currentWeights, defaultYanWeight]);
-                                        }
-
-                                        if (artefact_description_name === "head_judge_artefact_descr") {
-                                            const currentHeadWeights = watch("ranking_algorithm.head_weights") || [];
-                                            const newHeadWeights = [...currentHeadWeights];
-                                            setValue("ranking_algorithm.head_weights", [...newHeadWeights, defaultYanWeight]);
-                                        }
+                                        // also add weights
+                                        setValue(propName, [...currentWeights, defaultYanWeight]);
                                     }}
                                 >
                                     append

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 // import { useNavigate } from "react-router";
 
 import { getGetApiPhaseIdQueryKey, useGetApiPhaseId, usePatchApiPhaseId } from '@hookgen/phase/phase';
@@ -15,17 +15,21 @@ import { RankingAlgorithmFormElement } from '../competition/RankingAlgorithmForm
 
 export function EditPhaseForm({ phase_id }: { phase_id: PhaseId }) {
 
-    console.log("EditPhaseForm", phase_id, "init");
     const queryClient = useQueryClient();
 
-    const {data: dataPhase, isLoading: isLoadingGet} = useGetApiPhaseId(phase_id);
+    const { data: dataPhase, isLoading: isLoadingGet, isSuccess } = useGetApiPhaseId(phase_id);
 
     const { mutate: updatePhase, isSuccess: isSuccessPatch } = usePatchApiPhaseId({
         mutation: {
-            onSuccess: () => {
+            onSuccess: (updatedPhase) => {
+
+                console.log("p,Success callback", { id: phase_id, data: updatedPhase });
                 queryClient.invalidateQueries({
                     queryKey: getGetApiPhaseIdQueryKey(phase_id),
                 });
+
+                //reset(updatedPhase);
+                //queryClient.setQueryData(getGetApiPhaseIdQueryKey(phase_id), updatedPhase)
             },
             onError: (err) => {
                 console.error('Error creating phase:', err);
@@ -34,29 +38,39 @@ export function EditPhaseForm({ phase_id }: { phase_id: PhaseId }) {
         }
     });
 
+    // guard before form but after queries
+    if (isLoadingGet) return <div>Loading Phase {phase_id} data</div>;
+
+    if (!dataPhase) {
+        return <div>❌ Impossible de charger la phase {phase_id}</div>;
+    }
+    const onSubmit: SubmitHandler<Phase> = (data) => {
+        console.log({ id: phase_id, data: data });
+        updatePhase({ id: phase_id, data: data });
+    };
+
     const formObject = useForm<Phase>({
-        disabled: !dataPhase,
+        disabled: isLoadingGet,
+        mode: "onChange",
         defaultValues: dataPhase,
     });
 
     const {
-        register,
         handleSubmit,
         watch,
         setError,
-        formState: { errors },
+        reset,
+        formState: { errors, isValid },
     } = formObject;
 
-
-
-    const onSubmit: SubmitHandler<Phase> = (data) => {
-        console.log(data);
-        updatePhase({ id: phase_id, data: data });
-    };
+    useEffect(() => {
+        if (isSuccess && dataPhase) {
+            formObject.reset(dataPhase);
+        }
+    }, [isSuccess, dataPhase, formObject]);
 
     const round = watch("round");
 
-    if (isLoadingGet) return <div>Loading Phase {phase_id} data</div>;
 
     return (
         <>
@@ -86,7 +100,12 @@ export function EditPhaseForm({ phase_id }: { phase_id: PhaseId }) {
                         <div className="error_message">⚠️ {errors.root.serverError.message}</div>
                     }
 
-                    <button type="submit" >Mettre à jour la phase</button>
+                    <button type="submit" disabled={formObject.formState.isSubmitting}>
+                        Mettre à jour la phase
+                    </button>
+                    <button type="button" disabled={formObject.formState.isSubmitting} onClick={() => reset(dataPhase)}>
+                        Réinitialiser
+                    </button>
 
                 </form>
             </FormProvider>
