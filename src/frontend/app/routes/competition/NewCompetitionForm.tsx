@@ -121,7 +121,7 @@ function NewCompetitionForm({ id_event }: { id_event: EventId }) {
                     <div className="error_message">⚠️ {errors.root.serverError.message}</div>
                 }
 
-                <button type="submit">Valider l'événement</button>
+                <button type="submit">Créer la compétition</button>
             </form>
         </>
     );

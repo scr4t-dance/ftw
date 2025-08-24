@@ -1,12 +1,21 @@
+// src/api/axios.ts
 import Axios, { type AxiosRequestConfig } from 'axios';
 
+export let runtimeBaseURL = '';
 
+// Function to update baseURL dynamically
+export const setBaseURL = (url: string) => {
+  runtimeBaseURL = url;
+};
 
- export const AXIOS_INSTANCE = Axios.create({ baseURL: 'http://localhost:8080' }); // use your own URL here or environment variable
+// Axios instance
+export const axiosInstance = Axios.create({});
 
-
-
- // add a second `options` argument here if you want to pass extra options to each generated query
+// Interceptor sets baseURL dynamically
+axiosInstance.interceptors.request.use((config) => {
+  config.baseURL = runtimeBaseURL;
+  return config;
+});
 
  export const customInstance = <T>(
 
@@ -18,7 +27,7 @@ import Axios, { type AxiosRequestConfig } from 'axios';
 
    const source = Axios.CancelToken.source();
 
-   const promise = AXIOS_INSTANCE({
+   const promise = axiosInstance({
 
      ...config,
 

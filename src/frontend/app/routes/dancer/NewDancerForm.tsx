@@ -7,12 +7,12 @@ import { DivisionsItem, type Dancer, type DancerId, type Date } from '@hookgen/m
 
 import { Link } from 'react-router';
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
-import { useForm, type SubmitHandler, type UseFormReturn } from 'react-hook-form';
+import { Controller, useForm, type SubmitHandler, type UseFormReturn } from 'react-hook-form';
 import { Field } from '../index/field';
 
 function putOrPatchApi({ queryClient, id_dancer, formObject }: { queryClient: QueryClient, id_dancer?: DancerId, formObject: UseFormReturn<Dancer, any, Dancer> }) {
 
-    const { setError } = formObject;
+    const { setError, reset } = formObject;
 
     if (id_dancer) {
 
@@ -22,6 +22,7 @@ function putOrPatchApi({ queryClient, id_dancer, formObject }: { queryClient: Qu
                     queryClient.invalidateQueries({
                         queryKey: getGetApiDancerIdQueryKey(id_dancer),
                     });
+                    reset();
                 },
                 onError: (err) => {
                     console.error('Error updating competition:', err);
@@ -46,6 +47,7 @@ function putOrPatchApi({ queryClient, id_dancer, formObject }: { queryClient: Qu
                 queryClient.invalidateQueries({
                     queryKey: getGetApiDancersQueryKey(),
                 });
+                reset();
             },
             onError: (err) => {
                 console.error('Error updating competition:', err);
@@ -81,8 +83,8 @@ export function SaveDancerFormComponent({ dancer, id_dancer }: { dancer?: Dancer
     const {
         register,
         handleSubmit,
-        watch,
         formState: { errors },
+        control,
     } = formObject;
 
     const queryClient = useQueryClient();
@@ -134,10 +136,22 @@ export function SaveDancerFormComponent({ dancer, id_dancer }: { dancer?: Dancer
                 </Field>
 
                 <Field label="Date de naissance 2" error={errors.birthday?.message}>
-                    <input type="date" {...register("birthday", {
-                        required: true,
-                    })}
-                        value={watch("birthday") ? formatDate(watch("birthday")) : ""}
+                    <Controller
+                        name="birthday"
+                        control={control}
+                        rules={{ required: 'La date anniversaire est requise. Vous avez le droit de mentir.' }}
+                        render={({ field }) => (
+                            <input
+                                type="date"
+                                value={field.value ? formatDate(field.value) : ''}
+                                onChange={(e) => {
+                                    const [year, month, day] = e.target.value
+                                        .split('-')
+                                        .map(Number);
+                                    field.onChange({ year, month, day });
+                                }}
+                            />
+                        )}
                     />
                 </Field>
 

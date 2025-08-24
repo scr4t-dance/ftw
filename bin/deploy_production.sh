@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Start the backend server
-dune exec -- ftw --db=tests/test.db -b -v -v > bin/frontend-dev-ftw.log 2>&1 &
+dune exec -- ftw --port=8080 --db=tests/test.db -b -v -v > bin/frontend-dev-ftw.log 2>&1 &
 FTW_PID=$!
 echo $FTW_PID > bin/ftw.pid
 
@@ -17,8 +17,9 @@ cleanup() {
 trap cleanup INT TERM EXIT
 
 echo "Running frontend server..."
-(cd src/frontend && npm run start)
+(cd src/frontend && echo '{ "API_BASE_URL": "http://localhost:8080" }' > ./public/config.json && npm run start)
 
+echo '{ "API_BASE_URL": "http://localhost:8089" }' > ./src/frontend/public/config.json
 # Wait for frontend to finish before exiting
 wait $FTW_PID
 echo "Ftw backend server $FTW_PID killed"

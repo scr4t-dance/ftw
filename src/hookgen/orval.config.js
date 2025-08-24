@@ -17,7 +17,7 @@ module.exports = {
             shouldSplitQueryKey: true,
             override: {
                 mutator: {
-                    path: './api/custom_axios_instance.ts',
+                    path: '../frontend/app/axios.ts',
                     name: 'customInstance',
                 },
 

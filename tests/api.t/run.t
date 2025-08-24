@@ -69,12 +69,12 @@ Create some phase
 
   $ curl -s -X PUT localhost:8081/api/phase \
   > -H "Content-Type: application/json" \
-  > -d '{"competition":2,"round":["Prelims"],"judge_artefact_descr":{"artefact":"yan","artefact_data":["overall"]},"head_judge_artefact_descr":{"artefact":"yan","artefact_data":["head"]}, "ranking_algorithm":{"algorithm":"Yan_weighted", "algorithm_data":{"weights":[{"yes":3,"alt":2,"no":1}], head_weights:[{"yes":3,"alt":2,"no":1}]}}}'
+  > -d '{"competition":2,"round":["Prelims"],"judge_artefact_descr":{"artefact":"yan","artefact_data":["overall"]},"head_judge_artefact_descr":{"artefact":"yan","artefact_data":["head"]}, "ranking_algorithm":{"algorithm":"Yan_weighted", "weights":[{"yes":3,"alt":2,"no":1}], "head_weights":[{"yes":3,"alt":2,"no":1}]}}'
   1
 
   $ curl -s -X PUT localhost:8081/api/phase \
   > -H "Content-Type: application/json" \
-  > -d '{"competition":2,"round":["Finals"],"judge_artefact_descr":{"artefact":"ranking","artefact_data":null},"head_judge_artefact_descr":{"artefact":"ranking","artefact_data":null}, "ranking_algorithm":{"algorithm":"RPSS", "algorithm_data":null}}'
+  > -d '{"competition":2,"round":["Finals"],"judge_artefact_descr":{"artefact":"ranking","artefact_data":null},"head_judge_artefact_descr":{"artefact":"ranking","artefact_data":null}, "ranking_algorithm":{"algorithm":"ranking", "algorithm_name":"RPSS"}}'
   2
 
 Get the ids of phase we created, and check their details
@@ -83,20 +83,20 @@ Get the ids of phase we created, and check their details
   {"phases":[1,2]}
 
   $ curl -s localhost:8081/api/phase/1
-  {"competition":2,"round":["Prelims"],"judge_artefact_descr":{"artefact":"yan","artefact_data":["overall"]},"head_judge_artefact_descr":{"artefact":"yan","artefact_data":["head"]},"ranking_algorithm":{"algorithm":"yan","algorithm_data":{"weights":[{"yes":3,"alt":2,"no":1}],"head_weights":[{"yes":3,"alt":2,"no":1}]}}}
+  {"competition":2,"round":["Prelims"],"judge_artefact_descr":{"artefact":"yan","artefact_data":["overall"]},"head_judge_artefact_descr":{"artefact":"yan","artefact_data":["head"]},"ranking_algorithm":{"algorithm":"Yan_weighted","weights":[{"yes":3,"alt":2,"no":1}],"head_weights":[{"yes":3,"alt":2,"no":1}]}}
 
   $ curl -s localhost:8081/api/phase/2
-  {"competition":2,"round":["Finals"],"judge_artefact_descr":{"artefact":"ranking","artefact_data":null},"head_judge_artefact_descr":{"artefact":"ranking","artefact_data":null},"ranking_algorithm":{"algorithm":"RPSS","algorithm_data":null}}
+  {"competition":2,"round":["Finals"],"judge_artefact_descr":{"artefact":"ranking","artefact_data":null},"head_judge_artefact_descr":{"artefact":"ranking","artefact_data":null},"ranking_algorithm":{"algorithm":"ranking","algorithm_name":"RPSS"}}
 
 Update a phase
 
   $ curl -s -X PATCH localhost:8081/api/phase/2 \
   > -H "Content-Type: application/json" \
-  > -d '{"competition":2,"round":["Finals"],"judge_artefact_descr":{"artefact":"yan","artefact_data":["technique"]},"head_judge_artefact_descr":{"artefact":"yan","artefact_data":["teamwork"]},  "ranking_algorithm":{"algorithm":"Yan_weighted", "algorithm_data":{"weights":[{"yes":4,"alt":2,"no":1}], head_weights:[{"yes":5,"alt":2,"no":1}]}}}'
+  > -d '{"competition":2,"round":["Finals"],"judge_artefact_descr":{"artefact":"yan","artefact_data":["technique"]},"head_judge_artefact_descr":{"artefact":"yan","artefact_data":["teamwork"]},  "ranking_algorithm":{"algorithm":"Yan_weighted","weights":[{"yes":4,"alt":2,"no":1}], "head_weights":[{"yes":5,"alt":2,"no":1}]}}'
   null
 
   $ curl -s localhost:8081/api/phase/2
-  {"competition":2,"round":["Finals"],"judge_artefact_descr":{"artefact":"yan","artefact_data":["technique"]},"head_judge_artefact_descr":{"artefact":"yan","artefact_data":["teamwork"]},"ranking_algorithm":{"algorithm":"yan","algorithm_data":{"weights":[{"yes":4,"alt":2,"no":1}],"head_weights":[{"yes":5,"alt":2,"no":1}]}}}
+  {"competition":2,"round":["Finals"],"judge_artefact_descr":{"artefact":"yan","artefact_data":["technique"]},"head_judge_artefact_descr":{"artefact":"yan","artefact_data":["teamwork"]},"ranking_algorithm":{"algorithm":"Yan_weighted","weights":[{"yes":4,"alt":2,"no":1}],"head_weights":[{"yes":5,"alt":2,"no":1}]}}
 
   $ curl -s -X DELETE localhost:8081/api/phase/2 \
   > -H "Content-Type: application/json"
@@ -129,7 +129,7 @@ Create some dancers
   > -d '{"last_name":"No", "first_name":"birthday", "email":"false2.dancer2@example.com", "as_leader":["Novice"], "as_follower":["Intermediate"]}'
   4
 
-Get the ids of competitions we created, and check their details
+Get the ids of dancers we created, and check their details
 
   $ curl -s http://localhost:8081/api/dancer/1
   {"birthday":{"day":1,"month":2,"year":2000},"last_name":"Dancer","first_name":"False","email":"false.dancer@example.com","as_leader":["None"],"as_follower":["None"]}
@@ -142,6 +142,25 @@ Get the ids of competitions we created, and check their details
 
   $ curl -s http://localhost:8081/api/dancer/4
   {"last_name":"No","first_name":"birthday","email":"false2.dancer2@example.com","as_leader":["Novice"],"as_follower":["Intermediate"]}
+
+Bib management
+--------------
+
+create some dancers
+  $ curl -s -X PUT localhost:8081/api/comp/2/bib \
+  > -H "Content-Type: application/json" \
+  > -d '{"competition":2, "bib":201, "target":{"target_type":"single","target":2,"role":["Follower"]}}'
+  {"dancers":[2]}
+
+  $ curl -s -X PUT localhost:8081/api/comp/2/bib \
+  > -H "Content-Type: application/json" \
+  > -d '{"competition":2, "bib":101, "target":{"target_type":"single","target":1,"role":["Leader"]}}'
+  {"dancers":[1]}
+
+
+  $ curl -s localhost:8081/api/comp/2/bibs
+  {"bibs":[{"competition":2,"bib":101,"target":{"target_type":"single","target_type":"single","target":1,"role":["Leader"]}},{"competition":2,"bib":201,"target":{"target_type":"single","target_type":"single","target":2,"role":["Follower"]}}]}
+
 
 End & Cleanup
 -------------

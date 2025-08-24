@@ -7,10 +7,12 @@ import { getApiEventId } from '@hookgen/event/event';
 import { type EventId, type Date } from "@hookgen/model";
 import CompetitionList from "~/routes/competition/CompetitionList";
 import NewCompetitionForm from "../competition/NewCompetitionForm";
+import { runtimeBaseURL } from "~/axios";
 
 export async function loader({ params }: Route.LoaderArgs) {
 
     const id_event_number = parseInt(params.id_event as string) as EventId;
+    console.log("event loader", runtimeBaseURL)
     const eventQuery = await getApiEventId(id_event_number);
     return eventQuery;
 }
@@ -21,6 +23,7 @@ export async function clientLoader({
 }: Route.ClientLoaderArgs) {
 
     const id_event_number = parseInt(params.id_event as string) as EventId;
+    console.log("event clientLoader", runtimeBaseURL)
     const res = await getApiEventId(id_event_number);
     const serverData = await serverLoader();
     return { ...serverData, ...res };

@@ -197,6 +197,49 @@
         }
       }
     },
+    "/api/dancer/{id}/competition_history": {
+      "get": {
+        "tags": [ "dancer", "competition" ],
+        "summary": "Get the list of Competitions a Dancer participated in",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried dancer",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/DancerId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionIdList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Dancer not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/dancer/{id}": {
       "get": {
         "tags": [ "dancer" ],
@@ -898,7 +941,7 @@
         "type": "object",
         "properties": {
           "algorithm": { "type": "string", "enum": [ "ranking" ] },
-          "algorithm_name": { "type": "string", "enum": [ "SPSS" ] }
+          "algorithm_name": { "type": "string", "enum": [ "RPSS" ] }
         },
         "required": [ "algorithm", "algorithm_name" ]
       },

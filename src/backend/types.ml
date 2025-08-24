@@ -507,7 +507,7 @@ module RankingAlgorithmRanking = struct
           ~enum:[`String "ranking"];
         "algorithm_name", obj @@ S.make_schema ()
           ~typ:string
-          ~enum:[`String "SPSS"];
+          ~enum:[`String "RPSS"];
       ]
       ~required:["algorithm"; "algorithm_name"]
 
@@ -551,7 +551,7 @@ module RankingAlgorithm = struct
           | _ -> failwith "Expected schema to serialize to an object"
         end
       in
-      `Assoc ([("algorithm", `String "yan");] @ schema_fields)
+      `Assoc schema_fields
     | Ranking {algorithm=t} ->
       let schema_fields =
         begin match RankingAlgorithmRanking.to_yojson t with
@@ -559,7 +559,7 @@ module RankingAlgorithm = struct
           | _ -> failwith "Expected schema to serialize to an object"
         end
       in
-      `Assoc ([("algorithm", `String "ranking");] @ schema_fields)
+      `Assoc schema_fields
 
   let of_yojson json =
     match json with
@@ -673,7 +673,7 @@ module ArtefactDescription = struct
           | _ -> failwith "Expected schema to serialize to an object"
         end
       in
-      `Assoc ([("artefact", `String "yan");] @ schema_fields)
+      `Assoc schema_fields
     | RankingArtefact {artefact=t} ->
       let schema_fields =
         begin match ArtefactDescriptionRanking.to_yojson t with
@@ -681,7 +681,7 @@ module ArtefactDescription = struct
           | _ -> failwith "Expected schema to serialize to an object"
         end
       in
-      `Assoc ([("artefact", `String "ranking");] @ schema_fields)
+      `Assoc schema_fields
 
   let of_yojson json =
     match json with

@@ -20,7 +20,7 @@ Run a query to init database
   $ curl -s http://localhost:8082/api/events
   {"events":[]}
 
-  $ sqlite3 "test.db" 'SELECT name FROM DATABASE_VERSION;'
+  $ sqlite3 test.db 'SELECT name FROM DATABASE_VERSION;'
   2
 
 Print schema

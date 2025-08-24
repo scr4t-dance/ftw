@@ -1,6 +1,6 @@
 import "~/styles/ContentStyle.css";
 
-import React from 'react';
+import React, { type Key } from 'react';
 import { Link } from "react-router";
 
 
@@ -8,8 +8,6 @@ import { useGetApiEvents, useGetApiEventId } from '@hookgen/event/event';
 import { type EventId, type EventIdList } from "@hookgen/model";
 
 import PageTitle from "@routes/index/PageTitle";
-import Header from "@routes/header/header";
-import Footer from "@routes/footer/footer";
 
 
 const eventListlink = "/events"
@@ -115,7 +113,7 @@ function EventList() {
                         <th>Année</th>
                     </tr>
 
-                    {event_array.events.map((eventId, index) => (
+                    {data && data.events && data?.events.map((eventId: EventId, index: number) => (
                         <EventDetails key={eventId} id={eventId} index={index} />
                     ))}
                 </tbody>

@@ -12,6 +12,10 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import React, { useEffect, useState } from "react";
+import { loadRuntimeConfig } from "./configloader";
+import { setBaseURL } from "./axios";
+import { loadServerConfig } from "./configServer";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -45,25 +49,42 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 const queryClient = new QueryClient({
-  defaultOptions:{
-    queries:{
+  defaultOptions: {
+    queries: {
       staleTime: 1000 * 60 * 5
     }
   }
 });
 
+setBaseURL(loadServerConfig().API_BASE_URL);
+
 export default function App() {
+
+  const [configLoaded, setConfigLoaded] = useState(false);
+
+  useEffect(() => {
+    loadRuntimeConfig()
+      .then(() => setConfigLoaded(true))
+      .catch(() => setConfigLoaded(true)); // continue even if config fails
+  }, []);
+
+  if (!configLoaded) {
+    // Can replace with a spinner/skeleton
+    return <div>Loading configuration...</div>;
+  }
+
 
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
+
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+
   let message = "Oops!";
   let details = "An unexpected error occurred.";
   let stack: string | undefined;
