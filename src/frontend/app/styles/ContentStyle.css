@@ -1,0 +1,191 @@
+
+body {
+    width:70%;
+    margin: 0 auto;
+}
+
+@media screen and (max-width: 1000px) {
+    body {
+        width: 90%;
+    }
+}
+
+
+/*=========================================+
+|                  COLORS                  |
++=========================================*/
+
+:root {
+	--link-color: #3182ce;
+	--link-color-hover: #2c5282;
+
+    --button: #617489;
+    --button-hover: #4a5c6e;
+
+    --error-background: rgb(251, 218, 218);
+}
+
+
+/*=========================================+
+|                  TITLES                  |
++=========================================*/
+
+h1 {
+    margin: 1.5rem 0 1rem 0;
+
+    font-size: 2.5rem;
+    font-weight: 500;
+
+    text-align: left;
+}
+
+h2 {
+    margin: 1rem 0 0.7rem 0;
+    font-size: 1.8rem;
+    font-weight: 400;
+}
+
+h3 {
+    margin: 1rem 0 0.8rem 0;
+
+    font-size: 1.8rem;
+    font-weight: 500;
+
+    text-align: left;
+}
+
+
+/*=========================================+
+|                   TEXT                   |
++=========================================*/
+
+* {
+    font-size: 1.04rem;
+}
+
+p {
+    margin-top: 0;
+    line-height: 1.6rem;
+}
+
+a {
+    text-decoration: underline;
+    color: var(--link-color);
+}
+
+a:hover {
+    color: var(--link-color-hover);
+}
+
+ul {
+    margin: 0;
+}
+
+ul {
+    margin: 0;
+}
+
+ul li {
+    margin-bottom: 0.5rem;
+    list-style-type: disc;
+    line-height: 1.6rem;
+}
+
+
+/*=========================================+
+|                CONTAINERS                |
++=========================================*/
+
+.content-container {
+    display: flex;
+    flex-direction: column;
+}
+
+
+/*=========================================+
+|                  TABLES                  |
++=========================================*/
+
+table {
+    width: 100%;
+    background-color: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border-collapse: collapse;
+}
+
+table tr {
+    text-align: left;
+}
+
+table td, table th {
+    padding: 0.5rem 1rem;
+}
+
+table th {
+    border-bottom: solid 3px;
+}
+
+.even-row {
+    background-color: #f1f5f7;
+}
+
+.odd-row {
+    background-color: white;
+}
+
+
+/*=========================================+
+|                   FORMS                  |
++=========================================*/
+
+form {
+    max-width: 30rem;
+    width: 90%;
+}
+
+.form_subelem {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.6rem;
+}
+
+form input {
+    padding: 0.2rem 0.4rem;
+    background-color: #f4f5f8;
+
+    border: solid 1px #b2b6c2;
+    border-radius: 0.2rem;
+    outline: none;
+}
+
+form .error_message {
+    padding: 0.2rem 0.5rem;
+    background-color: var(--error-background);
+    border: none;
+    border-radius: 0.2rem;
+}
+
+button {
+    cursor: pointer;
+    margin-top: 0.8rem;
+    padding: 0.5rem 1rem;
+
+    color: white;
+    background-color: var(--button);
+
+    border: none;
+    border-radius: 0.2rem;
+
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: var(--button-hover);
+}
+
+
+form button[type="submit"] {
+    width: 100%;
+}

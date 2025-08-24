@@ -30,7 +30,7 @@ let rec routes router =
       "404", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Competition not found";
     ]
-    (* Competition phases query *)
+  (* Competition phases query *)
   |> Router.get "/api/comp/:id/phases" get_phases
     ~tags:["phase"; "competition"]
     ~summary:"Get the list of phases of a Competition"

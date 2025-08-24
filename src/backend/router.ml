@@ -31,4 +31,3 @@ module T = Openapi_router.Make (Config)
 
 (* Include the resulting module for more ease of use. *)
 include T
-
