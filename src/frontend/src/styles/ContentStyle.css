@@ -75,6 +75,19 @@ h5 {
 
 
 /*=========================================+
+|                 HOMEPAGE                 |
++=========================================*/
+
+#homepage-logo {
+    margin: 40px 0 20px 40px;
+    float:right;
+    
+    max-width: 350px;
+    width: 25%;
+}
+
+
+/*=========================================+
 |                   TEXT                   |
 +=========================================*/
 
@@ -115,7 +128,7 @@ ul li {
 +=========================================*/
 
 .nb {
-    margin: 10px 0;
+    margin: 0 0 10px 0;
     padding: 10px 15px;
 
     background-color: var(--clear_background);
@@ -127,7 +140,7 @@ ul li {
 }
 
 .nb-warning {
-    padding: 20px;
+    padding: 15px 20px;
     background-color: var(--warning-background);
     color: var(--warning-text);
     border: solid 1px var(--warning-border);
