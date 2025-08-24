@@ -161,6 +161,12 @@ create some dancers
   $ curl -s localhost:8081/api/comp/2/bibs
   {"bibs":[{"competition":2,"bib":101,"target":{"target_type":"single","target_type":"single","target":1,"role":["Leader"]}},{"competition":2,"bib":201,"target":{"target_type":"single","target_type":"single","target":2,"role":["Follower"]}}]}
 
+  $ curl -s localhost:8081/api/comp/2/bibs
+  {"bibs":[{"competition":2,"bib":101,"target":{"target_type":"single","target_type":"single","target":1,"role":["Leader"]}},{"competition":2,"bib":201,"target":{"target_type":"single","target_type":"single","target":2,"role":["Follower"]}}]}
+
+  $ curl -s localhost:8081/api/dancer/2/competition_history
+  {"competitions":[2]}
+
 
 End & Cleanup
 -------------

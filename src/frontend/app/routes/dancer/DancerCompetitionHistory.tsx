@@ -1,11 +1,12 @@
 import "~/styles/ContentStyle.css";
 
 import React from 'react';
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 
 import { type DancerId } from "@hookgen/model";
-import { useGetApiDancerId } from '@hookgen/dancer/dancer';
-import { SaveDancerFormComponent } from './NewDancerForm'
+import { useGetApiDancerIdCompetitionHistory } from '@hookgen/dancer/dancer';
+import { useQueries } from "@tanstack/react-query";
+import { getGetApiCompIdQueryOptions } from "~/hookgen/competition/competition";
 
 
 function DancerCompetitionHistory() {
@@ -13,28 +14,67 @@ function DancerCompetitionHistory() {
     let { id_dancer } = useParams();
     let id_dancer_number = Number(id_dancer) as DancerId;
 
-    const { data, isLoading, isError, error } = useGetApiDancerId(id_dancer_number);
+    /* todo regarder les résultats */
+    const { data: competition_id_list, isLoading, isError, error } = useGetApiDancerIdCompetitionHistory(id_dancer_number);
 
+    if (isLoading) return null;
+    if (!competition_id_list) return null;
 
-    if (isLoading) return <div>Chargement...</div>;
-    if (!data) return null;
+    const competitionDetailsQueries = useQueries({
+        queries: competition_id_list.competitions.map((competitionId) => ({
+            ...getGetApiCompIdQueryOptions(competitionId),
+            enabled: true,
+        })),
+    });
 
-    const dancer = data;
+    const isDetailsLoading = competitionDetailsQueries.some((query) => query.isLoading);
+    const isDetailsError = competitionDetailsQueries.some((query) => query.isError);
 
-    if (isLoading) return <div>Chargement des informations de la danseureuse...</div>;
-    if (isError) return <div>Erreur: {(error as any).message}</div>;
+    if (isDetailsLoading) return <div>Loading competition details...</div>;
+    if (isDetailsError) return (
+        <div>
+            Error loading competition details
+            {
+                competitionDetailsQueries.map((query) => {
+                    return (<p>{query.error?.message}</p>);
+                })
+            }
+        </div>);
+
 
     return (
         <>
-            <h1>{dancer?.last_name + " " + dancer.first_name}</h1>
-            <p>Division follower : {dancer?.as_follower}</p>
-            <p>Division leader : {dancer?.as_leader}</p>
-            <p>Birthday: "Hidden"</p>
-            <p>Email : "Hidden"</p>
-            <p>List de compétitions: TODO</p>
-            <h1>Mise à jour données</h1>
-            <SaveDancerFormComponent id_dancer={id_dancer_number} dancer={dancer} />
+            <h2>Liste Compétitions</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nom de la compétition</th>
+                        <th>Type</th>
+                        <th>Catégorie</th>
+                    </tr>
+                </thead>
+                <tbody>
 
+                    {competitionDetailsQueries.map((competitionDetailsQuery, index) => {
+                        const competitionId = competition_id_list.competitions[index];
+                        const competition = competitionDetailsQuery.data;
+
+                        if (!competition) return null;
+
+                        return (
+                            <tr key={index} className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+                                <td>
+                                    <Link to={`/competitions/${competitionId}`}>
+                                        {competition.name}
+                                    </Link>
+                                </td>
+                                <td>{competition.kind}</td>
+                                <td>{competition.category}</td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
         </>
     );
 }
