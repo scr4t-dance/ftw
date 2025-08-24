@@ -16,6 +16,7 @@ export function ArtefactFormElement({ artefact_description_name }: Props) {
         reset,
         control,
         formState: { errors },
+        setValue,
     } = useFormContext();
 
     const defaultYanArtefact: ArtefactDescription = { artefact: "yan", artefact_data: ["total"] };
@@ -63,7 +64,25 @@ export function ArtefactFormElement({ artefact_description_name }: Props) {
                                 <td>
 
                                     <input {...register(`${artefact_description_name}.artefact_data.${index}`)} />
-                                    <button type="button" onClick={() => remove(index)}>Delete</button>
+                                    <button type="button" onClick={() => {
+                                        remove(index);
+
+                                        // also remove corresponding weight or head_weight
+                                        if (artefact_description_name === "judge_artefact_descr") {
+                                            const currentWeights = watch("ranking_algorithm.weights") || [];
+                                            const newWeights = [...currentWeights];
+                                            newWeights.splice(index, 1);
+                                            setValue("ranking_algorithm.weights", newWeights);
+                                        }
+
+                                        if (artefact_description_name === "head_judge_artefact_descr") {
+                                            const currentHeadWeights = watch("ranking_algorithm.head_weights") || [];
+                                            const newHeadWeights = [...currentHeadWeights];
+                                            newHeadWeights.splice(index, 1);
+                                            setValue("ranking_algorithm.head_weights", newHeadWeights);
+                                        }
+
+                                    }}>Delete</button>
 
                                 </td>
                                 <td>yes</td>
@@ -75,7 +94,22 @@ export function ArtefactFormElement({ artefact_description_name }: Props) {
                             <td>
                                 <button
                                     type="button"
-                                    onClick={() => append("criterion")}
+                                    onClick={() => {
+                                        append("criterion");
+
+                                        // also remove corresponding weight or head_weight
+                                        const defaultYanWeight = { yes: 3, alt: 2, no: 1 };
+                                        if (artefact_description_name === "judge_artefact_descr") {
+                                            const currentWeights = watch("ranking_algorithm.weights") || [];
+                                            setValue("ranking_algorithm.weights", [...currentWeights, defaultYanWeight]);
+                                        }
+
+                                        if (artefact_description_name === "head_judge_artefact_descr") {
+                                            const currentHeadWeights = watch("ranking_algorithm.head_weights") || [];
+                                            const newHeadWeights = [...currentHeadWeights];
+                                            setValue("ranking_algorithm.head_weights", [...newHeadWeights, defaultYanWeight]);
+                                        }
+                                    }}
                                 >
                                     append
                                 </button>

@@ -6,6 +6,7 @@ import { usePutApiComp } from '@hookgen/competition/competition';
 
 import { KindItem, CategoryItem, type Competition, type EventId, type EventIdList } from '@hookgen/model';
 import { useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router';
 
 function NewCompetitionForm({ id_event }: { id_event: EventId }) {
 
@@ -69,6 +70,8 @@ function NewCompetitionForm({ id_event }: { id_event: EventId }) {
                 {isSuccess &&
                     <div className="success_message">
                         ✅ Compétition avec identifiant "{dataCompetition}" ajoutée avec succès.
+                        <br/>
+                        <Link to={`/competitions/${dataCompetition}`}>Accéder à la compétition</Link>
                     </div>
                 }
 

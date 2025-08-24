@@ -3,11 +3,11 @@ import "~/styles/ContentStyle.css";
 import React from 'react';
 import { useGetApiCompId } from '@hookgen/competition/competition';
 
-import type { ArtefactDescription, CompetitionId, EventId, PhaseId } from "@hookgen/model";
+import type { CompetitionId, EventId, PhaseId } from "@hookgen/model";
 import { Link, useParams } from "react-router";
 import { useGetApiEventId } from "@hookgen/event/event";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
-import ArtefactDescriptionComponent from "../competition/ArtefactDescription";
+import { EditPhaseForm } from "./EditPhaseForm";
 
 function PhasePage() {
 
@@ -41,17 +41,8 @@ function PhasePage() {
                         Evénement {event?.name}
                     </Link>
                 </p>
-                <div>Notation juges :
-                    <ArtefactDescriptionComponent
-                        artefact_description={phase?.judge_artefact_descr as ArtefactDescription}
-                    />
-                </div>
-                <div>Notation head juge :
-                    <ArtefactDescriptionComponent
-                        artefact_description={phase?.head_judge_artefact_descr as ArtefactDescription}
-                    />
-                </div>
                 <p>Catégorie : {competition?.category}</p>
+                <EditPhaseForm phase_id={id_phase_number} />
 
         </>
     );

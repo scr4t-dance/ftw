@@ -12,7 +12,7 @@ function ArtefactDescriptionComponent({ artefact_description }: { artefact_descr
           {artefact_description.artefact === "yan" &&
             Object.entries(artefact_description.artefact_data as string[]).map(([key], index) => (
               <p key={index}>
-                Critère {key}
+                Critère {artefact_description.artefact_data[index]}
               </p>
             ))}
 
