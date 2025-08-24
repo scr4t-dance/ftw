@@ -62,8 +62,8 @@ export function BareBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
                     <tr>
                         <th>Type target</th>
                         <th>Bib</th>
-                        <th></th>
-                        <th></th>
+                        <th>Rôle</th>
+                        <th>Target</th>
                         <th>Action</th>
                     </tr>
 
@@ -189,14 +189,14 @@ function EditableBibDetails({ bib_object, index }: { bib_object: Bib, index: num
 
     const dancer_list = bib_object.target.target_type === "single"
         ? [bib_object.target.target]
-        : [bib_object.target.leader, bib_object.target.follower];
+        : [bib_object.target.follower, bib_object.target.leader];
 
     const default_single_target: SingleTarget = bib_object.target.target_type === "single"
-    ? bib_object.target
-    : { target_type: "single", target: bib_object.target.follower, role: [RoleItem.Follower] };
+        ? bib_object.target
+        : { target_type: "single", target: bib_object.target.follower, role: [RoleItem.Follower] };
     const default_couple_target: CoupleTarget = bib_object.target.target_type === "couple"
-    ? bib_object.target
-    : { target_type: "couple", follower: bib_object.target.target, leader: bib_object.target.target };
+        ? bib_object.target
+        : { target_type: "couple", follower: bib_object.target.target, leader: bib_object.target.target };
 
     console.log(dancer_list);
 
@@ -269,13 +269,18 @@ function EditableBibDetails({ bib_object, index }: { bib_object: Bib, index: num
                     </td>
                     <td>{bib_object.bib}</td>
 
+                    <td>{bib_object.target.target_type === "single" ?
+                        bib_object.target.role :
+                        <> {RoleItem.Follower}
+                            <br /> {RoleItem.Leader}
+                        </>
+                    }</td>
                     <td>
                         {dancer_list && dancer_list.map((i) => (
                             <DancerCell id_dancer={i} />
                         ))
                         }
                     </td>
-                    <td></td>
                     <td>
                         <button type="button" onClick={() => setIsEditing(true)} >Edition</button>
                         <button
