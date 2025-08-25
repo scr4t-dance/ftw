@@ -77,16 +77,16 @@ let conv =
 
 let raw_get st ~(phase:Id.t) =
   State.query_list_where ~st ~conv ~p:Id.p
-    {| SELECT (id, heat_number, leader_id, follower_id)
+    {| SELECT id, heat_number, leader_id, follower_id
        FROM heats WHERE phase_id = ? |}
     phase
 
 let incr_passage map_ref dancer_id =
-    map_ref :=
-      Id.Map.update dancer_id (function
-          | None -> Some 1
-          | Some n -> Some (n + 1)
-        ) !map_ref
+  map_ref :=
+    Id.Map.update dancer_id (function
+        | None -> Some 1
+        | Some n -> Some (n + 1)
+      ) !map_ref
 
 let update_heats ~f a l =
   List.iter (fun { target_id; heat_number; leader; follow } ->
@@ -102,7 +102,7 @@ let mk_singles (l : row list) =
   (* Compute the number of heats *)
   let n =
     List.fold_left
-      (fun acc { heat_number; _ } -> max acc heat_number)
+      (fun acc { heat_number; _ } -> max acc (heat_number + 1))
       0 l
   in
   (* Allocate the heats array and fill it.
@@ -111,15 +111,15 @@ let mk_singles (l : row list) =
   let num_total_passages = ref Id.Map.empty in
   update_heats a l
     ~f:(fun heat target_id ~leader ~follow ->
-      match leader, follow with
-      | Some dancer, None ->
-        incr_passage num_total_passages dancer;
-        { heat with leaders = { target_id; dancer; } :: heat.leaders; }
-      | None, Some dancer ->
-        incr_passage num_total_passages dancer;
-        { heat with followers = { target_id; dancer; } :: heat.followers; }
-      | None, None | Some _, Some _ -> failwith "incorrect encoding for j&j heat"
-    );
+        match leader, follow with
+        | Some dancer, None ->
+          incr_passage num_total_passages dancer;
+          { heat with leaders = { target_id; dancer; } :: heat.leaders; }
+        | None, Some dancer ->
+          incr_passage num_total_passages dancer;
+          { heat with followers = { target_id; dancer; } :: heat.followers; }
+        | None, None | Some _, Some _ -> failwith "incorrect encoding for j&j heat"
+      );
   (* Compute the passages *)
   let seen = ref (Id.Map.map (fun n ->
       if n <= 1 then Only else Multiple { nth = 0; }
@@ -165,14 +165,14 @@ let mk_couples (l: row list) =
   let num_total_passages = ref Id.Map.empty in
   update_heats a l
     ~f:(fun (heat : couples_heat) target_id ~leader ~follow ->
-      match leader, follow with
-      | Some leader, Some follower ->
-        incr_passage num_total_passages leader;
-        incr_passage num_total_passages follower;
-        { heat with couples = { target_id; leader; follower; } :: heat.couples; }
-      | None, _ | _, None ->
-        failwith "incorrect encoding of Jack&Strictly heat"
-    );
+        match leader, follow with
+        | Some leader, Some follower ->
+          incr_passage num_total_passages leader;
+          incr_passage num_total_passages follower;
+          { heat with couples = { target_id; leader; follower; } :: heat.couples; }
+        | None, _ | _, None ->
+          failwith "incorrect encoding of Jack&Strictly heat"
+      );
   (* Compute the passages *)
   let seen = ref (Id.Map.map (fun n ->
       if n <= 1 then Only else Multiple { nth = 0; }
@@ -201,3 +201,36 @@ let mk_couples (l: row list) =
 
 let get_couples ~st ~phase =
   mk_couples @@ raw_get st ~phase
+
+
+let simple_init st ~(phase:Id.t) =
+  let open Sqlite3_utils.Ty in
+      State.insert ~st ~ty:[int]
+        {| DELETE FROM heats
+        WHERE 0=0
+        AND phase_id = ?
+        |}
+        phase;
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[int;]
+    {| insert into heats (phase_id, heat_number, leader_id, follower_id)
+          select phases.id as phase_id
+            , 0 as heat_number
+            , leader_id
+            , follower_id
+          FROM (
+            select coalesce(a.competition_id, b.competition_id) as competition_id
+              , a.dancer_id as leader_id
+              , b.dancer_id as follower_id
+            from (select * from bibs where role = 0) as a
+            full join (select * from bibs where role = 1) as b
+            on 0=0
+            and a.competition_id = b.competition_id
+            and a.bib = b.bib
+          ) as target
+          inner join phases
+          on 0=0
+          AND phases.id = ?
+          AND phases.competition_id = target.competition_id
+          |}
+    phase

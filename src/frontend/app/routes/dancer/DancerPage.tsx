@@ -6,6 +6,7 @@ import { useParams } from "react-router";
 import { type DancerId } from "@hookgen/model";
 import { useGetApiDancerId } from '@hookgen/dancer/dancer';
 import { SaveDancerFormComponent } from './NewDancerForm'
+import DancerCompetitionHistory from "./DancerCompetitionHistory";
 
 
 function DancerPage() {
@@ -31,7 +32,8 @@ function DancerPage() {
             <p>Division leader : {dancer?.as_leader}</p>
             <p>Birthday: "Hidden"</p>
             <p>Email : "Hidden"</p>
-            <p>List de compétitions: TODO</p>
+            <h1>List de compétitions: </h1>
+            <DancerCompetitionHistory></DancerCompetitionHistory>
             <h1>Mise à jour données</h1>
             <SaveDancerFormComponent id_dancer={id_dancer_number} dancer={dancer} />
 

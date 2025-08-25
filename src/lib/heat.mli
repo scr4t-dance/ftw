@@ -49,3 +49,5 @@ type couples_heats = {
 
 val get_singles : st:State.t -> phase:Phase.id -> singles_heats
 val get_couples : st:State.t -> phase:Phase.id -> couples_heats
+
+val simple_init : State.t -> phase:Id.t -> unit

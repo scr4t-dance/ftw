@@ -8,6 +8,39 @@ import { Link } from "react-router";
 
 const dancerLink = "dancers/"
 
+function DancerDetails({ id, index }: { id: DancerId, index: number }) {
+    const { data, isLoading } = useGetApiDancerId(id);
+
+    if (isLoading) return <div>Chargement...</div>;
+    if (!data) return null;
+
+    const dancer = data;
+
+    return (
+        <tr key={id}
+            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+            <td>
+                <Link to={`/${dancerLink}${id}`}>
+                    {id}
+                </Link>
+            </td>
+            <td>
+                <Link to={`/${dancerLink}${id}`}>
+                    {dancer.last_name}
+                </Link>
+            </td>
+            <td>
+                <Link to={`/${dancerLink}${id}`}>
+                    {dancer.first_name}
+                </Link>
+            </td>
+            <td>{dancer.as_follower}</td>
+            <td>{dancer.as_leader}</td>
+        </tr>
+
+    );
+}
+
 export function BareDancerListComponent({ dancer_list }: { dancer_list: DancerIdList }) {
 
     return (
@@ -46,39 +79,6 @@ function DancerListComponent() {
     );
 }
 
-
-function DancerDetails({ id, index }: { id: DancerId, index: number }) {
-    const { data, isLoading } = useGetApiDancerId(id);
-
-    if (isLoading) return <div>Chargement...</div>;
-    if (!data) return null;
-
-    const dancer = data;
-
-    return (
-        <tr key={id}
-            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
-            <td>
-                <Link to={`/${dancerLink}${id}`}>
-                    {id}
-                </Link>
-            </td>
-            <td>
-                <Link to={`/${dancerLink}${id}`}>
-                    {dancer.last_name}
-                </Link>
-            </td>
-            <td>
-                <Link to={`/${dancerLink}${id}`}>
-                    {dancer.first_name}
-                </Link>
-            </td>
-            <td>{dancer.as_follower}</td>
-            <td>{dancer.as_leader}</td>
-        </tr>
-
-    );
-}
 
 function DancerList() {
 

@@ -10,6 +10,192 @@
     "version": "1.0.1"
   },
   "paths": {
+    "/api/phase/{id}/promote": {
+      "put": {
+        "tags": [ "heat", "phase" ],
+        "summary": "Promote dancers to next round",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Placeholder",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PhaseId" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/init_heats": {
+      "put": {
+        "tags": [ "heat", "phase" ],
+        "summary": "Randomly place dancers of the phase in heats",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Placeholder",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PhaseId" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/couples_heats": {
+      "get": {
+        "tags": [ "heat", "phase", "competition" ],
+        "summary": "Get the heats of a competition (couples)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouplesHeatsArray"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/singles_heats": {
+      "get": {
+        "tags": [ "heat", "phase", "competition" ],
+        "summary": "Get the heats of a competition (singles)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SinglesHeatsArray"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/comp/{id}/bib": {
       "put": {
         "tags": [ "bib", "competition", "dancer" ],
@@ -1010,17 +1196,6 @@
           "head_judge_artefact_descr", "ranking_algorithm"
         ]
       },
-      "HeatId": { "examples": [ 42 ], "type": "integer" },
-      "HeatIdList": {
-        "type": "object",
-        "properties": {
-          "heats": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/HeatId" }
-          }
-        },
-        "required": [ "heats" ]
-      },
       "DancerId": { "type": "integer" },
       "DancerIdList": {
         "type": "object",
@@ -1087,6 +1262,68 @@
           }
         },
         "required": [ "bibs" ]
+      },
+      "SinglesHeat": {
+        "type": "object",
+        "properties": {
+          "followers": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SingleTarget" }
+          },
+          "leaders": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SingleTarget" }
+          }
+        },
+        "required": [ "followers", "leaders" ]
+      },
+      "SinglesHeatsArray": {
+        "type": "object",
+        "properties": {
+          "heats": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SinglesHeat" }
+          }
+        },
+        "required": [ "heats" ]
+      },
+      "CouplesHeat": {
+        "type": "object",
+        "properties": {
+          "couples": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CoupleTarget" }
+          }
+        },
+        "required": [ "couples" ]
+      },
+      "CouplesHeatsArray": {
+        "type": "object",
+        "properties": {
+          "heats": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CouplesHeat" }
+          }
+        },
+        "required": [ "heats" ]
+      },
+      "HeatsArray": {
+        "type": "object",
+        "oneOf": [
+          { "$ref": "#/components/schemas/SinglesHeatsArray" },
+          { "$ref": "#/components/schemas/CouplesHeatsArray" }
+        ]
+      },
+      "HeatId": { "examples": [ 42 ], "type": "integer" },
+      "HeatIdList": {
+        "type": "object",
+        "properties": {
+          "heats": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/HeatId" }
+          }
+        },
+        "required": [ "heats" ]
       }
     }
   }

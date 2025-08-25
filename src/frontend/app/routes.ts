@@ -22,6 +22,7 @@ export default [
   route("phases", "routes/phase/PhaseHome.tsx", [
     index("routes/phase/PhaseList.tsx"),
     route(":id_phase", "routes/phase/PhasePage.tsx"),
+    route(":id_phase/heats", "routes/heat/HeatsList.tsx"),
     route("new", "routes/phase/NewPhaseForm.tsx"),
   ]),
 

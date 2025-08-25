@@ -37,6 +37,7 @@ let router () =
   |> Phase.routes
   |> Dancer.routes
   |> Bib.routes
+  |> Heat.routes
 
 let server (options : Options.server) =
   (* Default routes to serve the clients files (pages, scripts and css) *)

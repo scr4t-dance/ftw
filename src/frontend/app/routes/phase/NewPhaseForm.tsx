@@ -7,16 +7,13 @@ import { usePutApiPhase, getGetApiCompIdPhasesQueryKey, useGetApiCompIdPhases, u
 import type {
     Phase, EventId,
     CompetitionId,
-    PhaseId
 } from '@hookgen/model';
 import { RoundItem } from "@hookgen/model";
-import { ArtefactFormElement } from '@routes/competition/ArtefactFormElement';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { Field } from '@routes/index/field';
 import { Link, useNavigate } from 'react-router';
 import { useGetApiCompId } from '~/hookgen/competition/competition';
-import { RankingAlgorithmFormElement } from '../competition/RankingAlgorithmFormElement';
 
 export function NewPhaseForm({ default_competition }: { default_competition: CompetitionId }) {
 

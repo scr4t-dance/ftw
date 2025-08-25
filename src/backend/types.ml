@@ -756,40 +756,6 @@ module Phase = struct
 end
 
 
-(* Heats *)
-(* ************************************************************************* *)
-
-(* Heat Ids *)
-module HeatId = struct
-  type t = Ftw.Heat.target_id [@@deriving yojson]
-
-  let ref, schema =
-    make_schema ()
-      ~name:"HeatId"
-      ~typ:int
-      ~examples:[`Int 42]
-end
-
-(* Heat Id list *)
-module HeatIdList = struct
-  type t = {
-    phases : HeatId.t list;
-  } [@@deriving yojson]
-
-  let ref, schema =
-    make_schema ()
-      ~name:"HeatIdList"
-      ~typ:object_
-      ~properties:[
-        "heats", obj @@ S.make_schema ()
-          ~typ:array
-          ~items:(ref HeatId.ref);
-      ]
-      ~required:["heats"]
-end
-
-
-
 (* Dancers *)
 (* ************************************************************************* *)
 
@@ -1000,7 +966,7 @@ module Bib = struct
 
 end
 
-(* BibSingle list *)
+(* Bib list *)
 module BibList = struct
   type t = {
     bibs : Bib.t list;
@@ -1017,4 +983,163 @@ module BibList = struct
       ]
       ~required:["bibs"]
 
+end
+
+
+(* Heats *)
+(* ************************************************************************* *)
+
+(* Heat Id list *)
+
+
+module SinglesHeat = struct
+  type t = {
+    followers : SingleTarget.t list;
+    leaders : SingleTarget.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"SinglesHeat"
+      ~typ:object_
+      ~properties:[
+        "followers", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref SingleTarget.ref);
+        "leaders", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref SingleTarget.ref);
+      ]
+      ~required:["followers"; "leaders"]
+
+  let of_ftw (single_heat:Ftw.Heat.singles_heat) =
+    let to_target role (s:Ftw.Heat.single) = begin match s with
+      | {dancer; _} -> SingleTarget.{target_type="single";target=dancer;role=role}
+    end in
+    begin match single_heat with
+      | {leaders; followers; _} -> {
+          leaders=List.map (to_target Role.Leader) leaders;
+          followers=List.map (to_target Role.Follower) followers;
+        }
+    end
+end
+
+module SinglesHeatsArray = struct
+  type t = {
+    target_type : string;
+    heats : SinglesHeat.t array;
+  } [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"SinglesHeatsArray"
+      ~typ:object_
+      ~properties:[
+        "heats", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref SinglesHeat.ref);
+      ]
+      ~required:["heats"]
+
+  let of_ftw (c:Ftw.Heat.singles_heats) = match c with
+    | {singles_heats;_} -> {target_type="single";heats=Array.map SinglesHeat.of_ftw singles_heats}
+end
+
+
+module CouplesHeat = struct
+  type t = {
+    couples : CoupleTarget.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"CouplesHeat"
+      ~typ:object_
+      ~properties:[
+        "couples", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref CoupleTarget.ref);
+      ]
+      ~required:["couples"]
+
+  let of_ftw (couple_heat:Ftw.Heat.couples_heat) =
+    let to_target (s:Ftw.Heat.couple) = begin match s with
+      | {leader;follower; _} -> CoupleTarget.{target_type="couple";leader;follower}
+    end in
+    begin match couple_heat with
+      | {couples; _} -> {
+          couples=List.map to_target couples;
+        }
+    end
+end
+
+module CouplesHeatsArray = struct
+  type t = {
+    target_type : string;
+    heats : CouplesHeat.t array;
+  } [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"CouplesHeatsArray"
+      ~typ:object_
+      ~properties:[
+        "heats", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref CouplesHeat.ref);
+      ]
+      ~required:["heats"]
+
+  let of_ftw (c:Ftw.Heat.couples_heats) = match c with
+    | {couples_heats;_} -> {target_type="single";heats=Array.map CouplesHeat.of_ftw couples_heats}
+end
+
+(* Heats list *)
+module HeatsArray = struct
+  type t =
+    | HeatsSingle of {heats: SinglesHeatsArray.t}
+    | HeatsCouple of {target: SinglesHeatsArray.t}
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatsArray"
+      ~typ:object_
+      ~one_of:[
+        (ref SinglesHeatsArray.ref);
+        (ref CouplesHeatsArray.ref);
+      ]
+    (* todo implement interfaces *)
+end
+
+
+(* Heat Ids *)
+module HeatId = struct
+  type t = Ftw.Heat.target_id [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatId"
+      ~typ:int
+      ~examples:[`Int 42]
+end
+
+(* Heat Id list *)
+module HeatIdList = struct
+  type t = {
+    phases : HeatId.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatIdList"
+      ~typ:object_
+      ~properties:[
+        "heats", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref HeatId.ref);
+      ]
+      ~required:["heats"]
 end

@@ -7,11 +7,11 @@ import type {
     Phase,
     PhaseId
 } from '@hookgen/model';
-import { ArtefactFormElement } from '@routes/competition/ArtefactFormElement';
+import { ArtefactFormElement } from '~/routes/phase/ArtefactFormElement';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { Field } from '@routes/index/field';
-import { RankingAlgorithmFormElement } from '../competition/RankingAlgorithmFormElement';
+import { RankingAlgorithmFormElement } from './RankingAlgorithmFormElement';
 
 export function EditPhaseForm({ phase_id }: { phase_id: PhaseId }) {
 

@@ -17,15 +17,16 @@ function DancerCompetitionHistory() {
     /* todo regarder les résultats */
     const { data: competition_id_list, isLoading, isError, error } = useGetApiDancerIdCompetitionHistory(id_dancer_number);
 
-    if (isLoading) return null;
-    if (!competition_id_list) return null;
-
     const competitionDetailsQueries = useQueries({
         queries: competition_id_list.competitions.map((competitionId) => ({
             ...getGetApiCompIdQueryOptions(competitionId),
             enabled: true,
         })),
     });
+
+
+    if (isLoading) return null;
+    if (!competition_id_list) return null;
 
     const isDetailsLoading = competitionDetailsQueries.some((query) => query.isLoading);
     const isDetailsError = competitionDetailsQueries.some((query) => query.isError);
@@ -51,6 +52,7 @@ function DancerCompetitionHistory() {
                         <th>Nom de la compétition</th>
                         <th>Type</th>
                         <th>Catégorie</th>
+                        <th>Résultat</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -70,6 +72,7 @@ function DancerCompetitionHistory() {
                                 </td>
                                 <td>{competition.kind}</td>
                                 <td>{competition.category}</td>
+                                <td>TODO</td>
                             </tr>
                         );
                     })}

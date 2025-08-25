@@ -1,5 +1,3 @@
-import "~/styles/ContentStyle.css";
-
 import React from 'react';
 import { useGetApiCompId } from '@hookgen/competition/competition';
 
@@ -28,21 +26,27 @@ function PhasePage() {
 
     return (
         <>
-                <h1>Phase {phase?.round} {competition?.name}</h1>
+            <h1>Phase {phase?.round} {competition?.name}</h1>
 
 
-                <p>
-                    <Link to={`/competitions/${phase?.competition}`}>
-                        Competition {event?.name}
-                    </Link>
-                </p>
-                <p>
-                    <Link to={`/events/${competition?.event}`}>
-                        Evénement {event?.name}
-                    </Link>
-                </p>
-                <p>Catégorie : {competition?.category}</p>
-                <EditPhaseForm phase_id={id_phase_number} />
+            <p>
+                <Link to={`/competitions/${phase?.competition}`}>
+                    Competition {event?.name}
+                </Link>
+            </p>
+
+            <p>
+                <Link to={`/phases/${id_phase_number}/heats`}>
+                    Phase Heats
+                </Link>
+            </p>
+            <p>
+                <Link to={`/events/${competition?.event}`}>
+                    Evénement {event?.name}
+                </Link>
+            </p>
+            <p>Catégorie : {competition?.category}</p>
+            <EditPhaseForm phase_id={id_phase_number} />
 
         </>
     );
