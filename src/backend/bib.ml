@@ -63,10 +63,10 @@ let rec routes router =
     ]
   |> Router.patch "/api/comp/:id/bib" update_bib
     ~tags:["bib"; "competition"; "dancer"]
-    ~summary:"Add dancer to competition"
+    ~summary:"Update existing bib for a target"
     ~request_body:(
       Types.obj @@ Spec.make_request_body_object ()
-        ~description:"Update existing bib"
+        ~description:"New bib value"
         ~required:true
         ~content:[
           Spec.json,

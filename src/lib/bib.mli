@@ -33,6 +33,9 @@ val list_from_comp : st:State.t -> competition:Competition.id ->
 val get : st:State.t -> competition:Competition.id -> bib:t -> (any_target option, string) result
 (** Get the target of a bib, if it exists. *)
 
+val get_bib_from_target : st:State.t -> competition:t -> target:any_target -> (t option, string) result
+(** Get the bib of a target, if it exists. *)
+
 
 val insert_row :
   st:State.t -> competition:Competition.id ->

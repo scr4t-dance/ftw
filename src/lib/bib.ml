@@ -104,6 +104,38 @@ let get ~st ~competition ~bib =
   in
   bib_of_rows rows
 
+let get_bib_from_target ~st ~competition ~target =
+  let open Sqlite3_utils.Ty in
+  let rows = begin match target with
+    | Any Single { target=t; role; } ->
+      State.query_list_where ~st ~conv ~p:[int;int;int]
+        {| SELECT *
+        FROM bibs
+        WHERE 0=0
+        AND dancer_id = ?
+        AND role = ?
+        AND competition_id = ? |}
+        t (Role.to_int role) competition
+    | Any Couple { leader; follower; } ->
+      State.query_list_where ~st ~conv ~p:[int;int;int;int;int]
+      {| SELECT *
+        FROM bibs
+        WHERE 0=0
+        AND (
+          (dancer_id = ? AND role = ?)
+          OR
+          (dancer_id = ? AND role = ?)
+        )
+        AND competition_id = ? |}
+      leader (Role.to_int Role.Leader) follower (Role.to_int Role.Follower) competition
+  end
+  in
+  let bib_list = List.map (fun r -> r.bib) rows in
+  match bib_list with
+  | [] -> Ok None
+  | [x] -> Ok (Some x)
+  | _::_ -> Error "Inconsistent bibs numbers"
+
 let list_from_comp ~st ~competition =
   let update_aux acc (r : row) =
     let new_value = match Id.Map.find_opt r.bib acc with
@@ -159,21 +191,24 @@ let set ~st ~competition ~target ~bib =
 
 
 let update ~st ~competition ~target ~bib =
-  let existing_target = get ~st ~competition ~bib in
-  begin match existing_target with
-    | Ok Some _ ->
+  let existing_bib_result = get_bib_from_target ~st ~competition ~target in
+  let new_target = get ~st ~competition ~bib in
+  begin match existing_bib_result, new_target with
+    | Ok Some existing_bib, Ok None ->
       let open Sqlite3_utils.Ty in
-      State.insert ~st ~ty:[int;int]
-        {| DELETE FROM bibs
+      State.insert ~st ~ty:[int;int;int]
+        {| UPDATE bibs
+        SET bib = ?
         WHERE 0=0
         AND competition_id = ?
         AND bib = ?
         |}
-        competition bib
-    | Ok None -> raise Not_found
-    | Error e -> raise (Failure e)
-  end;
-  insert_target ~st ~competition ~target ~bib
+        bib competition existing_bib
+    | Ok None, _ -> raise Not_found
+    | Error e, _ -> raise (Failure e)
+    | _, Ok Some _ -> raise (Failure "new bib already in use")
+    | _, Error e -> raise (Failure e)
+  end
 
 let delete_bib ~st ~competition ~bib =
   let existing_target = get ~st ~competition ~bib in

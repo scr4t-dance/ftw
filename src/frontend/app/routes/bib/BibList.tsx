@@ -52,6 +52,204 @@ function convert_bib_to_single_target(bib: Bib): Bib[] {
 
 }
 
+function dancerArrayFromTarget(t: Target): DancerId[] {
+    return t.target_type === "single"
+        ? [t.target]
+        : [t.follower, t.leader]
+}
+
+
+function DancerCell({ id_dancer }: { id_dancer: DancerId }) {
+
+    const { data: dancer } = useGetApiDancerId(id_dancer);
+
+    if (!dancer) return "Loading dancer..."
+
+    return (
+        <p>
+            <Link to={`/${dancerLink}${id_dancer}`}>
+                {dancer.last_name} {dancer.first_name}
+            </Link>
+        </p>
+    )
+}
+
+type BibRowReadOnlyProps = {
+    bib_object: Bib;
+    onEdit: () => void;
+    onDelete: () => void
+};
+
+function BibRowReadOnly({ bib_object, onEdit, onDelete }: BibRowReadOnlyProps) {
+
+    const dancer_list = dancerArrayFromTarget(bib_object.target);
+    return (
+        <>
+            <td>
+                {bib_object.target.target_type}
+            </td>
+            <td>{bib_object.bib}</td>
+
+            <td>{bib_object.target.target_type === "single" ?
+                bib_object.target.role :
+                <> {RoleItem.Follower}
+                    <br /> {RoleItem.Leader}
+                </>
+            }</td>
+            <td>
+                {dancer_list && dancer_list.map((i) => (
+                    <DancerCell id_dancer={i} />
+                ))
+                }
+            </td>
+            <td>
+                <button type="button" onClick={() => onEdit()}>
+                    Edition
+                </button>
+                <button type="button" onClick={() => onDelete()}>
+                    Delete
+                </button>
+            </td>
+        </>
+
+    );
+}
+
+type BibRowEditableProps = {
+    formObject: UseFormReturn<Bib, any, Bib>;
+    onUpdate: () => void;
+    onCancel: () => void;
+};
+
+function BibRowEditable({ formObject, onUpdate, onCancel }: BibRowEditableProps) {
+    const {
+        register,
+        formState: { errors },
+        watch
+    } = formObject;
+
+    const targetType = watch("target.target_type");
+
+    return (
+        <>
+            <td>
+                {targetType}
+            </td>
+
+            <td>
+                <Field label="" error={errors.bib?.message}>
+                    <input type="number" {...register("bib", {
+                        valueAsNumber: true,
+                        required: true,
+                        min: {
+                            value: 0,
+                            message: "Le numéro de dossard doit être un entier positif.",
+                        },
+                    })}
+                    />
+                </Field>
+            </td>
+
+            {targetType === "single" && (
+                <>
+                    <td><DancerCell id_dancer={formObject.getValues("target.target")} /></td>
+                    <td>{formObject.getValues("target.role")?.join(", ")}</td>
+                </>
+            )}
+
+            {targetType === "couple" && (
+                <>
+                    <td><DancerCell id_dancer={formObject.getValues("target.follower")} /></td>
+                    <td><DancerCell id_dancer={formObject.getValues("target.leader")} /></td>
+                </>
+            )}
+            <td>
+                <button type="button" onClick={() => onUpdate()}>Màj</button>
+                <button type="button" onClick={() => onCancel()} >Annuler</button>
+            </td>
+        </>
+    );
+}
+
+function EditableBibDetails({ bib_object, index }: { bib_object: Bib, index: number }) {
+
+
+    const [isEditing, setIsEditing] = useState(false);
+
+    const formObject = useForm<Bib>({
+        defaultValues: bib_object
+    });
+
+    const {
+        handleSubmit,
+        reset,
+        setError,
+    } = formObject;
+
+    const queryClient = useQueryClient();
+
+    const { mutate: updateBib } = usePatchApiCompIdBib({
+        mutation: {
+            onSuccess: (_, variables) => {
+                queryClient.invalidateQueries({
+                    queryKey: getGetApiCompIdBibsQueryKey(bib_object.competition),
+                });
+                reset(variables.data);
+                setIsEditing(false);
+            },
+            onError: (err) => {
+                console.error('Error updating competition:', err);
+                setError("root.serverError", { message: 'Erreur lors de l’ajout de la compétition.' });
+            }
+        }
+    });
+
+    const { mutate: deleteBib } = useDeleteApiCompIdBib({
+        mutation: {
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: getGetApiCompIdBibsQueryKey(bib_object.competition),
+                });
+            },
+        }
+    });
+
+    const handleUpdate = handleSubmit((data) => {
+        updateBib({ id: bib_object.competition, data });
+    });
+
+    const handleCancel = () => {
+        reset();
+        setIsEditing(false);
+    };
+
+    useEffect(() => {
+        reset(bib_object);
+    }, [bib_object, reset]);
+
+    return (
+        <tr key={`${bib_object.competition}-${bib_object.bib}`}
+            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+
+            {isEditing ? (
+                <BibRowEditable
+                    formObject={formObject}
+                    onUpdate={handleUpdate}
+                    onCancel={handleCancel}
+                />
+            ) : (
+                <BibRowReadOnly
+                    bib_object={bib_object}
+                    onEdit={() => setIsEditing(true)}
+                    onDelete={() => deleteBib({ id: bib_object.competition, data: bib_object })}
+                />
+            )
+            }
+        </tr >
+
+    );
+}
+
 export function BareBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
 
     return (
@@ -76,228 +274,6 @@ export function BareBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
     );
 }
 
-function BibDetails({ bib_object, index }: { bib_object: Bib, index: number }) {
-
-    const single_target = bib_object.target as SingleTarget;
-    const id = single_target.target as number;
-    const { data, isLoading } = useGetApiDancerId(id);
-    const queryClient = useQueryClient();
-
-    const { mutate: deleteBib } = useDeleteApiCompIdBib({
-        mutation: {
-            onSuccess: () => {
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiCompIdBibsQueryKey(bib_object.competition),
-                });
-            },
-        }
-    });
-
-    if (isLoading) return <div>Chargement...</div>;
-    if (!data) return null;
-
-    const dancer = data as Dancer;
-    return (
-        <tr key={index}
-            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
-            <td>
-                <Link to={`/${dancerLink}${single_target.target}`}>
-                    {dancer.last_name}
-                </Link>
-            </td>
-            <td>
-                <Link to={`/${dancerLink}${id}`}>
-                    {dancer.first_name}
-                </Link>
-            </td>
-            <td>{bib_object.bib}</td>
-            <td>{single_target.role}</td>
-            <td>
-                <button
-                    type="submit"
-                    onClick={() => deleteBib({ id: bib_object.competition, data: bib_object })}
-
-                >
-                    Delete
-                </button>
-            </td>
-        </tr>
-
-    );
-}
-
-function DancerCell({ id_dancer }: { id_dancer: DancerId }) {
-
-    const { data: dancer } = useGetApiDancerId(id_dancer);
-
-    if (!dancer) return "Loading dancer..."
-
-    return (
-        <p>
-            <Link to={`/${dancerLink}${id_dancer}`}>
-                {dancer.last_name} {dancer.first_name}
-            </Link>
-        </p>
-    )
-}
-
-function EditableBibDetails({ bib_object, index }: { bib_object: Bib, index: number }) {
-
-
-    const [isEditing, setIsEditing] = useState(false);
-
-    const formObject = useForm<Bib>({
-        defaultValues: bib_object
-    });
-
-    const {
-        register,
-        handleSubmit,
-        watch,
-        reset,
-        setError,
-        formState: { errors },
-    } = formObject;
-    const queryClient = useQueryClient();
-    // Using the Orval hook to handle the PUT request
-    const { mutate: updateBib, isSuccess } = usePatchApiCompIdBib({
-        mutation: {
-            onSuccess: () => {
-                console.log("UpdateBibForm cache", queryClient.getQueryCache().getAll().map(q => q.queryKey));
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiCompIdBibsQueryKey(bib_object.competition),
-                });
-            },
-            onError: (err) => {
-                console.error('Error updating competition:', err);
-                setError("root.serverError", { message: 'Erreur lors de l’ajout de la compétition.' });
-            }
-        }
-    });
-
-    const { mutate: deleteBib } = useDeleteApiCompIdBib({
-        mutation: {
-            onSuccess: () => {
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiCompIdBibsQueryKey(bib_object.competition),
-                });
-            },
-        }
-    });
-
-    const targetType = watch("target.target_type");
-
-    const dancer_list = bib_object.target.target_type === "single"
-        ? [bib_object.target.target]
-        : [bib_object.target.follower, bib_object.target.leader];
-
-    const default_single_target: SingleTarget = bib_object.target.target_type === "single"
-        ? bib_object.target
-        : { target_type: "single", target: bib_object.target.follower, role: [RoleItem.Follower] };
-    const default_couple_target: CoupleTarget = bib_object.target.target_type === "couple"
-        ? bib_object.target
-        : { target_type: "couple", follower: bib_object.target.target, leader: bib_object.target.target };
-
-    console.log(dancer_list);
-
-    const onSubmit: SubmitHandler<Bib> = (data) => {
-        console.log("update bib in table", data);
-        updateBib({ id: bib_object.competition, data: data });
-    };
-
-    useEffect(() => {
-        // Reset the entire 'target' field when 'target.target_type' changes
-        reset((prevValues: Bib) => ({
-            ...prevValues,
-            target: (targetType === "single" ? default_single_target : default_couple_target)
-        }));
-    }, [targetType, reset]);
-
-    return (
-        <tr key={index}
-            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
-
-            {isEditing ? (
-                <>
-                    <td>
-                        <Field label="" error={errors.target?.target_type?.message}>
-                            <select {...register("target.target_type")}>
-                                <option value="single">Single</option>
-                                <option value="couple">Couple</option>
-                            </select>
-                        </Field>
-                    </td>
-
-                    <td>
-                        <Field label="" error={errors.bib?.message}>
-                            <input type="number" {...register("bib", {
-                                valueAsNumber: true,
-                                required: true,
-                                min: {
-                                    value: 0,
-                                    message: "Le numéro de dossard doit être un entier positif.",
-                                },
-                            })}
-                            />
-                        </Field>
-                    </td>
-
-                    {targetType === "single" && (
-                        <>
-                            <td>
-                                <SingleDancerField formObject={formObject as UseFormReturn<SingleBib, any, SingleBib>} />
-                            </td>
-                            <td>
-                                <RoleField formObject={formObject as UseFormReturn<SingleBib, any, SingleBib>} />
-                            </td>
-                        </>
-                    )}
-
-                    {targetType === "couple" && (
-                        <CoupleTargetForm formObject={formObject as UseFormReturn<CoupleBib, any, CoupleBib>} />
-                    )}
-                    <td>
-                        <button type="button" onClick={() => { handleSubmit(onSubmit)(); setIsEditing(false) }}>Màj</button>
-                        <button type="button" onClick={() => { reset(); setIsEditing(false) }} >Annuler</button>
-                    </td>
-                </>
-            ) : (
-
-                <>
-                    <td>
-                        {bib_object.target.target_type}
-                    </td>
-                    <td>{bib_object.bib}</td>
-
-                    <td>{bib_object.target.target_type === "single" ?
-                        bib_object.target.role :
-                        <> {RoleItem.Follower}
-                            <br /> {RoleItem.Leader}
-                        </>
-                    }</td>
-                    <td>
-                        {dancer_list && dancer_list.map((i) => (
-                            <DancerCell id_dancer={i} />
-                        ))
-                        }
-                    </td>
-                    <td>
-                        <button type="button" onClick={() => setIsEditing(true)} >Edition</button>
-                        <button
-                            type="button"
-                            onClick={() => deleteBib({ id: bib_object.competition, data: bib_object })}
-                        >
-                            Delete
-                        </button>
-                    </td>
-
-                </>
-            )
-            }
-        </tr >
-
-    );
-}
 
 function BibListComponent({ id_competition }: { id_competition: CompetitionId }) {
 
