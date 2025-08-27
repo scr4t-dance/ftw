@@ -57,7 +57,7 @@ function RulesV2() {
             <div className="nb">
                 <b>NB : </b>l'organisation de quarts de finale peut être demandée au SCR4T si le nombre de participants dans une division le justifie.
             </div>
-            <p>Le tableau ci-dessous indique le nombre minimal de danseur•euses passant à l'étape suivante de la compétition en fonction du nombre de danseur-euses du rôle majoritaire :</p>
+            <p>Le tableau ci-dessous indique le nombre minimal de danseur•euses passant à l'étape suivante de la compétition en fonction du nombre de danseur•euses du rôle majoritaire :</p>
             <table>
                 <thead>
                     <tr>
