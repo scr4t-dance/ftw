@@ -227,6 +227,10 @@ table th {
     border-bottom: solid 3px;
 }
 
+table th.th-division-width {
+    width: 20%;
+}
+
 .even-row {
     background-color: #f1f5f7;
 }

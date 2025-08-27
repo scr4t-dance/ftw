@@ -110,7 +110,7 @@ function RulesV1() {
             <table>
                 <thead>
                     <tr>
-                        <th>Division</th>
+                        <th className="th-division-width">Division</th>
                         <th>Points de cette division donnant le choix entre la division actuelle et la division suivante</th>
                         <th>Points de cette division obligeant à participer dans la division suivante</th>
                     </tr>
