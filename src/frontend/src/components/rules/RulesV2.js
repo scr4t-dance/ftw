@@ -238,7 +238,7 @@ function RulesV2() {
                         <td>1</td>
                     </tr>
                     <tr className="odd-row">
-                        <td>Tier 6 : &lt; 65 p.</td>
+                        <td>Tier 6 : &gt; 65 p.</td>
                         <td>16</td>
                         <td>14</td>
                         <td>12</td>
