@@ -7,7 +7,11 @@ import { useEffect, useRef, useState } from "react";
 
 function FAQ() {
     
-    // TEMPORAIRE
+    /*  !!! IMPORTANT !!!
+        La solution actuellement utilisée pour mettre en forme les réponses aux questions est d'utiliser dangerouslySetInnerHTML. 
+        Nous avons estimé cette solution safe tant que la source des input est strictement contrôlée. 
+        Dans le cas où cette source serait, par exemple, migrée sur une BDD accessible via une API, il serait alors nécessaire de ne plus utiliser dangerouslySetInnerHTML pour des raisons de sécurité. 
+    */
     const faqDataComp = [
         {
             id:1,
