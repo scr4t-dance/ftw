@@ -220,8 +220,8 @@ function FAQ() {
                     ))}
                 </div>
 
-                <br/>
-                <p>D'autres questions ? Envoyez-nous un mail à <a href="mailto:scr4t.danse@gmail.com">scr4t.danse@gmail.com</a></p>
+                <br/><br/>
+                <span>D'autres questions ? Envoyez-nous un mail à <a href="mailto:scr4t.danse@gmail.com">scr4t.danse@gmail.com</a></span>
                 
             </div>
             <Footer />
