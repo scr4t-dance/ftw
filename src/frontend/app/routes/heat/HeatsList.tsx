@@ -97,7 +97,7 @@ export default function HeatsList() {
                     <h1>Heat {heat}</h1>
                     <p>Followers</p>
                     <BareBibListComponent bib_list={get_bibs(v.followers.flatMap(u => iter_target_dancers(u)))} ></BareBibListComponent>
-                    <p>Followers</p>
+                    <p>Leaders</p>
                     <BareBibListComponent bib_list={get_bibs(v.leaders.flatMap(u => iter_target_dancers(u)))} ></BareBibListComponent>
                 </>
             ))}

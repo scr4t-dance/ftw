@@ -152,7 +152,8 @@ and promote =
   Api.put
     ~of_yojson:Types.PhaseId.of_yojson
     ~to_yojson:Types.PhaseId.to_yojson
-    (fun req _st _d ->
+    (fun req st _d ->
        let+ id = Utils.int_param req "id" in
+        Ftw.Heat.simple_promote st ~phase:id;
        Ok id
     )

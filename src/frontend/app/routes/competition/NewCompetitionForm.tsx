@@ -48,7 +48,7 @@ function NewCompetitionForm({ id_event }: { id_event: EventId }) {
     if (isLoading) return <p>Chargement des événements...</p>;
     if (error) return <p>Erreur: {(error as any).message}</p>;
 
-    const event_list = (dataEventList as EventIdList).events;
+    const event_list = dataEventList?.events;
 
     const onSubmit = (data: Competition) => {
         if (!data.kind?.length || !data.category?.length) {

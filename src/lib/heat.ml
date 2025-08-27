@@ -4,6 +4,8 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
+let src = Logs.Src.create "ftw.heat"
+
 (* TODO: find a decent/better name for an occurrence of a dancer in a heat *)
 type target_id = Id.t [@@deriving yojson]
 type passage_kind =
@@ -205,12 +207,12 @@ let get_couples ~st ~phase =
 
 let simple_init st ~(phase:Id.t) =
   let open Sqlite3_utils.Ty in
-      State.insert ~st ~ty:[int]
-        {| DELETE FROM heats
+  State.insert ~st ~ty:[int]
+    {| DELETE FROM heats
         WHERE 0=0
         AND phase_id = ?
         |}
-        phase;
+    phase;
   let open Sqlite3_utils.Ty in
   State.insert ~st ~ty:[int;]
     {| insert into heats (phase_id, heat_number, leader_id, follower_id)
@@ -234,3 +236,36 @@ let simple_init st ~(phase:Id.t) =
           AND phases.competition_id = target.competition_id
           |}
     phase
+
+
+let simple_promote st ~(phase:Id.t) =
+  let phase_data = Phase.get st phase in
+  let competition_id = Phase.competition phase_data in
+  let phase_list = List.sort
+      (fun k k' -> Round.compare (Phase.round k) (Phase.round k'))
+      (Phase.find st competition_id) in
+  let order_phase_list = List.filter
+      (fun k -> 1 = Round.compare (Phase.round k) (Phase.round phase_data))
+      phase_list in
+  let new_phase = List.hd order_phase_list in
+  Logs.err ~src (fun k->k "next phase %a" Round.print (Phase.round new_phase));
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[int]
+    {| DELETE FROM heats
+        WHERE 0=0
+        AND phase_id = ?
+        |}
+    (Phase.id new_phase);
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[int;int]
+    {| insert into heats (phase_id, heat_number, leader_id, follower_id)
+          select ? as phase_id
+            , 0 as heat_number
+            , leader_id
+            , follower_id
+          FROM heats
+
+          where 0=0
+          AND heats.phase_id = ?
+          |}
+    (Phase.id new_phase) phase

@@ -3,7 +3,7 @@
   (public_name      ftw)
 
   ; ppxs
-  (preprocess (pps ppx_deriving_yojson ppx_deriving.enum))
+  (preprocess (pps ppx_deriving_yojson ppx_deriving.enum ppx_deriving.ord))
 
   ; deps
   (libraries

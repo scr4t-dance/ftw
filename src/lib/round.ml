@@ -10,6 +10,7 @@ type t =
   | Quarterfinals
   | Semifinals
   | Finals
+  [@@deriving ord]
 
 (* Serialization *)
 (* ************************************************************************* *)
@@ -61,9 +62,6 @@ let () =
 let print fmt t =
   Format.fprintf fmt "%s" (to_string t)
 
-let compare k k' =
-  Stdlib.compare (to_int k) (to_int k')
-
 let equal k k' = compare k k' = 0
 
 module Aux = struct
@@ -73,4 +71,3 @@ end
 
 module Set = Set.Make(Aux)
 module Map = Map.Make(Aux)
-
