@@ -10,6 +10,352 @@
     "version": "1.0.1"
   },
   "paths": {
+    "/api/phase/{id}/judges": {
+      "get": {
+        "tags": [ "judge", "phase", "dancer" ],
+        "summary": "Get the list of judges of a Phase",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the phase to consult",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Panel" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [ "judge", "phase", "dancer" ],
+        "summary": "Add judge to a phase",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "DancerId to add",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Panel" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/artefact": {
+      "delete": {
+        "tags": [ "artefact", "heat", "judge", "phase" ],
+        "summary": "Delete artefact for a given heat target and judge",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          },
+          {
+            "name": "bib",
+            "in": "query",
+            "description": "Bib to delete",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/Bib" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HeatTargetJudge" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Heat, Target or Judge not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/artefact/judge/{id_judge}": {
+      "get": {
+        "tags": [ "artefact", "heat", "judge", "phase" ],
+        "summary": "Get the artefact for a given heat target and judge",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          },
+          {
+            "name": "id_judge",
+            "in": "path",
+            "description": "Id of the Judge",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/DancerId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeatTargetJudgeArtefactArray"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Heat, Target or Judge not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [ "artefact", "heat", "judge", "phase" ],
+        "summary": "Add dancer to competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          },
+          {
+            "name": "id_judge",
+            "in": "path",
+            "description": "Id of the Judge",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/DancerId" }
+          }
+        ],
+        "requestBody": {
+          "description": "create bib",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HeatTargetJudgeArtefactArray"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HeatTargetJudge" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Heat, Target or Judge not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/artefact/set": {
+      "put": {
+        "tags": [ "artefact", "heat", "judge", "phase" ],
+        "summary": "Add dancer to competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "create bib",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HeatTargetJudgeArtefact"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HeatTargetJudge" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Heat, Target or Judge not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/artefact/get": {
+      "get": {
+        "tags": [ "artefact", "heat", "judge", "phase" ],
+        "summary": "Get the artefact for a given heat target and judge",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          },
+          {
+            "name": "htj",
+            "in": "query",
+            "description": "Heat Target Judge object",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/HeatTargetJudge" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeatTargetJudgeArtefact"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Heat, Target or Judge not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/phase/{id}/promote": {
       "put": {
         "tags": [ "heat", "phase" ],
@@ -93,6 +439,47 @@
           },
           "400": {
             "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/heats": {
+      "get": {
+        "tags": [ "heat", "phase", "competition" ],
+        "summary": "Get the heats of a competition (couples)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HeatsArray" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/Error" }
@@ -295,7 +682,7 @@
       },
       "patch": {
         "tags": [ "bib", "competition", "dancer" ],
-        "summary": "Add dancer to competition",
+        "summary": "Update existing bib for a target",
         "parameters": [
           {
             "name": "id",
@@ -306,7 +693,7 @@
           }
         ],
         "requestBody": {
-          "description": "Update existing bib",
+          "description": "New bib value",
           "content": {
             "application/json": {
               "schema": { "$ref": "#/components/schemas/Bib" }
@@ -1165,7 +1552,7 @@
           { "$ref": "#/components/schemas/ArtefactDescriptionRanking" }
         ]
       },
-      "PhaseId": { "examples": [ 42 ], "type": "integer" },
+      "PhaseId": { "type": "integer" },
       "PhaseIdList": {
         "type": "object",
         "properties": {
@@ -1211,9 +1598,9 @@
         "type": "object",
         "properties": {
           "birthday": { "$ref": "#/components/schemas/Date" },
-          "last_name": { "examples": [ "Bury" ], "type": "string" },
-          "first_name": { "examples": [ "Guillaume" ], "type": "string" },
-          "email": { "examples": [ "email@email.email" ], "type": "string" },
+          "last_name": { "type": "string" },
+          "first_name": { "type": "string" },
+          "email": { "type": "string" },
           "as_leader": { "$ref": "#/components/schemas/Divisions" },
           "as_follower": { "$ref": "#/components/schemas/Divisions" }
         },
@@ -1314,7 +1701,7 @@
           { "$ref": "#/components/schemas/CouplesHeatsArray" }
         ]
       },
-      "HeatId": { "examples": [ 42 ], "type": "integer" },
+      "HeatId": { "type": "integer" },
       "HeatIdList": {
         "type": "object",
         "properties": {
@@ -1324,6 +1711,103 @@
           }
         },
         "required": [ "heats" ]
+      },
+      "Yan": {
+        "description": " Yan value ",
+        "type": "string",
+        "enum": [ "Yes", "Alt", "No" ]
+      },
+      "ArtefactYans": {
+        "description": " Yes/Alt/No judging artefact ",
+        "type": "object",
+        "properties": {
+          "artefact": { "type": "string", "enum": [ "yan" ] },
+          "artefact_data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Yan" }
+          }
+        },
+        "required": [ "artefact", "artefact_data" ]
+      },
+      "ArtefactRank": {
+        "description": " Rank of a dancer or couple ",
+        "type": "object",
+        "properties": {
+          "artefact": { "type": "string", "enum": [ "ranking" ] },
+          "artefact_data": { "type": "integer" }
+        },
+        "required": [ "artefact", "artefact_data" ]
+      },
+      "Artefact": {
+        "type": "object",
+        "required": [ "artefact", "artefact_data" ],
+        "oneOf": [
+          { "$ref": "#/components/schemas/ArtefactYans" },
+          { "$ref": "#/components/schemas/ArtefactRank" }
+        ]
+      },
+      "HeatTargetJudge": {
+        "type": "object",
+        "properties": {
+          "phase_id": { "$ref": "#/components/schemas/PhaseId" },
+          "heat_number": { "type": "integer" },
+          "target": { "$ref": "#/components/schemas/Target" },
+          "judge": { "$ref": "#/components/schemas/DancerId" },
+          "description": {
+            "$ref": "#/components/schemas/ArtefactDescription"
+          }
+        },
+        "required": [
+          "phase_id", "heat_number", "target", "judge", "description"
+        ]
+      },
+      "HeatTargetJudgeArtefact": {
+        "type": "object",
+        "properties": {
+          "heat_target_judge": {
+            "$ref": "#/components/schemas/HeatTargetJudge"
+          },
+          "artefact": { "$ref": "#/components/schemas/Artefact" }
+        },
+        "required": [ "heat_target_judge" ]
+      },
+      "HeatTargetJudgeArtefactArray": {
+        "type": "object",
+        "properties": {
+          "artefacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HeatTargetJudgeArtefact"
+            }
+          }
+        },
+        "required": [ "artefacts" ]
+      },
+      "SinglePanel": {
+        "type": "object",
+        "properties": {
+          "panel_type": { "type": "string", "enum": [ "single" ] },
+          "leaders": { "$ref": "#/components/schemas/DancerIdList" },
+          "followers": { "$ref": "#/components/schemas/DancerIdList" },
+          "head": { "$ref": "#/components/schemas/DancerId" }
+        },
+        "required": [ "panel_type", "leaders", "followers" ]
+      },
+      "CouplePanel": {
+        "type": "object",
+        "properties": {
+          "panel_type": { "type": "string", "enum": [ "couple" ] },
+          "couples": { "$ref": "#/components/schemas/DancerIdList" },
+          "head": { "$ref": "#/components/schemas/DancerId" }
+        },
+        "required": [ "panel_type", "couples" ]
+      },
+      "Panel": {
+        "type": "object",
+        "oneOf": [
+          { "$ref": "#/components/schemas/SinglePanel" },
+          { "$ref": "#/components/schemas/CouplePanel" }
+        ]
       }
     }
   }

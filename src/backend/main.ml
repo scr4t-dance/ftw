@@ -38,6 +38,8 @@ let router () =
   |> Dancer.routes
   |> Bib.routes
   |> Heat.routes
+  |> Artefact.routes
+  |> Judge.routes
 
 let server (options : Options.server) =
   (* Default routes to serve the clients files (pages, scripts and css) *)

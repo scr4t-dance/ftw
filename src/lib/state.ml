@@ -14,13 +14,24 @@ type t = Sqlite3.db
 let initializers = ref []
 
 let mk path =
+  Printexc.record_backtrace true;
   let st = Sqlite3.db_open path in
   Logs.debug ~src (fun k->k "Starting DB initialization");
   List.iter (fun (name, f)->
       try f st
-      with exn ->
-        Logs.err ~src (fun k->k "Failed initialization for %s" name);
-        raise exn
+      with
+      | Sqlite3.Error msg as exn ->
+          let bt = Printexc.get_backtrace () in
+          Logs.err ~src (fun k ->
+              k "SQLite error during initialization for %s: %s\nBacktrace:\n%s"
+                name msg bt);
+          raise exn
+      | exn ->
+          let bt = Printexc.get_backtrace () in
+          Logs.err ~src (fun k ->
+              k "Failed initialization for %s: %s\nBacktrace:\n%s"
+                name (Printexc.to_string exn) bt);
+          raise exn
     ) (List.rev !initializers);
   Logs.debug ~src (fun k->k "Finished initialization of DB");
   st

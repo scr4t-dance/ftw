@@ -1,23 +1,16 @@
-import "~/styles/ContentStyle.css";
-
 import React, { useEffect, useState } from 'react';
-import { Link } from "react-router";
+import { Link, useParams } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-
-import PageTitle from "@routes/index/PageTitle";
-import Header from "@routes/header/header";
-import Footer from "@routes/footer/footer";
 
 import { useGetApiDancerId } from '@hookgen/dancer/dancer';
 import {
-    type Bib, type BibList, type CompetitionId, type CoupleTarget, type Dancer, type DancerId, RoleItem, type SingleTarget, type Target
+    type Bib, type CoupleTarget, type DancerId, type PhaseId, RoleItem, type SingleTarget, type Target
 } from "@hookgen/model";
 
-import { useGetApiCompIdBibs, useDeleteApiCompIdBib, getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib } from "@hookgen/bib/bib";
-import { useForm, type SubmitHandler, type UseFormReturn } from "react-hook-form";
-import { Field } from "../index/field";
-import { RoleField, SingleDancerField, type SingleBib } from "./SingleTargetForm";
-import { CoupleTargetForm, type CoupleBib } from "./CoupleTargetForm";
+import { useDeleteApiCompIdBib, getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib } from "@hookgen/bib/bib";
+import { useForm, type UseFormReturn } from "react-hook-form";
+import { Field } from "@routes/index/field";
+import { useGetApiPhaseIdJudges } from "~/hookgen/judge/judge";
 
 
 const dancerLink = "dancers/"
@@ -275,45 +268,64 @@ export function BareBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
 }
 
 
-function BibListComponent({ id_competition }: { id_competition: CompetitionId }) {
+function JudgeListComponent({ phase_id }: { phase_id: PhaseId }) {
 
-    console.log("BibListComponent", id_competition);
-    const { data, isLoading, error } = useGetApiCompIdBibs(id_competition);
+    const { data, isSuccess, error } = useGetApiPhaseIdJudges(phase_id);
 
-    const bib_list = data as BibList;
-
-    if (isLoading) return <div>Chargement des compétiteur-euses...</div>;
+    if (!isSuccess) return <div>Chargement des Juges...</div>;
     if (error) return <div>Erreur: {(error as any).message}</div>;
 
     return (
         <>
-            {bib_list &&
+            <p>Head judge</p>
+            {data.head && (
+                <DancerCell id_dancer={data.head} />
+            )}
+            {data && data.panel_type === "single" && (
                 <>
-                    <BareBibListComponent bib_list={bib_list.bibs} />
+                    <p>Followers</p>
+                    <ul>
+                        {data.followers && data.followers.dancers.map((judge) => (
+                            <li>
+                                <DancerCell id_dancer={judge} />
+                            </li>
+                        ))}
+                    </ul>
+                    <p>Leaders</p>
+                    <ul>
+                        {data.leaders && data.leaders.dancers.map((judge) => (
+                            <li>
+                                <DancerCell id_dancer={judge} />
+                            </li>
+                        ))}
+                    </ul>
                 </>
-            }
+            )}
+
+            {data && data.panel_type === "couple" && (
+                <>
+                    <p>Couples</p>
+                    <ul>
+                        {data.couples && data.couples.dancers.map((judge) => (
+                            <li>
+                                <DancerCell id_dancer={judge} />
+                            </li>
+                        ))}
+                    </ul>
+                </>
+            )}
         </>
     );
 }
 
-function BibList() {
+export default function JudgeList() {
+
+    let { id_phase } = useParams();
+    let id_phase_number = Number(id_phase) as PhaseId;
 
     return (
         <>
-            <PageTitle title="Événements" />
-            <Header />
-            <div className="content-container">
-
-                <Link to={`/${dancerLink}new`}>
-                    Créer un-e nouvel-le compétiteur-euse
-                </Link>
-                <p>Attention, lien unique vers la compétition 1</p>
-                <BibListComponent id_competition={1} />
-            </div>
-
-            <Footer />
+            <JudgeListComponent phase_id={id_phase_number} />
         </>
     );
-}
-
-export default BibList;
+};

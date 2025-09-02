@@ -639,8 +639,8 @@ end
 
 module ArtefactDescription = struct
   type t =
-    | YanArtefact of {artefact: ArtefactDescriptionYans.t}
-    | RankingArtefact of {artefact: ArtefactDescriptionRanking.t}
+    | YanArtefact of {description: ArtefactDescriptionYans.t}
+    | RankingArtefact of {description: ArtefactDescriptionRanking.t}
   [@@deriving yojson]
 
   let ref, schema =
@@ -655,18 +655,18 @@ module ArtefactDescription = struct
 
   let of_ftw s =
     match s with
-    | Ftw.Artefact.Descr.Yans {criterion;} -> YanArtefact {artefact={artefact="yan";artefact_data=criterion}}
-    | Ftw.Artefact.Descr.Ranking -> RankingArtefact {artefact={artefact="ranking";artefact_data=()}}
+    | Ftw.Artefact.Descr.Yans {criterion;} -> YanArtefact {description={artefact="yan";artefact_data=criterion}}
+    | Ftw.Artefact.Descr.Ranking -> RankingArtefact {description={artefact="ranking";artefact_data=()}}
 
   let to_ftw s =
     match s with
-    | YanArtefact {artefact={artefact_data; _}} -> Ftw.Artefact.Descr.Yans {criterion=artefact_data;}
-    | RankingArtefact {artefact=_} -> Ftw.Artefact.Descr.Ranking
+    | YanArtefact {description={artefact_data; _}} -> Ftw.Artefact.Descr.Yans {criterion=artefact_data;}
+    | RankingArtefact {description=_} -> Ftw.Artefact.Descr.Ranking
 
 
   let to_yojson target =
     match target with
-    | YanArtefact {artefact=t} ->
+    | YanArtefact {description=t} ->
       let schema_fields =
         begin match ArtefactDescriptionYans.to_yojson t with
           | `Assoc fields -> fields
@@ -674,7 +674,7 @@ module ArtefactDescription = struct
         end
       in
       `Assoc schema_fields
-    | RankingArtefact {artefact=t} ->
+    | RankingArtefact {description=t} ->
       let schema_fields =
         begin match ArtefactDescriptionRanking.to_yojson t with
           | `Assoc fields -> fields
@@ -687,8 +687,8 @@ module ArtefactDescription = struct
     match json with
     | `Assoc fields -> (
         match List.assoc_opt "artefact" fields with
-        | Some (`String "yan") -> ArtefactDescriptionYans.of_yojson json |> Result.map (fun s -> YanArtefact {artefact=s})
-        | Some (`String "ranking") -> ArtefactDescriptionRanking.of_yojson json |> Result.map (fun s -> RankingArtefact {artefact=s})
+        | Some (`String "yan") -> ArtefactDescriptionYans.of_yojson json |> Result.map (fun s -> YanArtefact {description=s})
+        | Some (`String "ranking") -> ArtefactDescriptionRanking.of_yojson json |> Result.map (fun s -> RankingArtefact {description=s})
         | Some (`String unknown) -> Error ("Unrecognised artefact: " ^ unknown)
         | Some _  -> Error ("Unrecognised artefact")
         | None -> Error "Missing key: artefact"
@@ -708,7 +708,7 @@ module PhaseId = struct
     make_schema ()
       ~name:"PhaseId"
       ~typ:int
-      ~examples:[`Int 42]
+      (* ~examples:[`Int 42] *)
 end
 
 (* Phase Id list *)
@@ -812,19 +812,19 @@ module Dancer = struct
         "birthday", ref Date.ref;
         "last_name", obj @@ S.make_schema ()
           ~typ:string
-          ~examples:[
-            `String "Bury";
-          ];
+        (* ~examples:[
+           `String "Bury";
+           ] *);
         "first_name", obj @@ S.make_schema ()
           ~typ:string
-          ~examples:[
-            `String "Guillaume";
-          ];
+        (* ~examples:[
+           `String "Guillaume";
+           ] *);
         "email", obj @@ S.make_schema ()
           ~typ:string
-          ~examples:[
-            `String "email@email.email";
-          ];
+        (* ~examples:[
+           `String "email@email.email";
+           ] *);
         "as_leader", ref Divisions.ref;
         "as_follower", ref Divisions.ref;
       ]
@@ -1093,14 +1093,14 @@ module CouplesHeatsArray = struct
       ~required:["heats"]
 
   let of_ftw (c:Ftw.Heat.couples_heats) = match c with
-    | {couples_heats;_} -> {target_type="single";heats=Array.map CouplesHeat.of_ftw couples_heats}
+    | {couples_heats;_} -> {target_type="couple";heats=Array.map CouplesHeat.of_ftw couples_heats}
 end
 
 (* Heats list *)
 module HeatsArray = struct
   type t =
     | HeatsSingle of {heats: SinglesHeatsArray.t}
-    | HeatsCouple of {target: SinglesHeatsArray.t}
+    | HeatsCouple of {heats: CouplesHeatsArray.t}
   [@@deriving yojson]
 
   let ref, schema =
@@ -1111,7 +1111,12 @@ module HeatsArray = struct
         (ref SinglesHeatsArray.ref);
         (ref CouplesHeatsArray.ref);
       ]
-    (* todo implement interfaces *)
+      (* todo implement interfaces *)
+
+    let of_ftw h = match h with
+    | Ftw.Heat.Singles_heats sh -> HeatsSingle {heats=SinglesHeatsArray.of_ftw sh}
+    | Ftw.Heat.Couples_heats ch -> HeatsCouple {heats=CouplesHeatsArray.of_ftw ch}
+
 end
 
 
@@ -1123,7 +1128,7 @@ module HeatId = struct
     make_schema ()
       ~name:"HeatId"
       ~typ:int
-      ~examples:[`Int 42]
+      (* ~examples:[`Int 42] *)
 end
 
 (* Heat Id list *)
@@ -1142,4 +1147,307 @@ module HeatIdList = struct
           ~items:(ref HeatId.ref);
       ]
       ~required:["heats"]
+end
+
+
+module Yan = struct
+
+  type t = Ftw.Artefact.yan =
+    | Yes
+    | Alt
+    | No
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Yan"
+      ~description: {| Yan value |}
+      ~typ:string
+      ~enum:[
+        `String "Yes";
+        `String "Alt";
+        `String "No";
+      ]
+
+end
+
+
+module ArtefactYans = struct
+
+  type t = {
+    artefact: string;
+    artefact_data: Yan.t list;
+  }
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"ArtefactYans"
+      ~description: {| Yes/Alt/No judging artefact |}
+      ~typ:(Obj Object)
+      ~properties:[
+        "artefact", obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[`String "yan";];
+        "artefact_data", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref Yan.ref);
+      ]
+      ~required:["artefact"; "artefact_data";]
+
+end
+
+
+module ArtefactRank = struct
+
+  type t = {
+    artefact: string;
+    artefact_data: int;
+  }
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"ArtefactRank"
+      ~description: {| Rank of a dancer or couple |}
+      ~typ:(Obj Object)
+      ~properties:[
+        "artefact", obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[`String "ranking"];
+        "artefact_data", obj @@ S.make_schema ()
+          ~typ:int;
+
+      ]
+      ~required:["artefact"; "artefact_data"]
+
+end
+
+module Artefact = struct
+  type t =
+    | YanArtefact of {artefact: ArtefactYans.t}
+    | RankArtefact of {artefact: ArtefactRank.t}
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Artefact"
+      ~typ:object_
+      ~one_of:[
+        (ref ArtefactYans.ref);
+        (ref ArtefactRank.ref);
+      ]
+      ~required:["artefact"; "artefact_data"; ]
+
+  let of_ftw s =
+    match s with
+    | Ftw.Artefact.Yans c -> YanArtefact {artefact={artefact="yan";artefact_data=c;}}
+    | Ftw.Artefact.Rank r -> RankArtefact {artefact={artefact="ranking";artefact_data=r;}}
+
+  let to_ftw s =
+    match s with
+    | YanArtefact {artefact={artefact_data; _}} -> Ftw.Artefact.Yans artefact_data
+    | RankArtefact {artefact={artefact_data; _}} -> Ftw.Artefact.Rank artefact_data
+
+
+  let to_yojson target =
+    match target with
+    | YanArtefact {artefact=t} ->
+      let schema_fields =
+        begin match ArtefactYans.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc schema_fields
+    | RankArtefact {artefact=t} ->
+      let schema_fields =
+        begin match ArtefactRank.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc schema_fields
+
+  let of_yojson json =
+    match json with
+    | `Assoc fields -> (
+        match List.assoc_opt "artefact" fields with
+        | Some (`String "yan") -> ArtefactYans.of_yojson json |> Result.map (fun s -> YanArtefact {artefact=s})
+        | Some (`String "ranking") -> ArtefactRank.of_yojson json |> Result.map (fun s -> RankArtefact {artefact=s})
+        | Some (`String unknown) -> Error ("Unrecognised artefact: " ^ unknown)
+        | Some _  -> Error ("Unrecognised artefact")
+        | None -> Error "Missing key: artefact"
+      )
+    | _ -> Error "Expected JSON object for Artefact"
+end
+
+module HeatTargetJudge = struct
+
+  type t = {
+    phase_id : PhaseId.t;
+    heat_number : int;
+    target : Target.t;
+    judge : DancerId.t;
+    description: ArtefactDescription.t;
+  } [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatTargetJudge"
+      ~typ:(Obj Object)
+      ~properties:[
+        "phase_id", ref PhaseId.ref;
+        "heat_number", obj @@ S.make_schema()
+          ~typ:int;
+        "target", ref Target.ref;
+        "judge", ref DancerId.ref;
+        "description", (ref ArtefactDescription.ref);
+      ]
+      ~required:["phase_id"; "heat_number"; "target"; "judge"; "description"]
+
+end
+
+module HeatTargetJudgeArtefact = struct
+
+  type t = {
+    heat_target_judge : HeatTargetJudge.t;
+    artefact : Artefact.t option;
+  } [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatTargetJudgeArtefact"
+      ~typ:(Obj Object)
+      ~properties:[
+        "heat_target_judge", (ref HeatTargetJudge.ref);
+        "artefact", (ref Artefact.ref);
+      ]
+      ~required:["heat_target_judge";]
+
+end
+
+module HeatTargetJudgeArtefactArray = struct
+
+  type t = {
+    artefacts: HeatTargetJudgeArtefact.t list
+  } [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatTargetJudgeArtefactArray"
+      ~typ:object_
+      ~properties:[
+        "artefacts", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref HeatTargetJudgeArtefact.ref);
+      ]
+      ~required:["artefacts";]
+
+end
+
+module SinglePanel = struct
+  type t = {
+    panel_type: string;
+    leaders: DancerIdList.t;
+    followers : DancerIdList.t;
+    head : DancerId.t option;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"SinglePanel"
+      ~typ:object_
+      ~properties:[
+        "panel_type", obj @@ S.make_schema()
+          ~typ:string
+          ~enum:[`String "single"];
+        "leaders", ref DancerIdList.ref;
+        "followers", ref DancerIdList.ref;
+        "head", ref DancerId.ref;
+      ]
+      ~required:["panel_type"; "leaders"; "followers"]
+end
+
+
+module CouplePanel = struct
+  type t = {
+    panel_type: string;
+    couples : DancerIdList.t;
+    head : DancerId.t option;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"CouplePanel"
+      ~typ:object_
+      ~properties:[
+        "panel_type", obj @@ S.make_schema()
+          ~typ:string
+          ~enum:[`String "couple"];
+        "couples", ref DancerIdList.ref;
+        "head", ref DancerId.ref;
+      ]
+      ~required:["panel_type"; "couples"]
+end
+
+module Panel = struct
+  type t =
+    | PanelSingle of {target: SinglePanel.t}
+    | PanelCouple of {target: CouplePanel.t}
+  [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Panel"
+      ~typ:object_
+      ~one_of:[
+        (ref SinglePanel.ref);
+        (ref CouplePanel.ref);
+      ]
+
+  let of_ftw s =
+    match s with
+    | Ftw.Judge.Singles {leaders;followers;head} -> PanelSingle {target={leaders={dancers=leaders};followers={dancers=followers};head=head;panel_type="single"}}
+    | Ftw.Judge.Couples {couples;head} -> PanelCouple {target={couples={dancers=couples};head=head;panel_type="couple"}}
+
+  let to_ftw s =
+    match s with
+    | PanelSingle {target={leaders;followers;head;_}} -> Ftw.Judge.Singles {followers=followers.dancers;leaders=leaders.dancers;head=head}
+    | PanelCouple {target={couples;head; _}} -> Ftw.Judge.Couples {couples=couples.dancers;head=head}
+
+
+  let to_yojson target =
+    match target with
+    | PanelSingle {target=t} ->
+      let schema_fields =
+        begin match SinglePanel.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("panel_type", `String "single");] @ schema_fields)
+    | PanelCouple {target=t} ->
+      let schema_fields =
+        begin match CouplePanel.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("panel_type", `String "couple");] @ schema_fields)
+
+  let of_yojson json =
+    match json with
+    | `Assoc fields -> (
+        match List.assoc_opt "panel_type" fields with
+        | Some (`String "single") -> SinglePanel.of_yojson json |> Result.map (fun s -> PanelSingle {target=s})
+        | Some (`String "couple") -> CouplePanel.of_yojson json |> Result.map (fun s -> PanelCouple {target=s})
+        | Some (`String unknown) -> Error ("Unrecognised panel_type: " ^ unknown)
+        | Some _  -> Error ("Unrecognised panel_type")
+        | None -> Error "Missing key: panel_type"
+      )
+    | _ -> Error "Expected JSON object for Panel"
 end

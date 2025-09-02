@@ -45,7 +45,9 @@ type couples_heats = {
   couples_heats : couples_heat array;
 }
 
-
+type t =
+  | Singles_heats of singles_heats
+  | Couples_heats of couples_heats
 
 (* DB interaction - Regular table *)
 (* ************************************************************************* *)
@@ -148,7 +150,7 @@ let mk_singles (l : row list) =
   { singles_heats = a; }
 
 let get_singles ~st ~phase =
-  mk_singles @@ raw_get st ~phase
+  Singles_heats (mk_singles @@ raw_get st ~phase)
 
 
 (* Couples heats *)
@@ -202,7 +204,50 @@ let mk_couples (l: row list) =
   { couples_heats = a; }
 
 let get_couples ~st ~phase =
-  mk_couples @@ raw_get st ~phase
+  Couples_heats (mk_couples @@ raw_get st ~phase)
+
+
+let get_id st (phase_id:Phase.id) (heat_number:int) (target:Bib.any_target) =
+  let heat_id_list = begin match target with
+  | Any Single { target=t; role=Role.Leader } ->
+    let open Sqlite3_utils.Ty in
+    State.query_list_where ~st ~conv:Id.conv ~p:[int;int;int]
+      {| SELECT id
+       FROM heats
+       WHERE 0=0
+       AND phase_id = ?
+       AND heat_number = ?
+       AND leader_id = ?
+       AND follower_id is NULL |}
+      phase_id heat_number t
+  | Any Single { target=t; role=Role.Follower } ->
+    let open Sqlite3_utils.Ty in
+    State.query_list_where ~st ~conv:Id.conv ~p:[int;int;int]
+      {| SELECT id
+       FROM heats
+       WHERE 0=0
+       AND phase_id = ?
+       AND heat_number = ?
+       AND leader_id is NULL
+       AND follower_id = ? |}
+      phase_id heat_number t
+  | Any Couple {leader;follower;} ->
+    let open Sqlite3_utils.Ty in
+    State.query_list_where ~st ~conv:Id.conv ~p:[int;int;int;int]
+      {| SELECT id
+       FROM heats
+       WHERE 0=0
+       AND phase_id = ?
+       AND heat_number = ?
+       AND leader_id = ?
+       AND follower_id = ? |}
+      phase_id heat_number leader follower
+  end in
+  match heat_id_list with
+  | [] -> Ok None
+  | [h] -> Ok (Some h)
+  | _ -> Error "Error too many matches"
+
 
 
 let simple_init st ~(phase:Id.t) =

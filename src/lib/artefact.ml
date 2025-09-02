@@ -134,15 +134,22 @@ let () =
     of circular dependencies *)
 let get ~st ~judge ~target ~descr =
   let open Sqlite3_utils.Ty in
-  State.query_one_where ~st ~p:[int;int] ~conv:(conv ~descr)
-    {| SELECT artefact FROM artefacts WHERE target_id = ? AND judge = ? |}
-    target judge
+  let artefact_list = State.query_list_where ~st ~p:[int;int] ~conv:(conv ~descr)
+      {| SELECT artefact FROM artefacts WHERE target_id = ? AND judge = ? |}
+      target judge
+  in
+  match artefact_list with
+  | [] -> Ok None
+  | [a] -> Ok (Some a)
+  | _ -> Error "Too many artefact found for target"
+
 
 let set ~st ~judge ~target t =
   let open Sqlite3_utils.Ty in
   State.insert ~st ~ty:[int;int;int]
     {| INSERT INTO artefacts(target_id,judge,artefact) VALUES (?,?,?) |}
-    target judge (to_int t)
+    target judge (to_int t);
+  Ok target
 
 
 (* Serialization *)

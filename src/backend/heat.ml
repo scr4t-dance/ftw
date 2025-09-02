@@ -53,6 +53,28 @@ let rec routes router =
       "404", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Phase not found";
     ]
+  |> Router.get "/api/phase/:id/heats" get_heats
+    ~tags:["heat"; "phase"; "competition"]
+    ~summary:"Get the heats of a competition (couples)"
+    ~parameters:[
+      Types.obj @@ Spec.make_parameter_object ()
+        ~name:"id" ~in_:Path
+        ~description:"Id of the queried phase"
+        ~required:true
+        ~schema:Types.(ref PhaseId.ref)
+    ]
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Successful operation"
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref HeatsArray.ref));
+        ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid Id supplied";
+      "404", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Phase not found";
+    ]
   |> Router.put "/api/phase/:id/init_heats" init_heats
     ~tags:["heat"; "phase"]
     ~summary:"Randomly place dancers of the phase in heats"
@@ -122,20 +144,36 @@ let rec routes router =
 
 and singles_heats =
   Api.get
-    ~to_yojson:Types.SinglesHeatsArray.to_yojson
+    ~to_yojson:Types.HeatsArray.to_yojson
     (fun req st ->
        let+ id = Utils.int_param req "id" in
        let singles_heats = Ftw.Heat.get_singles ~st ~phase:id in
-       Ok (Types.SinglesHeatsArray.of_ftw singles_heats)
+       Ok (Types.HeatsArray.of_ftw singles_heats)
     )
 
 and couples_heats =
   Api.get
-    ~to_yojson:Types.CouplesHeatsArray.to_yojson
+    ~to_yojson:Types.HeatsArray.to_yojson
     (fun req st ->
        let+ id = Utils.int_param req "id" in
        let couples_heats = Ftw.Heat.get_couples ~st ~phase:id in
-       Ok (Types.CouplesHeatsArray.of_ftw couples_heats)
+       Ok (Types.HeatsArray.of_ftw couples_heats)
+    )
+
+and get_heats =
+  Api.get
+    ~to_yojson:Types.HeatsArray.to_yojson
+    (fun req st ->
+       let+ id = Utils.int_param req "id" in
+       let panel = Ftw.Judge.get ~st ~phase:id in
+       match panel with
+       | Ok Singles _ ->
+         let singles_heats = Ftw.Heat.get_couples ~st ~phase:id in
+         Ok (Types.HeatsArray.of_ftw singles_heats)
+       | Ok Couples _ ->
+         let couples_heats = Ftw.Heat.get_couples ~st ~phase:id in
+         Ok (Types.HeatsArray.of_ftw couples_heats)
+       | Error e -> Error (Error.generic e)
     )
 
 and init_heats =
@@ -154,6 +192,6 @@ and promote =
     ~to_yojson:Types.PhaseId.to_yojson
     (fun req st _d ->
        let+ id = Utils.int_param req "id" in
-        Ftw.Heat.simple_promote st ~phase:id;
+       Ftw.Heat.simple_promote st ~phase:id;
        Ok id
     )
