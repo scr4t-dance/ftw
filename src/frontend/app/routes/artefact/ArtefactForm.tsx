@@ -214,6 +214,7 @@ export default function ArtefactForm() {
 
     return (
         <>
+            <h1>Judge {id_judge_number}</h1>
             {heat_list && heat_list.heats && heat_list.heats.map((v, heat_minus_one) => (
                 <>
                     <h1>Heat {heat_minus_one + 1}</h1>
