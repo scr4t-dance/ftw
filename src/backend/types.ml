@@ -1026,7 +1026,7 @@ end
 
 module SinglesHeatsArray = struct
   type t = {
-    target_type : string;
+    heat_type : string;
     heats : SinglesHeat.t array;
   } [@@deriving yojson]
 
@@ -1036,6 +1036,9 @@ module SinglesHeatsArray = struct
       ~name:"SinglesHeatsArray"
       ~typ:object_
       ~properties:[
+        "heat_type", obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[`String "single"];
         "heats", obj @@ S.make_schema ()
           ~typ:array
           ~items:(ref SinglesHeat.ref);
@@ -1043,7 +1046,7 @@ module SinglesHeatsArray = struct
       ~required:["heats"]
 
   let of_ftw (c:Ftw.Heat.singles_heats) = match c with
-    | {singles_heats;_} -> {target_type="single";heats=Array.map SinglesHeat.of_ftw singles_heats}
+    | {singles_heats;_} -> {heat_type="single";heats=Array.map SinglesHeat.of_ftw singles_heats}
 end
 
 
@@ -1076,7 +1079,7 @@ end
 
 module CouplesHeatsArray = struct
   type t = {
-    target_type : string;
+    heat_type : string;
     heats : CouplesHeat.t array;
   } [@@deriving yojson]
 
@@ -1086,6 +1089,9 @@ module CouplesHeatsArray = struct
       ~name:"CouplesHeatsArray"
       ~typ:object_
       ~properties:[
+        "heat_type", obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[`String "couple"];
         "heats", obj @@ S.make_schema ()
           ~typ:array
           ~items:(ref CouplesHeat.ref);
@@ -1093,7 +1099,7 @@ module CouplesHeatsArray = struct
       ~required:["heats"]
 
   let of_ftw (c:Ftw.Heat.couples_heats) = match c with
-    | {couples_heats;_} -> {target_type="couple";heats=Array.map CouplesHeat.of_ftw couples_heats}
+    | {couples_heats;_} -> {heat_type="couple";heats=Array.map CouplesHeat.of_ftw couples_heats}
 end
 
 (* Heats list *)
@@ -1111,12 +1117,42 @@ module HeatsArray = struct
         (ref SinglesHeatsArray.ref);
         (ref CouplesHeatsArray.ref);
       ]
-      (* todo implement interfaces *)
+  (* todo implement interfaces *)
 
-    let of_ftw h = match h with
+  let of_ftw h = match h with
     | Ftw.Heat.Singles_heats sh -> HeatsSingle {heats=SinglesHeatsArray.of_ftw sh}
     | Ftw.Heat.Couples_heats ch -> HeatsCouple {heats=CouplesHeatsArray.of_ftw ch}
 
+  let to_yojson target =
+    match target with
+    | HeatsSingle {heats=t} ->
+      let schema_fields =
+        begin match SinglesHeatsArray.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("heat_type", `String "single");] @ schema_fields)
+    | HeatsCouple {heats=t} ->
+      let schema_fields =
+        begin match CouplesHeatsArray.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("heat_type", `String "couple");] @ schema_fields)
+
+  let of_yojson json =
+    match json with
+    | `Assoc fields -> (
+        match List.assoc_opt "heat_type" fields with
+        | Some (`String "single") -> SinglesHeatsArray.of_yojson json |> Result.map (fun s -> HeatsSingle {heats=s})
+        | Some (`String "couple") -> CouplesHeatsArray.of_yojson json |> Result.map (fun s -> HeatsCouple {heats=s})
+        | Some (`String unknown) -> Error ("Unrecognised heat_type: " ^ unknown)
+        | Some _  -> Error ("Unrecognised heat_type")
+        | None -> Error "Missing key: heat_type"
+      )
+    | _ -> Error "Expected JSON object for HeatsArray"
 end
 
 
@@ -1149,6 +1185,8 @@ module HeatIdList = struct
       ~required:["heats"]
 end
 
+(* Artefact *)
+(* ************************************************************************* *)
 
 module Yan = struct
 
@@ -1175,7 +1213,7 @@ end
 module ArtefactYans = struct
 
   type t = {
-    artefact: string;
+    artefact_type: string;
     artefact_data: Yan.t list;
   }
   [@@deriving yojson]
@@ -1186,14 +1224,14 @@ module ArtefactYans = struct
       ~description: {| Yes/Alt/No judging artefact |}
       ~typ:(Obj Object)
       ~properties:[
-        "artefact", obj @@ S.make_schema ()
+        "artefact_type", obj @@ S.make_schema ()
           ~typ:string
           ~enum:[`String "yan";];
         "artefact_data", obj @@ S.make_schema ()
           ~typ:array
           ~items:(ref Yan.ref);
       ]
-      ~required:["artefact"; "artefact_data";]
+      ~required:["artefact_type"; "artefact_data";]
 
 end
 
@@ -1201,7 +1239,7 @@ end
 module ArtefactRank = struct
 
   type t = {
-    artefact: string;
+    artefact_type: string;
     artefact_data: int;
   }
   [@@deriving yojson]
@@ -1212,14 +1250,14 @@ module ArtefactRank = struct
       ~description: {| Rank of a dancer or couple |}
       ~typ:(Obj Object)
       ~properties:[
-        "artefact", obj @@ S.make_schema ()
+        "artefact_type", obj @@ S.make_schema ()
           ~typ:string
           ~enum:[`String "ranking"];
         "artefact_data", obj @@ S.make_schema ()
           ~typ:int;
 
       ]
-      ~required:["artefact"; "artefact_data"]
+      ~required:["artefact_type"; "artefact_data"]
 
 end
 
@@ -1237,12 +1275,12 @@ module Artefact = struct
         (ref ArtefactYans.ref);
         (ref ArtefactRank.ref);
       ]
-      ~required:["artefact"; "artefact_data"; ]
+      ~required:["artefact_type"; "artefact_data"; ]
 
   let of_ftw s =
     match s with
-    | Ftw.Artefact.Yans c -> YanArtefact {artefact={artefact="yan";artefact_data=c;}}
-    | Ftw.Artefact.Rank r -> RankArtefact {artefact={artefact="ranking";artefact_data=r;}}
+    | Ftw.Artefact.Yans c -> YanArtefact {artefact={artefact_type="yan";artefact_data=c;}}
+    | Ftw.Artefact.Rank r -> RankArtefact {artefact={artefact_type="ranking";artefact_data=r;}}
 
   let to_ftw s =
     match s with
@@ -1272,12 +1310,12 @@ module Artefact = struct
   let of_yojson json =
     match json with
     | `Assoc fields -> (
-        match List.assoc_opt "artefact" fields with
+        match List.assoc_opt "artefact_type" fields with
         | Some (`String "yan") -> ArtefactYans.of_yojson json |> Result.map (fun s -> YanArtefact {artefact=s})
         | Some (`String "ranking") -> ArtefactRank.of_yojson json |> Result.map (fun s -> RankArtefact {artefact=s})
-        | Some (`String unknown) -> Error ("Unrecognised artefact: " ^ unknown)
-        | Some _  -> Error ("Unrecognised artefact")
-        | None -> Error "Missing key: artefact"
+        | Some (`String unknown) -> Error ("Unrecognised artefact_type: " ^ unknown)
+        | Some _  -> Error ("Unrecognised artefact_type")
+        | None -> Error "Missing key: artefact_type"
       )
     | _ -> Error "Expected JSON object for Artefact"
 end
@@ -1348,6 +1386,10 @@ module HeatTargetJudgeArtefactArray = struct
       ~required:["artefacts";]
 
 end
+
+(* Panel *)
+(* ************************************************************************* *)
+
 
 module SinglePanel = struct
   type t = {

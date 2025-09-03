@@ -10,7 +10,7 @@ type t =
   | Missing_query of { id : string; }
   | Incorrect_query_int of { id : string; payload : string; }
   | Incorrect_param_int of { param: string; payload : string; }
-  | Invalid_json_body of { msg : string; }
+  | Invalid_json_body of { msg : string; payload : string;}
   | Invalid_date of { date : Types.Date.t; }
   | Bad_event_dates of { start_date : Ftw.Date.t; end_date : Ftw.Date.t; }
 
@@ -30,8 +30,8 @@ let incorrect_param_int ~param ~payload =
 let incorrect_query_int ~id ~payload =
   Incorrect_query_int { id; payload; }
 
-let invalid_json_body msg =
-  Invalid_json_body { msg; }
+let invalid_json_body msg payload =
+  Invalid_json_body { msg; payload;}
 
 let bad_event_dates ~start_date ~end_date =
   Bad_event_dates { start_date; end_date; }
@@ -74,9 +74,9 @@ let err_msg = function
     Format.asprintf
       "Expected an integer payload for query id '%s' but got: '%s'"
       id payload
-  | Invalid_json_body { msg; } ->
+  | Invalid_json_body { msg; payload; } ->
     Format.asprintf
-      "Error while parsing json body: %s" msg
+      "Error while parsing json body: %s\n %s" msg payload
   | Invalid_date { date; } ->
     Format.asprintf
       "Invalid date: %s" (Types.Date.show date)

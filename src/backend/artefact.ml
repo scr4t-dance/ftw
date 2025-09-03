@@ -122,10 +122,10 @@ let rec routes router =
     ]
     ~responses:[
       "200", Types.obj @@ Spec.make_response_object ()
-        ~description:"Successful operation"
+        ~description:"Successful operation, here a list of judges"
         ~content:[
           Spec.json,
-          Spec.make_media_type_object () ~schema:(Types.(ref HeatTargetJudge.ref));
+          Spec.make_media_type_object () ~schema:(Types.(ref DancerIdList.ref));
         ];
       "400", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Invalid input";
@@ -242,8 +242,8 @@ and get_artefact_heat =
        let get_heat_leaders (h: Ftw.Heat.t) =   begin match h with
          | Singles_heats sh -> Array.map (fun (singles_heat: Ftw.Heat.singles_heat) ->
              List.map (fun (d: Ftw.Heat.single) -> let dancer_id = d.dancer in
-                        Ftw.Bib.Any (Single {target=dancer_id; role=Ftw.Role.Follower;}))
-               singles_heat.followers) sh.singles_heats
+                        Ftw.Bib.Any (Single {target=dancer_id; role=Ftw.Role.Leader;}))
+               singles_heat.leaders) sh.singles_heats
          | Couples_heats _ -> failwith "Unexpected heat type"
        end in
        let target_list_list, judge_head = begin match panel with
@@ -298,32 +298,39 @@ and get_artefact_heat =
 
 and set_artefact_heat =
   Api.put
-    ~of_yojson:Types.HeatTargetJudgeArtefact.of_yojson
-    ~to_yojson:Types.HeatTargetJudge.to_yojson
+    ~of_yojson:Types.HeatTargetJudgeArtefactArray.of_yojson
+    ~to_yojson:Types.DancerIdList.to_yojson
     (
-      fun req st (htja : Types.HeatTargetJudgeArtefact.t) ->
+      fun req st htja_array ->
         let+ id = Utils.int_param req "id" in
-        let htj = htja.heat_target_judge in
-        match htj.phase_id with
-        | p_id when p_id = id ->
-          let dancer_target = Types.Target.to_ftw htj.target in
-          let judge = htj.judge in
-          let heat_id_option = Ftw.Heat.get_id st id htj.heat_number dancer_target in
-          let heat_id = begin match heat_id_option with
-            | Ok None -> Error "Target not found in heat"
-            | Ok Some w -> Ok w
-            | Error e -> Error e
-          end in
-          let a = Option.to_result ~none:"Artefact cannot be empty" htja.artefact in
-          let artefact = Result.map Types.Artefact.to_ftw a in
-          let set_artefact = fun target -> Result.map (Ftw.Artefact.set ~st ~judge ~target) in
-          let h = Result.bind heat_id (fun t -> set_artefact t artefact) in
-          let hh = Result.join h in
-          begin match hh with
-            | Ok _ -> Ok htj
-            | Error e -> Error (Error.generic e)
-          end
-        | _ -> Error (Error.generic "Phase id do not match payload")
+        let set_artefact (htja: Types.HeatTargetJudgeArtefact.t) =
+          let htj = htja.heat_target_judge in
+          match htj.phase_id with
+          | p_id when p_id = id ->
+            let dancer_target = Types.Target.to_ftw htj.target in
+            let judge = htj.judge in
+            let heat_id_option = Ftw.Heat.get_id st id htj.heat_number dancer_target in
+            let heat_id = begin match heat_id_option with
+              | Ok None -> Error "Target not found in heat"
+              | Ok Some w -> Ok w
+              | Error e -> Error e
+            end in
+            let a = Option.to_result ~none:"Artefact cannot be empty" htja.artefact in
+            let artefact = Result.map Types.Artefact.to_ftw a in
+            let set_artefact = fun target -> Result.map (Ftw.Artefact.set ~st ~judge ~target) in
+            let h = Result.bind heat_id (fun t -> set_artefact t artefact) in
+            let hh = Result.join h in
+            begin match hh with
+              | Ok _ -> Ok htj
+              | Error e -> Error (Error.generic e)
+            end
+          | _ -> Error (Error.generic "Phase id do not match payload")
+        in
+        let s = List.map set_artefact htja_array.artefacts in
+        let r = List.fold_left (fun acc htja_result -> Result.bind acc (fun acc_list -> Result.map (fun htja -> acc_list @ [htja]) htja_result)) (Ok []) s in
+        let get_judge = fun ({judge;_}: Types.HeatTargetJudge.t) -> judge in
+        let t = Result.map (fun w -> Types.DancerIdList.{dancers=List.map get_judge w}) r in
+        t
     )
 
 and delete_artefact =

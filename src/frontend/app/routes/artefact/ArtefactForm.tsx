@@ -1,18 +1,21 @@
 import React, { useEffect } from 'react';
 
-import type { Bib, CompetitionId, DancerId, DancerIdList, HeatTargetJudge, HeatTargetJudgeArtefact, HeatTargetJudgeArtefactArray, Phase, PhaseId, Target } from "@hookgen/model";
-import { Link, useParams } from "react-router";
+import type { Bib, CompetitionId, DancerId, DancerIdList, HeatTargetJudgeArtefactArray, Phase, PhaseId, Target } from "@hookgen/model";
+import { Yan } from "@hookgen/model";
+import { useParams } from "react-router";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
 import { useGetApiPhaseIdSinglesHeats } from "~/hookgen/heat/heat";
-import { useQueries, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
-import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey, getPutApiPhaseIdArtefactJudgeIdJudgeMutationOptions, useGetApiPhaseIdArtefactJudgeIdJudge, usePutApiPhaseIdArtefactJudgeIdJudge, } from '~/hookgen/artefact/artefact';
+import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey, useGetApiPhaseIdArtefactJudgeIdJudge, usePutApiPhaseIdArtefactJudgeIdJudge, } from '~/hookgen/artefact/artefact';
 import { FormProvider, get, useFieldArray, useForm, type SubmitHandler } from 'react-hook-form';
 import { Field } from '@routes/index/field';
-import { DancerCell } from '../bib/BibList';
+import { DancerCell } from '@routes/bib/BibList';
 
 const judges: DancerIdList = { dancers: [1] };
 const head_judge: DancerId = 1;
+
+export const yan_values: (string | undefined)[] = Object.values(Yan);
 
 const iter_target_dancers = (t: Target) => t.target_type === "single"
     ? [t.target]
@@ -54,6 +57,7 @@ export function ArtefactFormComponent({ phase_id, phase, heat_number, judge_id, 
         reset,
         handleSubmit,
         setError,
+        setValue,
         formState: { errors } } = formObject;
 
     const { fields } = useFieldArray({
@@ -68,6 +72,12 @@ export function ArtefactFormComponent({ phase_id, phase, heat_number, judge_id, 
         }
     }, [isSuccess, artefactData, reset]);
 
+    useEffect(() => {
+        fields.forEach((_, idx) => {
+            setValue(`artefacts.${idx}.artefact.artefact_type`, phase.judge_artefact_descr.artefact);
+        });
+    }, [fields, setValue, phase.judge_artefact_descr.artefact]);
+
 
     if (!isSuccess) return <div>Loading artefacts...</div>;
     if (isDetailsError) return (
@@ -81,7 +91,20 @@ export function ArtefactFormComponent({ phase_id, phase, heat_number, judge_id, 
 
     const onSubmit: SubmitHandler<HeatTargetJudgeArtefactArray> = (dataArray) => {
         console.log({ id: phase_id, data: dataArray });
-        mutateArtefacts({id: phase_id, idJudge: judge_id, data: dataArray})
+        const validArtefacts = {
+            artefacts: dataArray.artefacts.filter(a => {
+                if (!a?.artefact?.artefact_type) return false;
+                if (!a?.artefact?.artefact_data) return false;
+
+                // keep if at least one criterion is non-empty
+                if (a?.artefact?.artefact_type === "ranking") {
+                    return !a?.artefact?.artefact_data;
+                }
+                const hasValidData = a.artefact.artefact_data.some(d => d !== undefined && d !== null);
+                return hasValidData;
+            })
+        };
+        mutateArtefacts({ id: phase_id, idJudge: judge_id, data: validArtefacts })
     };
 
     return (
@@ -110,6 +133,17 @@ export function ArtefactFormComponent({ phase_id, phase, heat_number, judge_id, 
                                         <DancerCell key={`bib.${bib_list[index]}.${index}`} id_dancer={i} />
                                     ))}
                                 </td>
+                                {phase.judge_artefact_descr.artefact && (
+                                    <Field
+                                        error={get(errors, `artefacts.${index}.artefact.artefact_type.message`)}
+                                    >
+                                        <input
+                                            defaultValue={phase.judge_artefact_descr.artefact}
+                                            type='hidden'
+                                            {...register(`artefacts.${index}.artefact.artefact_type`
+                                            )} />
+                                    </Field>
+                                )}
                                 {phase.judge_artefact_descr.artefact === "yan" &&
                                     phase.judge_artefact_descr.artefact_data.map((_, c_index) => {
                                         return (
@@ -117,12 +151,13 @@ export function ArtefactFormComponent({ phase_id, phase, heat_number, judge_id, 
                                                 <Field
                                                     error={get(errors, `artefacts.${index}.message`)}
                                                 >
-                                                    <input type='number'
-                                                        {...register(`artefacts.${index}.artefact.artefact_data.${c_index}`,
-                                                            {
-                                                                valueAsNumber: true
-                                                            }
-                                                        )} />
+                                                    <select
+                                                        {...register(`artefacts.${index}.artefact.artefact_data.${c_index}`)}
+                                                    >
+                                                        {yan_values.concat([undefined]).map(key => {
+                                                            return <option key={key} value={key}>{key}</option>;
+                                                        })}
+                                                    </select>
                                                 </Field>
                                             </td>
                                         );

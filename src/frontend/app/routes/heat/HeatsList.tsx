@@ -1,7 +1,7 @@
 import React from 'react';
 
-import type { BibList, CompetitionId, CouplesHeatsArray, DancerId, PhaseId, SinglesHeatsArray, Target } from "@hookgen/model";
-import { Link, useParams } from "react-router";
+import type { BibList, CompetitionId, CouplesHeat, CouplesHeatsArray, DancerId, HeatsArray, PhaseId, SinglesHeat, SinglesHeatsArray, Target } from "@hookgen/model";
+import { data, Link, useParams } from "react-router";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
 import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, useGetApiPhaseIdHeats, useGetApiPhaseIdSinglesHeats, usePutApiPhaseIdInitHeats, usePutApiPhaseIdPromote } from "~/hookgen/heat/heat";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
@@ -12,44 +12,32 @@ const iter_target_dancers = (t: Target) => t.target_type === "single"
     ? [t.target]
     : [t.follower, t.leader];
 
-function SingleHeatsTable({ heats, dataBibs }: { heats: SinglesHeatsArray, dataBibs: BibList }) {
+function SingleHeatTable({ heat, dataBibs }: { heat: SinglesHeat, dataBibs: BibList }) {
 
-    if (!heats?.heats || heats.heats.length === 0) return undefined;
 
-    const followers = heats?.heats.flatMap(v => (v.followers.flatMap(u => iter_target_dancers(u))));
-    const leaders = heats?.heats.flatMap(v => (v.leaders.flatMap(u => u.target)));
+    const followers : DancerId[] = heat.followers.flatMap(u => iter_target_dancers(u));
+    const leaders : DancerId[] = heat.leaders.flatMap(u => iter_target_dancers(u));
     const get_bibs = (dancer_list: DancerId[]) => dataBibs?.bibs.filter(b => iter_target_dancers(b.target).map(dancer => dancer_list?.includes(dancer)).includes(true));
 
     return (
         <>
-            {heats && heats.heats && heats.heats.map((v, heat) => (
-                <>
-                    <h1>Heat {heat}</h1>
-                    <p>Followers</p>
-                    <BareBibListComponent bib_list={get_bibs(v.followers.flatMap(u => iter_target_dancers(u)))} ></BareBibListComponent>
-                    <p>Leaders</p>
-                    <BareBibListComponent bib_list={get_bibs(v.leaders.flatMap(u => iter_target_dancers(u)))} ></BareBibListComponent>
-                </>
-            ))}
+            <p>Followers</p>
+            <BareBibListComponent bib_list={get_bibs(followers)} ></BareBibListComponent>
+            <p>Leaders</p>
+            <BareBibListComponent bib_list={get_bibs(leaders)} ></BareBibListComponent>
         </>);
 }
 
 
-function CoupleHeatsTable({ heats, dataBibs }: { heats: CouplesHeatsArray, dataBibs: BibList }) {
+function CoupleHeatTable({ heat, dataBibs }: { heat: CouplesHeat, dataBibs: BibList }) {
 
-    if (!heats?.heats || heats.heats.length === 0) return undefined;
 
     const get_bibs = (dancer_list: DancerId[]) => dataBibs?.bibs.filter(b => iter_target_dancers(b.target).map(dancer => dancer_list?.includes(dancer)).includes(true));
 
     return (
         <>
-            {heats && heats.heats && heats.heats.map((v, heat) => (
-                <>
-                    <h1>Heat {heat}</h1>
-                    <p>Couples</p>
-                    <BareBibListComponent bib_list={get_bibs(v.couples.flatMap(u => iter_target_dancers(u)))} ></BareBibListComponent>
-                </>
-            ))}
+            <p>Couples</p>
+            <BareBibListComponent bib_list={get_bibs(heat.couples.flatMap(u => iter_target_dancers(u)))} ></BareBibListComponent>
         </>);
 }
 
@@ -96,7 +84,7 @@ export default function HeatsList() {
         }
     });
 
-    const { data: heat_list, isSuccess: isSuccessHeats } = useGetApiPhaseIdHeats(id_phase_number);
+    const { data: heats, isSuccess: isSuccessHeats } = useGetApiPhaseIdHeats(id_phase_number);
 
     const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(phaseData?.competition as CompetitionId);
 
@@ -105,7 +93,7 @@ export default function HeatsList() {
     if (!isSuccessBibs) return <div>Chargement des bibs...</div>;
     if (!isSuccessHeats) return <div>Chargement des heats...</div>;
 
-
+    console.log("heat_type ", heats.heat_type);
 
     return (
         <>
@@ -123,17 +111,23 @@ export default function HeatsList() {
                 }}>
                     Promote
                 </button>
-                <SingleHeatsTable
-                    heats={heat_list as SinglesHeatsArray}
-                    dataBibs={dataBibs}
-                />
-                <CoupleHeatsTable
-                    heats={heat_list as CouplesHeatsArray}
-                    dataBibs={dataBibs}
-                />
-
             </p>
 
+            {heats?.heats && heats?.heats.map((heat, index) => (
+                <>
+                    <h1>Heat {index}</h1>
+                    {heats.heat_type === "couple" &&
+                        <CoupleHeatTable heat={heat as CouplesHeat}
+                            dataBibs={dataBibs}
+                        />
+                    }
+                    {heats.heat_type === "single" &&
+                        <SingleHeatTable heat={heat as SinglesHeat}
+                            dataBibs={dataBibs}
+                        />
+                    }
+                </>
+            ))}
 
         </>
     );

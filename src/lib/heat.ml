@@ -160,7 +160,7 @@ let mk_couples (l: row list) =
   (* Compute the number of heats *)
   let n =
     List.fold_left
-      (fun acc { heat_number; _ } -> max acc heat_number)
+      (fun acc { heat_number; _ } -> max acc (heat_number + 1))
       0 l
   in
   (* Allocate the heats array and fill it.

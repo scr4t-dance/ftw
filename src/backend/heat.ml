@@ -168,7 +168,7 @@ and get_heats =
        let panel = Ftw.Judge.get ~st ~phase:id in
        match panel with
        | Ok Singles _ ->
-         let singles_heats = Ftw.Heat.get_couples ~st ~phase:id in
+         let singles_heats = Ftw.Heat.get_singles ~st ~phase:id in
          Ok (Types.HeatsArray.of_ftw singles_heats)
        | Ok Couples _ ->
          let couples_heats = Ftw.Heat.get_couples ~st ~phase:id in

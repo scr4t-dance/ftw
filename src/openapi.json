@@ -228,10 +228,10 @@
         },
         "responses": {
           "200": {
-            "description": "Successful operation",
+            "description": "Successful operation, here a list of judges",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HeatTargetJudge" }
+                "schema": { "$ref": "#/components/schemas/DancerIdList" }
               }
             }
           },
@@ -1667,6 +1667,7 @@
       "SinglesHeatsArray": {
         "type": "object",
         "properties": {
+          "heat_type": { "type": "string", "enum": [ "single" ] },
           "heats": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/SinglesHeat" }
@@ -1687,6 +1688,7 @@
       "CouplesHeatsArray": {
         "type": "object",
         "properties": {
+          "heat_type": { "type": "string", "enum": [ "couple" ] },
           "heats": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/CouplesHeat" }
@@ -1721,26 +1723,26 @@
         "description": " Yes/Alt/No judging artefact ",
         "type": "object",
         "properties": {
-          "artefact": { "type": "string", "enum": [ "yan" ] },
+          "artefact_type": { "type": "string", "enum": [ "yan" ] },
           "artefact_data": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/Yan" }
           }
         },
-        "required": [ "artefact", "artefact_data" ]
+        "required": [ "artefact_type", "artefact_data" ]
       },
       "ArtefactRank": {
         "description": " Rank of a dancer or couple ",
         "type": "object",
         "properties": {
-          "artefact": { "type": "string", "enum": [ "ranking" ] },
+          "artefact_type": { "type": "string", "enum": [ "ranking" ] },
           "artefact_data": { "type": "integer" }
         },
-        "required": [ "artefact", "artefact_data" ]
+        "required": [ "artefact_type", "artefact_data" ]
       },
       "Artefact": {
         "type": "object",
-        "required": [ "artefact", "artefact_data" ],
+        "required": [ "artefact_type", "artefact_data" ],
         "oneOf": [
           { "$ref": "#/components/schemas/ArtefactYans" },
           { "$ref": "#/components/schemas/ArtefactRank" }
