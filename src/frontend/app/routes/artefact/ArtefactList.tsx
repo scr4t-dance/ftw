@@ -34,7 +34,7 @@ function ArtefactRow({ htja_array, index }: { htja_array: HeatTargetJudgeArtefac
 
     if (!artefacts || !artefacts[0]) {
         return (
-            <tr key={index} className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+            <tr className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
                 <td>No HTJA data</td>
             </tr>
         );
@@ -78,10 +78,13 @@ export function ArtefactListComponent({ phase_id, judges, head_judge, heat_numbe
 
     const isJudgesLoading = judgeDataQueries.some((query) => query.isLoading);
     const isJudgesError = judgeDataQueries.some((query) => query.isError);
-    const isArtefactsSuccess = artefactDataQueries.some((query) => query.isSuccess);
+
+    const isArtefactsLoading = artefactDataQueries.some((query) => query.isLoading);
+    const isArtefactsSuccess = artefactDataQueries.every((query) => query.isSuccess);
     const isArtefactsError = artefactDataQueries.some((query) => query.isError);
 
     if (isJudgesLoading) return <div>Loading judges details...</div>;
+    if (isArtefactsLoading) return <div>Loading artefacts details...</div>;
     if (isJudgesError) return (
         <div>
             Error loading judges data
@@ -91,7 +94,6 @@ export function ArtefactListComponent({ phase_id, judges, head_judge, heat_numbe
                 })
             }
         </div>);
-    if (!isArtefactsSuccess) return <div>Loading artefact details...</div>;
     if (isArtefactsError) return (
         <div>
             Error loading artefacts data
@@ -101,11 +103,13 @@ export function ArtefactListComponent({ phase_id, judges, head_judge, heat_numbe
                 })
             }
         </div>);
+    if (!isArtefactsSuccess) return <div>Failed loading artefact details...</div>;
 
     const htjaData = artefactDataQueries.map((artefactQuery) => (artefactQuery.data as HeatTargetJudgeArtefactArray));
+    //console.log("htjaData", htjaData);
     const target_artefacts = bib_list.map((bib) => {
-        const htja_list : HeatTargetJudgeArtefact[] = all_judges.map((judge, index) => (
-            htjaData[index].artefacts.filter(
+        const htja_list : HeatTargetJudgeArtefact[] = htjaData.map((htja_judge_array) => (
+            htja_judge_array.artefacts.filter(
                 (htja) => (JSON.stringify(htja.heat_target_judge.target) === JSON.stringify(bib.target) &&
                     htja.heat_target_judge.heat_number === heat_number))[0]
         ));

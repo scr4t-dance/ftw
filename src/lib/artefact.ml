@@ -126,6 +126,7 @@ let () =
           judge INTEGER REFERENCES dancers(id),
           artefact INTEGER NOT NULL,
           PRIMARY KEY(target_id,judge)
+          ON CONFLICT REPLACE
         )
       |})
 

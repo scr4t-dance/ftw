@@ -54,7 +54,7 @@ If the definition changes
             id INTEGER PRIMARY KEY,
             event INTEGER REFERENCES events(id),
             name TEXT,
-            kind INTEGER REFERENCES competition_kinds(id),
+            kind INTEGER REFERENCES division_names(id),
             category INTEGER REFERENCES competition_categories(id),
             num_leaders INTEGER,
             num_followers INTEGER,
@@ -85,6 +85,17 @@ If the definition changes
             judge INTEGER REFERENCES dancers(id),
             artefact INTEGER NOT NULL,
             PRIMARY KEY(target_id,judge)
+            ON CONFLICT REPLACE
+          );
+  CREATE TABLE judging_names (
+          id INTEGER PRIMARY KEY,
+          name TEXT UNIQUE);
+  CREATE TABLE judges (
+            judge_id INTEGER REFERENCES dancers(id),
+            phase_id INTEGER REFERENCES phases(id),
+            judging INTEGER REFERENCES judging_names(id),
+  
+            PRIMARY KEY(judge_id, phase_id)
           );
   CREATE TABLE phases (
             id INTEGER PRIMARY KEY,
@@ -95,13 +106,6 @@ If the definition changes
             ranking_algorithm TEXT,
             UNIQUE(competition_id, round)
           );
-  CREATE TABLE heats (
-            id INTEGER PRIMARY KEY,
-            phase_id INTEGER REFERENCES phases(id),
-            heat_number INTEGER NOT NULL,
-            leader_id INTEGER REFERENCES dancers(id),
-            follower_id INTEGER REFERENCES dancers(id)
-          );
   CREATE TABLE bibs (
             dancer_id INTEGER REFERENCES dancers(id),
             competition_id INTEGER REFERENCES competitions(id),
@@ -109,6 +113,13 @@ If the definition changes
             role INTEGER NOT NULL,
   
             PRIMARY KEY(bib,competition_id,role)
+          );
+  CREATE TABLE heats (
+            id INTEGER PRIMARY KEY,
+            phase_id INTEGER REFERENCES phases(id),
+            heat_number INTEGER NOT NULL,
+            leader_id INTEGER REFERENCES dancers(id),
+            follower_id INTEGER REFERENCES dancers(id)
           );
 
 

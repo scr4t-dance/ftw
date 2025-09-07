@@ -99,7 +99,7 @@ let rec routes router =
     ]
   |> Router.put "/api/phase/:id/artefact/judge/:id_judge" set_artefact_heat
     ~tags:["artefact"; "heat"; "judge"; "phase"]
-    ~summary:"Add dancer to competition"
+    ~summary:"add artefacts to all targets of a heat, for a specifiic judging type"
     ~request_body:(
       Types.obj @@ Spec.make_request_body_object ()
         ~description:"create bib"
@@ -303,7 +303,7 @@ and set_artefact_heat =
     (
       fun req st htja_array ->
         let+ id = Utils.int_param req "id" in
-        let set_artefact (htja: Types.HeatTargetJudgeArtefact.t) =
+        let set_artefact_of_htja (htja: Types.HeatTargetJudgeArtefact.t) =
           let htj = htja.heat_target_judge in
           match htj.phase_id with
           | p_id when p_id = id ->
@@ -326,10 +326,10 @@ and set_artefact_heat =
             end
           | _ -> Error (Error.generic "Phase id do not match payload")
         in
-        let s = List.map set_artefact htja_array.artefacts in
-        let r = List.fold_left (fun acc htja_result -> Result.bind acc (fun acc_list -> Result.map (fun htja -> acc_list @ [htja]) htja_result)) (Ok []) s in
+        let htja_result_list = List.map set_artefact_of_htja htja_array.artefacts in
+        let htja_list_result = List.fold_left (fun acc htja_result -> Result.bind acc (fun acc_list -> Result.map (fun htja -> acc_list @ [htja]) htja_result)) (Ok []) htja_result_list in
         let get_judge = fun ({judge;_}: Types.HeatTargetJudge.t) -> judge in
-        let t = Result.map (fun w -> Types.DancerIdList.{dancers=List.map get_judge w}) r in
+        let t = Result.map (fun w -> Types.DancerIdList.{dancers=List.map get_judge w}) htja_list_result in
         t
     )
 

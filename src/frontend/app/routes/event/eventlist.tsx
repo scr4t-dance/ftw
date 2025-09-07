@@ -82,7 +82,7 @@ function EventList() {
                 ))}
             </ul>
 
-            <h1>Liste Hardcodée</h1>
+            <h1>Liste officielle</h1>
             <table>
                 <tbody>
                     <tr>

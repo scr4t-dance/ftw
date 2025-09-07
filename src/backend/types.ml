@@ -920,7 +920,7 @@ module Target = struct
           | _ -> failwith "Expected schema to serialize to an object"
         end
       in
-      `Assoc ([("target_type", `String "single");] @ schema_fields)
+      `Assoc (schema_fields)
     | TargetCouple {target=t} ->
       let schema_fields =
         begin match CoupleTarget.to_yojson t with
@@ -928,7 +928,7 @@ module Target = struct
           | _ -> failwith "Expected schema to serialize to an object"
         end
       in
-      `Assoc ([("target_type", `String "couple");] @ schema_fields)
+      `Assoc (schema_fields)
 
   let of_yojson json =
     match json with
@@ -1200,12 +1200,16 @@ module Yan = struct
     make_schema ()
       ~name:"Yan"
       ~description: {| Yan value |}
-      ~typ:string
-      ~enum:[
-        `String "Yes";
-        `String "Alt";
-        `String "No";
-      ]
+      ~typ:array
+      ~items:(
+        obj @@ S.make_schema ()
+          ~typ:string
+          ~enum:[
+            `String "Yes";
+            `String "Alt";
+            `String "No";
+          ]
+      )
 
 end
 

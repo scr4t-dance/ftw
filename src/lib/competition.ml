@@ -45,7 +45,7 @@ let () =
           id INTEGER PRIMARY KEY,
           event INTEGER REFERENCES events(id),
           name TEXT,
-          kind INTEGER REFERENCES competition_kinds(id),
+          kind INTEGER REFERENCES division_names(id),
           category INTEGER REFERENCES competition_categories(id),
           num_leaders INTEGER,
           num_followers INTEGER,

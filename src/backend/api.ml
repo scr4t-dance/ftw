@@ -34,12 +34,12 @@ let put ~of_yojson ~to_yojson callback = fun req ->
         match of_yojson (Yojson.Safe.from_string body) with
         | exception Yojson.Json_error msg ->
           Logs.err ~src (fun k->
-              k "@[<hv 2> Error in Yojson string parsing for@ '%s@]'" body
+              k "@[<hv 2> Error in Yojson string parsing for@ '%s' with msg '%s' @]" body msg
             );
           Error.(mk @@ invalid_json_body msg body)
         | Error msg ->
           Logs.err ~src (fun k->
-              k "@[<hv 2> Error in of_yojson callback for@ '%s'@]" body
+              k "@[<hv 2> Error in of_yojson callback for@ '%s' with msg '%s' @]" body msg
             );
           Error.(mk @@ invalid_json_body msg body)
         | Ok input -> callback req st input

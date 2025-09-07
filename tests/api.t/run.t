@@ -146,7 +146,7 @@ Get the ids of dancers we created, and check their details
 Bib management
 --------------
 
-create some dancers
+create some bibs
   $ curl -s -X PUT localhost:8081/api/comp/2/bib \
   > -H "Content-Type: application/json" \
   > -d '{"competition":2, "bib":201, "target":{"target_type":"single","target":2,"role":["Follower"]}}'
@@ -157,15 +157,69 @@ create some dancers
   > -d '{"competition":2, "bib":101, "target":{"target_type":"single","target":1,"role":["Leader"]}}'
   {"dancers":[1]}
 
+get bibs
 
   $ curl -s localhost:8081/api/comp/2/bibs
-  {"bibs":[{"competition":2,"bib":101,"target":{"target_type":"single","target_type":"single","target":1,"role":["Leader"]}},{"competition":2,"bib":201,"target":{"target_type":"single","target_type":"single","target":2,"role":["Follower"]}}]}
+  {"bibs":[{"competition":2,"bib":101,"target":{"target_type":"single","target":1,"role":["Leader"]}},{"competition":2,"bib":201,"target":{"target_type":"single","target":2,"role":["Follower"]}}]}
 
   $ curl -s localhost:8081/api/comp/2/bibs
-  {"bibs":[{"competition":2,"bib":101,"target":{"target_type":"single","target_type":"single","target":1,"role":["Leader"]}},{"competition":2,"bib":201,"target":{"target_type":"single","target_type":"single","target":2,"role":["Follower"]}}]}
+  {"bibs":[{"competition":2,"bib":101,"target":{"target_type":"single","target":1,"role":["Leader"]}},{"competition":2,"bib":201,"target":{"target_type":"single","target":2,"role":["Follower"]}}]}
 
   $ curl -s localhost:8081/api/dancer/2/competition_history
   {"competitions":[2]}
+
+
+Judging management
+------------------
+
+add panel with no head
+
+  $ curl -s -X PUT localhost:8081/api/phase/1/judges \
+  > -H "Content-Type: application/json" \
+  > -d '{"panel_type": "single", "leaders": {"dancers":[1]}, followers : {"dancers":[2]}, "head":null}'
+  1
+
+  $ curl -s localhost:8081/api/phase/1/judges
+  {"panel_type":"single","panel_type":"single","leaders":{"dancers":[1]},"followers":{"dancers":[2]},"head":null}
+
+
+Heats management
+----------------
+
+init heats with bib from competition
+
+  $ curl -s -X PUT localhost:8081/api/phase/1/init_heats \
+  > -H "Content-Type: application/json" \
+  > -d '1'
+  1
+
+get heats
+  $ curl -s localhost:8081/api/phase/1/heats
+  {"heat_type":"single","heat_type":"single","heats":[{"followers":[{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":1,"role":["Leader"]}]}]}
+
+Artefacts
+---------
+
+Get empty artefacts
+
+  $ curl -s localhost:8081/api/phase/1/artefact/judge/1
+  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":0,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null}]}
+
+  $ curl -s localhost:8081/api/phase/1/artefact/judge/2
+  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":0,"target":{"target_type":"single","target":2,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null}]}
+
+set artefact
+
+  $ curl -s localhost:8081/api/phase/1
+  {"competition":2,"round":["Prelims"],"judge_artefact_descr":{"artefact":"yan","artefact_data":["overall"]},"head_judge_artefact_descr":{"artefact":"yan","artefact_data":["head"]},"ranking_algorithm":{"algorithm":"Yan_weighted","weights":[{"yes":3,"alt":2,"no":1}],"head_weights":[{"yes":3,"alt":2,"no":1}]}}
+
+  $ curl -s -X PUT localhost:8081/api/phase/1/artefact/judge/1 \
+  > -H "Content-Type: application/json" \
+  > -d '{"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":0,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type": "yan","artefact_data": [["No"]]}}]}'
+  {"dancers":[1]}
+
+  $ curl -s localhost:8081/api/phase/1/artefact/judge/1
+  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":0,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type":"yan","artefact_data":[["No"]]}}]}
 
 
 End & Cleanup

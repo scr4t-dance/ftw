@@ -1,242 +1,240 @@
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 
-import type { Bib, CompetitionId, DancerId, DancerIdList, HeatTargetJudgeArtefactArray, Phase, PhaseId, Target } from "@hookgen/model";
-import { Yan } from "@hookgen/model";
+import type { DancerId, HeatTargetJudgeArtefactArray, PhaseId, Target } from "@hookgen/model";
+import { YanItem } from "@hookgen/model";
 import { useParams } from "react-router";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
-import { useGetApiPhaseIdSinglesHeats } from "~/hookgen/heat/heat";
 import { useQueryClient } from "@tanstack/react-query";
-import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
 import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey, useGetApiPhaseIdArtefactJudgeIdJudge, usePutApiPhaseIdArtefactJudgeIdJudge, } from '~/hookgen/artefact/artefact';
-import { FormProvider, get, useFieldArray, useForm, type SubmitHandler } from 'react-hook-form';
+import { FormProvider, get, useFieldArray, useForm, useFormContext, type SubmitHandler } from 'react-hook-form';
 import { Field } from '@routes/index/field';
 import { DancerCell } from '@routes/bib/BibList';
 
-const judges: DancerIdList = { dancers: [1] };
-const head_judge: DancerId = 1;
 
-export const yan_values: (string | undefined)[] = Object.values(Yan);
+export const yan_values: (string | undefined)[] = Object.values(YanItem);
 
 const iter_target_dancers = (t: Target) => t.target_type === "single"
-    ? [t.target]
-    : [t.follower, t.leader];
+  ? [t.target]
+  : [t.follower, t.leader];
 
 
-export function ArtefactFormComponent({ phase_id, phase, heat_number, judge_id, bib_list }: { phase_id: PhaseId, phase: Phase, heat_number: number, judge_id: DancerId, bib_list: Array<Bib> }) {
+export function ArtefactFormTable({ artefactData, heat_number }: { artefactData: HeatTargetJudgeArtefactArray, heat_number: number | undefined }) {
 
+  const artefact_description = artefactData.artefacts[0].heat_target_judge.description;
 
-    const all_judges: DancerId[] = judges.dancers.concat([head_judge]);
+  const isHeatView = !(heat_number === undefined);
 
+  const formObject = useFormContext<HeatTargetJudgeArtefactArray>();
 
-    const { data: artefactData, isSuccess, isLoading, isError: isDetailsError } = useGetApiPhaseIdArtefactJudgeIdJudge(phase_id, judge_id);
+  const {
+    control,
+    register,
+    formState: { errors } } = formObject;
 
-    const queryClient = useQueryClient();
+  const { fields } = useFieldArray({
+    control,
+    name: "artefacts",
+  });
 
-    const { mutate: mutateArtefacts } = usePutApiPhaseIdArtefactJudgeIdJudge({
-        mutation: {
-            onSuccess: () => {
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey(phase_id, judge_id),
-                });
-            },
-            onError: (err) => {
-                console.error('Error updating competition:', err);
-                setError("root.serverError", { message: 'Erreur lors de l’ajout de la compétition.' });
+  return (
+
+    <table>
+      <tbody>
+        <tr>
+          <th>Target</th>
+          {artefact_description.artefact === "yan" &&
+            artefact_description.artefact_data.map((criterion, index) => {
+              return (
+                <th key={`yan.${index}`}>
+                  {criterion}
+                </th>
+              );
+            })}
+          {artefact_description.artefact === "ranking" &&
+            <th>Rank</th>
+          }
+        </tr>
+        {fields && fields.map((field, index) => (
+          <>
+            {(!isHeatView || (field.heat_target_judge.heat_number === heat_number)) &&
+
+              <tr key={field.id}>
+                <td>
+                  <p>
+                    {field.heat_target_judge.target.target_type == "single" &&
+                      field.heat_target_judge.target.role}
+                    {field.heat_target_judge.target.target_type == "couple" &&
+                      "couple"}
+                  </p>
+                  {iter_target_dancers(field.heat_target_judge.target).map((i) => (
+                    <DancerCell key={`bib.${index}`} id_dancer={i} />
+                  ))}
+                </td>
+                <Field
+                  error={get(errors, `artefacts.${index}.artefact.artefact_type.message`)}
+                >
+                  <input
+                    defaultValue={field.heat_target_judge.description.artefact}
+                    type='hidden'
+                    {...register(`artefacts.${index}.artefact.artefact_type`
+                    )} />
+                </Field>
+
+                {field.heat_target_judge.description.artefact === "yan" &&
+                  field.heat_target_judge.description.artefact_data.map((_, c_index) => {
+                    return (
+                      <td>
+                        <Field
+                          error={get(errors, `artefacts.${index}.artefact.artefact_data.${c_index}.0.message`)}
+                        >
+                          <select
+                            {...register(`artefacts.${index}.artefact.artefact_data.${c_index}.0`)}
+                          >
+                            {YanItem && Object.keys(YanItem).map(key => {
+                              const value = YanItem[key as keyof typeof YanItem];
+                              return <option key={key} value={value}>{value}</option>;
+                            })}
+                          </select>
+                        </Field>
+                      </td>
+                    );
+                  })}
+              </tr>
             }
-        }
-    });
+          </>
+        ))}
+      </tbody>
+    </table>
+  );
+}
 
-    const formObject = useForm<HeatTargetJudgeArtefactArray>({
-        disabled: isLoading,
-        defaultValues: artefactData
-    });
 
-    const {
-        control,
-        register,
-        reset,
-        handleSubmit,
-        setError,
-        setValue,
-        formState: { errors } } = formObject;
+export function ArtefactFormComponent({ artefactData }: { artefactData: HeatTargetJudgeArtefactArray }) {
 
-    const { fields } = useFieldArray({
-        control,
-        name: "artefacts",
-    });
 
-    useEffect(() => {
-        if (isSuccess && artefactData) {
-            console.log("reloading Artefact form")
-            reset(artefactData);
-        }
-    }, [isSuccess, artefactData, reset]);
+  const [isHeatView, setHeatView] = useState(false);
 
-    useEffect(() => {
-        fields.forEach((_, idx) => {
-            setValue(`artefacts.${idx}.artefact.artefact_type`, phase.judge_artefact_descr.artefact);
+  const phase_id: PhaseId = artefactData.artefacts[0].heat_target_judge.phase_id;
+  const judge_id: DancerId = artefactData.artefacts[0].heat_target_judge.judge;
+
+  const heat_number_array = artefactData.artefacts.map((htja) => (
+    htja.heat_target_judge.heat_number
+  ));
+  const unique_heat_number = [...new Set(heat_number_array)];
+
+  const queryClient = useQueryClient();
+
+  const { mutate: mutateArtefacts } = usePutApiPhaseIdArtefactJudgeIdJudge({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey(phase_id, judge_id),
         });
-    }, [fields, setValue, phase.judge_artefact_descr.artefact]);
-
-
-    if (!isSuccess) return <div>Loading artefacts...</div>;
-    if (isDetailsError) return (
-        <div>
-            Error loading artefact data
-            {errors?.artefacts?.message}
-        </div>);
-    if (!bib_list || bib_list.length === 0) {
-        return <p>No bibs for this heat</p>;
+      },
+      onError: (err) => {
+        console.error('Error updating competition:', err);
+        setError("root.serverError", { message: 'Erreur lors de l’ajout de la compétition.' });
+      }
     }
+  });
 
-    const onSubmit: SubmitHandler<HeatTargetJudgeArtefactArray> = (dataArray) => {
-        console.log({ id: phase_id, data: dataArray });
-        const validArtefacts = {
-            artefacts: dataArray.artefacts.filter(a => {
-                if (!a?.artefact?.artefact_type) return false;
-                if (!a?.artefact?.artefact_data) return false;
+  const formObject = useForm<HeatTargetJudgeArtefactArray>({
+    //disabled: isLoading,
+    defaultValues: artefactData
+  });
 
-                // keep if at least one criterion is non-empty
-                if (a?.artefact?.artefact_type === "ranking") {
-                    return !a?.artefact?.artefact_data;
-                }
-                const hasValidData = a.artefact.artefact_data.some(d => d !== undefined && d !== null);
-                return hasValidData;
-            })
-        };
-        mutateArtefacts({ id: phase_id, idJudge: judge_id, data: validArtefacts })
+  const {
+    reset,
+    handleSubmit,
+    setError,
+    formState: { errors } } = formObject;
+
+  const onSubmit: SubmitHandler<HeatTargetJudgeArtefactArray> = (dataArray) => {
+    console.log({ id: phase_id, data: dataArray });
+    const validArtefacts = {
+      artefacts: dataArray.artefacts.filter(a => {
+        if (!a?.artefact?.artefact_type) return false;
+        if (!a?.artefact?.artefact_data) return false;
+
+        // keep if at least one criterion is non-empty
+        if (a?.artefact?.artefact_type === "ranking") {
+          return !a?.artefact?.artefact_data;
+        }
+        const hasValidData = a.artefact.artefact_data.some(d => d !== undefined && d !== null);
+        return hasValidData;
+      })
     };
+    mutateArtefacts({ id: phase_id, idJudge: judge_id, data: validArtefacts })
+  };
 
-    return (
-        <FormProvider {...formObject}>
-            <form onSubmit={handleSubmit(onSubmit)} >
-                <table>
-                    <tbody>
-                        <tr>
-                            <th>Target</th>
-                            {phase.judge_artefact_descr.artefact === "yan" &&
-                                phase.judge_artefact_descr.artefact_data.map((criterion, index) => {
-                                    return (
-                                        <th key={`yan.${index}`}>
-                                            {criterion}
-                                        </th>
-                                    );
-                                })}
-                            {phase.judge_artefact_descr.artefact === "ranking" &&
-                                <th>Rank</th>
-                            }
-                        </tr>
-                        {fields && fields.map((field, index) => (
-                            <tr key={field.id}>
-                                <td>
-                                    {iter_target_dancers(bib_list[index].target) && iter_target_dancers(bib_list[index].target).map((i) => (
-                                        <DancerCell key={`bib.${bib_list[index]}.${index}`} id_dancer={i} />
-                                    ))}
-                                </td>
-                                {phase.judge_artefact_descr.artefact && (
-                                    <Field
-                                        error={get(errors, `artefacts.${index}.artefact.artefact_type.message`)}
-                                    >
-                                        <input
-                                            defaultValue={phase.judge_artefact_descr.artefact}
-                                            type='hidden'
-                                            {...register(`artefacts.${index}.artefact.artefact_type`
-                                            )} />
-                                    </Field>
-                                )}
-                                {phase.judge_artefact_descr.artefact === "yan" &&
-                                    phase.judge_artefact_descr.artefact_data.map((_, c_index) => {
-                                        return (
-                                            <td>
-                                                <Field
-                                                    error={get(errors, `artefacts.${index}.message`)}
-                                                >
-                                                    <select
-                                                        {...register(`artefacts.${index}.artefact.artefact_data.${c_index}`)}
-                                                    >
-                                                        {yan_values.concat([undefined]).map(key => {
-                                                            return <option key={key} value={key}>{key}</option>;
-                                                        })}
-                                                    </select>
-                                                </Field>
-                                            </td>
-                                        );
-                                    })}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-                {errors.root?.formValidation &&
-                    <div className="error_message">⚠️ {errors.root.formValidation.message}</div>
-                }
+  return (
+    <FormProvider {...formObject}>
+      <form onSubmit={handleSubmit(onSubmit)} >
+        {isHeatView && unique_heat_number.map((heat_number) => (
+          <>
+            <h2>Heat {heat_number}</h2>
+            <ArtefactFormTable artefactData={artefactData} heat_number={heat_number} />
+          </>
 
-                {errors.root?.serverError &&
-                    <div className="error_message">⚠️ {errors.root.serverError.message}</div>
-                }
+        ))}
+        {!isHeatView && (
+          <>
+            <h2>All heats</h2>
+            <ArtefactFormTable artefactData={artefactData} heat_number={undefined} />
+          </>
 
-                <button type="submit" disabled={formObject.formState.isSubmitting}>
-                    Mettre à jour les artefacts
-                </button>
-                <button
-                    type="button"
-                    disabled={formObject.formState.isSubmitting}
-                    onClick={() => reset(artefactData)}>
-                    Réinitialiser
-                </button>
+        )}
+        {errors.root?.formValidation &&
+          <div className="error_message">⚠️ {errors.root.formValidation.message}</div>
+        }
 
-            </form>
-        </FormProvider >
-    );
+        {errors.root?.serverError &&
+          <div className="error_message">⚠️ {errors.root.serverError.message}</div>
+        }
+
+        <button type="submit" disabled={formObject.formState.isSubmitting}>
+          Mettre à jour les artefacts
+        </button>
+        <button
+          type="button"
+          disabled={formObject.formState.isSubmitting}
+          onClick={() => reset(artefactData)}>
+          Réinitialiser
+        </button>
+
+      </form>
+    </FormProvider >
+  );
 }
 
 
 
 export default function ArtefactForm() {
 
-    let { id_phase, id_judge } = useParams();
-    let id_phase_number = Number(id_phase) as PhaseId;
-    let id_judge_number = Number(id_judge) as DancerId;
+  let { id_phase, id_judge } = useParams();
+  let id_phase_number = Number(id_phase) as PhaseId;
+  let id_judge_number = Number(id_judge) as DancerId;
 
-    const { data: phaseData, isSuccess: isSuccessPhase } = useGetApiPhaseId(id_phase_number);
+  const { data: phaseData, isSuccess: isSuccessPhase } = useGetApiPhaseId(id_phase_number);
 
-    const { data: heat_list, isSuccess: isSuccessHeats } = useGetApiPhaseIdSinglesHeats(id_phase_number);
+  const { data: artefactData, isLoading, isSuccess, isError, error } = useGetApiPhaseIdArtefactJudgeIdJudge(id_phase_number, id_judge_number);
+  if (isLoading) return <div>Loading artefacts...</div>;
+  if (isError) return (
+    <div>
+      Error loading artefact data
+      {error?.message}
+    </div>);
+  if (!isSuccess) return <div>Could not load artefacts...</div>;
 
-    const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(phaseData?.competition as CompetitionId);
+  if (!isSuccessPhase) return <div>Chargement...</div>;
+  if (!phaseData) return null;
 
-    if (!isSuccessPhase) return <div>Chargement...</div>;
-    if (!phaseData) return null;
-    if (!isSuccessBibs) return <div>Chargement des bibs...</div>;
-    if (!isSuccessHeats) return <div>Chargement des heats...</div>;
-
-    //const followers = heat_list.heats.flatMap(v => (v.followers.flatMap(u => iter_target_dancers(u))));
-    //const leaders = heat_list.heats.flatMap(v => (v.leaders.flatMap(u => u.target)));
-    const get_bibs = (dancer_list: DancerId[]) => dataBibs?.bibs.filter(b => iter_target_dancers(b.target).map(dancer => dancer_list?.includes(dancer)).includes(true));
-
-    return (
-        <>
-            <h1>Judge {id_judge_number}</h1>
-            {heat_list && heat_list.heats && heat_list.heats.map((v, heat_minus_one) => (
-                <>
-                    <h1>Heat {heat_minus_one + 1}</h1>
-                    <p>Followers</p>
-                    <ArtefactFormComponent
-                        phase_id={id_phase_number}
-                        phase={phaseData}
-                        heat_number={heat_minus_one}
-                        judge_id={id_judge_number}
-                        bib_list={get_bibs(v.followers.flatMap(u => iter_target_dancers(u)))}
-                    />
-                    <p>Leaders</p>
-                    <ArtefactFormComponent
-                        phase_id={id_phase_number}
-                        phase={phaseData}
-                        heat_number={heat_minus_one}
-                        judge_id={id_judge_number}
-                        bib_list={get_bibs(v.leaders.flatMap(u => iter_target_dancers(u)))}
-                    />
-                </>
-            ))}
-
-        </>
-    );
+  return (
+    <>
+      <h1>Judge {id_judge_number}</h1>
+      <ArtefactFormComponent
+        artefactData={artefactData}
+      />
+    </>
+  );
 }

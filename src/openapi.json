@@ -63,7 +63,7 @@
           }
         ],
         "requestBody": {
-          "description": "DancerId to add",
+          "description": "Panel of judges to add",
           "content": {
             "application/json": {
               "schema": { "$ref": "#/components/schemas/Panel" }
@@ -198,7 +198,7 @@
       },
       "put": {
         "tags": [ "artefact", "heat", "judge", "phase" ],
-        "summary": "Add dancer to competition",
+        "summary": "add artefacts to all targets of a heat, for a specifiic judging type",
         "parameters": [
           {
             "name": "id",
@@ -1716,8 +1716,8 @@
       },
       "Yan": {
         "description": " Yan value ",
-        "type": "string",
-        "enum": [ "Yes", "Alt", "No" ]
+        "type": "array",
+        "items": { "type": "string", "enum": [ "Yes", "Alt", "No" ] }
       },
       "ArtefactYans": {
         "description": " Yes/Alt/No judging artefact ",

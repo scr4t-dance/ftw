@@ -36,7 +36,7 @@ let rec routes router =
     ~summary:"Add judge to a phase"
     ~request_body:(
       Types.obj @@ Spec.make_request_body_object ()
-        ~description:"DancerId to add"
+        ~description:"Panel of judges to add"
         ~required:true
         ~content:[
           Spec.json,

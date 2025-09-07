@@ -277,7 +277,7 @@ function JudgeListComponent({ phase_id }: { phase_id: PhaseId }) {
 
     return (
         <>
-            <p>Head judge</p>
+            <h1>Head judge</h1>
             {data.head && (
                 <DancerCell id_dancer={data.head} />
             )}
