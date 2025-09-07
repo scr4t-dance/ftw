@@ -112,7 +112,7 @@ export function ArtefactFormTable({ artefactData, heat_number }: { artefactData:
 export function ArtefactFormComponent({ artefactData }: { artefactData: HeatTargetJudgeArtefactArray }) {
 
 
-  const [isHeatView, setHeatView] = useState(false);
+  const [isHeatView, setHeatView] = useState(true);
 
   const phase_id: PhaseId = artefactData.artefacts[0].heat_target_judge.phase_id;
   const judge_id: DancerId = artefactData.artefacts[0].heat_target_judge.judge;
@@ -169,6 +169,7 @@ export function ArtefactFormComponent({ artefactData }: { artefactData: HeatTarg
 
   return (
     <FormProvider {...formObject}>
+      <button type='button' onClick={() => setHeatView(!isHeatView)}>Change heat view</button>
       <form onSubmit={handleSubmit(onSubmit)} >
         {isHeatView && unique_heat_number.map((heat_number) => (
           <>

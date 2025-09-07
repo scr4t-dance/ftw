@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import type { Bib, CompetitionId, DancerId, DancerIdList, HeatTargetJudgeArtefact, HeatTargetJudgeArtefactArray, Phase, PhaseId, Target } from "@hookgen/model";
 import { Link, useParams } from "react-router";
@@ -58,7 +58,17 @@ function ArtefactRow({ htja_array, index }: { htja_array: HeatTargetJudgeArtefac
     );
 }
 
-export function ArtefactListComponent({ phase_id, judges, head_judge, heat_number, bib_list }: { phase_id: PhaseId, judges: DancerIdList, head_judge: DancerId | undefined, heat_number: number, bib_list: Array<Bib> }) {
+function matchHeatBib(htja: HeatTargetJudgeArtefact, bib: Bib, heat_number: number | undefined) {
+    if (heat_number === undefined) {
+        return JSON.stringify(htja.heat_target_judge.target) === JSON.stringify(bib.target);
+    }
+
+    return (
+        JSON.stringify(htja.heat_target_judge.target) === JSON.stringify(bib.target)
+        && (htja.heat_target_judge.heat_number === heat_number));
+}
+
+export function ArtefactListComponent({ phase_id, judges, head_judge, heat_number, bib_list }: { phase_id: PhaseId, judges: DancerIdList, head_judge: DancerId | undefined, heat_number: number | undefined, bib_list: Array<Bib> }) {
 
     const all_judges: DancerId[] = judges.dancers.concat(head_judge ? [head_judge] : []);
 
@@ -108,10 +118,8 @@ export function ArtefactListComponent({ phase_id, judges, head_judge, heat_numbe
     const htjaData = artefactDataQueries.map((artefactQuery) => (artefactQuery.data as HeatTargetJudgeArtefactArray));
     //console.log("htjaData", htjaData);
     const target_artefacts = bib_list.map((bib) => {
-        const htja_list : HeatTargetJudgeArtefact[] = htjaData.map((htja_judge_array) => (
-            htja_judge_array.artefacts.filter(
-                (htja) => (JSON.stringify(htja.heat_target_judge.target) === JSON.stringify(bib.target) &&
-                    htja.heat_target_judge.heat_number === heat_number))[0]
+        const htja_list: HeatTargetJudgeArtefact[] = htjaData.map((htja_judge_array) => (
+            htja_judge_array.artefacts.filter((htja) => matchHeatBib(htja, bib, heat_number))[0]
         ));
         const htja_array: HeatTargetJudgeArtefactArray = { artefacts: htja_list };
         return htja_array;
@@ -120,7 +128,7 @@ export function ArtefactListComponent({ phase_id, judges, head_judge, heat_numbe
     //console.log(htjaData[1].artefacts[3].heat_target_judge.target);
     //console.log(bib_list[0].target);
     //console.log(bib_list[0].target == htjaData[1].artefacts[3].heat_target_judge.target);
-    console.log("judges", judges,"htjaData",htjaData, "target_artefacts all judges", target_artefacts, "bib_list", bib_list);
+    //console.log("judges", judges, "htjaData", htjaData, "target_artefacts all judges", target_artefacts, "bib_list", bib_list);
 
     return (
         <table>
@@ -167,6 +175,8 @@ export default function ArtefactList() {
     let id_phase_number = Number(id_phase) as PhaseId;
     const { data: phaseData, isLoading } = useGetApiPhaseId(id_phase_number);
 
+    const [isHeatView, setHeatView] = useState(false);
+
     const { data: heat_list, isSuccess: isSuccessHeats } = useGetApiPhaseIdSinglesHeats(id_phase_number);
 
     const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(phaseData?.competition as CompetitionId);
@@ -179,16 +189,37 @@ export default function ArtefactList() {
     if (!isSuccessHeats) return <div>Chargement des heats...</div>;
     if (!isSuccessJudges) return <div>Chargement des juges...</div>;
 
-    //const followers = heat_list.heats.flatMap(v => (v.followers.flatMap(u => iter_target_dancers(u))));
-    //const leaders = heat_list.heats.flatMap(v => (v.leaders.flatMap(u => u.target)));
+    const followers = heat_list.heats.flatMap(v => (v.followers));
+    const leaders = heat_list.heats.flatMap(v => (v.leaders));
     const get_bibs = (dancer_list: DancerId[]) => dataBibs?.bibs.filter(b => iter_target_dancers(b.target).map(dancer => dancer_list?.includes(dancer)).includes(true));
 
     return (
         <>
-            {judgePanel.panel_type === "single" && heat_list && heat_list.heats && heat_list.heats.map((v, heat_minus_one) => (
+            <button type='button' onClick={() => setHeatView(!isHeatView)}>Change heat view</button>
+            {judgePanel.panel_type === "single" && !isHeatView && heat_list && heat_list.heats &&
+                <>
+                    <h1>Followers</h1>
+                    <ArtefactListComponent
+                        phase_id={id_phase_number}
+                        judges={judgePanel.followers}
+                        head_judge={judgePanel.head}
+                        heat_number={undefined}
+                        bib_list={get_bibs(followers.flatMap(u => iter_target_dancers(u)))}
+                    />
+                    <h1>Leaders</h1>
+                    <ArtefactListComponent
+                        phase_id={id_phase_number}
+                        judges={judgePanel.leaders}
+                        head_judge={judgePanel.head}
+                        heat_number={undefined}
+                        bib_list={get_bibs(leaders.flatMap(u => iter_target_dancers(u)))}
+                    />
+                </>
+            }
+            {judgePanel.panel_type === "single" && isHeatView && heat_list && heat_list.heats && heat_list.heats.map((v, heat_minus_one) => (
                 <>
                     <h1>Heat {heat_minus_one + 1} / {heat_list.heats.length}</h1>
-                    <p>Followers</p>
+                    <h2>Followers</h2>
                     <ArtefactListComponent
                         phase_id={id_phase_number}
                         judges={judgePanel.followers}
@@ -196,7 +227,7 @@ export default function ArtefactList() {
                         heat_number={heat_minus_one}
                         bib_list={get_bibs(v.followers.flatMap(u => iter_target_dancers(u)))}
                     />
-                    <p>Leaders</p>
+                    <h2>Leaders</h2>
                     <ArtefactListComponent
                         phase_id={id_phase_number}
                         judges={judgePanel.leaders}

@@ -1324,6 +1324,10 @@ module Artefact = struct
     | _ -> Error "Expected JSON object for Artefact"
 end
 
+
+(* Heat/Target/Judge/Artefact *)
+(**************************************************************************)
+
 module HeatTargetJudge = struct
 
   type t = {
@@ -1496,4 +1500,117 @@ module Panel = struct
         | None -> Error "Missing key: panel_type"
       )
     | _ -> Error "Expected JSON object for Panel"
+end
+
+(* RANKS *)
+(**************************************************************************)
+
+module TargetRPSSRank = struct
+
+  type t = {
+    ranking_type: string;
+    target : Target.t;
+    rank: int option;
+    ranking_details: string list; (* one element per rank, to plot on the right hand side*)
+  } [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"TargetYanRank"
+      ~typ:(Obj Object)
+      ~properties:[
+        "ranking_type", obj @@ S.make_schema()
+          ~typ:string
+          ~enum:[`String "rpss"];
+        "target", (ref HeatTargetJudge.ref);
+        "rank",  obj @@ S.make_schema()
+          ~typ:int;
+        "ranking_details", obj @@ S.make_schema()
+          ~typ:array
+          ~items:(obj @@ S.make_schema()
+                    ~typ:string);
+      ]
+      ~required:["ranking_type";"target";"rank";"ranking_details"]
+end
+
+module TargetYanRank = struct
+
+  type t = {
+    ranking_type: string;
+    target : Target.t;
+    rank: int option;
+    score: float option;
+  } [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"TargetYanRank"
+      ~typ:(Obj Object)
+      ~properties:[
+        "ranking_type", obj @@ S.make_schema()
+          ~typ:string
+          ~enum:[`String "yan"];
+        "target", (ref HeatTargetJudge.ref);
+        "rank",  obj @@ S.make_schema()
+          ~typ:int;
+        "score", obj @@ S.make_schema()
+          ~typ:int;
+      ]
+      ~required:["ranking_type"; "target";"rank";"score"]
+end
+
+
+module TargetRank = struct
+
+  type t =
+    | YanRank of {rank: TargetYanRank.t}
+    | RPSSRank of {rank: TargetRPSSRank.t}
+  [@@deriving yojson]
+
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"TargetRank"
+      ~typ:object_
+      ~one_of:[
+        (ref TargetYanRank.ref);
+        (ref TargetRPSSRank.ref);
+      ]
+
+      (* TODO implement to_yojson  *)
+end
+
+module PhaseRanking = struct
+
+  type t = {
+    (* hypothesis dense rank
+    the first inner "TargetRank.t list" is the list of targets that are ranked first.
+    It should not be empty.
+    the second inner "TargetRank.t list" is the list of targets that ranked second.
+    the rank index should match the TargetRank.rank value.
+    it is expected that most ranks contains a list of size 1
+    the last inner "TargetRank.t list" is the list of targets that are unranked / ranked last.
+    the frontend doesn't know the condition for the ranking to be valid.
+    It just applies warning colors to ranks that contains more than 1 target.
+    *)
+    ranks: TargetRank.t list list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"PhaseRanks"
+      ~typ:object_
+      ~properties:[
+        "ranks", obj @@ S.make_schema()
+          ~typ:array
+          ~items:(
+            obj @@ S.make_schema()
+              ~typ:array
+              ~items:(ref Target.ref)
+          );
+      ]
+      ~required:["ranks"]
 end
