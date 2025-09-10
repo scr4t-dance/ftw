@@ -49,6 +49,21 @@ type t =
   | Singles_heats of singles_heats
   | Couples_heats of couples_heats
 
+
+let target_of_singles_heat h =
+  let leaders = List.map (fun s -> Bib.Any (Bib.Single {target=s.dancer;role=Role.Leader})) h.leaders in
+  let followers = List.map (fun s -> Bib.Any (Bib.Single {target=s.dancer;role=Role.Follower})) h.followers in
+  followers @ leaders
+
+let target_of_couples_heat h =
+  let couples = List.map (fun s -> Bib.Any (Bib.Couple {leader=s.leader;follower=s.follower})) h.couples in
+  couples
+
+let get_dancer_list heats =
+  match heats with
+  | Singles_heats sh -> Array.map target_of_singles_heat sh.singles_heats
+  | Couples_heats ch -> Array.map target_of_couples_heat ch.couples_heats
+
 (* DB interaction - Regular table *)
 (* ************************************************************************* *)
 
@@ -206,42 +221,55 @@ let mk_couples (l: row list) =
 let get_couples ~st ~phase =
   Couples_heats (mk_couples @@ raw_get st ~phase)
 
+let get_heats ~st ~phase =
+  let heats =
+    let panel = Judge.get ~st ~phase in
+    begin match panel with
+      | Ok Singles _ ->
+        let singles_heats = get_singles ~st ~phase in
+        Ok singles_heats
+      | Ok Couples _ ->
+        let couples_heats = get_couples ~st ~phase in
+        Ok couples_heats
+      | Error _ as err -> err
+    end in
+  heats
 
 let get_id st (phase_id:Phase.id) (heat_number:int) (target:Bib.any_target) =
   let heat_id_list = begin match target with
-  | Any Single { target=t; role=Role.Leader } ->
-    let open Sqlite3_utils.Ty in
-    State.query_list_where ~st ~conv:Id.conv ~p:[int;int;int]
-      {| SELECT id
+    | Any Single { target=t; role=Role.Leader } ->
+      let open Sqlite3_utils.Ty in
+      State.query_list_where ~st ~conv:Id.conv ~p:[int;int;int]
+        {| SELECT id
        FROM heats
        WHERE 0=0
        AND phase_id = ?
        AND heat_number = ?
        AND leader_id = ?
        AND follower_id is NULL |}
-      phase_id heat_number t
-  | Any Single { target=t; role=Role.Follower } ->
-    let open Sqlite3_utils.Ty in
-    State.query_list_where ~st ~conv:Id.conv ~p:[int;int;int]
-      {| SELECT id
+        phase_id heat_number t
+    | Any Single { target=t; role=Role.Follower } ->
+      let open Sqlite3_utils.Ty in
+      State.query_list_where ~st ~conv:Id.conv ~p:[int;int;int]
+        {| SELECT id
        FROM heats
        WHERE 0=0
        AND phase_id = ?
        AND heat_number = ?
        AND leader_id is NULL
        AND follower_id = ? |}
-      phase_id heat_number t
-  | Any Couple {leader;follower;} ->
-    let open Sqlite3_utils.Ty in
-    State.query_list_where ~st ~conv:Id.conv ~p:[int;int;int;int]
-      {| SELECT id
+        phase_id heat_number t
+    | Any Couple {leader;follower;} ->
+      let open Sqlite3_utils.Ty in
+      State.query_list_where ~st ~conv:Id.conv ~p:[int;int;int;int]
+        {| SELECT id
        FROM heats
        WHERE 0=0
        AND phase_id = ?
        AND heat_number = ?
        AND leader_id = ?
        AND follower_id = ? |}
-      phase_id heat_number leader follower
+        phase_id heat_number leader follower
   end in
   match heat_id_list with
   | [] -> Ok None

@@ -15,12 +15,12 @@ function DancerCompetitionHistory() {
     let id_dancer_number = Number(id_dancer) as DancerId;
 
     /* todo regarder les résultats */
-    const { data: competition_id_list, isLoading, isError, error } = useGetApiDancerIdCompetitionHistory(id_dancer_number);
+    const { data: competition_id_list, isLoading, isSuccess } = useGetApiDancerIdCompetitionHistory(id_dancer_number);
 
     const competitionDetailsQueries = useQueries({
-        queries: competition_id_list.competitions.map((competitionId) => ({
+        queries: (competition_id_list?.competitions ?? []).map((competitionId) => ({
             ...getGetApiCompIdQueryOptions(competitionId),
-            enabled: true,
+            enabled: isSuccess,
         })),
     });
 

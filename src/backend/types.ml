@@ -1561,14 +1561,12 @@ module TargetYanRank = struct
       ~required:["ranking_type"; "target";"rank";"score"]
 end
 
-
 module TargetRank = struct
 
   type t =
     | YanRank of {rank: TargetYanRank.t}
     | RPSSRank of {rank: TargetRPSSRank.t}
   [@@deriving yojson]
-
 
 
   let ref, schema =
@@ -1582,6 +1580,9 @@ module TargetRank = struct
 
       (* TODO implement to_yojson  *)
 end
+
+
+
 
 module PhaseRanking = struct
 

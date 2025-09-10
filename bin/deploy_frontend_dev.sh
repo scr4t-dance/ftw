@@ -17,7 +17,7 @@ cleanup() {
 trap cleanup INT TERM EXIT
 
 echo "Running frontend server..."
-(cd src/frontend && echo '{ "API_BASE_URL": "http://localhost:8082" }' > ./public/config.json && npm run dev)
+(cd src/frontend && echo '{ "API_BASE_URL": "http://127.0.0.1:8082" }' > ./public/config.json && npm run dev)
 
 echo '{ "API_BASE_URL": "http://localhost:8089" }' > ./src/frontend/public/config.json
 # Wait for frontend to finish before exiting

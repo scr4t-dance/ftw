@@ -28,7 +28,7 @@ let rec routes router =
         ~description:"Successful operation"
         ~content:[
           Spec.json,
-          Spec.make_media_type_object () ~schema:(Types.(ref HeatTargetJudgeArtefact.ref));
+          Spec.make_media_type_object () ~schema:(Types.(ref PhaseRanking.ref));
         ];
       "400", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Invalid Id supplied";
@@ -41,8 +41,11 @@ let rec routes router =
 
 and get_ranks =
   Api.get
-    ~to_yojson:Types.HeatTargetJudgeArtefact.to_yojson
-    (fun req _st ->
+    ~to_yojson:Types.PhaseRanking.to_yojson
+    (fun req st ->
        let+ id = Utils.int_param req "id" in
-       Error (Error.generic "Not Implemented")
+       let heats_result = Ftw.Heat.get_heats ~st ~phase:id in
+       let+ heats = Result.map_error Error.generic heats_result in
+       let _target_list = List.flatten @@ Array.to_list (Ftw.Heat.get_dancer_list heats) in
+       Error (Error.generic "not implemented")
     )

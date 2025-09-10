@@ -165,15 +165,9 @@ and get_heats =
     ~to_yojson:Types.HeatsArray.to_yojson
     (fun req st ->
        let+ id = Utils.int_param req "id" in
-       let panel = Ftw.Judge.get ~st ~phase:id in
-       match panel with
-       | Ok Singles _ ->
-         let singles_heats = Ftw.Heat.get_singles ~st ~phase:id in
-         Ok (Types.HeatsArray.of_ftw singles_heats)
-       | Ok Couples _ ->
-         let couples_heats = Ftw.Heat.get_couples ~st ~phase:id in
-         Ok (Types.HeatsArray.of_ftw couples_heats)
-       | Error e -> Error (Error.generic e)
+       let heats = Ftw.Heat.get_heats ~st ~phase:id in
+       let heatArray = Result.map Types.HeatsArray.of_ftw heats in
+       Result.map_error Error.generic heatArray
     )
 
 and init_heats =
