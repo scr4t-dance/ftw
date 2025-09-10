@@ -12,7 +12,7 @@ import { runtimeBaseURL } from "~/axios";
 export async function loader({ params }: Route.LoaderArgs) {
 
     const id_event_number = parseInt(params.id_event as string) as EventId;
-    console.log("event loader", runtimeBaseURL)
+    console.log("event loader", runtimeBaseURL);
     const eventQuery = await getApiEventId(id_event_number);
     return eventQuery;
 }
@@ -41,6 +41,10 @@ function EventDetails({
 
     const event = loaderData;
 
+    if (!event) return <p>Impossible de charger l’événement {params.id_event}.</p>;
+
+    const id_event_number = Number(params.id_event) as EventId;
+
     const formatDate = (date: Date | undefined): string => {
         if (date?.year && date?.month && date?.day) {
             return `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
@@ -53,8 +57,8 @@ function EventDetails({
             <h1>{event?.name}</h1>
             <p>Date de début : {formatDate(event?.start_date)}</p>
             <p>Date de fin : {formatDate(event?.end_date)}</p>
-            <CompetitionList id_event={parseInt(params.id_event)} />
-            <NewCompetitionForm id_event={parseInt(params.id_event)} />
+            <CompetitionList id_event={id_event_number} />
+            <NewCompetitionForm id_event={id_event_number} />
         </>
     );
 }
