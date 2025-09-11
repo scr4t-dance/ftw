@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import type { Bib, CompetitionId, DancerId, DancerIdList, HeatTargetJudgeArtefact, HeatTargetJudgeArtefactArray, Phase, PhaseId, Target } from "@hookgen/model";
 import { Link, useParams } from "react-router";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
-import { useGetApiPhaseIdSinglesHeats } from "~/hookgen/heat/heat";
+import { useGetApiPhaseIdHeats, useGetApiPhaseIdSinglesHeats } from "~/hookgen/heat/heat";
 import { useQueries } from "@tanstack/react-query";
 import { DancerCell } from '@routes/bib/BibList';
 import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
@@ -177,7 +177,7 @@ export default function ArtefactList() {
 
     const [isHeatView, setHeatView] = useState(false);
 
-    const { data: heat_list, isSuccess: isSuccessHeats } = useGetApiPhaseIdSinglesHeats(id_phase_number);
+    const { data: heat_list, isSuccess: isSuccessHeats } = useGetApiPhaseIdHeats(id_phase_number);
 
     const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(phaseData?.competition as CompetitionId);
 
@@ -188,9 +188,14 @@ export default function ArtefactList() {
     if (!isSuccessBibs) return <div>Chargement des bibs...</div>;
     if (!isSuccessHeats) return <div>Chargement des heats...</div>;
     if (!isSuccessJudges) return <div>Chargement des juges...</div>;
+    if (heat_list.heat_type !== judgePanel.panel_type) return <div>Error Panel and Heats do not match</div>
 
-    const followers = heat_list.heats.flatMap(v => (v.followers));
-    const leaders = heat_list.heats.flatMap(v => (v.leaders));
+    const targets = heat_list.heat_type === "single" ? {
+        followers: heat_list.heats.flatMap(v => (v.followers)),
+        leaders: heat_list.heats.flatMap(v => (v.leaders)),
+    } : (heat_list.heat_type === "couple" ? {
+        couples: heat_list.heats.flatMap(v => (v.couples))
+    } : {});
     const get_bibs = (dancer_list: DancerId[]) => dataBibs?.bibs.filter(b => iter_target_dancers(b.target).map(dancer => dancer_list?.includes(dancer)).includes(true));
 
     return (
@@ -204,7 +209,7 @@ export default function ArtefactList() {
                         judges={judgePanel.followers}
                         head_judge={judgePanel.head}
                         heat_number={undefined}
-                        bib_list={get_bibs(followers.flatMap(u => iter_target_dancers(u)))}
+                        bib_list={get_bibs((targets.followers ?? []).flatMap(u => iter_target_dancers(u)))}
                     />
                     <h1>Leaders</h1>
                     <ArtefactListComponent
@@ -212,32 +217,59 @@ export default function ArtefactList() {
                         judges={judgePanel.leaders}
                         head_judge={judgePanel.head}
                         heat_number={undefined}
-                        bib_list={get_bibs(leaders.flatMap(u => iter_target_dancers(u)))}
+                        bib_list={get_bibs((targets.leaders ?? []).flatMap(u => iter_target_dancers(u)))}
                     />
                 </>
             }
-            {judgePanel.panel_type === "single" && isHeatView && heat_list && heat_list.heats && heat_list.heats.map((v, heat_minus_one) => (
+            {judgePanel.panel_type === "single" && heat_list.heat_type === "single"
+                && isHeatView && heat_list && heat_list.heats && heat_list.heats.map((v, heat_minus_one) => (
+                    <>
+                        <h1>Heat {heat_minus_one + 1} / {heat_list.heats.length}</h1>
+                        <h2>Followers</h2>
+                        <ArtefactListComponent
+                            phase_id={id_phase_number}
+                            judges={judgePanel.followers}
+                            head_judge={judgePanel.head}
+                            heat_number={heat_minus_one}
+                            bib_list={get_bibs(v.followers.flatMap(u => iter_target_dancers(u)))}
+                        />
+                        <h2>Leaders</h2>
+                        <ArtefactListComponent
+                            phase_id={id_phase_number}
+                            judges={judgePanel.leaders}
+                            head_judge={judgePanel.head}
+                            heat_number={heat_minus_one}
+                            bib_list={get_bibs(v.leaders.flatMap(u => iter_target_dancers(u)))}
+                        />
+                    </>
+                ))}
+            {judgePanel.panel_type === "couple" && heat_list.heat_type === "couple"
+                && !isHeatView && heat_list && heat_list.heats &&
                 <>
-                    <h1>Heat {heat_minus_one + 1} / {heat_list.heats.length}</h1>
-                    <h2>Followers</h2>
+                    <h1>Couples</h1>
                     <ArtefactListComponent
                         phase_id={id_phase_number}
-                        judges={judgePanel.followers}
+                        judges={judgePanel.couples}
                         head_judge={judgePanel.head}
-                        heat_number={heat_minus_one}
-                        bib_list={get_bibs(v.followers.flatMap(u => iter_target_dancers(u)))}
-                    />
-                    <h2>Leaders</h2>
-                    <ArtefactListComponent
-                        phase_id={id_phase_number}
-                        judges={judgePanel.leaders}
-                        head_judge={judgePanel.head}
-                        heat_number={heat_minus_one}
-                        bib_list={get_bibs(v.leaders.flatMap(u => iter_target_dancers(u)))}
+                        heat_number={undefined}
+                        bib_list={get_bibs((targets.couples ?? []).flatMap(u => iter_target_dancers(u)))}
                     />
                 </>
-            ))}
-
+            }
+            {judgePanel.panel_type === "couple" && heat_list.heat_type === "couple"
+                && isHeatView && heat_list && heat_list.heats && heat_list.heats.map((v, heat_minus_one) => (
+                    <>
+                        <h1>Heat {heat_minus_one + 1} / {heat_list.heats.length}</h1>
+                        <h2>Couples</h2>
+                        <ArtefactListComponent
+                            phase_id={id_phase_number}
+                            judges={judgePanel.couples}
+                            head_judge={judgePanel.head}
+                            heat_number={heat_minus_one}
+                            bib_list={get_bibs(v.couples.flatMap(u => iter_target_dancers(u)))}
+                        />
+                    </>
+                ))}
         </>
     );
 }
