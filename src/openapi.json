@@ -10,6 +10,47 @@
     "version": "1.0.1"
   },
   "paths": {
+    "/api/phase/{id}/ranking": {
+      "get": {
+        "tags": [ "ranking", "artefact", "phase" ],
+        "summary": "Get the rankings of targets for a given phase",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseRanks" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Heat, Target or Judge not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/phase/{id}/judges": {
       "get": {
         "tags": [ "judge", "phase", "dancer" ],
@@ -1811,11 +1852,15 @@
           { "$ref": "#/components/schemas/CouplePanel" }
         ]
       },
-      "TargetYanRank": {
+      "TargetRPSSRank": {
         "type": "object",
         "properties": {
           "ranking_type": { "type": "string", "enum": [ "rpss" ] },
-          "target": { "$ref": "#/components/schemas/HeatTargetJudge" },
+          "target": { "$ref": "#/components/schemas/Target" },
+          "artefact_list": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ArtefactRank" }
+          },
           "rank": { "type": "integer" },
           "ranking_details": {
             "type": "array",
@@ -1828,17 +1873,23 @@
         "type": "object",
         "properties": {
           "ranking_type": { "type": "string", "enum": [ "yan" ] },
-          "target": { "$ref": "#/components/schemas/HeatTargetJudge" },
+          "target": { "$ref": "#/components/schemas/Target" },
+          "artefact_list": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ArtefactYans" }
+          },
           "rank": { "type": "integer" },
           "score": { "type": "integer" }
         },
-        "required": [ "ranking_type", "target", "rank", "score" ]
+        "required": [
+          "ranking_type", "target", "artefact_list", "rank", "score"
+        ]
       },
       "TargetRank": {
         "type": "object",
         "oneOf": [
           { "$ref": "#/components/schemas/TargetYanRank" },
-          { "$ref": "#/components/schemas/TargetYanRank" }
+          { "$ref": "#/components/schemas/TargetRPSSRank" }
         ]
       },
       "PhaseRanks": {
@@ -1848,7 +1899,7 @@
             "type": "array",
             "items": {
               "type": "array",
-              "items": { "$ref": "#/components/schemas/Target" }
+              "items": { "$ref": "#/components/schemas/TargetRank" }
             }
           }
         },
