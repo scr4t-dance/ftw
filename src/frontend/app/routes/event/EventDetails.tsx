@@ -1,49 +1,24 @@
-import type { Route } from "./+types/EventDetails"
+//import type { Route } from "./+types/EventDetails"
 import "~/styles/ContentStyle.css";
 
 import React from 'react';
-import { getApiEventId } from '@hookgen/event/event';
+import { useGetApiEventId } from '@hookgen/event/event';
 
 import { type EventId, type Date } from "@hookgen/model";
 import CompetitionList from "~/routes/competition/CompetitionList";
 import NewCompetitionForm from "../competition/NewCompetitionForm";
-import { runtimeBaseURL } from "~/axios";
+import { useParams } from "react-router";
 
-export async function loader({ params }: Route.LoaderArgs) {
 
-    const id_event_number = parseInt(params.id_event as string) as EventId;
-    console.log("event loader", runtimeBaseURL);
-    const eventQuery = await getApiEventId(id_event_number);
-    return eventQuery;
-}
+function EventDetails() {
 
-export async function clientLoader({
-    serverLoader,
-    params,
-}: Route.ClientLoaderArgs) {
+    const { id_event } = useParams();
+    const id_event_number = Number(id_event) as EventId;
+    const { data: event, isLoading, isError, error } = useGetApiEventId(id_event_number);
 
-    const id_event_number = parseInt(params.id_event as string) as EventId;
-    console.log("event clientLoader", runtimeBaseURL)
-    const res = await getApiEventId(id_event_number);
-    const serverData = await serverLoader();
-    return { ...serverData, ...res };
-}
-
-// HydrateFallback is rendered while the client loader is running
-export function HydrateFallback({ params }: Route.LoaderArgs) {
-    return <div>Chargement de l'événement {params.id_event}...</div>;
-}
-
-function EventDetails({
-    params,
-    loaderData,
-}: Route.ComponentProps) {
-
-    const event = loaderData;
-
-    if (!event) return <p>Impossible de charger l’événement {params.id_event}.</p>;
-
-    const id_event_number = Number(params.id_event) as EventId;
+    if (isLoading) return <p>Chargement de l'événement {id_event}.</p>;
+    if (isError) return <p>Erreur chargement événement {error.message}.</p>;
+    if (!event) return <p>Pas de données sur l’événement {id_event}.</p>;
 
     const formatDate = (date: Date | undefined): string => {
         if (date?.year && date?.month && date?.day) {
