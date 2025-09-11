@@ -20,12 +20,12 @@ export default [
             route("new", "routes/phase/NewPhaseForm.tsx"),
             route(":id_phase", "routes/phase/PhasePageHome.tsx", [
               index("routes/phase/PhasePage.tsx"),
-              route("edit", "routes/phase/EditPhaseForm.tsx"),
               route("heats", "routes/heat/HeatsList.tsx"),
               route("artefacts", "routes/artefact/ArtefactList.tsx"),
               route("judges", "routes/judge/JudgeList.tsx"),
               route("edit_judges", "routes/judge/JudgeForm.tsx"),
               route("artefacts/judge/:id_judge", "routes/artefact/ArtefactForm.tsx"),
+              route("ranks", "routes/artefact/RankList.tsx"),
             ]),
           ]),
         ]),

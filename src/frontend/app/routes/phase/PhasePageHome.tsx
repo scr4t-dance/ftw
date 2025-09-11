@@ -58,7 +58,12 @@ function PhasePageHome({
                 </Link>
             </p>
             <p>
-                <Link to={`${url}/judges`}>
+                <Link to={`${url}/ranks`}>
+                    Phase Ranks
+                </Link>
+            </p>
+            <p>
+                <Link to={`${url}//judges`}>
                     Phase Judges
                 </Link>
             </p>

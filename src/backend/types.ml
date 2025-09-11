@@ -1511,19 +1511,23 @@ module TargetRPSSRank = struct
     ranking_type: string;
     target : Target.t;
     rank: int option;
+    artefact_list: ArtefactRank.t list;
     ranking_details: string list; (* one element per rank, to plot on the right hand side*)
   } [@@deriving yojson]
 
 
   let ref, schema =
     make_schema ()
-      ~name:"TargetYanRank"
+      ~name:"TargetRPSSRank"
       ~typ:(Obj Object)
       ~properties:[
         "ranking_type", obj @@ S.make_schema()
           ~typ:string
           ~enum:[`String "rpss"];
-        "target", (ref HeatTargetJudge.ref);
+        "target", (ref Target.ref);
+        "artefact_list", obj @@ S.make_schema()
+          ~typ:array
+          ~items:(ref ArtefactRank.ref);
         "rank",  obj @@ S.make_schema()
           ~typ:int;
         "ranking_details", obj @@ S.make_schema()
@@ -1540,6 +1544,7 @@ module TargetYanRank = struct
     ranking_type: string;
     target : Target.t;
     rank: int option;
+    artefact_list: ArtefactYans.t list;
     score: float option;
   } [@@deriving yojson]
 
@@ -1552,13 +1557,16 @@ module TargetYanRank = struct
         "ranking_type", obj @@ S.make_schema()
           ~typ:string
           ~enum:[`String "yan"];
-        "target", (ref HeatTargetJudge.ref);
+        "target", (ref Target.ref);
+        "artefact_list", obj @@ S.make_schema()
+          ~typ:array
+          ~items:(ref ArtefactYans.ref);
         "rank",  obj @@ S.make_schema()
           ~typ:int;
         "score", obj @@ S.make_schema()
           ~typ:int;
       ]
-      ~required:["ranking_type"; "target";"rank";"score"]
+      ~required:["ranking_type"; "target"; "artefact_list";"rank";"score"]
 end
 
 module TargetRank = struct
@@ -1610,7 +1618,7 @@ module PhaseRanking = struct
           ~items:(
             obj @@ S.make_schema()
               ~typ:array
-              ~items:(ref Target.ref)
+              ~items:(ref TargetRank.ref)
           );
       ]
       ~required:["ranks"]
