@@ -21,3 +21,7 @@ export default function EventCompetitionsHome({ }: Route.ComponentProps) {
 
     return (<Outlet />);
 }
+
+export const handle = {
+  breadcrumb: () => "Competitions"
+};

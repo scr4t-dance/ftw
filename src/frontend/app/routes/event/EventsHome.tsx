@@ -6,6 +6,7 @@ import { Outlet } from "react-router";
 import type { Route } from "./+types/EventsHome";
 import { getApiEvents } from "~/hookgen/event/event";
 import type { EventIdList } from "~/hookgen/model";
+import Breadcrumbs from "../header/breadcrumbs";
 
 type loaderProps = Promise<{
     event_list: EventIdList;
@@ -27,6 +28,7 @@ export default function EventsHome({
     return (
         <>
             <Header />
+            <Breadcrumbs />
             <div className="content-container">
                 <Outlet />
             </div>
@@ -34,3 +36,7 @@ export default function EventsHome({
         </>
     );
 }
+
+export const handle = {
+  breadcrumb: () => "Events"
+};

@@ -23,3 +23,7 @@ export default function CompetitionHome({ }: Route.ComponentProps) {
 
     return (<Outlet />);
 }
+
+export const handle = {
+  breadcrumb: () => "Competition"
+};

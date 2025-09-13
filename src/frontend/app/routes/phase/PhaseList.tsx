@@ -1,13 +1,31 @@
-import "~/styles/ContentStyle.css";
-
+import type { Route } from "./+types/PhaseList";
 import React from 'react';
-import { useGetApiCompId } from '@hookgen/competition/competition';
-
-import type { ArtefactDescription, Competition, CompetitionId } from "@hookgen/model";
 import { Link } from "react-router";
-import { useGetApiCompIdPhases, useGetApiPhaseId } from "@hookgen/phase/phase";
-import ArtefactDescriptionComponent from "./ArtefactDescription";
 
+import { getApiCompId, useGetApiCompId } from '@hookgen/competition/competition';
+import type { ArtefactDescription, Competition, CompetitionId, EventId } from "@hookgen/model";
+import { getApiCompIdPhases, useGetApiCompIdPhases, useGetApiPhaseId } from "@hookgen/phase/phase";
+import ArtefactDescriptionComponent from "@routes/phase/ArtefactDescription";
+import { getApiEventId, getApiEventIdComps } from "~/hookgen/event/event";
+
+
+export async function loader({ params }: Route.LoaderArgs) {
+
+    let id_event = Number(params.id_event) as EventId;
+    const event_data = await getApiEventId(id_event);
+    const competition_list = await getApiEventIdComps(id_event);
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    const competition_data = await getApiCompId(id_competition);
+    const phase_list = await getApiCompIdPhases(id_competition);
+    return {
+        id_event,
+        id_competition,
+        event_data,
+        competition_list,
+        competition_data,
+        phase_list,
+    };
+}
 
 
 function PhaseDetails({ id, competition_id, competition_data, index }: { id: CompetitionId, competition_id: CompetitionId, competition_data: Competition, index: number }) {
@@ -84,4 +102,13 @@ export function PhaseList({ id_competition, competition_data }: { id_competition
             </table>
         </>
     );
+}
+
+
+export default function PhaseListRoute({ loaderData }: Route.ComponentProps) {
+
+    return (<PhaseList
+        id_competition={loaderData.id_competition}
+        competition_data={loaderData.competition_data} />);
+
 }
