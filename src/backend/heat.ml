@@ -111,11 +111,11 @@ let rec routes router =
     ~summary:"Promote dancers to next round"
     ~request_body:(
       Types.obj @@ Spec.make_request_body_object ()
-        ~description:"Placeholder"
+        ~description:"Treshold for next phase"
         ~required:true
         ~content:[
           Spec.json,
-          Spec.make_media_type_object () ~schema:(Types.(ref PhaseId.ref));
+          Spec.make_media_type_object () ~schema:(Types.(ref NextPhaseFormData.ref));
         ]
     )
     ~parameters:[

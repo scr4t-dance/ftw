@@ -7,6 +7,7 @@ import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey, ge
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { BareBibListComponent } from '../bib/BibList';
 import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
+import NextPhaseForm from '../phase/NextPhaseForm';
 
 const iter_target_dancers = (t: Target) => t.target_type === "single"
     ? [t.target]
@@ -65,24 +66,6 @@ export default function HeatsList() {
         }
     });
 
-    const { mutate: promotePhase } = usePutApiPhaseIdPromote({
-        mutation: {
-            onSuccess: (nextPhase) => {
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiPhaseIdCouplesHeatsQueryKey(nextPhase),
-                });
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiPhaseIdSinglesHeatsQueryKey(nextPhase),
-                });
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiPhaseIdHeatsQueryKey(nextPhase),
-                });
-            },
-            onError: (err) => {
-                console.error('Error creating phase:', err);
-            }
-        }
-    });
 
     const { data: heats, isSuccess: isSuccessHeats } = useGetApiPhaseIdHeats(id_phase_number);
 
@@ -105,12 +88,8 @@ export default function HeatsList() {
                     Init heats
                 </button>
 
-                <button type="button" onClick={() => {
-                    console.log("init heats")
-                    promotePhase({ id: id_phase_number, data: 0 })
-                }}>
-                    Promote
-                </button>
+                <NextPhaseForm id_phase={id_phase_number} />
+
             </p>
 
             {heats?.heats && heats?.heats.map((heat, index) => (

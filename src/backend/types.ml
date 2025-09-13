@@ -1623,3 +1623,23 @@ module PhaseRanking = struct
       ]
       ~required:["ranks"]
 end
+
+
+
+
+module NextPhaseFormData = struct
+
+  type t = {
+    number_of_targets_to_promote: int;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"NextPhaseFormData"
+      ~typ:object_
+      ~properties:[
+        "number_of_targets_to_promote", obj @@ S.make_schema()
+          ~typ:int;
+      ]
+      ~required:["number_of_targets_to_promote"]
+end
