@@ -75,9 +75,11 @@ you can run a test instance of the server using the following command:
 make run
 ```
 
-To test a change, save changes, stop the server and run `make run` again.
+To test an Ocaml change, save changes, stop the server and run `make run` again.
 
-For faster feedback loops on frontend code, it is possible to use `hot module reloading`. It should be possible to deploy an ocaml backend against `src/frontend/src` instead of `src/frontend/build`, but it is developped yet.
+To test frontend, it is possible to use `hot module reloading` (reload the page when typescript source code change).
+See `Testing frontend` in `HACKING.md` for more details.
+
 
 To deploy a frontend dev server with hot module reloading, run
 ```bash
@@ -95,5 +97,6 @@ TODO
 Develop
 -------
 
+See [HACKING.md](HACKING.md) to learn how to contribute, develop and test.
 Read the [documentation about concepts](doc/concepts.md) to know what should be developped.
 Then read how to [add a new concept](doc/coding_a_concept.md).

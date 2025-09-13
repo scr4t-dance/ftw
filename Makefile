@@ -71,20 +71,14 @@ clean:
 # Helper Rules #
 ################
 
-debug: backend
-	dune exec -- ftw --db=tests/test.db -b -vv
-
 run: backend
 	./bin/deploy_production.sh
 
-frontend_dev: backend
+dev: backend
 	./bin/deploy_frontend_dev.sh
-
-manual_test: backend
-	./bin/deploy_manual_test.sh
 
 top:
 	dune utop
 
-.PHONY: all build top doc run debug frontend_dev tests promote clean
+.PHONY: all build top doc run dev tests promote clean
 	hookgen
