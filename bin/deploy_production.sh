@@ -17,9 +17,8 @@ cleanup() {
 trap cleanup INT TERM EXIT
 
 echo "Running frontend server..."
-(cd src/frontend && echo '{ "API_BASE_URL": "http://localhost:8080" }' > ./public/config.json && npm run start)
+(cd src/frontend && npm run start)
 
-echo '{ "API_BASE_URL": "http://localhost:8089" }' > ./src/frontend/public/config.json
 # Wait for frontend to finish before exiting
 wait $FTW_PID
 echo "Ftw backend server $FTW_PID killed"
