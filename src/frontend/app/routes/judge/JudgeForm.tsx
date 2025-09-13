@@ -5,7 +5,7 @@ import { data, useParams } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { FormProvider, get, useForm, type SubmitHandler } from 'react-hook-form';
 import { Field } from '@routes/index/field';
-import { getGetApiPhaseIdJudgesQueryKey, useGetApiPhaseIdJudges, usePutApiPhaseIdJudges } from '~/hookgen/judge/judge';
+import { getGetApiPhaseIdJudgesQueryKey, useGetApiPhaseIdJudges, usePutApiPhaseIdJudges } from '@hookgen/judge/judge';
 import { JudgeListFormElement } from './JudgeListFormElement';
 
 function sanitizePanel(data: Panel): SinglePanel | CouplePanel {

@@ -30,7 +30,7 @@
         "./app/*"
       ],
       "@hookgen/*": [
-        "./app/hookgen/*"
+        "./hookgen/*"
       ],
       "@routes/*": [
         "./app/routes/*"

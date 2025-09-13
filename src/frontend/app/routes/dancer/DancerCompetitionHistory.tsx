@@ -6,7 +6,7 @@ import { Link, useParams } from "react-router";
 import { type DancerId } from "@hookgen/model";
 import { useGetApiDancerIdCompetitionHistory } from '@hookgen/dancer/dancer';
 import { useQueries } from "@tanstack/react-query";
-import { getGetApiCompIdQueryOptions } from "~/hookgen/competition/competition";
+import { getGetApiCompIdQueryOptions } from "@hookgen/competition/competition";
 
 
 function DancerCompetitionHistory() {

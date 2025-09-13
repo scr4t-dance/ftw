@@ -10,7 +10,7 @@ import { PhaseList } from "../phase/PhaseList";
 import { NewBibForm } from "../bib/NewBibForm";
 import { BareBibListComponent } from "../bib/BibList";
 import type { Route } from "./+types/CompetitionDetails";
-import { useGetApiEventId } from "~/hookgen/event/event";
+import { useGetApiEventId } from "@hookgen/event/event";
 
 export async function loader({ params }: Route.LoaderArgs) {
 
