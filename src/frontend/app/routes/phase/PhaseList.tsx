@@ -3,18 +3,15 @@ import "~/styles/ContentStyle.css";
 import React from 'react';
 import { useGetApiCompId } from '@hookgen/competition/competition';
 
-import type { ArtefactDescription, CompetitionId } from "@hookgen/model";
+import type { ArtefactDescription, Competition, CompetitionId } from "@hookgen/model";
 import { Link } from "react-router";
 import { useGetApiCompIdPhases, useGetApiPhaseId } from "@hookgen/phase/phase";
 import ArtefactDescriptionComponent from "./ArtefactDescription";
 
-const phaseListlink = "phases/"
 
-function PhaseDetails({ id, index }: { id: CompetitionId, index: number }) {
-    const { data, isLoading } = useGetApiPhaseId(id);
 
-    const phase = data;
-    const { data: dataComp } = useGetApiCompId(phase?.competition as CompetitionId);
+function PhaseDetails({ id, competition_id, competition_data, index }: { id: CompetitionId, competition_id: CompetitionId, competition_data: Competition, index: number }) {
+    const { data: phase, isLoading } = useGetApiPhaseId(id);
 
     if (isLoading) return (
         <tr>
@@ -23,22 +20,21 @@ function PhaseDetails({ id, index }: { id: CompetitionId, index: number }) {
             </td>
         </tr>
     );
-    if (!data) return null;
+    if (!phase) return null;
 
-    const competition = dataComp;
 
     return (
         <tr key={id}
             className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
 
             <td>
-                <Link to={`/${phaseListlink}${id}`}>
-                    {phase?.round} {competition?.name}
+                <Link to={`/events/${competition_data.event}/competitions/${competition_id}/phases/${id}`}>
+                    {phase?.round} {competition_data?.name}
                 </Link>
             </td>
             <td>
                 <Link to={`/competitions/${phase?.competition}`}>
-                    {competition?.name}
+                    {competition_data?.name}
                 </Link>
             </td>
             <td>
@@ -59,7 +55,7 @@ function PhaseDetails({ id, index }: { id: CompetitionId, index: number }) {
     );
 }
 
-export function PhaseList({ id_competition }: { id_competition: CompetitionId }) {
+export function PhaseList({ id_competition, competition_data }: { id_competition: CompetitionId, competition_data: Competition }) {
 
     const { data, isLoading, isError, error } = useGetApiCompIdPhases(id_competition);
 
@@ -82,7 +78,7 @@ export function PhaseList({ id_competition }: { id_competition: CompetitionId })
                     </tr>
 
                     {data?.phases && data?.phases.map((phaseId, index) => (
-                        <PhaseDetails key={phaseId} id={phaseId} index={index} />
+                        <PhaseDetails key={phaseId} id={phaseId} competition_id={id_competition} competition_data={competition_data} index={index} />
                     ))}
                 </tbody>
             </table>

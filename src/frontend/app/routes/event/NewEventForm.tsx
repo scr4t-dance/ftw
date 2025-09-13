@@ -2,11 +2,24 @@
 import { Controller, useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { getGetApiEventsQueryKey, usePutApiEvent } from '@hookgen/event/event';
+import { getApiEvents, getGetApiEventsQueryKey, usePutApiEvent } from '@hookgen/event/event';
 import type { Event, Date } from '@hookgen/model';
 import { Link } from 'react-router';
+import type { Route } from './+types/NewEventForm';
 
-function NewEventForm() {
+
+export async function loader({ params }: Route.LoaderArgs) {
+
+    const event_list = await getApiEvents();
+    return {
+        event_list,
+    };
+}
+
+function NewEventForm({
+    params,
+    loaderData,
+}: Route.ComponentProps) {
 
     const queryClient = useQueryClient();
 

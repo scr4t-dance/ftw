@@ -15,6 +15,10 @@ import { Field } from '@routes/index/field';
 import { Link, useNavigate } from 'react-router';
 import { useGetApiCompId } from '@hookgen/competition/competition';
 
+
+
+
+
 export function NewPhaseForm({ default_competition }: { default_competition: CompetitionId }) {
 
     const navigate = useNavigate();

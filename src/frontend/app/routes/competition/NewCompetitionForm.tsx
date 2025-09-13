@@ -1,15 +1,34 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 
-import { useGetApiEvents, getGetApiEventIdCompsQueryKey } from '@hookgen/event/event';
+import { useGetApiEvents, getGetApiEventIdCompsQueryKey, getApiEventId, getApiEventIdComps } from '@hookgen/event/event';
 import { usePutApiComp } from '@hookgen/competition/competition';
 
 import { KindItem, CategoryItem, type Competition, type EventId, type EventIdList } from '@hookgen/model';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
+import type { Route } from './+types/NewCompetitionForm';
+import { Field } from '../index/field';
 
-function NewCompetitionForm({ id_event }: { id_event: EventId }) {
 
+export async function loader({ params }: Route.LoaderArgs) {
+
+    let id_event = Number(params.id_event) as EventId;
+    const event_data = await getApiEventId(id_event);
+    const competition_list = await getApiEventIdComps(id_event);
+    return {
+        id_event,
+        event_data,
+        competition_list,
+    };
+}
+
+function NewCompetitionForm({
+    params,
+    loaderData
+}: Route.ComponentProps) {
+
+    const id_event: EventId = loaderData.id_event;
     const queryClient = useQueryClient();
 
     const {
@@ -43,13 +62,6 @@ function NewCompetitionForm({ id_event }: { id_event: EventId }) {
         }
     });
 
-    const { data: dataEventList, isLoading } = useGetApiEvents();
-
-    if (isLoading) return <p>Chargement des événements...</p>;
-    if (error) return <p>Erreur: {(error as any).message}</p>;
-
-    const event_list = dataEventList?.events;
-
     const onSubmit = (data: Competition) => {
         if (!data.kind?.length || !data.category?.length) {
             setError("root.formValidation", {
@@ -57,61 +69,52 @@ function NewCompetitionForm({ id_event }: { id_event: EventId }) {
             });
             return;
         }
-
         updateCompetition({ data });
     };
 
     return (
         <>
             <h2>Ajouter une compétition</h2>
-            <p>Default Event {id_event}</p>
-
             <form onSubmit={handleSubmit(onSubmit)}>
                 {isSuccess &&
                     <div className="success_message">
                         ✅ Compétition avec identifiant "{dataCompetition}" ajoutée avec succès.
-                        <br/>
-                        <Link to={`/competitions/${dataCompetition}`}>Accéder à la compétition</Link>
+                        <br />
+                        <Link to={`/events/${id_event}/competitions/${dataCompetition}`}>Accéder à la compétition</Link>
                     </div>
                 }
 
-                <div className="form_subelem">
-                    <label>Evénement parent</label>
-                    <select {...register("event", { required: true })}>
-                        {event_list?.map((eventId, index) => (
-                            <option key={index} value={eventId}>
-                                {eventId}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className="form_subelem">
-                    <label>Titre de la compétition</label>
+                <Field
+                    label='Titre de la compétition'
+                    error={errors.name?.message}
+                >
                     <input
                         type="text"
                         {...register("name", { required: "Le nom est requis." })}
                     />
-                    {errors.name && <span className="error_message">{errors.name.message}</span>}
-                </div>
+                </Field>
 
-                <div className="form_subelem">
-                    <label>Type de compétition</label>
+                <Field
+                    label='Type de compétition'
+                    error={errors.kind?.message}
+                >
                     <select {...register("kind.0", { required: true })}>
                         {Object.values(KindItem).map((value) => (
                             <option key={value} value={value}>{value}</option>
                         ))}
                     </select>
-                </div>
+                </Field>
 
-                <div className="form_subelem">
-                    <label>Catégorie de compétition</label>
+                <Field
+                    label='Catégorie de compétition'
+                    error={errors.category?.message}
+                >
                     <select {...register("category.0", { required: true })}>
                         {Object.values(CategoryItem).map((value) => (
                             <option key={value} value={value}>{value}</option>
                         ))}
                     </select>
-                </div>
+                </Field>
 
                 {errors.root?.formValidation &&
                     <div className="error_message">⚠️ {errors.root.formValidation.message}</div>
