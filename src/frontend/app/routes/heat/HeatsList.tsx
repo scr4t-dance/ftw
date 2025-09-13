@@ -5,7 +5,7 @@ import { data, Link, useParams } from "react-router";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
 import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, useGetApiPhaseIdHeats, useGetApiPhaseIdSinglesHeats, usePutApiPhaseIdInitHeats, usePutApiPhaseIdPromote } from "@hookgen/heat/heat";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
-import { BareBibListComponent } from '../bib/BibList';
+import { BareBibListComponent } from '@routes/bib/BibList';
 import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
 
 const iter_target_dancers = (t: Target) => t.target_type === "single"

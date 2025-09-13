@@ -1,3 +1,4 @@
+import type { Route } from './+types/NewEventForm';
 // import { useNavigate } from "react-router";
 import { Controller, useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
@@ -5,7 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { getApiEvents, getGetApiEventsQueryKey, usePutApiEvent } from '@hookgen/event/event';
 import type { Event, Date } from '@hookgen/model';
 import { Link } from 'react-router';
-import type { Route } from './+types/NewEventForm';
+import { Field } from '@routes/index/field';
 
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -16,10 +17,9 @@ export async function loader({ params }: Route.LoaderArgs) {
     };
 }
 
-function NewEventForm({
-    params,
-    loaderData,
-}: Route.ComponentProps) {
+
+
+export function NewEventForm() {
 
     const queryClient = useQueryClient();
 
@@ -54,7 +54,7 @@ function NewEventForm({
         return '';
     };
 
-    const { data: dataEvent, mutate: updateEvent, isError, error, isSuccess } = usePutApiEvent({
+    const { data: dataEvent, mutate: updateEvent, isSuccess } = usePutApiEvent({
         mutation: {
             onSuccess: (data) => {
                 console.log("NewEventForm cache", queryClient.getQueryCache().getAll().map(q => q.queryKey));
@@ -94,23 +94,23 @@ function NewEventForm({
                 {isSuccess &&
                     <div className="success_message">
                         ✅ Evénement avec identifiant "{dataEvent}" ajouté avec succès.
-                        <br/>
+                        <br />
                         <Link to={`/events/${dataEvent}`}>Accéder à l'événement</Link>
                     </div>
                 }
 
-                <div className="form_subelem">
-                    <label>Titre de l'événement</label>
+                <Field
+                    label="Titre de l'événement"
+                    error={errors.name?.message}>
                     <input
                         type="text"
                         {...register("name", { required: "Le nom est requis." })}
                     />
-                    {errors.name && <span className="error_message">{errors.name.message}</span>}
-                </div>
+                </Field>
 
-                <div className="form_subelem">
-                    <label>Date de début</label>
-                    <Controller
+                <Field
+                    label="Date de début"
+                    error={errors.start_date?.message}><Controller
                         name="start_date"
                         control={control}
                         rules={{ required: 'La date de début est requise.' }}
@@ -127,11 +127,11 @@ function NewEventForm({
                             />
                         )}
                     />
-                    {errors.start_date && <span className="error_message">{errors.start_date.message}</span>}
-                </div>
-                <div className="form_subelem">
-                    <label>Date de fin</label>
-                    <Controller
+                </Field>
+
+                <Field
+                    label="Date de fin"
+                    error={errors.end_date?.message}><Controller
                         name="end_date"
                         control={control}
                         rules={{ required: 'La date de fin est requise.' }}
@@ -148,8 +148,7 @@ function NewEventForm({
                             />
                         )}
                     />
-                    {errors.end_date && <span className="error_message">{errors.end_date.message}</span>}
-                </div>
+                </Field>
 
                 {errors.root?.formValidation &&
                     <div className="error_message">⚠️ {errors.root.formValidation.message}</div>
@@ -167,4 +166,9 @@ function NewEventForm({
     );
 }
 
-export default NewEventForm;
+export default function NewEventFormRoute({
+    loaderData
+}: Route.ComponentProps){
+
+    return <NewEventForm />;
+}

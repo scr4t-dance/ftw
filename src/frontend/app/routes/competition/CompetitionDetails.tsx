@@ -7,7 +7,7 @@ import { getApiCompId } from '@hookgen/competition/competition';
 import { getApiCompIdBibs } from '@hookgen/bib/bib';
 
 import type { BibList, Competition, CompetitionId, Event, EventId } from "@hookgen/model";
-import { NewPhaseForm } from "@routes/phase/NewPhaseForm";
+import { NewPhaseFormComponent } from "@routes/phase/NewPhaseForm";
 import { PhaseList } from "@routes/phase/PhaseList";
 import { NewBibForm } from "@routes/bib/NewBibForm";
 import { BareBibListComponent } from "@routes/bib/BibList";
@@ -42,16 +42,30 @@ export default function CompetitionDetails({
     const event = loaderData.event_data as Event;
     const bib_list = loaderData.bib_data as BibList;
 
+    const url = `/events/${loaderData.id_event}/competitions/${loaderData.id_competition}`;
+
     return (
         <>
             <h1>Compétition {competition?.name}</h1>
-            <p><Link to={`/events/${loaderData.id_event}`}>
-                Evénement {event?.name}
-            </Link></p>
+            <p>
+                <Link to={`${url}/phases`}>
+                    Phases
+                </Link>
+            </p>
+            <p>
+                <Link to={`${url}/bibs`}>
+                    Bibs
+                </Link>
+            </p>
+            <p>
+                <Link to={`${url}/phases/new`}>
+                     Création Phase
+                </Link>
+            </p>
             <p>Type : {competition?.kind}</p>
             <p>Catégorie : {competition?.category}</p>
             <PhaseList id_competition={id_competition} competition_data={competition} />
-            <NewPhaseForm default_competition={id_competition} />
+            <NewPhaseFormComponent id_competition={id_competition} />
             <BareBibListComponent bib_list={bib_list.bibs} />
             <NewBibForm default_competition={id_competition} />
         </>

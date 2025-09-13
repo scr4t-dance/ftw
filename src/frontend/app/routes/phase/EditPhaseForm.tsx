@@ -1,29 +1,58 @@
+import type { Route } from './+types/EditPhaseForm';
 import React, { useEffect } from 'react';
 // import { useNavigate } from "react-router";
 
-import { getGetApiPhaseIdQueryKey, useGetApiPhaseId, usePatchApiPhaseId } from '@hookgen/phase/phase';
+import { useQueryClient } from '@tanstack/react-query';
 
+import {
+    getApiCompIdPhases, getApiPhaseId, getGetApiPhaseIdQueryKey,
+    useGetApiPhaseId, usePatchApiPhaseId
+} from '@hookgen/phase/phase';
 import type {
+    CompetitionId,
+    EventId,
     Phase,
     PhaseId
 } from '@hookgen/model';
 import { ArtefactFormElement } from '~/routes/phase/ArtefactFormElement';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
-import { useQueryClient } from '@tanstack/react-query';
 import { Field } from '@routes/index/field';
-import { RankingAlgorithmFormElement } from './RankingAlgorithmFormElement';
+import { RankingAlgorithmFormElement } from '@routes/phase/RankingAlgorithmFormElement';
+import { getApiEventId, getApiEventIdComps } from '@hookgen/event/event';
+import { getApiCompId } from '@hookgen/competition/competition';
 
-export function EditPhaseForm({ phase_id }: { phase_id: PhaseId }) {
+
+
+export async function loader({ params }: Route.LoaderArgs) {
+
+    let id_event = Number(params.id_event) as EventId;
+    const event_data = await getApiEventId(id_event);
+    const competition_list = await getApiEventIdComps(id_event);
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    const competition_data = await getApiCompId(id_competition);
+    const id_phase = Number(params.id_phase) as PhaseId;
+    const phase_data = await getApiPhaseId(id_phase);
+    return {
+        id_event,
+        id_competition,
+        event_data,
+        competition_list,
+        competition_data,
+        id_phase,
+        phase_data,
+    };
+}
+
+
+export function EditPhaseForm({ phase_id, phase_data }: { phase_id: PhaseId, phase_data: Phase }) {
 
     const queryClient = useQueryClient();
-
-    const { data: dataPhase, isLoading: isLoadingGet, isSuccess } = useGetApiPhaseId(phase_id);
 
     const { mutate: updatePhase, isSuccess: isSuccessPatch } = usePatchApiPhaseId({
         mutation: {
             onSuccess: (updatedPhase) => {
 
-                console.log("p,Success callback", { id: phase_id, data: updatedPhase });
+                console.log("Success callback", { id: phase_id, data: updatedPhase });
                 queryClient.invalidateQueries({
                     queryKey: getGetApiPhaseIdQueryKey(phase_id),
                 });
@@ -38,10 +67,14 @@ export function EditPhaseForm({ phase_id }: { phase_id: PhaseId }) {
         }
     });
 
-    // guard before form but after queries
-    if (isLoadingGet) return <div>Loading Phase {phase_id} data</div>;
+    const formObject = useForm<Phase>({
+        mode: "onChange",
+        defaultValues: phase_data,
+    });
 
-    if (!dataPhase) {
+    // guard before form but after queries
+
+    if (!phase_data) {
         return <div>❌ Impossible de charger la phase {phase_id}</div>;
     }
     const onSubmit: SubmitHandler<Phase> = (data) => {
@@ -49,25 +82,14 @@ export function EditPhaseForm({ phase_id }: { phase_id: PhaseId }) {
         updatePhase({ id: phase_id, data: data });
     };
 
-    const formObject = useForm<Phase>({
-        disabled: isLoadingGet,
-        mode: "onChange",
-        defaultValues: dataPhase,
-    });
-
     const {
         handleSubmit,
         watch,
         setError,
         reset,
-        formState: { errors, isValid },
+        formState: { errors },
     } = formObject;
 
-    useEffect(() => {
-        if (isSuccess && dataPhase) {
-            formObject.reset(dataPhase);
-        }
-    }, [isSuccess, dataPhase, formObject]);
 
     const round = watch("round");
 
@@ -103,7 +125,7 @@ export function EditPhaseForm({ phase_id }: { phase_id: PhaseId }) {
                     <button type="submit" disabled={formObject.formState.isSubmitting}>
                         Mettre à jour la phase
                     </button>
-                    <button type="button" disabled={formObject.formState.isSubmitting} onClick={() => reset(dataPhase)}>
+                    <button type="button" disabled={formObject.formState.isSubmitting} onClick={() => reset(phase_data)}>
                         Réinitialiser
                     </button>
 
@@ -111,4 +133,22 @@ export function EditPhaseForm({ phase_id }: { phase_id: PhaseId }) {
             </FormProvider>
         </>
     );
+}
+
+export function EditPhaseFormComponent({ id_phase }: { id_phase: PhaseId }) {
+
+    const { data: phase_data, isLoading: isLoadingGet, isSuccess } = useGetApiPhaseId(id_phase);
+
+    if (isLoadingGet) return <div>Loading Phase {id_phase} data</div>;
+    if (!isSuccess) return <div>Error loading Phase {id_phase} data</div>;
+
+    return <EditPhaseForm phase_id={id_phase} phase_data={phase_data} />
+}
+
+export default function EditPhaseFormRoute({
+    loaderData
+}: Route.ComponentProps) {
+
+    return <EditPhaseForm phase_id={loaderData.id_phase} phase_data={loaderData.phase_data} />
+
 }

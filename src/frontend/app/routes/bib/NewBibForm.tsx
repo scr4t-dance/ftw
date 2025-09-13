@@ -15,7 +15,7 @@ import {
   type Competition,
   type CompetitionIdList,
 } from '@hookgen/model';
-import { Field } from '../index/field';
+import { Field } from '@routes/index/field';
 import { type SingleBib, SingleTargetForm } from './SingleTargetForm';
 import { type CoupleBib, CoupleTargetForm } from './CoupleTargetForm';
 import { useQueryClient } from '@tanstack/react-query';

@@ -1,14 +1,13 @@
+import type { Route } from './+types/NewCompetitionForm';
 import React from 'react';
 import { useForm } from 'react-hook-form';
-
-import { useGetApiEvents, getGetApiEventIdCompsQueryKey, getApiEventId, getApiEventIdComps } from '@hookgen/event/event';
-import { usePutApiComp } from '@hookgen/competition/competition';
-
-import { KindItem, CategoryItem, type Competition, type EventId, type EventIdList } from '@hookgen/model';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
-import type { Route } from './+types/NewCompetitionForm';
-import { Field } from '../index/field';
+
+import { getGetApiEventIdCompsQueryKey, getApiEventId, getApiEventIdComps } from '@hookgen/event/event';
+import { usePutApiComp } from '@hookgen/competition/competition';
+import { KindItem, CategoryItem, type Competition, type EventId } from '@hookgen/model';
+import { Field } from '@routes/index/field';
 
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -23,12 +22,8 @@ export async function loader({ params }: Route.LoaderArgs) {
     };
 }
 
-function NewCompetitionForm({
-    params,
-    loaderData
-}: Route.ComponentProps) {
+export function NewCompetitionForm({ id_event }: { id_event: EventId }) {
 
-    const id_event: EventId = loaderData.id_event;
     const queryClient = useQueryClient();
 
     const {
@@ -130,4 +125,17 @@ function NewCompetitionForm({
     );
 }
 
-export default NewCompetitionForm;
+
+
+export default function NewCompetitionFormRoute({
+    params,
+    loaderData
+}: Route.ComponentProps) {
+
+    return (
+        <>
+            <h1>Evénement {loaderData.event_data.name}</h1>
+            <NewCompetitionForm id_event={loaderData.id_event} />
+        </>
+    );
+}

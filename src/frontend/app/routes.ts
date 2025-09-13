@@ -14,11 +14,13 @@ export default [
         route("new", "routes/competition/NewCompetitionForm.tsx"),
         route(":id_competition", "routes/competition/CompetitionHome.tsx", [
           index("routes/competition/CompetitionDetails.tsx"),
+          route("bibs", "routes/bib/BibList.tsx"),
           route("phases", "routes/phase/PhaseHome.tsx", [
             index("routes/phase/PhaseList.tsx"),
             route("new", "routes/phase/NewPhaseForm.tsx"),
             route(":id_phase", "routes/phase/PhasePageHome.tsx", [
               index("routes/phase/PhasePage.tsx"),
+              route("edit", "routes/phase/EditPhaseForm.tsx"),
               route("heats", "routes/heat/HeatsList.tsx"),
               route("artefacts", "routes/artefact/ArtefactList.tsx"),
               route("judges", "routes/judge/JudgeList.tsx"),

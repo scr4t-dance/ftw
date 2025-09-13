@@ -38,11 +38,15 @@ function PhasePageHome({
     const url = `/events/${loaderData.id_event}/competitions/${loaderData.id_competition}/phases/${loaderData.id_phase}`;
     const phase = loaderData.phase_data;
     const competition = loaderData.competition_data;
-    const event = loaderData.event_data;
 
     return (
         <>
             <h1>Phase {phase?.round} {competition?.name}</h1>
+            <p>
+                <Link to={`${url}/edit`}>
+                    Edit Phase
+                </Link>
+            </p>
             <p>
                 <Link to={`${url}/heats`}>
                     Phase Heats
@@ -63,7 +67,6 @@ function PhasePageHome({
                     Edit Phase Judges
                 </Link>
             </p>
-            <p>Catégorie : {competition?.category}</p>
             <Outlet />
 
         </>
