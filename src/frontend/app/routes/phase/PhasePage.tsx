@@ -2,9 +2,9 @@ import type { Route } from './+types/PhasePage';
 import React from 'react';
 
 import type { Competition, CompetitionId, EventId, Phase, PhaseId } from "@hookgen/model";
-import { getApiEventId, getApiEventIdComps } from '~/hookgen/event/event';
-import { getApiCompId } from '~/hookgen/competition/competition';
-import { getApiPhaseId } from '~/hookgen/phase/phase';
+import { getApiEventId, getApiEventIdComps } from '@hookgen/event/event';
+import { getApiCompId } from '@hookgen/competition/competition';
+import { getApiPhaseId } from '@hookgen/phase/phase';
 
 
 export async function loader({ params }: Route.LoaderArgs) {

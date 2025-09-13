@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 
-import type { CouplePanel, DancerId, DancerIdList, Panel, PhaseId, SinglePanel, Target } from "@hookgen/model";
+import type { CouplePanel, Panel, PhaseId, SinglePanel} from "@hookgen/model";
 import { data, useParams } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { FormProvider, get, useForm, type SubmitHandler } from 'react-hook-form';
 import { Field } from '@routes/index/field';
 import { getGetApiPhaseIdJudgesQueryKey, useGetApiPhaseIdJudges, usePutApiPhaseIdJudges } from '@hookgen/judge/judge';
-import { JudgeListFormElement } from './JudgeListFormElement';
+import { JudgeListFormElement } from '@routes/judge/JudgeListFormElement';
 
 function sanitizePanel(data: Panel): SinglePanel | CouplePanel {
     if (data.panel_type === "single") {

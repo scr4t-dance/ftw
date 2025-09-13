@@ -1,5 +1,4 @@
 import type { Route } from "./+types/EventDetails"
-import "~/styles/ContentStyle.css";
 
 import React from 'react';
 import { getApiEventId } from '@hookgen/event/event';

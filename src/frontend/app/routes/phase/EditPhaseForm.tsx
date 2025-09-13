@@ -14,7 +14,7 @@ import type {
     Phase,
     PhaseId
 } from '@hookgen/model';
-import { ArtefactFormElement } from '~/routes/phase/ArtefactFormElement';
+import { ArtefactFormElement } from '@routes/phase/ArtefactFormElement';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { Field } from '@routes/index/field';
 import { RankingAlgorithmFormElement } from '@routes/phase/RankingAlgorithmFormElement';

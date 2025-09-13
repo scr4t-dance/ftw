@@ -1,12 +1,10 @@
-import "~/styles/ContentStyle.css";
-
 import React from 'react';
 import { useParams } from "react-router";
 
 import { type DancerId } from "@hookgen/model";
 import { useGetApiDancerId } from '@hookgen/dancer/dancer';
-import { SaveDancerFormComponent } from './NewDancerForm'
-import DancerCompetitionHistory from "./DancerCompetitionHistory";
+import { SaveDancerFormComponent } from '@routes/dancer/NewDancerForm'
+import DancerCompetitionHistory from "@routes/dancer/DancerCompetitionHistory";
 
 
 function DancerPage() {

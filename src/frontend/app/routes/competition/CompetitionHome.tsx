@@ -1,5 +1,4 @@
 import type { Route } from "./+types/CompetitionHome"
-import "~/styles/ContentStyle.css";
 
 import React from 'react';
 import { getApiEventId, getApiEventIdComps } from '@hookgen/event/event';

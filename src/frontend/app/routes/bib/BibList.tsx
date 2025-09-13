@@ -17,8 +17,8 @@ import { useGetApiCompIdBibs, useDeleteApiCompIdBib, getGetApiCompIdBibsQueryKey
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { Field } from "@routes/index/field";
 import type { Route } from './+types/BibList';
-import { getApiCompId } from '~/hookgen/competition/competition';
-import { getApiEventId } from '~/hookgen/event/event';
+import { getApiCompId } from '@hookgen/competition/competition';
+import { getApiEventId } from '@hookgen/event/event';
 
 
 const dancerLink = "dancers/"
