@@ -75,19 +75,7 @@ you can run a test instance of the server using the following command:
 make run
 ```
 
-To test an Ocaml change, save changes, stop the server and run `make run` again.
-
-To test frontend, it is possible to use `hot module reloading` (reload the page when typescript source code change).
-See `Testing frontend` in `HACKING.md` for more details.
-
-
-To deploy a frontend dev server with hot module reloading, run
-```bash
-cd src/frontend/src && npm start
-```
-
-Npm server will be deployed on `localhost:3000`, with no access to api or ocaml backend.
-See doc in in https://github.com/facebook/create-react-app/blob/main/packages/cra-template/template/README.md
+See `Running the server` and `Testing frontend` in [HACKING.md](HACKING.md) for more details.
 
 
 ### Deploy on a server
