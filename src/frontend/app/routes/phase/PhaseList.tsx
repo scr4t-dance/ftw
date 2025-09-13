@@ -6,7 +6,7 @@ import { getApiCompId, useGetApiCompId } from '@hookgen/competition/competition'
 import type { ArtefactDescription, Competition, CompetitionId, EventId } from "@hookgen/model";
 import { getApiCompIdPhases, useGetApiCompIdPhases, useGetApiPhaseId } from "@hookgen/phase/phase";
 import ArtefactDescriptionComponent from "@routes/phase/ArtefactDescription";
-import { getApiEventId, getApiEventIdComps } from "~/hookgen/event/event";
+import { getApiEventId, getApiEventIdComps } from "@hookgen/event/event";
 
 
 export async function loader({ params }: Route.LoaderArgs) {
