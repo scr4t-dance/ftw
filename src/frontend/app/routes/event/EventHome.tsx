@@ -9,13 +9,17 @@ function EventHome() {
 
     return (
         <>
-            <PageTitle title="Evénements" />
-            <Header />
+            <div className="no-print">
+                <PageTitle title="Evénements" />
+                <Header />
+            </div>
             <div className="content-container">
 
                 <Outlet />
             </div>
-            <Footer />
+            <div className="no-print">
+                <Footer />
+            </div>
         </>
     );
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import type { Bib, CompetitionId, DancerId, DancerIdList, HeatTargetJudgeArtefact, HeatTargetJudgeArtefactArray, Phase, PhaseId, Target } from "@hookgen/model";
 import { Link, useParams } from "react-router";
@@ -10,6 +10,10 @@ import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
 import { getGetApiDancerIdQueryOptions } from '~/hookgen/dancer/dancer';
 import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryOptions } from '~/hookgen/artefact/artefact';
 import { useGetApiPhaseIdJudges } from '~/hookgen/judge/judge';
+// cannot use react-to-print. It is recognized as a commonjs module, and fail to be imported.
+// However, it seems to be a perfectly normal module.
+// using as an alternative for printing
+//import { useReactToPrint } from "react-to-print";
 
 const iter_target_dancers = (t: Target) => t.target_type === "single"
     ? [t.target]
@@ -171,6 +175,14 @@ export function ArtefactListComponent({ phase_id, judges, head_judge, heat_numbe
 
 export default function ArtefactList() {
 
+    const contentRef = useRef<HTMLDivElement>(null);
+    /*
+    const reactToPrintFn = useReactToPrint({
+        documentTitle: 'Title',
+        contentRef: contentRef,
+    });
+    */
+
     let { id_phase } = useParams();
     let id_phase_number = Number(id_phase) as PhaseId;
     const { data: phaseData, isLoading } = useGetApiPhaseId(id_phase_number);
@@ -193,27 +205,31 @@ export default function ArtefactList() {
     const leaders = heat_list.heats.flatMap(v => (v.leaders));
     const get_bibs = (dancer_list: DancerId[]) => dataBibs?.bibs.filter(b => iter_target_dancers(b.target).map(dancer => dancer_list?.includes(dancer)).includes(true));
 
+
     return (
         <>
             <button type='button' onClick={() => setHeatView(!isHeatView)}>Change heat view</button>
             {judgePanel.panel_type === "single" && !isHeatView && heat_list && heat_list.heats &&
                 <>
-                    <h1>Followers</h1>
-                    <ArtefactListComponent
-                        phase_id={id_phase_number}
-                        judges={judgePanel.followers}
-                        head_judge={judgePanel.head}
-                        heat_number={undefined}
-                        bib_list={get_bibs(followers.flatMap(u => iter_target_dancers(u)))}
-                    />
-                    <h1>Leaders</h1>
-                    <ArtefactListComponent
-                        phase_id={id_phase_number}
-                        judges={judgePanel.leaders}
-                        head_judge={judgePanel.head}
-                        heat_number={undefined}
-                        bib_list={get_bibs(leaders.flatMap(u => iter_target_dancers(u)))}
-                    />
+                    {/* <button onClick={reactToPrintFn}>Print</button> */}
+                    <div ref={contentRef}>
+                        <h1>Followers</h1>
+                        <ArtefactListComponent
+                            phase_id={id_phase_number}
+                            judges={judgePanel.followers}
+                            head_judge={judgePanel.head}
+                            heat_number={undefined}
+                            bib_list={get_bibs(followers.flatMap(u => iter_target_dancers(u)))}
+                        />
+                        <h1>Leaders</h1>
+                        <ArtefactListComponent
+                            phase_id={id_phase_number}
+                            judges={judgePanel.leaders}
+                            head_judge={judgePanel.head}
+                            heat_number={undefined}
+                            bib_list={get_bibs(leaders.flatMap(u => iter_target_dancers(u)))}
+                        />
+                    </div>
                 </>
             }
             {judgePanel.panel_type === "single" && isHeatView && heat_list && heat_list.heats && heat_list.heats.map((v, heat_minus_one) => (
