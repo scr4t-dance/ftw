@@ -1643,3 +1643,24 @@ module NextPhaseFormData = struct
       ]
       ~required:["number_of_targets_to_promote"]
 end
+
+
+module InitHeatsFormData = struct
+
+  type t = {
+    min_number_of_targets: int;
+    max_number_of_targets: int;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"InitHeatsFormData"
+      ~typ:object_
+      ~properties:[
+        "min_number_of_targets", obj @@ S.make_schema()
+          ~typ:int;
+        "max_number_of_targets", obj @@ S.make_schema()
+          ~typ:int;
+      ]
+      ~required:["min_number_of_targets"; "max_number_of_targets"]
+end

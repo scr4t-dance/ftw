@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import type { Bib, CompetitionId, DancerId, DancerIdList, HeatTargetJudgeArtefact, HeatTargetJudgeArtefactArray, Phase, PhaseId, Target } from "@hookgen/model";
 import { Link, useParams } from "react-router";
