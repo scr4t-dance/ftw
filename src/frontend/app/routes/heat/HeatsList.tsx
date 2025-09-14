@@ -7,7 +7,8 @@ import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey, ge
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { BareBibListComponent } from '../bib/BibList';
 import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
-import NextPhaseForm from '../phase/NextPhaseForm';
+import NextPhaseForm from '../artefact/NextPhaseForm';
+import { InitHeatsForm } from './InitHeatsForm';
 
 const iter_target_dancers = (t: Target) => t.target_type === "single"
     ? [t.target]
@@ -81,14 +82,7 @@ export default function HeatsList() {
     return (
         <>
             <p>
-                <button type="button" onClick={() => {
-                    console.log("init heats")
-                    mutate({ id: id_phase_number, data: 0 })
-                }}>
-                    Init heats
-                </button>
-
-                <NextPhaseForm id_phase={id_phase_number} />
+                <InitHeatsForm id_phase={id_phase_number} />
 
             </p>
 

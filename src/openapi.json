@@ -464,7 +464,7 @@
           "description": "Placeholder",
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/PhaseId" }
+              "schema": { "$ref": "#/components/schemas/InitHeatsFormData" }
             }
           },
           "required": true
@@ -1911,6 +1911,14 @@
           "number_of_targets_to_promote": { "type": "integer" }
         },
         "required": [ "number_of_targets_to_promote" ]
+      },
+      "InitHeatsFormData": {
+        "type": "object",
+        "properties": {
+          "min_number_of_targets": { "type": "integer" },
+          "max_number_of_targets": { "type": "integer" }
+        },
+        "required": [ "min_number_of_targets", "max_number_of_targets" ]
       }
     }
   }

@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-import { RoleItem, YanItem, type Artefact, type Bib, type DancerId, type DancerIdList, type HeatTargetJudgeArtefact, type Phase, type PhaseId, type PhaseRanks, type Target, type TargetRank } from "@hookgen/model";
+import {
+    RoleItem, YanItem, type Artefact, type DancerId, type DancerIdList, type PhaseId,
+    type PhaseRanks, type Target, type TargetRank
+} from "@hookgen/model";
 import { Link, useParams } from "react-router";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
-import { useQueries, useQueryClient } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { DancerCell } from '@routes/bib/BibList';
 import { getGetApiDancerIdQueryOptions } from '~/hookgen/dancer/dancer';
 import { useGetApiPhaseIdJudges } from '~/hookgen/judge/judge';
 import { useGetApiPhaseIdRanking } from '~/hookgen/ranking/ranking';
-import { useForm, type SubmitHandler } from 'react-hook-form';
-import NextPhaseForm from '../phase/NextPhaseForm';
+import NextPhaseForm from './NextPhaseForm';
 
 const yan_rank_list_list = {
     ranks: [
@@ -98,7 +100,15 @@ function RankRow({ target_rank, index }: { target_rank: TargetRank, index: numbe
     );
 }
 
-function RankListTable({ phase_id, judges, head_judge, rank_list_list }: { phase_id: PhaseId, judges: DancerIdList, head_judge: DancerId | undefined, rank_list_list: PhaseRanks }) {
+type RankListTableProps = {
+    phase_id: PhaseId,
+    judges: DancerIdList,
+    head_judge: DancerId | undefined,
+    rank_list_list: PhaseRanks,
+    treshold: number | undefined,
+};
+
+function RankListTable({ phase_id, judges, head_judge, rank_list_list, treshold }: RankListTableProps) {
 
     const all_judges: DancerId[] = judges.dancers.concat(head_judge ? [head_judge] : []);
 
@@ -170,7 +180,7 @@ function RankListTable({ phase_id, judges, head_judge, rank_list_list }: { phase
     );
 }
 
-function RankListComponent({ id_phase, debug }: { id_phase: PhaseId, debug: String | undefined }) {
+function RankListComponent({ id_phase, treshold, debug }: { id_phase: PhaseId, treshold: number | undefined, debug: String | undefined }) {
 
     const { data: phaseData, isLoading } = useGetApiPhaseId(id_phase);
 
@@ -199,6 +209,7 @@ function RankListComponent({ id_phase, debug }: { id_phase: PhaseId, debug: Stri
                         judges={judgePanel.followers}
                         head_judge={judgePanel.head}
                         rank_list_list={{ ranks: rank_list_list.ranks.map((u) => (u.filter((t) => t.target.target_type === "single" && t.target.role[0] === "Follower"))) }}
+                        treshold={treshold}
                     />
                     <h1>Leaders</h1>
                     <RankListTable
@@ -206,6 +217,7 @@ function RankListComponent({ id_phase, debug }: { id_phase: PhaseId, debug: Stri
                         judges={judgePanel.leaders}
                         head_judge={judgePanel.head}
                         rank_list_list={{ ranks: rank_list_list.ranks.map((u) => (u.filter((t) => t.target.target_type === "single" && t.target.role[0] === "Leader"))) }}
+                        treshold={treshold}
                     />
                 </>
             }
@@ -217,6 +229,7 @@ function RankListComponent({ id_phase, debug }: { id_phase: PhaseId, debug: Stri
                         judges={judgePanel.couples}
                         head_judge={judgePanel.head}
                         rank_list_list={{ ranks: rank_list_list.ranks.map((u) => (u.filter((t) => t.target.target_type === "couple"))) }}
+                        treshold={treshold}
                     />
                 </>
             }
@@ -230,13 +243,15 @@ export default function RankList() {
     let { id_phase } = useParams();
     let id_phase_number = Number(id_phase) as PhaseId;
 
+    const [treshold, setTreshold] = useState<number>();
+
     return (
         <>
-            <NextPhaseForm id_phase={id_phase_number} />
+            <NextPhaseForm id_phase={id_phase_number} treshold_callback={setTreshold} />
             <h1>Données simulées YAN !!!!</h1>
-            <RankListComponent id_phase={id_phase_number} debug={"yan"} />
+            <RankListComponent id_phase={id_phase_number} treshold={treshold} debug={"yan"} />
             <h1>Données simulées RPSS !!!!</h1>
-            <RankListComponent id_phase={id_phase_number} debug={"rpss"} />
+            <RankListComponent id_phase={id_phase_number} treshold={treshold} debug={"rpss"} />
         </>
     );
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 // import { useNavigate } from "react-router";
 
 import type {
@@ -10,7 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Field } from '@routes/index/field';
 import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, usePutApiPhaseIdPromote } from '~/hookgen/heat/heat';
 
-export default function NextPhaseForm({ id_phase }: { id_phase: PhaseId }) {
+export default function NextPhaseForm({ id_phase, treshold_callback }: { id_phase: PhaseId, treshold_callback?: (treshold:number)=>void }) {
 
     //const navigate = useNavigate();
 
@@ -19,6 +19,7 @@ export default function NextPhaseForm({ id_phase }: { id_phase: PhaseId }) {
     const {
         register,
         handleSubmit,
+        watch,
         formState: { errors, isSubmitSuccessful },
     } = formObject;
 
@@ -47,6 +48,11 @@ export default function NextPhaseForm({ id_phase }: { id_phase: PhaseId }) {
         promotePhase({ id: id_phase, data: data });
     };
 
+    const treshold = watch("number_of_targets_to_promote");
+    useEffect(() => {
+        if (treshold_callback === undefined) return;
+        treshold_callback(treshold);
+    }, [treshold]);
 
     return (
         <>
