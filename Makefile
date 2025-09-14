@@ -34,7 +34,8 @@ hookgen: src/openapi.json
 	cd src/hookgen && ./node_modules/.bin/orval --config ./orval.config.js
 
 $(FRONTEND_TARGET): hookgen $(FRONTEND_DEPS)
-	cd src/frontend && npm run build
+	cd src/frontend && echo '{ "API_BASE_URL": "http://localhost:8080" }' > ./public/config.json && npm run build
+	cd src/frontend && echo '{ "API_BASE_URL": "http://localhost:8089" }' > ./public/config.json
 
 backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
