@@ -1218,7 +1218,7 @@ module ArtefactYans = struct
 
   type t = {
     artefact_type: string;
-    artefact_data: Yan.t list;
+    artefact_data: Yan.t option list;
   }
   [@@deriving yojson]
 
@@ -1233,10 +1233,20 @@ module ArtefactYans = struct
           ~enum:[`String "yan";];
         "artefact_data", obj @@ S.make_schema ()
           ~typ:array
-          ~items:(ref Yan.ref);
+          ~items:(
+            obj @@ S.make_schema ()
+              ~one_of:[
+                obj @@ S.make_schema ()
+                  ~typ:(obj S.Null);
+                ref Yan.ref
+              ]
+          );
       ]
       ~required:["artefact_type"; "artefact_data";]
 
+  let to_ftw a =
+    let x = List.fold_left (fun acc v -> Option.bind v (fun y -> Option.map (fun l -> l @ [y]) acc)) (Some []) a.artefact_data in
+    Option.map (fun l -> Ftw.Artefact.Yans l) x
 end
 
 
@@ -1283,13 +1293,14 @@ module Artefact = struct
 
   let of_ftw s =
     match s with
-    | Ftw.Artefact.Yans c -> YanArtefact {artefact={artefact_type="yan";artefact_data=c;}}
+    | Ftw.Artefact.Yans c -> YanArtefact {artefact={artefact_type="yan";artefact_data=List.map (fun x -> Some x) c;}}
     | Ftw.Artefact.Rank r -> RankArtefact {artefact={artefact_type="ranking";artefact_data=r;}}
+
 
   let to_ftw s =
     match s with
-    | YanArtefact {artefact={artefact_data; _}} -> Ftw.Artefact.Yans artefact_data
-    | RankArtefact {artefact={artefact_data; _}} -> Ftw.Artefact.Rank artefact_data
+    | YanArtefact {artefact} -> ArtefactYans.to_ftw artefact
+    | RankArtefact {artefact={artefact_data; _}} -> Some (Ftw.Artefact.Rank artefact_data)
 
 
   let to_yojson target =
@@ -1586,7 +1597,7 @@ module TargetRank = struct
         (ref TargetRPSSRank.ref);
       ]
 
-      (* TODO implement to_yojson  *)
+  (* TODO implement to_yojson  *)
 end
 
 
@@ -1596,14 +1607,14 @@ module PhaseRanking = struct
 
   type t = {
     (* hypothesis dense rank
-    the first inner "TargetRank.t list" is the list of targets that are ranked first.
-    It should not be empty.
-    the second inner "TargetRank.t list" is the list of targets that ranked second.
-    the rank index should match the TargetRank.rank value.
-    it is expected that most ranks contains a list of size 1
-    the last inner "TargetRank.t list" is the list of targets that are unranked / ranked last.
-    the frontend doesn't know the condition for the ranking to be valid.
-    It just applies warning colors to ranks that contains more than 1 target.
+       the first inner "TargetRank.t list" is the list of targets that are ranked first.
+       It should not be empty.
+       the second inner "TargetRank.t list" is the list of targets that ranked second.
+       the rank index should match the TargetRank.rank value.
+       it is expected that most ranks contains a list of size 1
+       the last inner "TargetRank.t list" is the list of targets that are unranked / ranked last.
+       the frontend doesn't know the condition for the ranking to be valid.
+       It just applies warning colors to ranks that contains more than 1 target.
     *)
     ranks: TargetRank.t list list;
   } [@@deriving yojson]

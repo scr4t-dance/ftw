@@ -1767,7 +1767,11 @@
           "artefact_type": { "type": "string", "enum": [ "yan" ] },
           "artefact_data": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Yan" }
+            "items": {
+              "oneOf": [
+                { "type": "null" }, { "$ref": "#/components/schemas/Yan" }
+              ]
+            }
           }
         },
         "required": [ "artefact_type", "artefact_data" ]

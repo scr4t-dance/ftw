@@ -56,6 +56,12 @@ val set :
   target:Id.t ->
   t -> (Id.t, string) result
 
+  val delete :
+  st:State.t ->
+  judge:Judge.id ->
+  target:Id.t ->
+  (Id.t, string) result
+
 
 (* Serialization *)
 (* ************************************************************************* *)
