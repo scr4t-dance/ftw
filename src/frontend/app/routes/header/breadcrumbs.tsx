@@ -4,7 +4,6 @@ export default function Breadcrumbs() {
 
     const matches = useMatches();
 
-    console.log("breadcrumbs", matches);
     const crumbs = matches
         .filter((match) => match.handle?.breadcrumb)
         .map((match) => {
