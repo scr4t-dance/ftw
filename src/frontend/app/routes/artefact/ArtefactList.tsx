@@ -205,7 +205,6 @@ export default function ArtefactList() {
     const leaders = heat_list.heats.flatMap(v => (v.leaders));
     const get_bibs = (dancer_list: DancerId[]) => dataBibs?.bibs.filter(b => iter_target_dancers(b.target).map(dancer => dancer_list?.includes(dancer)).includes(true));
 
-
     return (
         <>
             <button type='button' onClick={() => setHeatView(!isHeatView)}>Change heat view</button>
