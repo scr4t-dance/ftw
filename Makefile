@@ -13,7 +13,7 @@ FRONTEND_DEPS=\
 	src/frontend/package.json \
 	src/frontend/package-lock.json \
 	src/frontend/public/* \
-	$(shell find src/frontend/src/ -type f)
+	$(shell find src/frontend/app/ -type f)
 
 # Aliases
 all: build
@@ -46,10 +46,14 @@ backend: $(FRONTEND_TARGET)
 
 tests: backend
 	@dune runtest \
-		|| echo -e "\n\e[01;31m!!! TESTS FAILED !!!\e[0m\n-> run 'make promote' to update the tests result files"
+		|| echo -e "\n\e[01;31m!!! TESTS FAILED !!!\e[0m\n-> run 'make promote' to update the tests result files\nRun 'make openapi' if tests fail"
 
 promote:
 	dune promote
+
+openapi:
+	dune build $(FLAGS) @install
+	dune exec -- ftw openapi src/openapi.json
 
 doc:
 	dune build $(FLAGS) @doc
@@ -59,7 +63,8 @@ clean:
 	rm -rf $(FRONTEND_TARGET)
 	rm -rf src/frontend/node_modules
 	rm -rf src/hookgen/node_modules
-	rm -rf src/frontend/src/hookgen
+	rm -rf src/frontend/app/hookgen
+	rm -rf src/frontend/.react-router
 
 
 ################
@@ -67,13 +72,16 @@ clean:
 ################
 
 debug: backend
-	dune exec -- ftw --db=tests/test.db -vv
+	dune exec -- ftw --db=tests/test.db -b -vv
 
 run: backend
-	dune exec -- ftw --db=tests/test.db
+	./bin/deploy_production.sh
 
 frontend_dev: backend
 	./bin/deploy_frontend_dev.sh
+
+manual_test: backend
+	./bin/deploy_manual_test.sh
 
 top:
 	dune utop

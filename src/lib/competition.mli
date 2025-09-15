@@ -63,3 +63,6 @@ val create :
   string -> Kind.t -> Category.t ->
   n_leaders:int -> n_follows:int -> t
 (** Create a new competition *)
+
+val ids_from_dancer_history : State.t -> Dancer.id -> id list
+(** Get the list of all competitions a dancer participated in. *)

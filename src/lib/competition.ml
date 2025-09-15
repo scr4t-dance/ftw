@@ -45,7 +45,7 @@ let () =
           id INTEGER PRIMARY KEY,
           event INTEGER REFERENCES events(id),
           name TEXT,
-          kind INTEGER REFERENCES competition_kinds(id),
+          kind INTEGER REFERENCES division_names(id),
           category INTEGER REFERENCES competition_categories(id),
           num_leaders INTEGER,
           num_followers INTEGER,
@@ -80,10 +80,10 @@ let create st event_id
     ~n_leaders ~n_follows =
   Logs.debug ~src:State.src (fun k->
       k "@[<hv 2>Creating new competition with@ \
-                   event_id: %d / name: %s@ \
-                   kind: %a (%d)@ category: %a(%d)@ \
-                   n_leaders: %d / n_follows: %d@ \
-                   check_divs: %b@]"
+         event_id: %d / name: %s@ \
+         kind: %a (%d)@ category: %a(%d)@ \
+         n_leaders: %d / n_follows: %d@ \
+         check_divs: %b@]"
         event_id name
         Kind.print kind (Kind.to_int kind) Category.print category (Category.to_int category)
         n_leaders n_follows check_divs);
@@ -103,3 +103,8 @@ let create st event_id
   in
   Logs.debug ~src:State.src (fun k->k "Competition created with id %d" t.id);
   t
+
+let ids_from_dancer_history st dancer_id =
+  State.query_list_where ~p:Id.p ~conv:Id.conv ~st
+    {| SELECT competition_id FROM bibs WHERE dancer_id = ? |}
+    dancer_id

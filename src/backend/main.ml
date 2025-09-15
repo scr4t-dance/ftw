@@ -15,7 +15,8 @@ let loader _root path _request =
       | None -> assert false (* let's assume the frontend will always have an `index.html` *)
       | Some asset -> Dream.html asset
     end
-  | Some asset -> Dream.respond asset
+  | Some asset ->
+    Printf.printf "\nFound %s default\n" path; flush_all(); Dream.respond asset
 
 let router () =
   (* Setup the router with the base information for openapi *)
@@ -34,6 +35,11 @@ let router () =
   |> Event.routes
   |> Competition.routes
   |> Phase.routes
+  |> Dancer.routes
+  |> Bib.routes
+  |> Heat.routes
+  |> Artefact.routes
+  |> Judge.routes
 
 let server (options : Options.server) =
   (* Default routes to serve the clients files (pages, scripts and css) *)
@@ -49,7 +55,7 @@ let server (options : Options.server) =
     | `OPTIONS ->
       Dream.respond ~headers:[
         ("Access-Control-Allow-Origin", "*");
-        ("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        ("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
         ("Access-Control-Allow-Headers", "Content-Type, Authorization");
       ] ~status:`No_Content ""
     | _ ->

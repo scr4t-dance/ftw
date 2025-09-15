@@ -48,6 +48,12 @@ val add :
   as_leader:Divisions.t -> as_follower:Divisions.t -> unit -> t
 (** Add a dancer, and returns its id. *)
 
+val update :
+  st:State.t -> id_dancer:id -> ?birthday:Date.t ->
+  first_name:string -> last_name:string -> ?email:string ->
+  as_leader:Divisions.t -> as_follower:Divisions.t -> unit -> t
+(** Update dancer, and returns its id. *)
+
 val update_divisions :
   st:State.t -> dancer:id -> role:Role.t -> divs:Divisions.t -> unit
 (** Update divisions for a dancer. *)
@@ -55,6 +61,7 @@ val update_divisions :
 val for_all : st:State.t -> f:(t -> unit) -> unit
 (** Iterate over all dancers. *)
 
+val list : st:State.t -> t list
 
 (* Index *)
 (* ************************************************************************* *)

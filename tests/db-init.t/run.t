@@ -20,8 +20,20 @@ Run a query to init database
   $ curl -s http://localhost:8082/api/events
   {"events":[]}
 
+  $ sqlite3 test.db 'SELECT name FROM DATABASE_VERSION;'
+  2
+
 Print schema
+If the definition changes
+* bump version number in src/lib/state.ml
+* promote changes
+* save new schema in src/migration/schema_V.sql (with V the version number)
+* create migration script src/migration/migrate_V-1_to_V.sql
+* apply to existing database and tests data integrity (with a round trip of exported/imported data)
   $ sqlite3 "test.db" '.schema'
+  CREATE TABLE database_version (
+          id INTEGER PRIMARY KEY,
+          name TEXT UNIQUE);
   CREATE TABLE round_names (
           id INTEGER PRIMARY KEY,
           name TEXT UNIQUE);
@@ -42,7 +54,7 @@ Print schema
             id INTEGER PRIMARY KEY,
             event INTEGER REFERENCES events(id),
             name TEXT,
-            kind INTEGER REFERENCES competition_kinds(id),
+            kind INTEGER REFERENCES division_names(id),
             category INTEGER REFERENCES competition_categories(id),
             num_leaders INTEGER,
             num_followers INTEGER,
@@ -73,6 +85,17 @@ Print schema
             judge INTEGER REFERENCES dancers(id),
             artefact INTEGER NOT NULL,
             PRIMARY KEY(target_id,judge)
+            ON CONFLICT REPLACE
+          );
+  CREATE TABLE judging_names (
+          id INTEGER PRIMARY KEY,
+          name TEXT UNIQUE);
+  CREATE TABLE judges (
+            judge_id INTEGER REFERENCES dancers(id),
+            phase_id INTEGER REFERENCES phases(id),
+            judging INTEGER REFERENCES judging_names(id),
+  
+            PRIMARY KEY(judge_id, phase_id)
           );
   CREATE TABLE phases (
             id INTEGER PRIMARY KEY,
@@ -83,6 +106,14 @@ Print schema
             ranking_algorithm TEXT,
             UNIQUE(competition_id, round)
           );
+  CREATE TABLE bibs (
+            dancer_id INTEGER REFERENCES dancers(id),
+            competition_id INTEGER REFERENCES competitions(id),
+            bib INTEGER NOT NULL,
+            role INTEGER NOT NULL,
+  
+            PRIMARY KEY(bib,competition_id,role)
+          );
   CREATE TABLE heats (
             id INTEGER PRIMARY KEY,
             phase_id INTEGER REFERENCES phases(id),
@@ -90,6 +121,7 @@ Print schema
             leader_id INTEGER REFERENCES dancers(id),
             follower_id INTEGER REFERENCES dancers(id)
           );
+
 
 End & Cleanup
 -------------

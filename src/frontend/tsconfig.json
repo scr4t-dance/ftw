@@ -1,27 +1,46 @@
 {
-    "compilerOptions": {
-      "target": "ES2020",                          // Modern JavaScript target
-      "lib": ["DOM", "DOM.Iterable", "ES2020"],     // Include relevant libraries
-      "allowJs": true,                              // Allow JavaScript files
-      "skipLibCheck": true,                         // Skip type-checking of declaration files for faster builds
-      "esModuleInterop": true,                      // Enable compatibility for CommonJS modules
-      "allowSyntheticDefaultImports": true,         // Allow default imports from modules without defaults
-      "strict": true,                               // Enable all strict type-checking options
-      "forceConsistentCasingInFileNames": true,     // Prevent file casing mismatches
-      "module": "ESNext",                           // Use modern ES modules
-      "moduleResolution": "Node",                   // Node-style module resolution
-      "resolveJsonModule": true,                    // Allow importing `.json` files
-      "isolatedModules": true,                      // Required for CRA with TypeScript
-      "noEmit": true,                               // No output, since CRA handles the build
-      "jsx": "react-jsx",                           // Use the new JSX transform
-      "baseUrl": "src",                             // Simplify absolute imports
-      "paths": {
-        "@components/*": ["components/*"],          // Example of path aliasing
-        "@utils/*": ["utils/*"]
-      },
-      "noFallthroughCasesInSwitch": true            // Prevent fallthrough errors in switch statements
+  "include": [
+    "**/*",
+    "**/.server/**/*",
+    "**/.client/**/*",
+    ".react-router/types/**/*",
+    "../hookgen/api"
+  ],
+  "compilerOptions": {
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ES2022"
+    ],
+    "types": [
+      "node",
+      "vite/client"
+    ],
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "rootDirs": [
+      ".",
+      "./.react-router/types"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "~/*": [
+        "./app/*"
+      ],
+      "@hookgen/*": [
+        "./app/hookgen/*"
+      ],
+      "@routes/*": [
+        "./app/routes/*"
+      ],
     },
-    "include": ["src"],                             // Include the source directory
-    "exclude": ["node_modules"]                     // Exclude node_modules from compilation
+    "esModuleInterop": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true
+  }
 }
-  

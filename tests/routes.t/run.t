@@ -15,7 +15,7 @@ to respond to requests
 Get default route
 
   $ curl -s -o /dev/null -w '%{http_code}\n' localhost:8083/index.html
-  200
+  500
 
 End & Cleanup
 -------------

@@ -17,7 +17,7 @@ let conv : t Conv.t = Conv.mk p (fun id -> id)
 let () =
   State.add_init ~name:"bonus" (fun st ->
       State.exec ~st {|
-        CREATE TABLE bonus (
+        CREATE TABLE IF NOT EXISTS bonus (
           target_id INTEGER REFERENCES heats(id), -- = target id of judgement
           bonus INTEGER NOT NULL,
           PRIMARY KEY(target_id)
@@ -34,4 +34,3 @@ let set ~st ~target bonus =
   State.insert ~st ~ty:[int;int]
     {| INSERT INTO bonus(target_id, bonus) VALUES (?,?) |}
     target bonus
-
