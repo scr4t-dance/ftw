@@ -77,6 +77,9 @@ run: backend
 dev: backend
 	./bin/deploy_frontend_dev.sh
 
+manual_test: backend
+	./bin/deploy_manual_test.sh
+
 top:
 	dune utop
 

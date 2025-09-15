@@ -110,3 +110,22 @@ let query_one_where ~p ~conv ~st sql =
   exec_exn st sql
     ~ty:(p, res, f_conv)
     ~f:(Sqlite3_utils.Cursor.get_one_exn)
+
+
+module DatabaseVersion = struct
+
+  type t = Id.t
+
+  let to_int = fun a -> a
+
+  let to_string = string_of_int
+
+  let () =
+    add_init_descr_table
+      ~table_name:"database_version" ~to_int
+      ~to_descr:to_string ~values:[
+      2
+    ]
+end
+
+let _ = DatabaseVersion.to_string 1
