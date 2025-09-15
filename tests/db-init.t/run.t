@@ -21,8 +21,7 @@ Run a query to init database
   {"events":[]}
 
   $ sqlite3 test.db 'SELECT name FROM DATABASE_VERSION;'
-  Error: in prepare, no such table: DATABASE_VERSION
-  [1]
+  2
 
 Print schema
 If the definition changes
@@ -32,6 +31,9 @@ If the definition changes
 * create migration script src/migration/migrate_V-1_to_V.sql
 * apply to existing database and tests data integrity (with a round trip of exported/imported data)
   $ sqlite3 "test.db" '.schema'
+  CREATE TABLE database_version (
+          id INTEGER PRIMARY KEY,
+          name TEXT UNIQUE);
   CREATE TABLE round_names (
           id INTEGER PRIMARY KEY,
           name TEXT UNIQUE);
@@ -92,7 +94,7 @@ If the definition changes
             judge_id INTEGER REFERENCES dancers(id),
             phase_id INTEGER REFERENCES phases(id),
             judging INTEGER REFERENCES judging_names(id),
-  
+
             PRIMARY KEY(judge_id, phase_id)
           );
   CREATE TABLE phases (
@@ -109,7 +111,7 @@ If the definition changes
             competition_id INTEGER REFERENCES competitions(id),
             bib INTEGER NOT NULL,
             role INTEGER NOT NULL,
-  
+
             PRIMARY KEY(bib,competition_id,role)
           );
   CREATE TABLE heats (

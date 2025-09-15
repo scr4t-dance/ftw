@@ -75,6 +75,9 @@ clean:
 # Helper Rules #
 ################
 
+debug: backend
+	dune exec -- ftw --db=tests/test.db -b -vv
+
 run: backend
 	./bin/deploy_production.sh
 
