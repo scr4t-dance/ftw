@@ -12,7 +12,7 @@ export const customInstance = <T>(
   options?: AxiosRequestConfig,
 ): Promise<T> => {
 
-  console.log("custom Axios instance init", API_BASE_URL);
+  //console.log("custom Axios instance init", API_BASE_URL);
   const source = Axios.CancelToken.source();
 
   const promise = axiosInstance({
