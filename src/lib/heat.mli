@@ -44,8 +44,22 @@ type couples_heats = {
   couples_heats : couples_heat array;
 }
 
+type t =
+  | Singles_heats of singles_heats
+  | Couples_heats of couples_heats
+
+val get_dancer_list : t -> Bib.any_target list array
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
-val get_singles : st:State.t -> phase:Phase.id -> singles_heats
-val get_couples : st:State.t -> phase:Phase.id -> couples_heats
+val get_singles : st:State.t -> phase:Phase.id -> t
+val get_couples : st:State.t -> phase:Phase.id -> t
+
+val get_heats : st:State.t -> phase:Phase.id -> (t, string) result
+
+
+val get_id : State.t -> Phase.id -> int -> Bib.any_target -> (Id.t option, string) result
+
+val simple_init : State.t -> phase:Id.t -> unit
+val simple_promote : State.t -> phase:Id.t -> unit

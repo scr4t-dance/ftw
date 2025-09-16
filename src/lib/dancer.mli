@@ -17,13 +17,15 @@ type t
 val id : t -> id
 (** Dancer id. *)
 
-val email : t -> string option
 val birthday : t -> Date.t option
 (** Email & Birthday (optional). *)
 
 val last_name : t -> string
 val first_name : t -> string
 (** Names of the dancer. *)
+
+val email : t -> string option
+(** email of the dancer. *)
 
 val as_leader : t -> Divisions.t
 val as_follower : t -> Divisions.t
@@ -46,6 +48,12 @@ val add :
   as_leader:Divisions.t -> as_follower:Divisions.t -> unit -> t
 (** Add a dancer, and returns its id. *)
 
+val update :
+  st:State.t -> id_dancer:id -> ?birthday:Date.t ->
+  first_name:string -> last_name:string -> ?email:string ->
+  as_leader:Divisions.t -> as_follower:Divisions.t -> unit -> t
+(** Update dancer, and returns its id. *)
+
 val update_divisions :
   st:State.t -> dancer:id -> role:Role.t -> divs:Divisions.t -> unit
 (** Update divisions for a dancer. *)
@@ -53,6 +61,7 @@ val update_divisions :
 val for_all : st:State.t -> f:(t -> unit) -> unit
 (** Iterate over all dancers. *)
 
+val list : st:State.t -> t list
 
 (* Index *)
 (* ************************************************************************* *)

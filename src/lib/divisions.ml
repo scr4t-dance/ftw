@@ -11,6 +11,7 @@ type t =
   | Intermediate
   | Intermediate_Advanced
   | Advanced (**)
+[@@deriving yojson]
 (** This represents the divisions accessible to a given dancer.
     See comment in the interface. *)
 
@@ -93,4 +94,3 @@ let () =
     Intermediate_Advanced;
     Advanced;
   ]
-

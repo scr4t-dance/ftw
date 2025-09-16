@@ -48,13 +48,13 @@ val get :
   judge:Judge.id ->
   target:Id.t ->
   descr:Descr.t ->
-  t
+  (t option, string) result
 
 val set :
   st:State.t ->
   judge:Judge.id ->
   target:Id.t ->
-  t -> unit
+  t -> (Id.t, string) result
 
 
 (* Serialization *)

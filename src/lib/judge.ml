@@ -28,7 +28,7 @@ type panel =
 let () =
   State.add_init ~name:"judge" (fun st ->
       State.exec ~st {|
-        CREATE TABLE judges (
+        CREATE TABLE IF NOT EXISTS judges (
           judge_id INTEGER REFERENCES dancers(id),
           phase_id INTEGER REFERENCES phases(id),
           judging INTEGER REFERENCES judging_names(id),
@@ -66,11 +66,11 @@ let parse l =
       failwith "mismatched judging for phase"
   in
   let rec aux l = function
-    | [] -> failwith "not enough judging for phase"
+    | [] -> Error "not enough judging for phase"
     | (_, (Judging.Leaders | Judging.Followers)) :: _ ->
-      singles { leaders = []; followers = []; head = None; } l
+      Ok (singles { leaders = []; followers = []; head = None; } l)
     | (_, Judging.Couples) :: _ ->
-      couples { couples = []; head = None; } l
+      Ok (couples { couples = []; head = None; } l)
     | (_, Judging.Head) :: r -> aux l r
   in
   aux l l
@@ -82,7 +82,7 @@ let get ~st ~phase =
   in
   let l =
     State.query_list_where ~p:Id.p ~conv ~st
-      {| SELECT (judge_id, judging) FROM judges WHERE phase_id = ? |}
+      {| SELECT judge_id, judging FROM judges WHERE phase_id = ? |}
       phase
   in
   parse l
@@ -115,7 +115,3 @@ let set ~st ~phase panel =
     clear ~st ~phase;
     List.iter (set_aux ~st ~phase ~judging:Couples) couples;
     Option.iter (set_aux ~st ~phase ~judging:Head) head
-
-
-
-

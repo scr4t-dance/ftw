@@ -30,7 +30,7 @@ let rec routes router =
       "404", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Competition not found";
     ]
-    (* Competition phases query *)
+  (* Competition phases query *)
   |> Router.get "/api/comp/:id/phases" get_phases
     ~tags:["phase"; "competition"]
     ~summary:"Get the list of phases of a Competition"
@@ -48,6 +48,10 @@ let rec routes router =
           Spec.json,
           Spec.make_media_type_object () ~schema:(Types.(ref PhaseIdList.ref));
         ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid Id supplied";
+      "404", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Competition not found";
     ]
   |> Router.put "/api/comp" create_comp
     ~tags:["competition"]

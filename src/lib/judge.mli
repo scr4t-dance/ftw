@@ -32,9 +32,8 @@ type panel =
 val clear : st:State.t -> phase:Id.t -> unit
 (** Clea the judge panel for the given phase *)
 
-val get : st:State.t -> phase:Id.t -> panel
+val get : st:State.t -> phase:Id.t -> (panel, string) result
 (** Get the Judge panel for a given phase. *)
 
 val set : st:State.t -> phase:Id.t -> panel -> unit
 (** Set the judges for a phase. *)
-

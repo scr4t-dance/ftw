@@ -1,0 +1,1859 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "FTW",
+    "description": "Api for the FTW dance competition scoring software",
+    "license": {
+      "name": "GPL 3.0",
+      "url": "https://www.gnu.org/licenses/gpl-3.0.en.html"
+    },
+    "version": "1.0.1"
+  },
+  "paths": {
+    "/api/phase/{id}/judges": {
+      "get": {
+        "tags": [ "judge", "phase", "dancer" ],
+        "summary": "Get the list of judges of a Phase",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the phase to consult",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Panel" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [ "judge", "phase", "dancer" ],
+        "summary": "Add judge to a phase",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Panel of judges to add",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Panel" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/artefact": {
+      "delete": {
+        "tags": [ "artefact", "heat", "judge", "phase" ],
+        "summary": "Delete artefact for a given heat target and judge",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          },
+          {
+            "name": "bib",
+            "in": "query",
+            "description": "Bib to delete",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/Bib" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HeatTargetJudge" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Heat, Target or Judge not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/artefact/judge/{id_judge}": {
+      "get": {
+        "tags": [ "artefact", "heat", "judge", "phase" ],
+        "summary": "Get the artefact for a given heat target and judge",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          },
+          {
+            "name": "id_judge",
+            "in": "path",
+            "description": "Id of the Judge",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/DancerId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeatTargetJudgeArtefactArray"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Heat, Target or Judge not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [ "artefact", "heat", "judge", "phase" ],
+        "summary": "add artefacts to all targets of a heat, for a specifiic judging type",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          },
+          {
+            "name": "id_judge",
+            "in": "path",
+            "description": "Id of the Judge",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/DancerId" }
+          }
+        ],
+        "requestBody": {
+          "description": "create bib",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HeatTargetJudgeArtefactArray"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation, here a list of judges",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DancerIdList" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Heat, Target or Judge not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/artefact/set": {
+      "put": {
+        "tags": [ "artefact", "heat", "judge", "phase" ],
+        "summary": "Add dancer to competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "create bib",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HeatTargetJudgeArtefact"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HeatTargetJudge" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Heat, Target or Judge not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/artefact/get": {
+      "get": {
+        "tags": [ "artefact", "heat", "judge", "phase" ],
+        "summary": "Get the artefact for a given heat target and judge",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          },
+          {
+            "name": "htj",
+            "in": "query",
+            "description": "Heat Target Judge object",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/HeatTargetJudge" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeatTargetJudgeArtefact"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Heat, Target or Judge not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/promote": {
+      "put": {
+        "tags": [ "heat", "phase" ],
+        "summary": "Promote dancers to next round",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Placeholder",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PhaseId" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/init_heats": {
+      "put": {
+        "tags": [ "heat", "phase" ],
+        "summary": "Randomly place dancers of the phase in heats",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Placeholder",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PhaseId" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/heats": {
+      "get": {
+        "tags": [ "heat", "phase", "competition" ],
+        "summary": "Get the heats of a competition (couples)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HeatsArray" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/couples_heats": {
+      "get": {
+        "tags": [ "heat", "phase", "competition" ],
+        "summary": "Get the heats of a competition (couples)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouplesHeatsArray"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/singles_heats": {
+      "get": {
+        "tags": [ "heat", "phase", "competition" ],
+        "summary": "Get the heats of a competition (singles)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SinglesHeatsArray"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/comp/{id}/bib": {
+      "put": {
+        "tags": [ "bib", "competition", "dancer" ],
+        "summary": "Add dancer to competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Competition",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "requestBody": {
+          "description": "create bib",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Bib" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DancerIdList" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [ "bib", "competition", "dancer" ],
+        "summary": "Add dancer to competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Competition",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Delete bib",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Bib" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DancerIdList" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [ "bib", "competition", "dancer" ],
+        "summary": "Update existing bib for a target",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Competition",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "requestBody": {
+          "description": "New bib value",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Bib" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DancerIdList" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/comp/{id}/bibs": {
+      "get": {
+        "tags": [ "bib", "competition", "dancer" ],
+        "summary": "Get the list of dancers of a Competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Event",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BibList" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dancer/{id}/competition_history": {
+      "get": {
+        "tags": [ "dancer", "competition" ],
+        "summary": "Get the list of Competitions a Dancer participated in",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried dancer",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/DancerId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionIdList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Dancer not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dancer/{id}": {
+      "get": {
+        "tags": [ "dancer" ],
+        "summary": "Get the details of a Dancer",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried dancer",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/DancerId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Dancer" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Dancer not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [ "dancer" ],
+        "summary": "Create a new dancer",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried dancer",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/DancerId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Details of the Dancer to create",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Dancer" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DancerId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Dancer not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dancer": {
+      "put": {
+        "tags": [ "dancer" ],
+        "summary": "Create a new dancer",
+        "parameters": [],
+        "requestBody": {
+          "description": "Details of the Dancer to create",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Dancer" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DancerId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dancers": {
+      "get": {
+        "tags": [ "dancer" ],
+        "summary": "Get the list of Dancers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Succesful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DancerIdList" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}": {
+      "get": {
+        "tags": [ "phase" ],
+        "summary": "Get the details of a Phase",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Phase" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [ "phase" ],
+        "summary": "Delete a Phase",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the phase to delete",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Phase" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [ "phase" ],
+        "summary": "Update parameters of a Phase",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Details of the Phase to update, cannot update competition. Beware when updating round !",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Phase" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Phase" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id or Data supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase": {
+      "put": {
+        "tags": [ "phase" ],
+        "summary": "Create a new phase",
+        "parameters": [],
+        "requestBody": {
+          "description": "Details of the Phase to create",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Phase" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/comp": {
+      "put": {
+        "tags": [ "competition" ],
+        "summary": "Create a new competition",
+        "parameters": [],
+        "requestBody": {
+          "description": "Details of the Competition to create",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Competition" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CompetitionId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/comp/{id}/phases": {
+      "get": {
+        "tags": [ "phase", "competition" ],
+        "summary": "Get the list of phases of a Competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Competition",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseIdList" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/comp/{id}": {
+      "get": {
+        "tags": [ "competition" ],
+        "summary": "Get the details of a Competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried competition",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Competition" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/event": {
+      "put": {
+        "tags": [ "event" ],
+        "summary": "Create a new event",
+        "parameters": [],
+        "requestBody": {
+          "description": "Details of the Event to create",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Event" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/EventId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict object with same name, start date and end date already exists",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/event/{id}/comps": {
+      "get": {
+        "tags": [ "event", "competition" ],
+        "summary": "Get the list of competitions of an Event",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Event",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/EventId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionIdList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Event not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/event/{id}": {
+      "get": {
+        "tags": [ "event" ],
+        "summary": "Get the details of a single Event",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried event",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/EventId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Event" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Event not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events": {
+      "get": {
+        "tags": [ "event" ],
+        "summary": "Get the list of Events",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Succesful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/EventIdList" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Ok": { "type": "null" },
+      "Error": {
+        "type": "object",
+        "properties": { "message": { "type": "string" } }
+      },
+      "Date": {
+        "type": "object",
+        "properties": {
+          "day": { "type": "integer" },
+          "month": { "type": "integer" },
+          "year": { "type": "integer" }
+        },
+        "required": [ "year", "month", "day" ]
+      },
+      "Kind": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [ "Routine", "Strictly", "JJ_Strictly", "Jack_and_Jill" ]
+        }
+      },
+      "Division": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [ "Novice", "Intermediate", "Advanced" ]
+        }
+      },
+      "Divisions": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "None", "Novice", "Novice_Intermediate", "Intermediate",
+            "Intermediate_Advanced", "Advanced"
+          ]
+        }
+      },
+      "Category": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "Novice", "Intermediate", "Advanced", "Regular", "Qualifying",
+            "Invited"
+          ]
+        }
+      },
+      "Round": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "Prelims", "Octofinals", "Quarterfinals", "Semifinals", "Finals"
+          ]
+        }
+      },
+      "Role": {
+        "type": "array",
+        "items": { "type": "string", "enum": [ "Leader", "Follower" ] }
+      },
+      "EventId": { "type": "integer" },
+      "EventIdList": {
+        "type": "object",
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/EventId" }
+          }
+        },
+        "required": [ "events" ]
+      },
+      "Event": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "start_date": { "$ref": "#/components/schemas/Date" },
+          "end_date": { "$ref": "#/components/schemas/Date" }
+        },
+        "required": [ "name", "start_date", "end_date" ]
+      },
+      "CompetitionId": { "type": "integer" },
+      "CompetitionIdList": {
+        "type": "object",
+        "properties": {
+          "competitions": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        },
+        "required": [ "competitions" ]
+      },
+      "Competition": {
+        "type": "object",
+        "properties": {
+          "event": { "$ref": "#/components/schemas/EventId" },
+          "name": { "type": "string" },
+          "kind": { "$ref": "#/components/schemas/Kind" },
+          "category": { "$ref": "#/components/schemas/Category" },
+          "n_leaders": { "type": "integer" },
+          "n_follows": { "type": "integer" }
+        },
+        "required": [
+          "event", "name", "kind", "category", "n_leaders", "n_follows"
+        ]
+      },
+      "YanCriterionWeights": {
+        "type": "object",
+        "properties": {
+          "yes": { "type": "integer" },
+          "alt": { "type": "integer" },
+          "no": { "type": "integer" }
+        },
+        "required": [ "yes", "alt", "no" ]
+      },
+      "RankingYanWeighted": {
+        "type": "object",
+        "properties": {
+          "algorithm": { "type": "string", "enum": [ "Yan_weighted" ] },
+          "weights": {
+            "description": " Ranking algorithm for Yan_weighted ",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/YanCriterionWeights" }
+          },
+          "head_weights": {
+            "description": " Ranking algorithm for Yan_weighted ",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/YanCriterionWeights" }
+          }
+        },
+        "required": [ "weights", "head_weights" ]
+      },
+      "RankingAlgorithmRanking": {
+        "description": " artefact is either ranking or yan. ",
+        "type": "object",
+        "properties": {
+          "algorithm": { "type": "string", "enum": [ "ranking" ] },
+          "algorithm_name": { "type": "string", "enum": [ "RPSS" ] }
+        },
+        "required": [ "algorithm", "algorithm_name" ]
+      },
+      "RankingAlgorithm": {
+        "type": "object",
+        "required": [ "algorithm" ],
+        "oneOf": [
+          { "$ref": "#/components/schemas/RankingYanWeighted" },
+          { "$ref": "#/components/schemas/RankingAlgorithmRanking" }
+        ]
+      },
+      "ArtefactDescriptionYans": {
+        "description": " artefact is either ranking or yan. ",
+        "type": "object",
+        "properties": {
+          "artefact": { "type": "string", "enum": [ "yan" ] },
+          "artefact_data": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": [ "artefact", "artefact_data" ]
+      },
+      "ArtefactDescriptionRanking": {
+        "description": " artefact is either ranking or yan. ",
+        "type": "object",
+        "properties": {
+          "artefact": { "type": "string", "enum": [ "ranking" ] },
+          "artefact_data": { "type": "null" }
+        },
+        "required": [ "artefact", "artefact_data" ]
+      },
+      "ArtefactDescription": {
+        "type": "object",
+        "required": [ "artefact", "artefact_data" ],
+        "oneOf": [
+          { "$ref": "#/components/schemas/ArtefactDescriptionYans" },
+          { "$ref": "#/components/schemas/ArtefactDescriptionRanking" }
+        ]
+      },
+      "PhaseId": { "type": "integer" },
+      "PhaseIdList": {
+        "type": "object",
+        "properties": {
+          "phases": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        },
+        "required": [ "phases" ]
+      },
+      "Phase": {
+        "type": "object",
+        "properties": {
+          "competition": { "$ref": "#/components/schemas/CompetitionId" },
+          "round": { "$ref": "#/components/schemas/Round" },
+          "judge_artefact_descr": {
+            "$ref": "#/components/schemas/ArtefactDescription"
+          },
+          "head_judge_artefact_descr": {
+            "$ref": "#/components/schemas/ArtefactDescription"
+          },
+          "ranking_algorithm": {
+            "$ref": "#/components/schemas/RankingAlgorithm"
+          }
+        },
+        "required": [
+          "competition", "round", "judge_artefact_descr",
+          "head_judge_artefact_descr", "ranking_algorithm"
+        ]
+      },
+      "DancerId": { "type": "integer" },
+      "DancerIdList": {
+        "type": "object",
+        "properties": {
+          "dancers": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DancerId" }
+          }
+        },
+        "required": [ "dancers" ]
+      },
+      "Dancer": {
+        "type": "object",
+        "properties": {
+          "birthday": { "$ref": "#/components/schemas/Date" },
+          "last_name": { "type": "string" },
+          "first_name": { "type": "string" },
+          "email": { "type": "string" },
+          "as_leader": { "$ref": "#/components/schemas/Divisions" },
+          "as_follower": { "$ref": "#/components/schemas/Divisions" }
+        },
+        "required": [ "last_name", "first_name", "as_leader", "as_follower" ]
+      },
+      "SingleTarget": {
+        "type": "object",
+        "properties": {
+          "target_type": { "type": "string", "enum": [ "single" ] },
+          "target": { "$ref": "#/components/schemas/DancerId" },
+          "role": { "$ref": "#/components/schemas/Role" }
+        },
+        "required": [ "target_type", "target", "role" ]
+      },
+      "CoupleTarget": {
+        "type": "object",
+        "properties": {
+          "target_type": { "type": "string", "enum": [ "couple" ] },
+          "leader": { "$ref": "#/components/schemas/DancerId" },
+          "follower": { "$ref": "#/components/schemas/DancerId" }
+        },
+        "required": [ "target_type", "leader", "follower" ]
+      },
+      "Target": {
+        "type": "object",
+        "oneOf": [
+          { "$ref": "#/components/schemas/SingleTarget" },
+          { "$ref": "#/components/schemas/CoupleTarget" }
+        ]
+      },
+      "Bib": {
+        "type": "object",
+        "properties": {
+          "competition": { "$ref": "#/components/schemas/CompetitionId" },
+          "bib": { "type": "integer" },
+          "target": { "$ref": "#/components/schemas/Target" }
+        },
+        "required": [ "competition", "bib", "target" ]
+      },
+      "BibList": {
+        "type": "object",
+        "properties": {
+          "bibs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Bib" }
+          }
+        },
+        "required": [ "bibs" ]
+      },
+      "SinglesHeat": {
+        "type": "object",
+        "properties": {
+          "followers": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SingleTarget" }
+          },
+          "leaders": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SingleTarget" }
+          }
+        },
+        "required": [ "followers", "leaders" ]
+      },
+      "SinglesHeatsArray": {
+        "type": "object",
+        "properties": {
+          "heat_type": { "type": "string", "enum": [ "single" ] },
+          "heats": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SinglesHeat" }
+          }
+        },
+        "required": [ "heats" ]
+      },
+      "CouplesHeat": {
+        "type": "object",
+        "properties": {
+          "couples": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CoupleTarget" }
+          }
+        },
+        "required": [ "couples" ]
+      },
+      "CouplesHeatsArray": {
+        "type": "object",
+        "properties": {
+          "heat_type": { "type": "string", "enum": [ "couple" ] },
+          "heats": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CouplesHeat" }
+          }
+        },
+        "required": [ "heats" ]
+      },
+      "HeatsArray": {
+        "type": "object",
+        "oneOf": [
+          { "$ref": "#/components/schemas/SinglesHeatsArray" },
+          { "$ref": "#/components/schemas/CouplesHeatsArray" }
+        ]
+      },
+      "HeatId": { "type": "integer" },
+      "HeatIdList": {
+        "type": "object",
+        "properties": {
+          "heats": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/HeatId" }
+          }
+        },
+        "required": [ "heats" ]
+      },
+      "Yan": {
+        "description": " Yan value ",
+        "type": "array",
+        "items": { "type": "string", "enum": [ "Yes", "Alt", "No" ] }
+      },
+      "ArtefactYans": {
+        "description": " Yes/Alt/No judging artefact ",
+        "type": "object",
+        "properties": {
+          "artefact_type": { "type": "string", "enum": [ "yan" ] },
+          "artefact_data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Yan" }
+          }
+        },
+        "required": [ "artefact_type", "artefact_data" ]
+      },
+      "ArtefactRank": {
+        "description": " Rank of a dancer or couple ",
+        "type": "object",
+        "properties": {
+          "artefact_type": { "type": "string", "enum": [ "ranking" ] },
+          "artefact_data": { "type": "integer" }
+        },
+        "required": [ "artefact_type", "artefact_data" ]
+      },
+      "Artefact": {
+        "type": "object",
+        "required": [ "artefact_type", "artefact_data" ],
+        "oneOf": [
+          { "$ref": "#/components/schemas/ArtefactYans" },
+          { "$ref": "#/components/schemas/ArtefactRank" }
+        ]
+      },
+      "HeatTargetJudge": {
+        "type": "object",
+        "properties": {
+          "phase_id": { "$ref": "#/components/schemas/PhaseId" },
+          "heat_number": { "type": "integer" },
+          "target": { "$ref": "#/components/schemas/Target" },
+          "judge": { "$ref": "#/components/schemas/DancerId" },
+          "description": {
+            "$ref": "#/components/schemas/ArtefactDescription"
+          }
+        },
+        "required": [
+          "phase_id", "heat_number", "target", "judge", "description"
+        ]
+      },
+      "HeatTargetJudgeArtefact": {
+        "type": "object",
+        "properties": {
+          "heat_target_judge": {
+            "$ref": "#/components/schemas/HeatTargetJudge"
+          },
+          "artefact": { "$ref": "#/components/schemas/Artefact" }
+        },
+        "required": [ "heat_target_judge" ]
+      },
+      "HeatTargetJudgeArtefactArray": {
+        "type": "object",
+        "properties": {
+          "artefacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HeatTargetJudgeArtefact"
+            }
+          }
+        },
+        "required": [ "artefacts" ]
+      },
+      "SinglePanel": {
+        "type": "object",
+        "properties": {
+          "panel_type": { "type": "string", "enum": [ "single" ] },
+          "leaders": { "$ref": "#/components/schemas/DancerIdList" },
+          "followers": { "$ref": "#/components/schemas/DancerIdList" },
+          "head": { "$ref": "#/components/schemas/DancerId" }
+        },
+        "required": [ "panel_type", "leaders", "followers" ]
+      },
+      "CouplePanel": {
+        "type": "object",
+        "properties": {
+          "panel_type": { "type": "string", "enum": [ "couple" ] },
+          "couples": { "$ref": "#/components/schemas/DancerIdList" },
+          "head": { "$ref": "#/components/schemas/DancerId" }
+        },
+        "required": [ "panel_type", "couples" ]
+      },
+      "Panel": {
+        "type": "object",
+        "oneOf": [
+          { "$ref": "#/components/schemas/SinglePanel" },
+          { "$ref": "#/components/schemas/CouplePanel" }
+        ]
+      },
+      "TargetYanRank": {
+        "type": "object",
+        "properties": {
+          "ranking_type": { "type": "string", "enum": [ "rpss" ] },
+          "target": { "$ref": "#/components/schemas/HeatTargetJudge" },
+          "rank": { "type": "integer" },
+          "ranking_details": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "required": [ "ranking_type", "target", "rank", "ranking_details" ]
+      },
+      "TargetYanRank": {
+        "type": "object",
+        "properties": {
+          "ranking_type": { "type": "string", "enum": [ "yan" ] },
+          "target": { "$ref": "#/components/schemas/HeatTargetJudge" },
+          "rank": { "type": "integer" },
+          "score": { "type": "integer" }
+        },
+        "required": [ "ranking_type", "target", "rank", "score" ]
+      },
+      "TargetRank": {
+        "type": "object",
+        "oneOf": [
+          { "$ref": "#/components/schemas/TargetYanRank" },
+          { "$ref": "#/components/schemas/TargetYanRank" }
+        ]
+      },
+      "PhaseRanks": {
+        "type": "object",
+        "properties": {
+          "ranks": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": { "$ref": "#/components/schemas/Target" }
+            }
+          }
+        },
+        "required": [ "ranks" ]
+      }
+    }
+  }
+}
