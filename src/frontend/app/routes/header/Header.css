@@ -16,6 +16,9 @@ nav ul {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
+
+    margin: 0;
+    padding: 0;
 }
 
 nav ul li {
@@ -61,7 +64,7 @@ nav ul li a:hover {
     align-items: center;
 }
 
-.contact-button .btn {
+.contact-button .header-btn {
     background-color: #617489;
     color: white;
     padding: 0.5rem 1rem;
@@ -71,7 +74,7 @@ nav ul li a:hover {
     text-wrap: nowrap;
 }
 
-.contact-button .btn:hover {
+.contact-button .header-btn:hover {
     background-color: #4a5c6e;
 }
 
