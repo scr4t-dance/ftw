@@ -9,6 +9,7 @@ import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { Field } from '@routes/index/field';
 import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, usePutApiPhaseIdInitHeats, usePutApiPhaseIdPromote } from '~/hookgen/heat/heat';
+import { getGetApiPhaseIdArtefactGetQueryKey, getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey } from '~/hookgen/artefact/artefact';
 
 export function InitHeatsForm({ id_phase }: { id_phase: PhaseId }) {
 
@@ -37,6 +38,10 @@ export function InitHeatsForm({ id_phase }: { id_phase: PhaseId }) {
                 queryClient.invalidateQueries({
                     queryKey: getGetApiPhaseIdHeatsQueryKey(id_phase),
                 });
+                // load all_judges in server after merging change_api_loading
+                // all_judges.map((judge_id) => (queryClient.invalidateQueries({
+                //         queryKey: getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey(id_phase, judge_id),
+                //     })));
             },
             onError: (err) => {
                 console.error('Error creating phase:', err);
@@ -65,10 +70,10 @@ export function InitHeatsForm({ id_phase }: { id_phase: PhaseId }) {
                         error={errors.min_number_of_targets?.message}
                     >
                         <input type='number'
-                        {...register("min_number_of_targets", {
-                            required: "Should be a number",
-                            valueAsNumber: true,
-                        })} />
+                            {...register("min_number_of_targets", {
+                                required: "Should be a number",
+                                valueAsNumber: true,
+                            })} />
                     </Field>
 
                     <Field
@@ -76,10 +81,10 @@ export function InitHeatsForm({ id_phase }: { id_phase: PhaseId }) {
                         error={errors.max_number_of_targets?.message}
                     >
                         <input type='number'
-                        {...register("max_number_of_targets", {
-                            required: "Should be a number",
-                            valueAsNumber: true,
-                        })} />
+                            {...register("max_number_of_targets", {
+                                required: "Should be a number",
+                                valueAsNumber: true,
+                            })} />
                     </Field>
 
                     {errors.root?.formValidation &&
