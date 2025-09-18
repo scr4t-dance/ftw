@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import type {
-  Artefact, ArtefactDescription, ArtefactYans, ArtefactYansArtefactDataItem, DancerId,
+  Artefact, ArtefactDescription, ArtefactYans, DancerId,
   HeatTargetJudgeArtefactArray, PhaseId, Target
 } from "@hookgen/model";
 import { YanItem } from "@hookgen/model";
@@ -14,7 +14,7 @@ import { Field } from '@routes/index/field';
 import { DancerCell } from '@routes/bib/BibList';
 
 
-export const yan_values: (string | undefined)[] = Object.values(YanItem);
+const yan_values: (string | undefined)[] = Object.values(YanItem);
 
 const iter_target_dancers = (t: Target) => t.target_type === "single"
   ? [t.target]
@@ -61,6 +61,28 @@ function validate_artefacts({ htjaArray, artefact_description }: validateArtefac
 
   return clean_htja_array;
 }
+
+function RankingInput({ form_key }: { form_key: `artefacts.${number}.artefact.artefact_data` }) {
+  const {
+    register,
+    formState: { errors }
+  } = useFormContext<HeatTargetJudgeArtefactArray>();
+
+  return (
+    <Field
+      error={get(errors, `${form_key}.message`)}
+    >
+      <input
+        type="number"
+        {...register(`${form_key}`, {
+          min: 0,
+          valueAsNumber: true,
+        })}
+      />
+    </Field>
+  );
+}
+
 
 function YanDropDownInput({ form_key }: { form_key: `artefacts.${number}.artefact.artefact_data.${number}` }) {
   const {
@@ -198,9 +220,147 @@ function ArtefactValidCount({ artefactData }: { artefactData: HeatTargetJudgeArt
 
 }
 
-export function ArtefactFormTable({ artefactData, heat_number, artefactInput }: { artefactData: HeatTargetJudgeArtefactArray, heat_number: number | undefined, artefactInput: boolean }) {
+function RankingArtefactFormTable({ artefactData, heat_number, artefactInput }: { artefactData: HeatTargetJudgeArtefactArray, heat_number: number | undefined, artefactInput: boolean }) {
 
   const artefact_description = artefactData.artefacts[0].heat_target_judge.description;
+
+  const isHeatView = !(heat_number === undefined);
+
+  const formObject = useFormContext<HeatTargetJudgeArtefactArray>();
+
+  const {
+    control,
+    register,
+    setValue,
+    formState: { errors, defaultValues } } = formObject;
+
+  const { fields, update } = useFieldArray({
+    control,
+    name: "artefacts",
+  });
+
+  const sortedDefaultFields = React.useMemo(() => {
+    if (!defaultValues?.artefacts) return fields.map((f, i) => ({ field: f, originalIndex: i }));
+
+    return [...fields]
+      .map((field, index) => {
+        const defaultArtefact = defaultValues.artefacts?.[index]?.artefact;
+        const sortValue =
+          defaultArtefact?.artefact_type === "ranking"
+            ? (defaultArtefact?.artefact_data ?? 0)
+            : 0;
+
+        return { field: field, _sortValue: sortValue, originalIndex: index };
+      })
+      .sort((a, b) => {
+        if (a._sortValue === b._sortValue) {
+          return a.originalIndex - b.originalIndex;
+        }
+        return a._sortValue - b._sortValue;
+      });
+  }, [fields, defaultValues]);
+
+  const ordered_fields = artefactInput ? fields.map((f, i) => ({ field: f, originalIndex: i })) : sortedDefaultFields;
+
+  const moveUp = (index: number) => {
+
+    const rank = ordered_fields[index].field.artefact?.artefact_type === "ranking" ? ordered_fields[index].field.artefact?.artefact_data : undefined;
+    const hasSameRank = ordered_fields.filter((f) => f.field.artefact?.artefact_data === rank).length > 1;
+
+    const max_rank_array = fields
+      .map((f) => f.artefact?.artefact_type === "ranking" ? f.artefact?.artefact_data : 0);
+    const max_rank = Math.max(...max_rank_array);
+
+    if (hasSameRank || rank === undefined) {
+      // increase rank for all targets of same rank (except target)
+      // handle case when target has null rank
+      const futureHtjaRank = rank ?? max_rank + 1;
+
+      const newValues = ordered_fields
+        .filter((f) => f.field.artefact?.artefact_type === "ranking" && f.field.artefact.artefact_data >= futureHtjaRank && f.originalIndex !== index)
+        .map((f) => ({
+          index: `artefacts.${f.originalIndex}.artefact.artefact_data` as `artefacts.${number}.artefact.artefact_data`,
+          value: (f.field.artefact?.artefact_data as number) + 1,
+        }));
+
+      newValues.forEach(({ index, value }) => setValue(index, value));
+      setValue(`artefacts.${index}.artefact`, { artefact_type: "ranking", artefact_data: futureHtjaRank });
+    } else if (rank ?? 0 > 1) {
+      // swap rank with next rank
+      const futureHtjaRank = (rank as number) - 1;
+
+      const newValues = ordered_fields
+        .filter((f) => f.field.artefact?.artefact_type === "ranking" && f.field.artefact.artefact_data >= futureHtjaRank && f.field.artefact.artefact_data < futureHtjaRank + 2)
+        .map((f) => ({
+          index: `artefacts.${f.originalIndex}.artefact.artefact_data` as `artefacts.${number}.artefact.artefact_data`,
+          value: f.originalIndex === index ? futureHtjaRank : futureHtjaRank + 1,
+        }));
+
+      newValues.forEach(({ index, value }) => setValue(index, value));
+    }
+    console.log("target already at rank 1");
+
+  };
+
+  return (
+
+    <table>
+      <tbody>
+        <tr>
+          <th>Target</th>
+          <th>Rank</th>
+          <th>Move</th>
+          <th>Move</th>
+        </tr>
+        {ordered_fields && ordered_fields.map(({ field, originalIndex: index }) => (
+          <>
+            {(!isHeatView || (field.heat_target_judge.heat_number === heat_number)) &&
+
+              <tr key={field.id}>
+                <td>
+                  <p>
+                    {field.heat_target_judge.target.target_type == "single" &&
+                      field.heat_target_judge.target.role}
+                    {field.heat_target_judge.target.target_type == "couple" &&
+                      "couple"}
+                  </p>
+                  {iter_target_dancers(field.heat_target_judge.target).map((i) => (
+                    <DancerCell key={`bib.${index}`} id_dancer={i} />
+                  ))}
+                  <Field
+                    error={get(errors, `artefacts.${index}.artefact.artefact_type.message`)}
+                  >
+                    <input
+                      type='hidden'
+                      {...register(`artefacts.${index}.artefact.artefact_type`
+                      )} />
+                  </Field>
+                </td>
+                {field.heat_target_judge.description.artefact === "ranking" &&
+                  <>
+                    <td>
+                      <RankingInput form_key={`artefacts.${index}.artefact.artefact_data`} />
+                    </td>
+                    <td>
+                      <button type='button' onClick={() => moveUp(index)}>Up</button>
+                    </td>
+                  </>
+                }
+              </tr>
+            }
+          </>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+
+function YanArtefactFormTable({ artefactData, heat_number, artefactInput }: { artefactData: HeatTargetJudgeArtefactArray, heat_number: number | undefined, artefactInput: boolean }) {
+
+  const artefact_description = artefactData.artefacts[0].heat_target_judge.description;
+
+  if (artefact_description.artefact !== "yan") return <p>Wrong artefact type</p>;
 
   const isHeatView = !(heat_number === undefined);
 
@@ -222,17 +382,13 @@ export function ArtefactFormTable({ artefactData, heat_number, artefactInput }: 
       <tbody>
         <tr>
           <th>Target</th>
-          {artefact_description.artefact === "yan" &&
-            artefact_description.artefact_data.map((criterion, index) => {
-              return (
-                <th key={`yan.${index}`}>
-                  {criterion}
-                </th>
-              );
-            })}
-          {artefact_description.artefact === "ranking" &&
-            <th>Rank</th>
-          }
+          {artefact_description.artefact_data.map((criterion, index) => {
+            return (
+              <th key={`yan.${index}`}>
+                {criterion}
+              </th>
+            );
+          })}
         </tr>
         {fields && fields.map((field, index) => (
           <>
@@ -271,6 +427,9 @@ export function ArtefactFormTable({ artefactData, heat_number, artefactInput }: 
                       </td>
                     );
                   })}
+                {field.heat_target_judge.description.artefact !== "yan" &&
+                  <td>Unexpected artefact type in input</td>
+                }
               </tr>
             }
           </>
@@ -343,22 +502,37 @@ export function ArtefactFormComponent({ artefactData }: { artefactData: HeatTarg
     <FormProvider {...formObject}>
       <ArtefactValidCount artefactData={artefactData} />
       <button type='button' onClick={() => setHeatView(!isHeatView)}>Change heat view</button>
-      <button type='button' onClick={() => setArtefactInput(!artefactInput)}>Change Artefact view</button>
+      <button type='button' onClick={() => setArtefactInput(!artefactInput)}>{artefactInput ? "Order by rank" : "Order by bib"}</button>
       <form onSubmit={handleSubmit(onSubmit)} >
-        {isHeatView && unique_heat_number && unique_heat_number.map((heat_number) => (
+        {artefact_description.artefact === "yan" && isHeatView && unique_heat_number && unique_heat_number.map((heat_number) => (
           <>
             <h2>Heat {heat_number}</h2>
-            <ArtefactFormTable artefactData={artefactData} heat_number={heat_number} artefactInput={artefactInput} />
+            <YanArtefactFormTable artefactData={artefactData} heat_number={heat_number} artefactInput={artefactInput} />
           </>
 
         ))}
-        {!isHeatView && (
+        {artefact_description.artefact === "yan" && !isHeatView && (
           <>
             <h2>All heats</h2>
-            <ArtefactFormTable artefactData={artefactData} heat_number={undefined} artefactInput={artefactInput} />
+            <YanArtefactFormTable artefactData={artefactData} heat_number={undefined} artefactInput={artefactInput} />
           </>
 
         )}
+        {artefact_description.artefact === "ranking" && isHeatView && unique_heat_number && unique_heat_number.map((heat_number) => (
+          <>
+            <h2>Heat {heat_number}</h2>
+            <RankingArtefactFormTable artefactData={artefactData} heat_number={heat_number} artefactInput={artefactInput} />
+          </>
+
+        ))}
+        {artefact_description.artefact === "ranking" && !isHeatView && (
+          <>
+            <h2>All heats</h2>
+            <RankingArtefactFormTable artefactData={artefactData} heat_number={undefined} artefactInput={artefactInput} />
+          </>
+
+        )}
+
         {errors.root?.formValidation &&
           <div className="error_message">⚠️ {errors.root.formValidation.message}</div>
         }
