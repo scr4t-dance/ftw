@@ -11,7 +11,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 import type { Route } from "./+types/root";
-import "./app.css";
+import "./styles/ContentStyle.css"
 import React, { useEffect, useState } from "react";
 import { loadRuntimeConfig } from "./configloader";
 import { setBaseURL } from "./axios";
