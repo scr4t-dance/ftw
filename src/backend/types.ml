@@ -1218,7 +1218,7 @@ module ArtefactYans = struct
 
   type t = {
     artefact_type: string;
-    artefact_data: Yan.t list;
+    artefact_data: Yan.t option list;
   }
   [@@deriving yojson]
 
@@ -1233,10 +1233,20 @@ module ArtefactYans = struct
           ~enum:[`String "yan";];
         "artefact_data", obj @@ S.make_schema ()
           ~typ:array
-          ~items:(ref Yan.ref);
+          ~items:(
+            obj @@ S.make_schema ()
+              ~one_of:[
+                obj @@ S.make_schema ()
+                  ~typ:(obj S.Null);
+                ref Yan.ref
+              ]
+          );
       ]
       ~required:["artefact_type"; "artefact_data";]
 
+  let to_ftw a =
+    let x = List.fold_left (fun acc v -> Option.bind v (fun y -> Option.map (fun l -> l @ [y]) acc)) (Some []) a.artefact_data in
+    Option.map (fun l -> Ftw.Artefact.Yans l) x
 end
 
 
@@ -1283,13 +1293,14 @@ module Artefact = struct
 
   let of_ftw s =
     match s with
-    | Ftw.Artefact.Yans c -> YanArtefact {artefact={artefact_type="yan";artefact_data=c;}}
+    | Ftw.Artefact.Yans c -> YanArtefact {artefact={artefact_type="yan";artefact_data=List.map (fun x -> Some x) c;}}
     | Ftw.Artefact.Rank r -> RankArtefact {artefact={artefact_type="ranking";artefact_data=r;}}
+
 
   let to_ftw s =
     match s with
-    | YanArtefact {artefact={artefact_data; _}} -> Ftw.Artefact.Yans artefact_data
-    | RankArtefact {artefact={artefact_data; _}} -> Ftw.Artefact.Rank artefact_data
+    | YanArtefact {artefact} -> ArtefactYans.to_ftw artefact
+    | RankArtefact {artefact={artefact_data; _}} -> Some (Ftw.Artefact.Rank artefact_data)
 
 
   let to_yojson target =
@@ -1511,19 +1522,23 @@ module TargetRPSSRank = struct
     ranking_type: string;
     target : Target.t;
     rank: int option;
+    artefact_list: ArtefactRank.t list;
     ranking_details: string list; (* one element per rank, to plot on the right hand side*)
   } [@@deriving yojson]
 
 
   let ref, schema =
     make_schema ()
-      ~name:"TargetYanRank"
+      ~name:"TargetRPSSRank"
       ~typ:(Obj Object)
       ~properties:[
         "ranking_type", obj @@ S.make_schema()
           ~typ:string
           ~enum:[`String "rpss"];
-        "target", (ref HeatTargetJudge.ref);
+        "target", (ref Target.ref);
+        "artefact_list", obj @@ S.make_schema()
+          ~typ:array
+          ~items:(ref ArtefactRank.ref);
         "rank",  obj @@ S.make_schema()
           ~typ:int;
         "ranking_details", obj @@ S.make_schema()
@@ -1540,6 +1555,7 @@ module TargetYanRank = struct
     ranking_type: string;
     target : Target.t;
     rank: int option;
+    artefact_list: ArtefactYans.t list;
     score: float option;
   } [@@deriving yojson]
 
@@ -1552,13 +1568,16 @@ module TargetYanRank = struct
         "ranking_type", obj @@ S.make_schema()
           ~typ:string
           ~enum:[`String "yan"];
-        "target", (ref HeatTargetJudge.ref);
+        "target", (ref Target.ref);
+        "artefact_list", obj @@ S.make_schema()
+          ~typ:array
+          ~items:(ref ArtefactYans.ref);
         "rank",  obj @@ S.make_schema()
           ~typ:int;
         "score", obj @@ S.make_schema()
           ~typ:int;
       ]
-      ~required:["ranking_type"; "target";"rank";"score"]
+      ~required:["ranking_type"; "target"; "artefact_list";"rank";"score"]
 end
 
 module TargetRank = struct
@@ -1578,7 +1597,7 @@ module TargetRank = struct
         (ref TargetRPSSRank.ref);
       ]
 
-      (* TODO implement to_yojson  *)
+  (* TODO implement to_yojson  *)
 end
 
 
@@ -1588,14 +1607,14 @@ module PhaseRanking = struct
 
   type t = {
     (* hypothesis dense rank
-    the first inner "TargetRank.t list" is the list of targets that are ranked first.
-    It should not be empty.
-    the second inner "TargetRank.t list" is the list of targets that ranked second.
-    the rank index should match the TargetRank.rank value.
-    it is expected that most ranks contains a list of size 1
-    the last inner "TargetRank.t list" is the list of targets that are unranked / ranked last.
-    the frontend doesn't know the condition for the ranking to be valid.
-    It just applies warning colors to ranks that contains more than 1 target.
+       the first inner "TargetRank.t list" is the list of targets that are ranked first.
+       It should not be empty.
+       the second inner "TargetRank.t list" is the list of targets that ranked second.
+       the rank index should match the TargetRank.rank value.
+       it is expected that most ranks contains a list of size 1
+       the last inner "TargetRank.t list" is the list of targets that are unranked / ranked last.
+       the frontend doesn't know the condition for the ranking to be valid.
+       It just applies warning colors to ranks that contains more than 1 target.
     *)
     ranks: TargetRank.t list list;
   } [@@deriving yojson]
@@ -1610,8 +1629,49 @@ module PhaseRanking = struct
           ~items:(
             obj @@ S.make_schema()
               ~typ:array
-              ~items:(ref Target.ref)
+              ~items:(ref TargetRank.ref)
           );
       ]
       ~required:["ranks"]
+end
+
+
+
+
+module NextPhaseFormData = struct
+
+  type t = {
+    number_of_targets_to_promote: int;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"NextPhaseFormData"
+      ~typ:object_
+      ~properties:[
+        "number_of_targets_to_promote", obj @@ S.make_schema()
+          ~typ:int;
+      ]
+      ~required:["number_of_targets_to_promote"]
+end
+
+
+module InitHeatsFormData = struct
+
+  type t = {
+    min_number_of_targets: int;
+    max_number_of_targets: int;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"InitHeatsFormData"
+      ~typ:object_
+      ~properties:[
+        "min_number_of_targets", obj @@ S.make_schema()
+          ~typ:int;
+        "max_number_of_targets", obj @@ S.make_schema()
+          ~typ:int;
+      ]
+      ~required:["min_number_of_targets"; "max_number_of_targets"]
 end

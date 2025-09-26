@@ -7,6 +7,8 @@ import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey, ge
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { BareBibListComponent } from '@routes/bib/BibList';
 import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
+import NextPhaseForm from '@routes/artefact/NextPhaseForm';
+import { InitHeatsForm } from '@routes/heat/InitHeatsForm';
 
 const iter_target_dancers = (t: Target) => t.target_type === "single"
     ? [t.target]
@@ -65,24 +67,6 @@ export default function HeatsList() {
         }
     });
 
-    const { mutate: promotePhase } = usePutApiPhaseIdPromote({
-        mutation: {
-            onSuccess: (nextPhase) => {
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiPhaseIdCouplesHeatsQueryKey(nextPhase),
-                });
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiPhaseIdSinglesHeatsQueryKey(nextPhase),
-                });
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiPhaseIdHeatsQueryKey(nextPhase),
-                });
-            },
-            onError: (err) => {
-                console.error('Error creating phase:', err);
-            }
-        }
-    });
 
     const { data: heats, isSuccess: isSuccessHeats } = useGetApiPhaseIdHeats(id_phase_number);
 
@@ -98,19 +82,8 @@ export default function HeatsList() {
     return (
         <>
             <p>
-                <button type="button" onClick={() => {
-                    console.log("init heats")
-                    mutate({ id: id_phase_number, data: 0 })
-                }}>
-                    Init heats
-                </button>
+                <InitHeatsForm id_phase={id_phase_number} />
 
-                <button type="button" onClick={() => {
-                    console.log("init heats")
-                    promotePhase({ id: id_phase_number, data: 0 })
-                }}>
-                    Promote
-                </button>
             </p>
 
             {heats?.heats && heats?.heats.map((heat, index) => (

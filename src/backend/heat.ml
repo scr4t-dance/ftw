@@ -84,7 +84,7 @@ let rec routes router =
         ~required:true
         ~content:[
           Spec.json,
-          Spec.make_media_type_object () ~schema:(Types.(ref PhaseId.ref));
+          Spec.make_media_type_object () ~schema:(Types.(ref InitHeatsFormData.ref));
         ]
     )
     ~parameters:[
@@ -111,11 +111,11 @@ let rec routes router =
     ~summary:"Promote dancers to next round"
     ~request_body:(
       Types.obj @@ Spec.make_request_body_object ()
-        ~description:"Placeholder"
+        ~description:"Treshold for next phase"
         ~required:true
         ~content:[
           Spec.json,
-          Spec.make_media_type_object () ~schema:(Types.(ref PhaseId.ref));
+          Spec.make_media_type_object () ~schema:(Types.(ref NextPhaseFormData.ref));
         ]
     )
     ~parameters:[
@@ -172,20 +172,20 @@ and get_heats =
 
 and init_heats =
   Api.put
-    ~of_yojson:Types.PhaseId.of_yojson
+    ~of_yojson:Types.InitHeatsFormData.of_yojson
     ~to_yojson:Types.PhaseId.to_yojson
-    (fun req st _d ->
+    (fun req st treshold_list ->
        let+ id = Utils.int_param req "id" in
-       Ftw.Heat.simple_init st ~phase:id;
+       Ftw.Heat.simple_init st ~phase:id treshold_list.min_number_of_targets treshold_list.max_number_of_targets;
        Ok id
     )
 
 and promote =
   Api.put
-    ~of_yojson:Types.PhaseId.of_yojson
+    ~of_yojson:Types.NextPhaseFormData.of_yojson
     ~to_yojson:Types.PhaseId.to_yojson
-    (fun req st _d ->
+    (fun req st form_data ->
        let+ id = Utils.int_param req "id" in
-       Ftw.Heat.simple_promote st ~phase:id;
+       Ftw.Heat.simple_promote st ~phase:id form_data.number_of_targets_to_promote;
        Ok id
     )
