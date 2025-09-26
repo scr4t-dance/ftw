@@ -30,6 +30,8 @@ dune exec -- ftw --db=tests/test.db -b -vv
 Testing frontend
 ----------------
 
+# Interactive use
+
 The target is designed to enable interactive frontend development.
 
 ```
@@ -59,7 +61,9 @@ Tests can be run using the following command:
 make tests
 ```
 
-If tests pass, the output should be exactly:
+### Backend tests
+
+The `make tests` execute ocaml tests. If tests pass, the output should be exactly:
 
 ```sh
 $ make tests
@@ -77,6 +81,17 @@ make promote
 ```
 
 Look at curl commands in `tests/api.t/run.t` to design new tests.
+
+### Frontend tests
+
+Backend tests are based on `Playwright`. You can install it via the VS code extension.
+Here a sample command that was run from `src/frontend`.
+```bash
+npm init playwright@latest --yes "--" . '--quiet' '--browser=chromium' '--browser=firefox' '--browser=webkit' '--gha' '--install-deps'
+```
+Not sure what happend if you run it on an already configured project.
+TODO : explain installation.
+
 
 
 Handling the databases
