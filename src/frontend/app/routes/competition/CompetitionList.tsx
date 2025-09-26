@@ -1,15 +1,27 @@
-import "~/styles/ContentStyle.css";
+import type { Route } from "./+types/CompetitionList"
 
 import React from 'react';
-import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
-import { useGetApiEventIdComps } from "@hookgen/event/event";
-
-import { type CompetitionIdList, type EventId } from "@hookgen/model";
 import { Link } from "react-router";
 import { useQueries } from "@tanstack/react-query";
 
+import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
+import { getApiEventId, getApiEventIdComps, useGetApiEventIdComps } from "@hookgen/event/event";
+import { type CompetitionIdList, type EventId } from "@hookgen/model";
 
-function CompetitionTable({ competition_id_list }: { competition_id_list: CompetitionIdList }) {
+
+export async function loader({ params }: Route.LoaderArgs) {
+
+    let id_event = Number(params.id_event) as EventId;
+    const event_data = await getApiEventId(id_event);
+    const competition_list = await getApiEventIdComps(id_event);
+    return {
+        id_event,
+        event_data,
+        competition_list,
+    };
+}
+
+function CompetitionTable({ id_event, competition_id_list }: { id_event: EventId, competition_id_list: CompetitionIdList }) {
 
     const competitionDetailsQueries = useQueries({
         queries: competition_id_list.competitions.map((competitionId) => ({
@@ -55,7 +67,7 @@ function CompetitionTable({ competition_id_list }: { competition_id_list: Compet
                         return (
                             <tr key={index} className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
                                 <td>
-                                    <Link to={`/competitions/${competitionId}`}>
+                                    <Link to={`/events/${id_event}/competitions/${competitionId}`}>
                                         {competition.name}
                                     </Link>
                                 </td>
@@ -70,7 +82,7 @@ function CompetitionTable({ competition_id_list }: { competition_id_list: Compet
     );
 }
 
-export default function CompetitionList({ id_event }: { id_event: EventId }) {
+function CompetitionListComponent({ id_event }: { id_event: EventId }) {
 
     console.log("CompetitionList", id_event);
 
@@ -87,7 +99,19 @@ export default function CompetitionList({ id_event }: { id_event: EventId }) {
 
     return (
         <>
-            <CompetitionTable competition_id_list={competitionList as CompetitionIdList} />
+            <CompetitionTable id_event={id_event} competition_id_list={competitionList as CompetitionIdList} />
+        </>
+    );
+}
+
+export default function CompetitionList({
+    params,
+    loaderData
+} : Route.ComponentProps) {
+
+    return (
+        <>
+            <CompetitionTable id_event={loaderData.id_event} competition_id_list={loaderData.competition_list as CompetitionIdList} />
         </>
     );
 }
