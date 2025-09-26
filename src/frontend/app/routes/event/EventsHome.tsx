@@ -1,16 +1,25 @@
+import type { Route } from "./+types/EventsHome";
+
 import "~/styles/ContentStyle.css";
+
 
 import Header from "@routes/header/header";
 import Footer from "@routes/footer/footer";
 import { Outlet } from "react-router";
-import type { Route } from "./+types/EventsHome";
 import { getApiEvents } from "@hookgen/event/event";
 import type { EventIdList } from "@hookgen/model";
 import Breadcrumbs from "@routes/header/breadcrumbs";
+import { authMiddleware } from "~/auth.server";
 
 type loaderProps = Promise<{
     event_list: EventIdList;
 }>
+
+
+export const middleware: Route.MiddlewareFunction[] = [
+  authMiddleware,
+];
+
 
 export async function loader({ params }: Route.LoaderArgs) : loaderProps {
 
