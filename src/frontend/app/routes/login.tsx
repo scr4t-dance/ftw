@@ -79,7 +79,7 @@ export default function Login({
 
   return (
     <div>
-      <h1>Project</h1>
+      <h1>Log In</h1>
       {error ? <div className="error">{error}</div> : null}
       <Form method="post">
         <input type="hidden" name="redirectTo" value={from} />

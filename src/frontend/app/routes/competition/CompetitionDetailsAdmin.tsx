@@ -32,7 +32,7 @@ export async function loader({ params }: Route.LoaderArgs) {
     };
 }
 
-export default function CompetitionDetails({
+export default function CompetitionDetailsAdmin({
     params,
     loaderData,
 }: Route.ComponentProps) {
