@@ -10,17 +10,16 @@ export default [
     index("routes/index/RulesDefault.tsx"),
     route(":rule_id", "routes/index/Rules.tsx")
   ]),
-  route("events", "routes/event/EventsHome.tsx", [
-    index("routes/event/EventList.tsx"),
+  route("admin", "routes/event/EventsHomeAdmin.tsx", [
+    index("routes/event/EventListAdmin.tsx"),
     route("new", "routes/event/NewEventForm.tsx"),
-    //route(":id_event", "routes/event/EventDetailsNoForm.tsx"),
-    route(":id_event", "routes/event/EventDetailsHome.tsx", [
-      index("routes/event/EventDetails.tsx"),
-      route("competitions", "routes/competition/EventCompetitionsHome.tsx", [
-        index("routes/competition/CompetitionList.tsx"),
+    route(":id_event", "routes/event/EventDetailsHomeAdmin.tsx", [
+      index("routes/event/EventDetailsAdmin.tsx"),
+      route("competitions", "routes/competition/EventCompetitionsHomeAdmin.tsx",[
+        index("routes/competition/CompetitionListAdmin.tsx"),
         route("new", "routes/competition/NewCompetitionForm.tsx"),
-        route(":id_competition", "routes/competition/CompetitionHome.tsx", [
-          index("routes/competition/CompetitionDetails.tsx"),
+        route(":id_competition", "routes/competition/CompetitionHomeAdmin.tsx", [
+          index("routes/competition/CompetitionDetailsAdmin.tsx"),
           route("bibs", "routes/bib/BibList.tsx"),
           route("phases", "routes/phase/PhaseHome.tsx", [
             index("routes/phase/PhaseList.tsx"),
@@ -38,7 +37,19 @@ export default [
           ]),
         ]),
       ]),
-      //route("list", "routes/event/List"),
+    ]),
+  ]),
+  route("events", "routes/event/EventsHome.tsx", [
+    index("routes/event/EventList.tsx"),
+    //route(":id_event", "routes/event/EventDetailsNoForm.tsx"),
+    route(":id_event", "routes/event/EventDetailsHome.tsx", [
+      index("routes/event/EventDetails.tsx"),
+      route("competitions", "routes/competition/EventCompetitionsHome.tsx", [
+        index("routes/competition/CompetitionList.tsx"),
+        route(":id_competition", "routes/competition/CompetitionHome.tsx", [
+          index("routes/competition/CompetitionDetailsPublic.tsx"),
+        ]),
+      ]),
     ]),
   ]),
   route("dancers", "routes/dancer/DancerHome.tsx", [

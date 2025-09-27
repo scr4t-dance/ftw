@@ -18,7 +18,7 @@ export async function loader({ params }: Route.LoaderArgs) {
 }
 
 
-export default function EventDetails({
+export default function EventDetailsAdmin({
     loaderData,
 }: Route.ComponentProps) {
 
