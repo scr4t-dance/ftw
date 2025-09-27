@@ -1,4 +1,4 @@
-import type { Route } from "./+types/CompetitionDetails"
+import type { Route } from "./+types/CompetitionDetailsAdmin"
 
 import { Link } from "react-router";
 
@@ -42,23 +42,24 @@ export default function CompetitionDetails({
     const event = loaderData.event_data as Event;
     const bib_list = loaderData.bib_data as BibList;
 
-    const url = `/events/${loaderData.id_event}/competitions/${loaderData.id_competition}`;
+    //const url = `/events/${loaderData.id_event}/competitions/${loaderData.id_competition}`;
+    const url = "";
 
     return (
         <>
             <h1>Compétition {competition?.name}</h1>
             <p>
-                <Link to={`${url}/phases`}>
+                <Link to={`${url}phases`}>
                     Phases
                 </Link>
             </p>
             <p>
-                <Link to={`${url}/bibs`}>
+                <Link to={`${url}bibs`}>
                     Bibs
                 </Link>
             </p>
             <p>
-                <Link to={`${url}/phases/new`}>
+                <Link to={`${url}phases/new`}>
                      Création Phase
                 </Link>
             </p>
