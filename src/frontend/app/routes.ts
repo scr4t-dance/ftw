@@ -1,9 +1,9 @@
 import { type RouteConfig, index, prefix, route } from "@react-router/dev/routes";
 
-const showAdmin = (import.meta.env.VITE_SHOW_ADMIN ?? process.env.VITE_SHOW_ADMIN) === "true";
-console.log("routes", showAdmin, import.meta.env.VITE_SHOW_ADMIN, process.env.VITE_SHOW_ADMIN);
+const disable_admin = (import.meta.env.VITE_DISABLE_ADMIN ?? process.env.VITE_DISABLE_ADMIN) === "true";
+console.log("routes", disable_admin, import.meta.env.VITE_DISABLE_ADMIN, process.env.VITE_DISABLE_ADMIN);
 
-const admin_routes = !showAdmin ? [] : [
+const admin_routes = disable_admin ? [] : [
   route("admin", "routes/event/EventsHomeAdmin.tsx", [
     index("routes/event/EventListAdmin.tsx"),
     route("new", "routes/event/NewEventForm.tsx"),
