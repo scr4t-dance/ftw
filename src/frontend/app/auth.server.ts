@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+//import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { getSession } from "./sessions.server";
 import { redirect, useLocation } from "react-router";
@@ -9,7 +9,7 @@ export type User = {
   hash: string
 };
 
-const JWT_SECRET = process.env.JWT_SECRET!;
+// const JWT_SECRET = process.env.JWT_SECRET!;
 
 export function hashPassword(password: string) {
   return bcrypt.hash(password, 10);
@@ -22,17 +22,17 @@ export function verifyPassword(
   return bcrypt.compare(password, hash);
 }
 
-export function createToken(userId: string) {
-  return jwt.sign({ userId }, JWT_SECRET, {
-    expiresIn: "7d",
-  });
-}
+// export function createToken(userId: string) {
+//   return jwt.sign({ userId }, JWT_SECRET, {
+//     expiresIn: "7d",
+//   });
+// }
 
-export function verifyToken(token: string) {
-  return jwt.verify(token, JWT_SECRET) as {
-    userId: string;
-  };
-}
+// export function verifyToken(token: string) {
+//   return jwt.verify(token, JWT_SECRET) as {
+//     userId: string;
+//   };
+// }
 
 
 export async function findUserByEmail(email: string) {
@@ -52,6 +52,7 @@ export const authMiddleware = async ({
 
   const session = await getSession(request.headers.get("Cookie"));
   const userId = session.get("userId");
+  //const userId = "test";
 
   console.log("EventsHome middleware", userId);
   if (!userId) {

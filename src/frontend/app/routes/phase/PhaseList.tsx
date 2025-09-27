@@ -46,12 +46,12 @@ function PhaseDetails({ id, competition_id, competition_data, index }: { id: Com
             className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
 
             <td>
-                <Link to={`/events/${competition_data.event}/competitions/${competition_id}/phases/${id}`}>
+                <Link to={`${id}`}>
                     {phase?.round} {competition_data?.name}
                 </Link>
             </td>
             <td>
-                <Link to={`/competitions/${phase?.competition}`}>
+                <Link to={`..`}>
                     {competition_data?.name}
                 </Link>
             </td>
