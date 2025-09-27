@@ -5,7 +5,7 @@ import { Link } from "react-router";
 
 import { getApiEventId } from '@hookgen/event/event';
 import { type EventId } from "@hookgen/model";
-import { EventDetailsComponent } from "@routes/event/EventComponents";
+import { EventDetailsAdminComponent } from "@routes/event/EventComponents";
 
 export async function loader({ params }: Route.LoaderArgs) {
     const id_event_number = Number(params.id_event) as EventId;
@@ -25,6 +25,6 @@ export default function EventDetailsAdmin({
     const id_event = loaderData.id_event;
     const event = loaderData.event_data;
 
-    return <EventDetailsComponent event={event} id_event={id_event} />
+    return <EventDetailsAdminComponent event={event} id_event={id_event} />
 
 }
