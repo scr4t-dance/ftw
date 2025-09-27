@@ -12,6 +12,11 @@ FRONTEND_DEPS=\
 	src/hookgen/package-lock.json \
 	src/frontend/package.json \
 	src/frontend/package-lock.json \
+	src/frontend/.env.production \
+	src/frontend/.env.development \
+	src/frontend/react-router.config.ts \
+	src/frontend/vite.config.ts \
+	src/frontend/tsconfig.json \
 	src/frontend/public/* \
 	$(shell find src/frontend/app/ -type f)
 

@@ -65,17 +65,21 @@ function EventDetails({ id, data, index }: { id: EventId, data: Event, index: nu
     );
 }
 
-export function EventListComponent({event_list, event_data} : {event_list: EventIdList, event_data:Event[]}){
+export function EventListComponent({ event_list, event_data }: { event_list: EventIdList, event_data: Event[] }) {
 
-  const location = useLocation();
-  const url = location.pathname.includes("event") || location.pathname.includes("admin")  ? "" : "events/";
+    const location = useLocation();
+    const url = location.pathname.includes("event") || location.pathname.includes("admin") ? "" : "events/";
+
+    const isAdmin = location.pathname.includes("admin");
 
     return (
         <>
             <PageTitle title="Événements" />
-            <Link to={`${url}new`}>
-                Créer un nouvel événement
-            </Link>
+            {isAdmin &&
+                <Link to={`${url}new`}>
+                    Créer un nouvel événement
+                </Link>
+            }
             <h1>Événements partenaires</h1>
             <table>
                 <tbody>
@@ -116,7 +120,7 @@ export function EventListComponent({event_list, event_data} : {event_list: Event
     );
 }
 
-export function EventDetailsComponent({event, id_event}: {event:Event, id_event:EventId}){
+export function EventDetailsComponent({ event, id_event }: { event: Event, id_event: EventId }) {
 
     if (!event) return <p>Pas de données sur l’événement {id_event}.</p>;
 
@@ -139,7 +143,7 @@ export function EventDetailsComponent({event, id_event}: {event:Event, id_event:
 
 }
 
-export function EventDetailsAdminComponent({event, id_event}: {event:Event, id_event:EventId}){
+export function EventDetailsAdminComponent({ event, id_event }: { event: Event, id_event: EventId }) {
 
     if (!event) return <p>Pas de données sur l’événement {id_event}.</p>;
 

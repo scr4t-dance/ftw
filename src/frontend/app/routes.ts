@@ -1,21 +1,15 @@
 import { type RouteConfig, index, prefix, route } from "@react-router/dev/routes";
 
-export default [
-  index("routes/home.tsx"),
-  route("login", "routes/login.tsx"),
-  route("logout", "routes/logout.tsx"),
-  route("about", "routes/index/about.tsx"),
-  route("faq", "routes/index/faq.tsx"),
-  ...prefix("rules", [
-    index("routes/index/RulesDefault.tsx"),
-    route(":rule_id", "routes/index/Rules.tsx")
-  ]),
+const showAdmin = (import.meta.env.VITE_SHOW_ADMIN ?? process.env.VITE_SHOW_ADMIN) === "true";
+console.log("routes", showAdmin, import.meta.env.VITE_SHOW_ADMIN, process.env.VITE_SHOW_ADMIN);
+
+const admin_routes = !showAdmin ? [] : [
   route("admin", "routes/event/EventsHomeAdmin.tsx", [
     index("routes/event/EventListAdmin.tsx"),
     route("new", "routes/event/NewEventForm.tsx"),
     route(":id_event", "routes/event/EventDetailsHomeAdmin.tsx", [
       index("routes/event/EventDetailsAdmin.tsx"),
-      route("competitions", "routes/competition/EventCompetitionsHomeAdmin.tsx",[
+      route("competitions", "routes/competition/EventCompetitionsHomeAdmin.tsx", [
         index("routes/competition/CompetitionListAdmin.tsx"),
         route("new", "routes/competition/NewCompetitionForm.tsx"),
         route(":id_competition", "routes/competition/CompetitionHomeAdmin.tsx", [
@@ -38,7 +32,20 @@ export default [
         ]),
       ]),
     ]),
+  ])
+];
+
+export default [
+  index("routes/home.tsx"),
+  route("login", "routes/login.tsx"),
+  route("logout", "routes/logout.tsx"),
+  route("about", "routes/index/about.tsx"),
+  route("faq", "routes/index/faq.tsx"),
+  ...prefix("rules", [
+    index("routes/index/RulesDefault.tsx"),
+    route(":rule_id", "routes/index/Rules.tsx")
   ]),
+  ...admin_routes,
   route("events", "routes/event/EventsHome.tsx", [
     index("routes/event/EventList.tsx"),
     //route(":id_event", "routes/event/EventDetailsNoForm.tsx"),
