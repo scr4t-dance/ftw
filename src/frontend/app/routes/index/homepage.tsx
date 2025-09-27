@@ -1,15 +1,11 @@
-import "~/styles/ContentStyle.css"
-
 import PageTitle from "./PageTitle";
-import Header from "@routes/header/header";
-import Footer from "@routes/footer/footer";
+
 
 
 export function HomePage() {
     return (
         <>
             <PageTitle title="SCR4T" />
-            <Header />
             <div className="content-container">
                 <h1>SCR4T - Système Compétitif de Rock 4 Temps</h1>
 
@@ -56,7 +52,6 @@ export function HomePage() {
                 <p>Pour ne pas rater les nouvelles infos, suivez <a target="_blank" rel="noreferrer" href="https://www.facebook.com/SCR4T.danse">notre page facebook</a> !</p>
                 <p>Vous êtes un organisateur souhaitant utiliser le système, un compétiteur curieux ? Contactez-nous à : <a href="mailto:scr4t.danse@gmail.com">scr4t.danse@gmail.com</a>.</p>
             </div>
-            <Footer />
         </>
     );
 }
