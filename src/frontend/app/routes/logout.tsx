@@ -1,4 +1,4 @@
-import { Form, Link, redirect } from "react-router";
+import { Form, Link, redirect, useLocation } from "react-router";
 import {
   getSession,
   destroySession,
@@ -19,13 +19,18 @@ export async function action({
 }
 
 export default function LogoutRoute() {
+
+  let location = useLocation();
+  let params = new URLSearchParams(location.search);
+  let from = params.get("from") || "/";
+
   return (
     <>
       <p>Are you sure you want to log out?</p>
       <Form method="post">
         <button>Logout</button>
       </Form>
-      <Link to="/">Never mind</Link>
+      <Link to={from}>Never mind</Link>
     </>
   );
 }
