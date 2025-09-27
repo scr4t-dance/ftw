@@ -1,11 +1,10 @@
 import type { Route } from "./+types/EventDetailsNoForm"
-import "~/styles/ContentStyle.css";
 
 import React from 'react';
 import { getApiEventId } from '@hookgen/event/event';
 
 import { type EventId, type Date } from "@hookgen/model";
-import CompetitionList from "~/routes/competition/CompetitionList";
+import CompetitionList from "@routes/competition/CompetitionList";
 
 export async function loader({ params }: Route.LoaderArgs) {
 
