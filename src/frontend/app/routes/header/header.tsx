@@ -1,8 +1,14 @@
-import { Link, type LoaderFunctionArgs } from "react-router";
+import { Link, useLocation, type LoaderFunctionArgs } from "react-router";
 import "./Header.css";
 import logo from "~/assets/logo.png";
 
 export default function Header({ userId }: { userId: string | null }) {
+
+    const showAdmin = import.meta.env.VITE_SHOW_ADMIN === "true";
+    const location = useLocation();
+    let params = new URLSearchParams();
+    params.set("from", location.pathname);
+
     return (
         <header>
             <div className="logo">
@@ -19,14 +25,14 @@ export default function Header({ userId }: { userId: string | null }) {
                     <li><Link to="/rules">Règles</Link></li>
                     <li><Link to="/faq">FAQ</Link></li>
                     <li><Link to="/about">À propos</Link></li>
-                    {userId &&
+                    {showAdmin && userId &&
                         <>
                             <li><Link to="/admin">Admin</Link></li>
-                            <li><Link to="/logout">Log Out</Link></li>
+                            <li><Link to={"/logout?" + params.toString()}>Log Out</Link></li>
                         </>
                     }
-                    {!userId &&
-                        <li><Link to="/login">LogIn</Link></li>
+                    {showAdmin && !userId &&
+                        <li><Link to={"/login?" + params.toString()}>LogIn</Link></li>
                     }
                 </ul>
             </nav>

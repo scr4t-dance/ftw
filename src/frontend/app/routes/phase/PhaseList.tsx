@@ -1,6 +1,6 @@
 import type { Route } from "./+types/PhaseList";
 import React from 'react';
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 
 import { getApiCompId, useGetApiCompId } from '@hookgen/competition/competition';
 import type { ArtefactDescription, Competition, CompetitionId, EventId } from "@hookgen/model";
@@ -31,6 +31,9 @@ export async function loader({ params }: Route.LoaderArgs) {
 function PhaseDetails({ id, competition_id, competition_data, index }: { id: CompetitionId, competition_id: CompetitionId, competition_data: Competition, index: number }) {
     const { data: phase, isLoading } = useGetApiPhaseId(id);
 
+    const location = useLocation();
+    const url = location.pathname.includes("phase") ? "" : "phases/";
+
     if (isLoading) return (
         <tr>
             <td>
@@ -46,12 +49,12 @@ function PhaseDetails({ id, competition_id, competition_data, index }: { id: Com
             className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
 
             <td>
-                <Link to={`${id}`}>
+                <Link to={`${url}${id}`}>
                     {phase?.round} {competition_data?.name}
                 </Link>
             </td>
             <td>
-                <Link to={`..`}>
+                <Link to={`${url}..`}>
                     {competition_data?.name}
                 </Link>
             </td>
