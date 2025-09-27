@@ -3,10 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { Link } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 
-import PageTitle from "@routes/index/PageTitle";
-import Header from "@routes/header/header";
-import Footer from "@routes/footer/footer";
-
 import { useGetApiDancerId } from '@hookgen/dancer/dancer';
 import {
     type Bib, type BibList, type CompetitionId, type CoupleTarget, type DancerId, type EventId, RoleItem,

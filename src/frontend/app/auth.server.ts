@@ -1,8 +1,13 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { getSession } from "./sessions.server";
-import { redirect } from "react-router";
+import { redirect, useLocation } from "react-router";
 import { userContext } from "./context";
+
+export type User = {
+  id: string,
+  hash: string
+};
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
@@ -30,18 +35,31 @@ export function verifyToken(token: string) {
 }
 
 
+export async function findUserByEmail(email: string) {
+  const email_data: User[] = [{ id: "test", hash: await hashPassword("test") }];
+
+  return email_data.find((user) => user.id === email);
+}
+
 
 export const authMiddleware = async ({
   request,
   context,
 }) => {
-  const session = await getSession(request);
+
+  let params = new URLSearchParams();
+  params.set("from", new URL(request.url).pathname);
+
+  const session = await getSession(request.headers.get("Cookie"));
   const userId = session.get("userId");
 
+  console.log("EventsHome middleware", userId);
   if (!userId) {
-    throw redirect("/login");
+    return redirect("/login?" + params.toString());
   }
 
-  const user = verifyToken(userId);
-  context.set(userContext, user);
+  const user = await findUserByEmail(userId);
+
+  context.set(userContext, user ?? null);
+
 };

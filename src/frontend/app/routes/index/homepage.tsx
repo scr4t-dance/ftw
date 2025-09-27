@@ -1,16 +1,13 @@
-import "~/styles/ContentStyle.css"
 import logo from "~/assets/logo.png";
 
 import PageTitle from "./PageTitle";
-import Header from "@routes/header/header";
-import Footer from "@routes/footer/footer";
+
 
 
 export function HomePage() {
     return (
         <>
             <PageTitle title="SCR4T" />
-            <Header />
             <div className="content-container">
                 <div>
                     <img src={logo} id="homepage-logo" alt="Logo" />
@@ -71,7 +68,6 @@ export function HomePage() {
                 <p>Pour ne pas rater les nouvelles infos, suivez <a target="_blank" href="https://www.facebook.com/SCR4T.danse">notre page facebook</a> !</p>
                 <p>Vous êtes un•e organisateur•ice souhaitant utiliser le système, un•e compétiteur•ice curieux•se ? Contactez-nous à : <a href="mailto:scr4t.danse@gmail.com">scr4t.danse@gmail.com</a>.</p>
             </div>
-            <Footer />
         </>
     );
 }
