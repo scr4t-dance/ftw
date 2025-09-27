@@ -1,14 +1,18 @@
-import type { Route } from "./+types/EventsHome";
+import type { Route } from "./+types/EventsHomeAdmin";
 
 import { Outlet } from "react-router";
-import { getApiEvents } from "@hookgen/event/event";
-import type { EventIdList } from "@hookgen/model";
+
+import { authMiddleware } from "~/auth.server";
+
+import {type loaderProps} from "@routes/event/EventsHome";
 import Breadcrumbs from "@routes/header/breadcrumbs";
+import { getApiEvents } from "@hookgen/event/event";
 
 
-export type loaderProps = Promise<{
-    event_list: EventIdList;
-}>
+export const middleware: Route.MiddlewareFunction[] = [
+  authMiddleware,
+];
+
 
 export async function loader({ params }: Route.LoaderArgs) : loaderProps {
 
@@ -18,20 +22,21 @@ export async function loader({ params }: Route.LoaderArgs) : loaderProps {
     };
 }
 
-
-export default function EventsHome({
+export default function EventsHomeAdmin({
     loaderData,
 }: Route.ComponentProps) {
 
     return (
         <>
             <Breadcrumbs />
+            <h1>Mode Admin</h1>
             <div className="content-container">
                 <Outlet />
             </div>
         </>
     );
 }
+
 
 export const handle = {
   breadcrumb: () => "Events"
