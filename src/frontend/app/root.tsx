@@ -13,6 +13,8 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import type { Route } from "./+types/root";
 import "./styles/ContentStyle.css"
 import React, { useEffect, useState } from "react";
+import Header from "@routes/header/header";
+import Footer from "@routes/footer/footer";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -56,12 +58,24 @@ const queryClient = new QueryClient({
     }
   }
 });
+import { getSession } from "~/sessions.server";
 
-export default function App() {
+export async function loader({ request }: Route.LoaderArgs) {
+  const session = await getSession(request.headers.get("Cookie"));
+  const userId = session.get("userId");
+  return { userId };
+}
+
+export default function App({loaderData}: Route.ComponentProps) {
+
+  const userId = loaderData.userId;
 
   return (
     <QueryClientProvider client={queryClient}>
+
+      <Header userId={userId ?? null} />
       <Outlet />
+      <Footer />
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
