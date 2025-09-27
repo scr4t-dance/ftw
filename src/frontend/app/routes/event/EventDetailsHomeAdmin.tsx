@@ -1,9 +1,9 @@
-import type { Route } from "./+types/EventDetailsHome"
+import type { Route } from "./+types/EventDetailsHomeAdmin"
 
 import React from 'react';
 import { Outlet } from "react-router";
 
-export default function EventDetailsHome({ }: Route.ComponentProps) {
+export default function EventDetailsHomeAdmin({ }: Route.ComponentProps) {
 
     return (<Outlet />);
 }

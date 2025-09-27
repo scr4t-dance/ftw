@@ -13,7 +13,7 @@ import { RoundItem } from "@hookgen/model";
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { Field } from '@routes/index/field';
-import { Link, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { getApiCompId, useGetApiCompId } from '@hookgen/competition/competition';
 import type { Route } from './+types/NewPhaseForm';
 
@@ -46,6 +46,9 @@ export async function loader({ params }: Route.LoaderArgs) {
 }
 
 function NewPhaseForm({ id_competition, competition_data, availableRounds }: NewPhaseFormProps) {
+
+    const location = useLocation();
+    const url = location.pathname.includes("new") ? "../" : "";
 
     const formObject = useForm<Phase>({
         defaultValues: {
@@ -88,7 +91,6 @@ function NewPhaseForm({ id_competition, competition_data, availableRounds }: New
     };
 
     const round = watch("round");
-    const url = `/events/${competition_data.event}/competitions/${id_competition}`
     return (
         <>
             <h1>Ajouter une phase</h1>
@@ -98,7 +100,7 @@ function NewPhaseForm({ id_competition, competition_data, availableRounds }: New
                         <div className="success_message">
                             ✅ Phase "{round}" avec identifiant "{dataPhase}" ajoutée avec succès à la compétition {id_competition}.
                             <br />
-                            <Link to={`${url}/phases/${dataPhase}`}>Accéder à la Phase</Link>
+                            <Link to={`${url}${dataPhase}`}>Accéder à la Phase</Link>
                         </div>
                     }
 
