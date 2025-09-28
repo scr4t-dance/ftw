@@ -102,7 +102,7 @@ export function EventListComponent({ event_list, event_data }: { event_list: Eve
                     ))}
                 </tbody>
             </table>
-            <h1>Liste API</h1>
+            <h1>Liste chronologique</h1>
             <table>
                 <tbody>
                     <tr>
