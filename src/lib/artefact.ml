@@ -152,6 +152,16 @@ let set ~st ~judge ~target t =
     target judge (to_int t);
   Ok target
 
+let delete ~st ~judge ~target =
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[int;int]
+    {| DELETE FROM artefacts
+    WHERE 0=0
+    AND target_id = ?
+    AND judge = ? |}
+    target judge;
+  Ok target
+
 
 (* Serialization *)
 (* ************************************************************************* *)
