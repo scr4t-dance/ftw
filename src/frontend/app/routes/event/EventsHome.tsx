@@ -25,7 +25,6 @@ export default function EventsHome({
 
     return (
         <>
-            <Breadcrumbs />
             <div className="content-container">
                 <Outlet />
             </div>
