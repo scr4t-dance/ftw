@@ -1,69 +1,72 @@
+import type { Route } from './+types/PhasePageHome';
+
 import React from 'react';
-import { useGetApiCompId } from '@hookgen/competition/competition';
+import { Link, Outlet } from "react-router";
 
+import { getApiCompId } from '@hookgen/competition/competition';
 import type { CompetitionId, EventId, PhaseId } from "@hookgen/model";
-import { Link, Outlet, useParams } from "react-router";
-import { useGetApiEventId } from "@hookgen/event/event";
-import { useGetApiPhaseId } from "@hookgen/phase/phase";
-import { EditPhaseForm } from "./EditPhaseForm";
+import { getApiEventId, getApiEventIdComps } from "@hookgen/event/event";
+import { getApiCompIdPhases, getApiPhaseId } from "@hookgen/phase/phase";
 
-function PhasePageHome() {
+export async function loader({ params }: Route.LoaderArgs) {
 
-    let { id_phase } = useParams();
-    let id_phase_number = Number(id_phase) as PhaseId;
-    const { data, isLoading } = useGetApiPhaseId(id_phase_number);
+    let id_event = Number(params.id_event) as EventId;
+    const event_data = await getApiEventId(id_event);
+    const competition_list = await getApiEventIdComps(id_event);
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    const competition_data = await getApiCompId(id_competition);
+    const phase_list = await getApiCompIdPhases(id_competition);
+    const id_phase = Number(params.id_phase) as PhaseId;
+    const phase_data = await getApiPhaseId(id_phase);
+    return {
+        id_event,
+        id_competition,
+        event_data,
+        competition_list,
+        competition_data,
+        phase_list,
+        id_phase,
+        phase_data,
+    };
+}
 
 
-    const phase = data;
+function PhasePageHome({
+    loaderData
+}: Route.ComponentProps) {
 
-    const { data: dataComp } = useGetApiCompId(phase?.competition as CompetitionId)
-    const competition = dataComp;
-    const { data: dataEvent } = useGetApiEventId(competition?.event as EventId);
-    const event = dataEvent;
-
-    if (isLoading) return <div>Chargement...</div>;
-    if (!data) return null;
+    const url = `/events/${loaderData.id_event}/competitions/${loaderData.id_competition}/phases/${loaderData.id_phase}`;
+    const phase = loaderData.phase_data;
+    const competition = loaderData.competition_data;
 
     return (
         <>
             <h1>Phase {phase?.round} {competition?.name}</h1>
-
             <p>
-                <Link to={`/phases/${id_phase_number}`}>
-                    Phase
+                <Link to={`${url}/edit`}>
+                    Edit Phase
                 </Link>
             </p>
             <p>
-                <Link to={`/phases/${id_phase_number}/heats`}>
+                <Link to={`${url}/heats`}>
                     Phase Heats
                 </Link>
             </p>
             <p>
-                <Link to={`/phases/${id_phase_number}/artefacts`}>
+                <Link to={`${url}/artefacts`}>
                     Phase Artefacts
                 </Link>
             </p>
             <p>
-                <Link to={`/phases/${id_phase_number}/judges`}>
+                <Link to={`${url}/judges`}>
                     Phase Judges
                 </Link>
             </p>
             <p>
-                <Link to={`/phases/${id_phase_number}/edit_judges`}>
+                <Link to={`${url}/edit_judges`}>
                     Edit Phase Judges
                 </Link>
             </p>
-            <p>
-                <Link to={`/competitions/${phase?.competition}`}>
-                    Competition {event?.name}
-                </Link>
-            </p>
-            <p>
-                <Link to={`/events/${competition?.event}`}>
-                    Evénement {event?.name}
-                </Link>
-            </p>
-            <p>Catégorie : {competition?.category}</p>
             <Outlet />
 
         </>
@@ -71,3 +74,7 @@ function PhasePageHome() {
 }
 
 export default PhasePageHome;
+
+export const handle = {
+  breadcrumb: () => "Phase"
+};

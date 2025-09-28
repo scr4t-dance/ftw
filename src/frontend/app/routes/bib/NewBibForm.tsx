@@ -15,9 +15,9 @@ import {
   type Competition,
   type CompetitionIdList,
 } from '@hookgen/model';
-import { Field } from '../index/field';
-import { type SingleBib, SingleTargetForm } from './SingleTargetForm';
-import { type CoupleBib, CoupleTargetForm } from './CoupleTargetForm';
+import { Field } from '@routes/index/field';
+import { type SingleBib, SingleTargetForm } from '@routes/bib/SingleTargetForm';
+import { type CoupleBib, CoupleTargetForm } from '@routes/bib/CoupleTargetForm';
 import { useQueryClient } from '@tanstack/react-query';
 
 export function NewBibForm({ default_competition = -1 }: { default_competition?: CompetitionId }) {
