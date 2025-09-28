@@ -2,16 +2,9 @@ import type { Route } from "./+types/EventsHomeAdmin";
 
 import { Outlet } from "react-router";
 
-import { authMiddleware } from "~/auth.server";
-
 import {type loaderProps} from "@routes/event/EventsHome";
 import Breadcrumbs from "@routes/header/breadcrumbs";
 import { getApiEvents } from "@hookgen/event/event";
-
-
-export const middleware: Route.MiddlewareFunction[] = [
-  authMiddleware,
-];
 
 
 export async function loader({ params }: Route.LoaderArgs) : loaderProps {
@@ -28,8 +21,6 @@ export default function EventsHomeAdmin({
 
     return (
         <>
-            <Breadcrumbs />
-            <h1>Mode Admin</h1>
             <div className="content-container">
                 <Outlet />
             </div>
