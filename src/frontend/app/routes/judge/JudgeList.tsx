@@ -10,7 +10,7 @@ import {
 import { useDeleteApiCompIdBib, getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib } from "@hookgen/bib/bib";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { Field } from "@routes/index/field";
-import { useGetApiPhaseIdJudges } from "~/hookgen/judge/judge";
+import { useGetApiPhaseIdJudges } from "@hookgen/judge/judge";
 
 
 const dancerLink = "dancers/"

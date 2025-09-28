@@ -1,7 +1,7 @@
 import type { ArtefactDescription, Phase } from '@hookgen/model';
 import React, { useEffect } from 'react';
 import { get, useFieldArray, useFormContext } from 'react-hook-form';
-import { Field } from '../index/field';
+import { Field } from '@routes/index/field';
 
 type KeysOfType<T, ValueType> = {
     [K in keyof T]: T[K] extends ValueType ? K : never;

@@ -15,6 +15,9 @@ FRONTEND_DEPS=\
 	src/frontend/public/* \
 	$(shell find src/frontend/app/ -type f)
 
+BACKEND_DEPS=\
+	$(shell find src/backend/ -type f)
+
 # Aliases
 all: build
 
@@ -30,12 +33,12 @@ configure:
 	cd src/frontend && npm install
 	cd src/hookgen && npm install
 
-hookgen: src/openapi.json
+src/frontend/app/hookgen/hookgen.sentinel hookgen: src/openapi.json
 	cd src/hookgen && ./node_modules/.bin/orval --config ./orval.config.js
+	touch src/frontend/app/hookgen/hookgen.sentinel
 
-$(FRONTEND_TARGET): hookgen $(FRONTEND_DEPS)
-	cd src/frontend && echo '{ "API_BASE_URL": "http://localhost:8080" }' > ./public/config.json && npm run build
-	cd src/frontend && echo '{ "API_BASE_URL": "http://localhost:8089" }' > ./public/config.json
+$(FRONTEND_TARGET): src/frontend/app/hookgen/hookgen.sentinel $(FRONTEND_DEPS)
+	cd src/frontend && npm run build
 
 backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
@@ -52,7 +55,7 @@ tests: backend
 promote:
 	dune promote
 
-openapi:
+src/openapi.json openapi: $(BACKEND_DEPS)
 	dune build $(FLAGS) @install
 	dune exec -- ftw openapi src/openapi.json
 
@@ -85,4 +88,4 @@ top:
 	dune utop
 
 .PHONY: all build top doc run dev tests promote clean
-	hookgen
+	hookgen openapi

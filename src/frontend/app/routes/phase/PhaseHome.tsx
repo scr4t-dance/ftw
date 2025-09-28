@@ -1,23 +1,12 @@
-import "~/styles/ContentStyle.css";
-
-import PageTitle from "@routes/index/PageTitle";
-import Header from "@routes/header/header";
-import Footer from "@routes/footer/footer";
 import { Outlet } from "react-router";
 
-function CompetitionHome() {
+export default function PhasesHome() {
 
     return (
-        <>
-            <PageTitle title="Phase" />
-            <Header />
-            <div className="content-container">
-
-                <Outlet />
-            </div>
-            <Footer />
-        </>
+        <Outlet />
     );
 }
 
-export default CompetitionHome;
+export const handle = {
+  breadcrumb: () => "Phases"
+};

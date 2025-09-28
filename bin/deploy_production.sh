@@ -17,7 +17,6 @@ cleanup() {
 trap cleanup INT TERM EXIT
 
 echo "Running frontend server..."
-# api server address is defined at runtime, no need to configure it now
 (cd src/frontend && npm run start)
 
 # Wait for frontend to finish before exiting

@@ -1,7 +1,7 @@
 import type { ArtefactDescription, Phase, RankingAlgorithm, RankingAlgorithmRanking, RankingYanWeighted, YanCriterionWeights } from '@hookgen/model';
 import React, { useEffect, useState } from 'react';
 import { get, useFieldArray, useFormContext } from 'react-hook-form';
-import { Field } from '../index/field';
+import { Field } from '@routes/index/field';
 
 
 const defaultYan: YanCriterionWeights = { yes: 3, alt: 2, no: 1 };
@@ -29,9 +29,10 @@ export function RankingAlgorithmFormElement() {
     const headJudgeArtefactDescription = watch("head_judge_artefact_descr");
 
     const ranking_algorithm_algorithm = watch("ranking_algorithm.algorithm");
-    const default_algo = (defaultValues as Phase).ranking_algorithm.algorithm;
+    const default_algo = (defaultValues === undefined) ? undefined : (defaultValues as Phase).ranking_algorithm.algorithm;
 
     useEffect(() => {
+        if (default_algo === undefined) return;
         if (ranking_algorithm_algorithm === default_algo) return;
 
         if (ranking_algorithm_algorithm === "ranking") {

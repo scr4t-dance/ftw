@@ -1,20 +1,35 @@
-import "~/styles/ContentStyle.css";
-
+import type { Route } from "./+types/PhaseList";
 import React from 'react';
-import { useGetApiCompId } from '@hookgen/competition/competition';
-
-import type { ArtefactDescription, CompetitionId } from "@hookgen/model";
 import { Link } from "react-router";
-import { useGetApiCompIdPhases, useGetApiPhaseId } from "@hookgen/phase/phase";
-import ArtefactDescriptionComponent from "./ArtefactDescription";
 
-const phaseListlink = "phases/"
+import { getApiCompId, useGetApiCompId } from '@hookgen/competition/competition';
+import type { ArtefactDescription, Competition, CompetitionId, EventId } from "@hookgen/model";
+import { getApiCompIdPhases, useGetApiCompIdPhases, useGetApiPhaseId } from "@hookgen/phase/phase";
+import ArtefactDescriptionComponent from "@routes/phase/ArtefactDescription";
+import { getApiEventId, getApiEventIdComps } from "@hookgen/event/event";
 
-function PhaseDetails({ id, index }: { id: CompetitionId, index: number }) {
-    const { data, isLoading } = useGetApiPhaseId(id);
 
-    const phase = data;
-    const { data: dataComp } = useGetApiCompId(phase?.competition as CompetitionId);
+export async function loader({ params }: Route.LoaderArgs) {
+
+    let id_event = Number(params.id_event) as EventId;
+    const event_data = await getApiEventId(id_event);
+    const competition_list = await getApiEventIdComps(id_event);
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    const competition_data = await getApiCompId(id_competition);
+    const phase_list = await getApiCompIdPhases(id_competition);
+    return {
+        id_event,
+        id_competition,
+        event_data,
+        competition_list,
+        competition_data,
+        phase_list,
+    };
+}
+
+
+function PhaseDetails({ id, competition_id, competition_data, index }: { id: CompetitionId, competition_id: CompetitionId, competition_data: Competition, index: number }) {
+    const { data: phase, isLoading } = useGetApiPhaseId(id);
 
     if (isLoading) return (
         <tr>
@@ -23,22 +38,21 @@ function PhaseDetails({ id, index }: { id: CompetitionId, index: number }) {
             </td>
         </tr>
     );
-    if (!data) return null;
+    if (!phase) return null;
 
-    const competition = dataComp;
 
     return (
         <tr key={id}
             className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
 
             <td>
-                <Link to={`/${phaseListlink}${id}`}>
-                    {phase?.round} {competition?.name}
+                <Link to={`/events/${competition_data.event}/competitions/${competition_id}/phases/${id}`}>
+                    {phase?.round} {competition_data?.name}
                 </Link>
             </td>
             <td>
                 <Link to={`/competitions/${phase?.competition}`}>
-                    {competition?.name}
+                    {competition_data?.name}
                 </Link>
             </td>
             <td>
@@ -59,7 +73,7 @@ function PhaseDetails({ id, index }: { id: CompetitionId, index: number }) {
     );
 }
 
-export function PhaseList({ id_competition }: { id_competition: CompetitionId }) {
+export function PhaseList({ id_competition, competition_data }: { id_competition: CompetitionId, competition_data: Competition }) {
 
     const { data, isLoading, isError, error } = useGetApiCompIdPhases(id_competition);
 
@@ -82,10 +96,19 @@ export function PhaseList({ id_competition }: { id_competition: CompetitionId })
                     </tr>
 
                     {data?.phases && data?.phases.map((phaseId, index) => (
-                        <PhaseDetails key={phaseId} id={phaseId} index={index} />
+                        <PhaseDetails key={phaseId} id={phaseId} competition_id={id_competition} competition_data={competition_data} index={index} />
                     ))}
                 </tbody>
             </table>
         </>
     );
+}
+
+
+export default function PhaseListRoute({ loaderData }: Route.ComponentProps) {
+
+    return (<PhaseList
+        id_competition={loaderData.id_competition}
+        competition_data={loaderData.competition_data} />);
+
 }
