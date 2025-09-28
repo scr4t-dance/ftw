@@ -3,7 +3,6 @@ import type { Route } from "./+types/EventsHome";
 import { Outlet } from "react-router";
 import { getApiEvents } from "@hookgen/event/event";
 import type { EventIdList } from "@hookgen/model";
-import Breadcrumbs from "@routes/header/breadcrumbs";
 
 
 export type loaderProps = Promise<{

@@ -26,3 +26,7 @@ function DancerPage({loaderData}: Route.ComponentProps) {
 }
 
 export default DancerPage;
+
+export const handle = {
+  breadcrumb: () => "Dancer"
+};
