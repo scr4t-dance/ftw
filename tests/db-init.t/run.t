@@ -20,9 +20,6 @@ Run a query to init database
   $ curl -s http://localhost:8082/api/events
   {"events":[]}
 
-  $ sqlite3 test.db 'SELECT name FROM DATABASE_VERSION;'
-  2
-
 Print schema
 If the definition changes
 * bump version number in src/lib/state.ml
@@ -31,9 +28,6 @@ If the definition changes
 * create migration script src/migration/migrate_V-1_to_V.sql
 * apply to existing database and tests data integrity (with a round trip of exported/imported data)
   $ sqlite3 "test.db" '.schema'
-  CREATE TABLE database_version (
-          id INTEGER PRIMARY KEY,
-          name TEXT UNIQUE);
   CREATE TABLE round_names (
           id INTEGER PRIMARY KEY,
           name TEXT UNIQUE);
