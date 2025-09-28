@@ -1,0 +1,80 @@
+# Name
+name: Build and test
+
+# Only affect the main branch
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions: read-all
+
+jobs:
+  # Build workflow
+  # ==============
+  # Goal: Ensure the packages builds across all supported
+  # versions of the ocaml compiler.
+  build:
+
+    runs-on: ${{ matrix.os }}
+
+    # Misc, probably not needed ?
+    permissions:
+      contents: read
+
+    # Build Matrix
+    # --------------
+    strategy:
+      # Do not cancel other jobs when one fails
+      fail-fast: false
+
+      matrix:
+        os:
+          - ubuntu-latest
+        ocaml-compiler:
+          - 5.0.0
+
+    # Build ENV
+    # ---------
+    env:
+      # Ensure opam will not stop because it waits on some user input
+      OPAMYES: "true"
+
+
+    # Build/test steps
+    # ----------------
+    steps:
+    # checkout the repo
+    - name: Checkout tree
+      uses: actions/checkout@v4
+    # Setup ocaml/opam
+    - name: Set-up OCaml
+      uses: ocaml/setup-ocaml@v3
+      with:
+        ocaml-compiler: ${{ matrix.ocaml-compiler }}
+    # Setup node/JS
+    - name: Set-up node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 23
+        cache: 'npm'
+        cache-dependency-path: 'src/frontend/package-lock.json'
+    # Run the node-specific CI
+    - name: Run node-specific CI
+      run: cd src/frontend && npm ci
+    # Configure the repo/install the dependencies
+    - name: Install deps
+      run: make configure
+    # Test the build
+    - name: Build
+      run: opam exec -- make
+    # Run the tests
+    - name: Tests
+      run: opam exec -- make tests
+    # Check the doc builds
+    - name: Build the doc
+      run: opam exec -- make doc
+

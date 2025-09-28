@@ -26,7 +26,7 @@ build: backend
 ####################
 
 configure:
-	opam install . --deps-only --yes
+	opam install . --deps-only --with-test --with-doc
 	cd src/frontend && npm install
 	cd src/hookgen && npm install
 
