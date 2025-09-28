@@ -1,36 +1,61 @@
 import React from 'react';
 import { useGetApiDancers, useGetApiDancerId, getGetApiDancerIdQueryOptions } from '@hookgen/dancer/dancer';
 
-import { type Dancer, type DancerId, type DancerIdList } from "@hookgen/model";
-import { Link } from "react-router";
+import { DivisionItem, DivisionsItem, type Dancer, type DancerId, type DancerIdList, type Divisions } from "@hookgen/model";
+import { Link, useLocation } from "react-router";
 import DancerCompetitionHistory from './DancerCompetitionHistory';
 import { SaveDancerFormComponent } from './NewDancerForm';
 import { useQueries } from '@tanstack/react-query';
 
-const dancerLink = "dancers/"
+
+const divisionColors: Record<DivisionsItem, string> = {
+    [DivisionsItem.None]: '#9ca3af',
+    [DivisionsItem.Novice]: '#3C1',
+    [DivisionsItem.Novice_Intermediate]: '#1BC',
+    [DivisionsItem.Intermediate]: '#08C',
+    [DivisionsItem.Intermediate_Advanced]: '#94E',
+    [DivisionsItem.Advanced]: '#E43',
+};
+
+export function Badge({ role, divisions }: { role: string, divisions: Divisions }) {
+
+    // exclude the croisillon # for shields.io service
+    const badge_color = divisionColors[divisions[0]].slice(1);
+
+    return (
+        <img alt={`${role}-${divisions}`} src={`https://img.shields.io/badge/${role}-${divisions}-${badge_color}`} />
+    );
+}
 
 function DancerDetails({ id_dancer, dancer, index }: { id_dancer: DancerId, dancer: Dancer, index: number }) {
+
+    const location = useLocation();
+    const url = location.pathname.includes("admin") ? "/admin/dancers/" : "/dancers/";
+
 
     return (
         <tr key={id_dancer}
             className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
             <td>
-                <Link to={`/${dancerLink}${id_dancer}`}>
-                    {id_dancer}
-                </Link>
-            </td>
-            <td>
-                <Link to={`/${dancerLink}${id_dancer}`}>
+                <Link to={`${url}${id_dancer}`}>
                     {dancer.last_name}
                 </Link>
             </td>
             <td>
-                <Link to={`/${dancerLink}${id_dancer}`}>
+                <Link to={`${url}${id_dancer}`}>
                     {dancer.first_name}
                 </Link>
             </td>
-            <td>{dancer.as_follower}</td>
-            <td>{dancer.as_leader}</td>
+            <td>
+                {dancer.as_follower[0] !== DivisionsItem.None &&
+                    <Badge role='F' divisions={dancer.as_follower} />
+                }
+            </td>
+            <td>
+                {dancer.as_leader[0] !== DivisionsItem.None &&
+                    <Badge role='L' divisions={dancer.as_leader} />
+                }
+            </td>
         </tr>
 
     );
@@ -46,7 +71,6 @@ export function BareDancerListComponent({ dancer_list, dancer_data }: { dancer_l
             <table>
                 <tbody>
                     <tr>
-                        <th>ID</th>
                         <th>Nom</th>
                         <th>Prénom</th>
                         <th>Division follower</th>
@@ -62,7 +86,7 @@ export function BareDancerListComponent({ dancer_list, dancer_data }: { dancer_l
     );
 }
 
-export function InnerDancerListComponent({dancer_list} : {dancer_list: DancerIdList}) {
+export function InnerDancerListComponent({ dancer_list }: { dancer_list: DancerIdList }) {
 
     const dancerDataQueries = useQueries({
         queries: dancer_list.dancers.map((dancerId) => ({
@@ -115,15 +139,27 @@ export function DancerPageComponent({ dancer, id_dancer }: { dancer: Dancer, id_
 
     return (
         <>
-            <h1>{dancer?.last_name + " " + dancer.first_name}</h1>
-            <p>Division follower : {dancer?.as_follower}</p>
-            <p>Division leader : {dancer?.as_leader}</p>
+            <DancerPagePublicComponent dancer={dancer} id_dancer={id_dancer} />
             <p>Birthday: "Hidden"</p>
             <p>Email : "Hidden"</p>
-            <h1>List de compétitions: </h1>
-            <DancerCompetitionHistory />
             <h1>Mise à jour données</h1>
             <SaveDancerFormComponent id_dancer={id_dancer} dancer={dancer} />
+
+        </>
+    );
+}
+
+export function DancerPagePublicComponent({ dancer, id_dancer }: { dancer: Dancer, id_dancer: DancerId }) {
+
+    return (
+        <>
+            <h1>{dancer.last_name}, {dancer.first_name}</h1>
+            <p>Division follower : <Badge role='Follower' divisions={dancer.as_follower} />
+            </p>
+            <p>Division leader : <Badge role='Leader' divisions={dancer.as_leader} />
+            </p>
+            <h1>List de compétitions: </h1>
+            <DancerCompetitionHistory />
 
         </>
     );
