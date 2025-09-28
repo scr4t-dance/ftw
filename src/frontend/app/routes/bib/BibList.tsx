@@ -1,4 +1,3 @@
-import "~/styles/ContentStyle.css";
 
 import React, { useEffect, useState } from 'react';
 import { Link } from "react-router";
@@ -10,17 +9,37 @@ import Footer from "@routes/footer/footer";
 
 import { useGetApiDancerId } from '@hookgen/dancer/dancer';
 import {
-    type Bib, type BibList, type CompetitionId, type CoupleTarget, type Dancer, type DancerId, RoleItem, type SingleTarget, type Target
+    type Bib, type BibList, type CompetitionId, type CoupleTarget, type DancerId, type EventId, RoleItem,
+    type SingleTarget, type Target
 } from "@hookgen/model";
 
-import { useGetApiCompIdBibs, useDeleteApiCompIdBib, getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib } from "@hookgen/bib/bib";
-import { useForm, type SubmitHandler, type UseFormReturn } from "react-hook-form";
-import { Field } from "../index/field";
-import { RoleField, SingleDancerField, type SingleBib } from "./SingleTargetForm";
-import { CoupleTargetForm, type CoupleBib } from "./CoupleTargetForm";
+import { useGetApiCompIdBibs, useDeleteApiCompIdBib, getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib, getApiCompIdBibs } from "@hookgen/bib/bib";
+import { useForm, type UseFormReturn } from "react-hook-form";
+import { Field } from "@routes/index/field";
+import type { Route } from './+types/BibList';
+import { getApiCompId } from '@hookgen/competition/competition';
+import { getApiEventId } from '@hookgen/event/event';
 
 
 const dancerLink = "dancers/"
+
+
+export async function loader({ params }: Route.LoaderArgs) {
+
+    const id_event = Number(params.id_event) as EventId;
+    const event_data = getApiEventId(id_event);
+    const id_competition =  Number(params.id_competition) as CompetitionId;
+    const competition_data = getApiCompId(id_competition);
+    const bibs_list = await getApiCompIdBibs(id_competition);
+    return {
+        id_event,
+        event_data,
+        id_competition,
+        competition_data,
+        bibs_list,
+    };
+}
+
 
 function convert_target(target: Target | undefined) {
 
@@ -296,22 +315,16 @@ function BibListComponent({ id_competition }: { id_competition: CompetitionId })
     );
 }
 
-function BibList() {
+function BibList({
+    loaderData
+}: Route.ComponentProps) {
 
     return (
         <>
-            <PageTitle title="Événements" />
-            <Header />
-            <div className="content-container">
-
-                <Link to={`/${dancerLink}new`}>
-                    Créer un-e nouvel-le compétiteur-euse
-                </Link>
-                <p>Attention, lien unique vers la compétition 1</p>
-                <BibListComponent id_competition={1} />
-            </div>
-
-            <Footer />
+            <Link to={`/${dancerLink}new`}>
+                Créer un-e nouvel-le compétiteur-euse
+            </Link>
+            <BareBibListComponent bib_list={loaderData.bibs_list.bibs} />
         </>
     );
 }

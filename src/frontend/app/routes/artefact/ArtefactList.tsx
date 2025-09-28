@@ -6,10 +6,10 @@ import { useGetApiPhaseId } from "@hookgen/phase/phase";
 import { useGetApiPhaseIdHeats } from "~/hookgen/heat/heat";
 import { useQueries } from "@tanstack/react-query";
 import { DancerCell } from '@routes/bib/BibList';
-import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
-import { getGetApiDancerIdQueryOptions } from '~/hookgen/dancer/dancer';
-import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryOptions } from '~/hookgen/artefact/artefact';
-import { useGetApiPhaseIdJudges } from '~/hookgen/judge/judge';
+import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
+import { getGetApiDancerIdQueryOptions } from '@hookgen/dancer/dancer';
+import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryOptions } from '@hookgen/artefact/artefact';
+import { useGetApiPhaseIdJudges } from '@hookgen/judge/judge';
 
 const iter_target_dancers = (t: Target) => t.target_type === "single"
     ? [t.target]

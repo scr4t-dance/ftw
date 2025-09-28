@@ -8,7 +8,7 @@ import { YanItem } from "@hookgen/model";
 import { useParams } from "react-router";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
 import { useQueryClient } from "@tanstack/react-query";
-import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey, useGetApiPhaseIdArtefactJudgeIdJudge, usePutApiPhaseIdArtefactJudgeIdJudge, } from '~/hookgen/artefact/artefact';
+import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey, useGetApiPhaseIdArtefactJudgeIdJudge, usePutApiPhaseIdArtefactJudgeIdJudge, } from '@hookgen/artefact/artefact';
 import { Controller, FormProvider, get, useFieldArray, useForm, useFormContext, type SubmitHandler } from 'react-hook-form';
 import { Field } from '@routes/index/field';
 import { DancerCell } from '@routes/bib/BibList';
