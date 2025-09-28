@@ -1,10 +1,11 @@
 import type { Route } from "./+types/EventListAdmin";
 
 import React from 'react';
-import {type EventIdList, type Event } from "@hookgen/model";
+import { type EventIdList, type Event } from "@hookgen/model";
 
 import { getApiEventId, getApiEvents } from "~/hookgen/event/event";
 import { EventListComponent } from "./EventComponents";
+import { Link } from "react-router";
 
 
 export async function loader({ }: Route.LoaderArgs) {
@@ -27,6 +28,14 @@ export default function EventList({
     const event_list: EventIdList = loaderData.event_list;
     const event_data: Event[] = loaderData.event_data;
 
-    return <EventListComponent event_list={event_list} event_data={event_data} />
+    return (
+        <>
+            <Link to={`new`}>
+                Créer un nouvel événement
+            </Link>
+
+            <EventListComponent event_list={event_list} event_data={event_data} />
+        </>
+    );
 
 }

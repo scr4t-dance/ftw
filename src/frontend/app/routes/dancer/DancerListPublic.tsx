@@ -1,9 +1,9 @@
-import type { Route } from './+types/DancerList';
-import React from 'react';
-import { Link } from "react-router";
-import { BareDancerListComponent, DancerListComponent } from '@routes/dancer/DancerComponents';
-import { getApiDancerId, getApiDancers } from '~/hookgen/dancer/dancer';
+import type { Route } from './+types/DancerListPublic';
 
+import React from 'react';
+import { BareDancerListComponent } from '@routes/dancer/DancerComponents';
+import { Link } from 'react-router';
+import { getApiDancerId, getApiDancers } from '@hookgen/dancer/dancer';
 
 
 export async function loader({ }: Route.LoaderArgs) {
@@ -18,17 +18,16 @@ export async function loader({ }: Route.LoaderArgs) {
     };
 }
 
-function DancerList({ loaderData }: Route.ComponentProps) {
+function DancerListPublic({ loaderData }: Route.ComponentProps) {
 
     const {dancer_list, dancer_data} = loaderData;
     return (
         <>
-            <Link to={`new`}>
+            <Link to={`/dancers/new`}>
                 Créer un-e nouvel-le compétiteur-euse
             </Link>
             <BareDancerListComponent dancer_list={dancer_list} dancer_data={dancer_data} />
         </>
     );
 }
-
-export default DancerList;
+export default DancerListPublic;
