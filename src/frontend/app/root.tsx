@@ -66,7 +66,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { userId };
 }
 
-export default function App({loaderData}: Route.ComponentProps) {
+export default function App({ loaderData }: Route.ComponentProps) {
 
   const userId = loaderData.userId;
 
@@ -111,3 +111,8 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     </main>
   );
 }
+
+
+export const handle = {
+  breadcrumb: () => "Accueil"
+};

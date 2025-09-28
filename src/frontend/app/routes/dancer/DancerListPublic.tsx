@@ -23,9 +23,6 @@ function DancerListPublic({ loaderData }: Route.ComponentProps) {
     const {dancer_list, dancer_data} = loaderData;
     return (
         <>
-            <Link to={`/dancers/new`}>
-                Créer un-e nouvel-le compétiteur-euse
-            </Link>
             <BareDancerListComponent dancer_list={dancer_list} dancer_data={dancer_data} />
         </>
     );
