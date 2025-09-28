@@ -7,6 +7,7 @@ function CompetitionHome() {
     return (
         <>
             <PageTitle title="Compétiteurices" />
+            <Breadcrumbs />
             <div className="content-container">
                 <Outlet />
             </div>
