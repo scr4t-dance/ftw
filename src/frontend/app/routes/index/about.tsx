@@ -8,7 +8,7 @@ import Footer from "@routes/footer/footer";
 function About() {
     return (
         <>
-            <PageTitle title="About SCR4T" />
+            <PageTitle title="À propos du SCR4T" />
             <Header />
             <div className="content-container">
                 <h3>Qui sommes-nous ?</h3>
