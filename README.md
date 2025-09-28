@@ -75,17 +75,7 @@ you can run a test instance of the server using the following command:
 make run
 ```
 
-To test a change, save changes, stop the server and run `make run` again.
-
-For faster feedback loops on frontend code, it is possible to use `hot module reloading`. It should be possible to deploy an ocaml backend against `src/frontend/src` instead of `src/frontend/build`, but it is developped yet.
-
-To deploy a frontend dev server with hot module reloading, run
-```bash
-cd src/frontend/src && npm start
-```
-
-Npm server will be deployed on `localhost:3000`, with no access to api or ocaml backend.
-See doc in in https://github.com/facebook/create-react-app/blob/main/packages/cra-template/template/README.md
+See `Running the server` and `Testing frontend` in [HACKING.md](HACKING.md) for more details.
 
 
 ### Deploy on a server
@@ -95,5 +85,6 @@ TODO
 Develop
 -------
 
+See [HACKING.md](HACKING.md) to learn how to contribute, develop and test.
 Read the [documentation about concepts](doc/concepts.md) to know what should be developped.
 Then read how to [add a new concept](doc/coding_a_concept.md).

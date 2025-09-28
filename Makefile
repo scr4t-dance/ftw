@@ -26,7 +26,7 @@ build: backend
 ####################
 
 configure:
-	opam install . --deps-only --yes
+	opam install . --deps-only --with-test --with-doc
 	cd src/frontend && npm install
 	cd src/hookgen && npm install
 
@@ -71,13 +71,10 @@ clean:
 # Helper Rules #
 ################
 
-debug: backend
-	dune exec -- ftw --db=tests/test.db -b -vv
-
 run: backend
 	./bin/deploy_production.sh
 
-frontend_dev: backend
+dev: backend
 	./bin/deploy_frontend_dev.sh
 
 manual_test: backend
@@ -86,5 +83,5 @@ manual_test: backend
 top:
 	dune utop
 
-.PHONY: all build top doc run debug frontend_dev tests promote clean
+.PHONY: all build top doc run dev tests promote clean
 	hookgen
