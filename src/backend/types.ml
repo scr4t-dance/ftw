@@ -1517,7 +1517,7 @@ module TargetRPSSRank = struct
 
   let ref, schema =
     make_schema ()
-      ~name:"TargetYanRank"
+      ~name:"TargetRPSSRank"
       ~typ:(Obj Object)
       ~properties:[
         "ranking_type", obj @@ S.make_schema()

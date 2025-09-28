@@ -1811,7 +1811,7 @@
           { "$ref": "#/components/schemas/CouplePanel" }
         ]
       },
-      "TargetYanRank": {
+      "TargetRPSSRank": {
         "type": "object",
         "properties": {
           "ranking_type": { "type": "string", "enum": [ "rpss" ] },
@@ -1838,7 +1838,7 @@
         "type": "object",
         "oneOf": [
           { "$ref": "#/components/schemas/TargetYanRank" },
-          { "$ref": "#/components/schemas/TargetYanRank" }
+          { "$ref": "#/components/schemas/TargetRPSSRank" }
         ]
       },
       "PhaseRanks": {
