@@ -1,88 +1,73 @@
-import "~/styles/ContentStyle.css";
+import type { Route } from "./+types/CompetitionDetails"
+
+import { Link } from "react-router";
+
 
 import { getApiCompId } from '@hookgen/competition/competition';
-import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
+import { getApiCompIdBibs } from '@hookgen/bib/bib';
 
-import type { Competition, CompetitionId } from "@hookgen/model";
-import { Link } from "react-router";
-import { NewPhaseForm } from "../phase/NewPhaseForm";
-import { PhaseList } from "../phase/PhaseList";
-import { NewBibForm } from "../bib/NewBibForm";
-import { BareBibListComponent } from "../bib/BibList";
-import type { Route } from "./+types/CompetitionDetails";
-import { useGetApiEventId } from "~/hookgen/event/event";
+import type { BibList, Competition, CompetitionId, Event, EventId } from "@hookgen/model";
+import { NewPhaseFormComponent } from "@routes/phase/NewPhaseForm";
+import { PhaseList } from "@routes/phase/PhaseList";
+import { NewBibForm } from "@routes/bib/NewBibForm";
+import { BareBibListComponent } from "@routes/bib/BibList";
+import { getApiEventId, getApiEventIdComps } from "@hookgen/event/event";
+
 
 export async function loader({ params }: Route.LoaderArgs) {
 
-    const id_competition = parseInt(params.id_competition as string) as CompetitionId;
-    const compQuery = await getApiCompId(id_competition);
-    return compQuery;
+    let id_event = Number(params.id_event) as EventId;
+    const event_data = await getApiEventId(id_event);
+    const competition_list = await getApiEventIdComps(id_event);
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    const competition_data = await getApiCompId(id_competition);
+    const bib_data = await getApiCompIdBibs(id_competition);
+    return {
+        id_event,
+        id_competition,
+        event_data,
+        competition_list,
+        competition_data,
+        bib_data,
+    };
 }
 
-
-export async function clientLoader({
-    serverLoader,
-    params,
-}: Route.ClientLoaderArgs) {
-
-    const id_competition = parseInt(params.id_competition as string) as CompetitionId;
-    const compQuery = await getApiCompId(id_competition);
-    const serverData = await serverLoader();
-    return { ...serverData, ...compQuery };
-}
-
-// HydrateFallback is rendered while the client loader is running
-export function HydrateFallback({ params }: Route.LoaderArgs) {
-    return <div>Chargement de la compétition {params.id_competition}...</div>;
-}
-
-function CompetitionDetails({
+export default function CompetitionDetails({
     params,
     loaderData,
 }: Route.ComponentProps) {
 
-    const id_competition = parseInt(params.id_competition) as CompetitionId;
-    const data = loaderData;
+    const id_competition = loaderData.id_competition as CompetitionId;
+    const competition = loaderData.competition_data as Competition;
+    const event = loaderData.event_data as Event;
+    const bib_list = loaderData.bib_data as BibList;
 
-    const competition = data as Competition;
-
-    const { data: dataEvent } = useGetApiEventId(Number(competition?.event));
-    const event = dataEvent;
-
-    const {
-        data: dataBib,
-        isLoading: isLoadingBib,
-        error: errorBib
-    } = useGetApiCompIdBibs(id_competition);
-    const bib_list = dataBib?.bibs ?? [];
-
-    console.log("CompetitionDetails", id_competition);
+    const url = `/events/${loaderData.id_event}/competitions/${loaderData.id_competition}`;
 
     return (
         <>
-
             <h1>Compétition {competition?.name}</h1>
-
-
-            <p><Link to={`/events/${competition?.event}`}>
-                Evénement {event?.name}
-            </Link></p>
+            <p>
+                <Link to={`${url}/phases`}>
+                    Phases
+                </Link>
+            </p>
+            <p>
+                <Link to={`${url}/bibs`}>
+                    Bibs
+                </Link>
+            </p>
+            <p>
+                <Link to={`${url}/phases/new`}>
+                     Création Phase
+                </Link>
+            </p>
             <p>Type : {competition?.kind}</p>
             <p>Catégorie : {competition?.category}</p>
-            <PhaseList id_competition={parseInt(params.id_competition)} />
-            <NewPhaseForm default_competition={id_competition} />
-
-            {isLoadingBib &&
-                <p>Chargement de la liste des dossards</p>}
-            {!isLoadingBib && bib_list &&
-                <>
-                    <BareBibListComponent bib_list={bib_list} />
-                </>
-            }
-
+            <PhaseList id_competition={id_competition} competition_data={competition} />
+            <NewPhaseFormComponent id_competition={id_competition} />
+            <BareBibListComponent bib_list={bib_list.bibs} />
             <NewBibForm default_competition={id_competition} />
         </>
     );
 }
-
-export default CompetitionDetails;

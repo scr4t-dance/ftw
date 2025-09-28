@@ -1,54 +1,30 @@
 // src/api/axios.ts
 import Axios, { type AxiosRequestConfig } from 'axios';
 
-export let runtimeBaseURL = '';
+const API_BASE_URL = import.meta.env.API_BASE_URL ?? import.meta.env.VITE_API_BASE_URL ?? "";
 
-// Function to update baseURL dynamically
-export const setBaseURL = (url: string) => {
-  runtimeBaseURL = url;
-};
-
-// Axios instance
-export const axiosInstance = Axios.create({});
-
-// Interceptor sets baseURL dynamically
-axiosInstance.interceptors.request.use((config) => {
-  config.baseURL = runtimeBaseURL;
-  return config;
+export const axiosInstance = Axios.create({
+  baseURL: API_BASE_URL,
 });
 
- export const customInstance = <T>(
+export const customInstance = <T>(
+  config: AxiosRequestConfig,
+  options?: AxiosRequestConfig,
+): Promise<T> => {
 
-   config: AxiosRequestConfig,
+  //console.log("custom Axios instance init", API_BASE_URL);
+  const source = Axios.CancelToken.source();
 
-   options?: AxiosRequestConfig,
+  const promise = axiosInstance({
+    ...config,
+    ...options,
+    cancelToken: source.token,
+  }).then(({ data }) => data);
 
- ): Promise<T> => {
+  // @ts-ignore
+  promise.cancel = () => {
+    source.cancel('Query was cancelled');
+  };
 
-   const source = Axios.CancelToken.source();
-
-   const promise = axiosInstance({
-
-     ...config,
-
-     ...options,
-
-     cancelToken: source.token,
-
-   }).then(({ data }) => data);
-
-
-
-   // @ts-ignore
-
-   promise.cancel = () => {
-
-     source.cancel('Query was cancelled');
-
-   };
-
-
-
-   return promise;
-
- };
+  return promise;
+};

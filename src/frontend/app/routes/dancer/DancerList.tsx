@@ -1,5 +1,3 @@
-import "~/styles/ContentStyle.css";
-
 import React from 'react';
 import { useGetApiDancers, useGetApiDancerId } from '@hookgen/dancer/dancer';
 

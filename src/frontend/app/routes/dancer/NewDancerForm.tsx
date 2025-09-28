@@ -1,14 +1,24 @@
+import type { Route } from './+types/NewDancerForm';
 import React, { useState } from 'react';
 // import { useNavigate } from "react-router";
 
-import { getGetApiDancersQueryKey, usePutApiDancer, usePatchApiDancerId, getGetApiDancerIdQueryKey } from '@hookgen/dancer/dancer';
+import { getGetApiDancersQueryKey, usePutApiDancer, usePatchApiDancerId, getGetApiDancerIdQueryKey, getApiDancers } from '@hookgen/dancer/dancer';
 
 import { DivisionsItem, type Dancer, type DancerId, type Date } from '@hookgen/model';
 
 import { Link } from 'react-router';
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { Controller, useForm, type SubmitHandler, type UseFormReturn } from 'react-hook-form';
-import { Field } from '../index/field';
+import { Field } from '@routes/index/field';
+
+export async function loader({ }: Route.LoaderArgs) {
+
+    const dancer_list = await getApiDancers();
+
+    return {
+        dancer_list
+    };
+}
 
 function putOrPatchApi({ queryClient, id_dancer, formObject }: { queryClient: QueryClient, id_dancer?: DancerId, formObject: UseFormReturn<Dancer, any, Dancer> }) {
 
@@ -186,13 +196,12 @@ export function SaveDancerFormComponent({ dancer, id_dancer }: { dancer?: Dancer
 }
 
 
-function NewDancerForm() {
+function NewDancerForm({
+    loaderData
+}: Route.ComponentProps) {
 
     return (
         <>
-            <Link to={`/dancers`}>
-                Retourner à la liste des compétiteurices
-            </Link>
             <h1>Ajouter un-e compétiteur-euse</h1>
             <SaveDancerFormComponent />
         </>

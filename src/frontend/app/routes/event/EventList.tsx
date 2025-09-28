@@ -1,11 +1,11 @@
-import "~/styles/ContentStyle.css";
+import type { Route } from "./+types/EventList";
 
-import React, { type Key } from 'react';
+import React from 'react';
 import { Link } from "react-router";
 
 
-import { useGetApiEvents, useGetApiEventId } from '@hookgen/event/event';
-import { type EventId, type EventIdList } from "@hookgen/model";
+import { getApiEvents, getApiEventId } from '@hookgen/event/event';
+import { type EventId, type EventIdList, type Event } from "@hookgen/model";
 
 import PageTitle from "@routes/index/PageTitle";
 
@@ -60,14 +60,46 @@ const events = [
     }
 ]
 
-function EventList() {
+export async function loader({ }: Route.LoaderArgs) {
+    const event_list = await getApiEvents();
+    const event_data = await Promise.all(
+        event_list.events.map((id_event) => getApiEventId(id_event))
+    );
 
-    const { data, isLoading, error } = useGetApiEvents();
+    return {
+        event_list,
+        event_data,
+    };
+}
 
-    const event_array = data as EventIdList;
 
-    if (isLoading) return <div>Chargement des événements...</div>;
-    if (error) return <div>Erreur: {(error as any).message}</div>;
+function EventDetails({ id, data, index }: { id: EventId, data: Event, index: number }) {
+
+    if (!data) return null;
+
+    const event = data;
+    const month = event.start_date?.month;
+    const year = event.start_date?.year;
+
+    return (
+        <tr key={id}
+            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+            <td>
+                <Link to={`${eventListlink}/${id}`}>
+                    {event.name}
+                </Link>
+            </td>
+            <td>{month}</td>
+            <td>{year}</td>
+        </tr>
+    );
+}
+
+export default function EventList({
+    loaderData,
+}: Route.ComponentProps) {
+
+    const event_list: EventIdList = loaderData.event_list;
 
     return (
         <>
@@ -113,38 +145,11 @@ function EventList() {
                         <th>Année</th>
                     </tr>
 
-                    {data && data.events && data?.events.map((eventId: EventId, index: number) => (
-                        <EventDetails key={eventId} id={eventId} index={index} />
+                    {event_list.events && event_list.events.map((eventId: EventId, index: number) => (
+                        <EventDetails key={eventId} data={loaderData.event_data[index]} id={eventId} index={index} />
                     ))}
                 </tbody>
             </table>
         </>
     );
 }
-
-
-function EventDetails({ id, index }: { id: EventId, index: number }) {
-    const { data, isLoading } = useGetApiEventId(id);
-
-    if (isLoading) return <tr><td>Chargement...</td></tr>;
-    if (!data) return null;
-
-    const event = data;
-    const month = event.start_date?.month;
-    const year = event.start_date?.year;
-
-    return (
-        <tr key={id}
-            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
-            <td>
-                <Link to={`${eventListlink}/${id}`}>
-                    {event.name}
-                </Link>
-            </td>
-            <td>{month}</td>
-            <td>{year}</td>
-        </tr>
-    );
-}
-
-export default EventList;
