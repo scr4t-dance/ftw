@@ -42,13 +42,20 @@ const events = [
     }
 ]
 
+function capitalizeFirstLetter(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
 function EventDetails({ id, data, index }: { id: EventId, data: Event, index: number }) {
 
     if (!data) return null;
 
     const event = data;
-    const month = event.start_date?.month;
+    const date = new Date(event.start_date?.year, event.start_date?.month, event.start_date?.day);
+
+    // https://stackoverflow.com/questions/1643320/get-month-name-from-date
+    // can be slow, may need to be optimized, probably not needed for our volume of data
+    const month = date.toLocaleString('fr-FR', { month: 'long' });
     const year = event.start_date?.year;
 
     return (
@@ -59,7 +66,7 @@ function EventDetails({ id, data, index }: { id: EventId, data: Event, index: nu
                     {event.name}
                 </Link>
             </td>
-            <td>{month}</td>
+            <td>{capitalizeFirstLetter(month)}</td>
             <td>{year}</td>
         </tr>
     );
@@ -68,18 +75,11 @@ function EventDetails({ id, data, index }: { id: EventId, data: Event, index: nu
 export function EventListComponent({ event_list, event_data }: { event_list: EventIdList, event_data: Event[] }) {
 
     const location = useLocation();
-    const url = location.pathname.includes("event") || location.pathname.includes("admin") ? "" : "events/";
-
-    const isAdmin = location.pathname.includes("admin");
+    const url = location.pathname.includes("event") ? "" : "events/";
 
     return (
         <>
             <PageTitle title="Événements" />
-            {isAdmin &&
-                <Link to={`${url}new`}>
-                    Créer un nouvel événement
-                </Link>
-            }
             <h1>Événements partenaires</h1>
             <table>
                 <tbody>
