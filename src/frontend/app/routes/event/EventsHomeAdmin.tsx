@@ -2,7 +2,7 @@ import type { Route } from "./+types/EventsHomeAdmin";
 
 import { Outlet } from "react-router";
 
-import {type loaderProps} from "@routes/event/EventsHome";
+import {type loaderProps} from "@routes/event/EventComponents";
 import { getApiEvents } from "@hookgen/event/event";
 
 

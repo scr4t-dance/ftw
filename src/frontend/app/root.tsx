@@ -7,7 +7,7 @@ import {
   ScrollRestoration,
 } from "react-router";
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 import type { Route } from "./+types/root";
@@ -16,6 +16,10 @@ import "~/styles/ContentStyle.css"
 import React from "react";
 import Header from "@routes/header/header";
 import Footer from "@routes/footer/footer";
+
+import { getSession } from "~/sessions.server";
+import { queryClient } from "~/queryClient";
+
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -47,15 +51,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
     </html>
   );
 }
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5
-    }
-  }
-});
-import { getSession } from "~/sessions.server";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));

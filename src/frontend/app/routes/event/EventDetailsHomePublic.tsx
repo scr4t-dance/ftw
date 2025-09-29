@@ -1,4 +1,4 @@
-import type { Route } from "./+types/EventDetailsHome"
+import type { Route } from "./+types/EventDetailsHomePublic"
 
 import React from 'react';
 import { Outlet } from "react-router";
