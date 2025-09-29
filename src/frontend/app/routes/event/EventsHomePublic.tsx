@@ -1,13 +1,9 @@
-import type { Route } from "./+types/EventsHome";
+import type { Route } from "./+types/EventsHomePublic";
 
 import { Outlet } from "react-router";
 import { getApiEvents } from "@hookgen/event/event";
 import type { EventIdList } from "@hookgen/model";
-
-
-export type loaderProps = Promise<{
-    event_list: EventIdList;
-}>
+import type { loaderProps } from "@routes/event/EventComponents";
 
 export async function loader({ params }: Route.LoaderArgs) : loaderProps {
 

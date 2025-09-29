@@ -1,4 +1,4 @@
-import type { Route } from "./+types/EventDetails"
+import type { Route } from "./+types/EventDetailsPublic"
 
 import React from 'react';
 import { Link } from "react-router";
