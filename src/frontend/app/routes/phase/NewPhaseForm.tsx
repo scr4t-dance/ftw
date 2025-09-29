@@ -23,32 +23,63 @@ type NewPhaseFormProps = {
     competition_data: Competition,
     availableRounds: RoundItem[]
 };
+import {
+    combineClientLoader, combineServerLoader, competitionListLoader,
+    competitionLoader, eventLoader, phaseListLoader, phaseLoader, queryClient,
+} from '~/queryClient';
+
+
+
+
+const loader_array = [eventLoader, competitionLoader, competitionListLoader, phaseLoader, phaseListLoader];
+
 
 export async function loader({ params }: Route.LoaderArgs) {
 
-    let id_event = Number(params.id_event) as EventId;
-    const event_data = await getApiEventId(id_event);
-    const competition_list = await getApiEventIdComps(id_event);
-    const id_competition = Number(params.id_competition) as CompetitionId;
-    const competition_data = await getApiCompId(id_competition);
-    const phase_list = await getApiCompIdPhases(id_competition);
+    const combinedData = await combineServerLoader(loader_array, params);
     const phase_data_list = await Promise.all(
-        phase_list.phases.map((id_phase) => getApiPhaseId(id_phase))
+        combinedData.phase_list.phases.map((id_phase) => getApiPhaseId(id_phase))
     );
     return {
-        id_event,
-        id_competition,
-        event_data,
-        competition_list,
-        competition_data,
+        ...combinedData,
         phase_data_list,
     };
 }
 
+let isInitialRequest = true;
+
+export async function clientLoader({
+    params,
+    serverLoader,
+}: Route.ClientLoaderArgs) {
+
+    if (isInitialRequest) {
+        isInitialRequest = false;
+        const serverData = await serverLoader();
+
+        loader_array.forEach((l) => l.cache(queryClient, serverData));
+
+        return serverData;
+    }
+
+    const combinedData = await combineClientLoader(loader_array, params);
+    const phase_data_list = await Promise.all(
+        combinedData.phase_list.phases.map((id_phase) => getApiPhaseId(id_phase))
+    );
+    return {
+        ...combinedData,
+        phase_data_list,
+    };
+}
+clientLoader.hydrate = true;
+
+
 function NewPhaseForm({ id_competition, competition_data, availableRounds }: NewPhaseFormProps) {
 
     const location = useLocation();
-    const url = location.pathname.includes("new") ? "../" : "";
+    const url_new = location.pathname.includes("new") ? "../" : "";
+    const url_phase = location.pathname.includes("phase") ? "" : "phases/";
+    const url = url_new.concat(url_phase);
 
     const formObject = useForm<Phase>({
         defaultValues: {

@@ -16,7 +16,10 @@ const admin_routes = disable_admin ? [] : [
           route("new", "routes/competition/NewCompetitionForm.tsx"),
           route(":id_competition", "routes/competition/CompetitionHomeAdmin.tsx", [
             index("routes/competition/CompetitionDetailsAdmin.tsx"),
-            route("bibs", "routes/bib/BibList.tsx"),
+            route("bibs", "routes/bib/BibHomeAdmin.tsx", [
+              index("routes/bib/BibListAdmin.tsx"),
+              route("new", "routes/bib/NewBibForm.tsx"),
+            ]),
             route("phases", "routes/phase/PhaseHome.tsx", [
               index("routes/phase/PhaseList.tsx"),
               route("new", "routes/phase/NewPhaseForm.tsx"),
@@ -54,15 +57,18 @@ export default [
     route(":rule_id", "routes/index/Rules.tsx")
   ]),
   ...admin_routes,
-  route("events", "routes/event/EventsHome.tsx", [
-    index("routes/event/EventList.tsx"),
+  route("events", "routes/event/EventsHomePublic.tsx", [
+    index("routes/event/EventListPublic.tsx"),
     //route(":id_event", "routes/event/EventDetailsNoForm.tsx"),
-    route(":id_event", "routes/event/EventDetailsHome.tsx", [
-      index("routes/event/EventDetails.tsx"),
-      route("competitions", "routes/competition/EventCompetitionsHome.tsx", [
-        index("routes/competition/CompetitionList.tsx"),
-        route(":id_competition", "routes/competition/CompetitionHome.tsx", [
+    route(":id_event", "routes/event/EventDetailsHomePublic.tsx", [
+      index("routes/event/EventDetailsPublic.tsx"),
+      route("competitions", "routes/competition/EventCompetitionsHomePublic.tsx", [
+        index("routes/competition/CompetitionListPublic.tsx"),
+        route(":id_competition", "routes/competition/CompetitionHomePublic.tsx", [
           index("routes/competition/CompetitionDetailsPublic.tsx"),
+            route("bibs", "routes/bib/BibHomePublic.tsx", [
+              index("routes/bib/BibListPublic.tsx"),
+            ]),
         ]),
       ]),
     ]),

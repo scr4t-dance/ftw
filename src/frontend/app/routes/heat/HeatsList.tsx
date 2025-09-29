@@ -3,9 +3,12 @@ import React from 'react';
 import type { BibList, CompetitionId, CouplesHeat, DancerId, PhaseId, SinglesHeat, Target } from "@hookgen/model";
 import { useParams } from "react-router";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
-import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, useGetApiPhaseIdHeats, usePutApiPhaseIdInitHeats } from "@hookgen/heat/heat";
+import {
+    getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey,
+    useGetApiPhaseIdHeats, usePutApiPhaseIdInitHeats,
+} from "@hookgen/heat/heat";
 import { useQueryClient } from "@tanstack/react-query";
-import { BareBibListComponent } from '@routes/bib/BibList';
+import { BareBibListComponent } from '@routes/bib/BibComponents';
 import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
 import { InitHeatsForm } from '@routes/heat/InitHeatsForm';
 
@@ -16,8 +19,8 @@ const iter_target_dancers = (t: Target) => t.target_type === "single"
 function SingleHeatTable({ heat, dataBibs }: { heat: SinglesHeat, dataBibs: BibList }) {
 
 
-    const followers : DancerId[] = heat.followers.flatMap(u => iter_target_dancers(u));
-    const leaders : DancerId[] = heat.leaders.flatMap(u => iter_target_dancers(u));
+    const followers: DancerId[] = heat.followers.flatMap(u => iter_target_dancers(u));
+    const leaders: DancerId[] = heat.leaders.flatMap(u => iter_target_dancers(u));
     const get_bibs = (dancer_list: DancerId[]) => dataBibs?.bibs.filter(b => iter_target_dancers(b.target).map(dancer => dancer_list?.includes(dancer)).includes(true));
 
     return (
@@ -103,3 +106,7 @@ export default function HeatsList() {
         </>
     );
 }
+
+export const handle = {
+  breadcrumb: () => "Heats"
+};
