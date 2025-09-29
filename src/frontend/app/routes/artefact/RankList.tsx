@@ -7,7 +7,7 @@ import {
 import { Link, useParams } from "react-router";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
 import { useQueries } from "@tanstack/react-query";
-import { DancerCell } from '@routes/bib/BibList';
+import { DancerCell } from '@routes/bib/BibComponents';
 import { getGetApiDancerIdQueryOptions } from '~/hookgen/dancer/dancer';
 import { useGetApiPhaseIdJudges } from '~/hookgen/judge/judge';
 import { useGetApiPhaseIdRanking } from '~/hookgen/ranking/ranking';

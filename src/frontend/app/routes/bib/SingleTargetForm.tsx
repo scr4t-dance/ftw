@@ -1,19 +1,25 @@
 // components/SingleTargetForm.tsx
 import { Field } from "@routes/index/field";
 import { type UseFormReturn } from "react-hook-form";
-import { type Bib, RoleItem, type SingleTarget } from "@hookgen/model";
+import { type Bib, type BibList, RoleItem, type SingleTarget } from "@hookgen/model";
+import { dancerArrayFromTarget } from "./BibComponents";
 
 export interface SingleBib extends Omit<Bib, "target"> {
   target: SingleTarget;
 }
 
 
-interface Props {
-
-  formObject: UseFormReturn<SingleBib, any, SingleBib>;
+interface FormProps {
+  formObject: UseFormReturn<SingleBib, any, SingleBib>,
 }
 
-export function SingleDancerField({ formObject }: Props) {
+interface Props {
+  formObject: UseFormReturn<SingleBib, any, SingleBib>,
+  bibs_list: BibList,
+}
+
+
+export function SingleDancerField({ formObject, bibs_list }: Props) {
 
   const {
     register,
@@ -29,9 +35,14 @@ export function SingleDancerField({ formObject }: Props) {
             valueAsNumber: true,
             required: "Le numéro compétiteur doit être renseigné.",
             min: {
-              value: 0,
-              message: "Le numéro compétiteur doit être un entier positif.",
+              value: 1,
+              message: "Le numéro compétiteur doit être un entier strictement positif.",
             },
+            validate:{
+              checkUniqueness: (t) => {
+                return !bibs_list.bibs.flatMap((b) => dancerArrayFromTarget(b.target)).includes(t) || `Dancer ${t} already has a bib`
+              }
+            }
           })}
         />
       </Field>
@@ -40,7 +51,7 @@ export function SingleDancerField({ formObject }: Props) {
 }
 
 
-export function RoleField({ formObject }: Props) {
+export function RoleField({ formObject }: FormProps) {
 
   const {
     register,
@@ -50,7 +61,12 @@ export function RoleField({ formObject }: Props) {
   return (
     <>
       <Field label="Role" error={errors.target?.role?.message}>
-        <select multiple {...register("target.role", { required: "Veuillez sélectionner au moins un rôle." })}>
+        <select multiple {...register("target.role", {
+          required: "Veuillez sélectionner au moins un rôle.",
+          validate: {
+
+          }
+        })}>
           {Object.keys(RoleItem).map((key) => {
             const value = RoleItem[key as keyof typeof RoleItem];
             return (
@@ -66,11 +82,11 @@ export function RoleField({ formObject }: Props) {
 }
 
 
-export function SingleTargetForm({ formObject }: Props) {
+export function SingleTargetForm({ formObject, bibs_list }: Props) {
 
   return (
     <>
-      <SingleDancerField formObject={formObject}/>
+      <SingleDancerField formObject={formObject} bibs_list={bibs_list} />
 
       <RoleField formObject={formObject} />
     </>

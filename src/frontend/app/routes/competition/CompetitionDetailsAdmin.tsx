@@ -4,33 +4,48 @@ import { Link } from "react-router";
 
 
 import { getApiCompId } from '@hookgen/competition/competition';
-import { getApiCompIdBibs } from '@hookgen/bib/bib';
+import { getApiCompIdBibs, useGetApiCompIdBibs } from '@hookgen/bib/bib';
 
 import type { BibList, Competition, CompetitionId, Event, EventId } from "@hookgen/model";
 import { NewPhaseFormComponent } from "@routes/phase/NewPhaseForm";
-import { PhaseList } from "@routes/phase/PhaseList";
-import { NewBibForm } from "@routes/bib/NewBibForm";
-import { BareBibListComponent } from "@routes/bib/BibList";
-import { getApiEventId, getApiEventIdComps } from "@hookgen/event/event";
+import { NewBibFormComponent } from "~/routes/bib/NewBibFormComponent";
+import { BareBibListComponent } from "@routes/bib/BibComponents";
+import { bibsListLoader, combineClientLoader, combineServerLoader, competitionLoader, eventLoader, phaseListLoader, queryClient } from "~/queryClient";
+import { PhaseListComponent } from "../phase/PhaseComponents";
+import { useGetApiCompIdPhases } from "~/hookgen/phase/phase";
+
+
+
+const loader_array = [eventLoader, competitionLoader, bibsListLoader, phaseListLoader];
 
 
 export async function loader({ params }: Route.LoaderArgs) {
 
-    let id_event = Number(params.id_event) as EventId;
-    const event_data = await getApiEventId(id_event);
-    const competition_list = await getApiEventIdComps(id_event);
-    const id_competition = Number(params.id_competition) as CompetitionId;
-    const competition_data = await getApiCompId(id_competition);
-    const bib_data = await getApiCompIdBibs(id_competition);
-    return {
-        id_event,
-        id_competition,
-        event_data,
-        competition_list,
-        competition_data,
-        bib_data,
-    };
+    const combinedData = await combineServerLoader(loader_array, params);
+    return combinedData;
 }
+
+let isInitialRequest = true;
+
+export async function clientLoader({
+    params,
+    serverLoader,
+}: Route.ClientLoaderArgs) {
+
+    if (isInitialRequest) {
+        isInitialRequest = false;
+        const serverData = await serverLoader();
+
+        loader_array.forEach((l) => l.cache(queryClient, serverData));
+
+        return serverData;
+    }
+
+    const combinedData = await combineClientLoader(loader_array, params);
+    return combinedData;
+}
+clientLoader.hydrate = true;
+
 
 export default function CompetitionDetailsAdmin({
     params,
@@ -39,8 +54,18 @@ export default function CompetitionDetailsAdmin({
 
     const id_competition = loaderData.id_competition as CompetitionId;
     const competition = loaderData.competition_data as Competition;
-    const event = loaderData.event_data as Event;
-    const bib_list = loaderData.bib_data as BibList;
+
+    const { data: bibs_list } = useGetApiCompIdBibs(loaderData.id_competition, {
+        query: {
+            initialData: loaderData.bibs_list,
+        }
+    });
+
+    const { data: phase_list } = useGetApiCompIdPhases(loaderData.id_competition, {
+        query: {
+            initialData: loaderData.phase_list,
+        }
+    })
 
     //const url = `/events/${loaderData.id_event}/competitions/${loaderData.id_competition}`;
     const url = "";
@@ -60,15 +85,15 @@ export default function CompetitionDetailsAdmin({
             </p>
             <p>
                 <Link to={`${url}phases/new`}>
-                     Création Phase
+                    Création Phase
                 </Link>
             </p>
             <p>Type : {competition?.kind}</p>
             <p>Catégorie : {competition?.category}</p>
-            <PhaseList id_competition={id_competition} competition_data={competition} />
+            <PhaseListComponent id_competition={id_competition} competition_data={competition} phase_list={loaderData.phase_list} />
             <NewPhaseFormComponent id_competition={id_competition} />
-            <BareBibListComponent bib_list={bib_list.bibs} />
-            <NewBibForm default_competition={id_competition} />
+            <BareBibListComponent bib_list={bibs_list.bibs} />
+            <NewBibFormComponent id_competition={id_competition} bibs_list={bibs_list} />
         </>
     );
 }

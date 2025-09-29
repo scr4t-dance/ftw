@@ -7,6 +7,10 @@ import { type Event, type EventId, type EventIdList, type Date } from "@hookgen/
 import PageTitle from '@routes/index/PageTitle';
 import { CompetitionListComponent } from '@routes/competition/CompetitionComponents';
 
+export type loaderProps = Promise<{
+    event_list: EventIdList;
+}>
+
 
 // TEMPORAIRE
 const events = [
