@@ -1,4 +1,4 @@
-import type { Route } from "./+types/EventList";
+import type { Route } from "./+types/EventListPublic";
 
 import React from 'react';
 import {type EventIdList, type Event } from "@hookgen/model";
