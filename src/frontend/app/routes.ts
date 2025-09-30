@@ -36,6 +36,9 @@ const admin_routes = disable_admin ? [] : [
             ]),
           ]),
         ]),
+        route("bibs", "routes/bib/BibEventHomeAdmin.tsx", [
+          index("routes/bib/BibListEventAdmin.tsx"),
+        ]),
       ]),
     ]),
     route("dancers", "routes/dancer/DancerHome.tsx", [
@@ -61,9 +64,9 @@ export default [
         index("routes/competition/CompetitionListPublic.tsx"),
         route(":id_competition", "routes/competition/CompetitionHomePublic.tsx", [
           index("routes/competition/CompetitionDetailsPublic.tsx"),
-            route("bibs", "routes/bib/BibHomePublic.tsx", [
-              index("routes/bib/BibListPublic.tsx"),
-            ]),
+          route("bibs", "routes/bib/BibHomePublic.tsx", [
+            index("routes/bib/BibListPublic.tsx"),
+          ]),
         ]),
       ]),
     ]),
