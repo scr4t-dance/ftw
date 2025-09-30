@@ -278,7 +278,7 @@ let get_id st (phase_id:Phase.id) (heat_number:int) (target:Bib.any_target) =
 
 
 
-let simple_init st ~(phase:Id.t) =
+let simple_init st ~(phase:Id.t) (_min_number_of_targets:int) (_max_number_of_targets:int) =
   let open Sqlite3_utils.Ty in
   State.insert ~st ~ty:[int]
     {| DELETE FROM heats
@@ -311,7 +311,7 @@ let simple_init st ~(phase:Id.t) =
     phase
 
 
-let simple_promote st ~(phase:Id.t) =
+let simple_promote st ~(phase:Id.t) (_max_number_of_targets_to_pass:int) =
   let phase_data = Phase.get st phase in
   let competition_id = Phase.competition phase_data in
   let phase_list = List.sort

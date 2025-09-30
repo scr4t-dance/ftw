@@ -3,42 +3,17 @@ import React, { useEffect, useState } from 'react';
 import { Link } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 
-import PageTitle from "@routes/index/PageTitle";
-import Header from "@routes/header/header";
-import Footer from "@routes/footer/footer";
-
 import { useGetApiDancerId } from '@hookgen/dancer/dancer';
 import {
-    type Bib, type BibList, type CompetitionId, type CoupleTarget, type DancerId, type EventId, RoleItem,
+    type Bib, type BibList, type CompetitionId, type CoupleTarget, type DancerId, RoleItem,
     type SingleTarget, type Target
 } from "@hookgen/model";
 
-import { useGetApiCompIdBibs, useDeleteApiCompIdBib, getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib, getApiCompIdBibs } from "@hookgen/bib/bib";
+import { useGetApiCompIdBibs, useDeleteApiCompIdBib, getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib, } from "@hookgen/bib/bib";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { Field } from "@routes/index/field";
-import type { Route } from './+types/BibList';
-import { getApiCompId } from '@hookgen/competition/competition';
-import { getApiEventId } from '@hookgen/event/event';
-
 
 const dancerLink = "dancers/"
-
-
-export async function loader({ params }: Route.LoaderArgs) {
-
-    const id_event = Number(params.id_event) as EventId;
-    const event_data = getApiEventId(id_event);
-    const id_competition =  Number(params.id_competition) as CompetitionId;
-    const competition_data = getApiCompId(id_competition);
-    const bibs_list = await getApiCompIdBibs(id_competition);
-    return {
-        id_event,
-        event_data,
-        id_competition,
-        competition_data,
-        bibs_list,
-    };
-}
 
 
 function convert_target(target: Target | undefined) {
@@ -71,7 +46,7 @@ function convert_bib_to_single_target(bib: Bib): Bib[] {
 
 }
 
-function dancerArrayFromTarget(t: Target): DancerId[] {
+export function dancerArrayFromTarget(t: Target): DancerId[] {
     return t.target_type === "single"
         ? [t.target]
         : [t.follower, t.leader]
@@ -294,7 +269,7 @@ export function BareBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
 }
 
 
-function BibListComponent({ id_competition }: { id_competition: CompetitionId }) {
+export function BibListComponent({ id_competition }: { id_competition: CompetitionId }) {
 
     console.log("BibListComponent", id_competition);
     const { data, isLoading, error } = useGetApiCompIdBibs(id_competition);
@@ -314,19 +289,3 @@ function BibListComponent({ id_competition }: { id_competition: CompetitionId })
         </>
     );
 }
-
-function BibList({
-    loaderData
-}: Route.ComponentProps) {
-
-    return (
-        <>
-            <Link to={`/${dancerLink}new`}>
-                Créer un-e nouvel-le compétiteur-euse
-            </Link>
-            <BareBibListComponent bib_list={loaderData.bibs_list.bibs} />
-        </>
-    );
-}
-
-export default BibList;

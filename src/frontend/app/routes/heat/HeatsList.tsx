@@ -1,12 +1,16 @@
 import React from 'react';
 
-import type { BibList, CompetitionId, CouplesHeat, CouplesHeatsArray, DancerId, HeatsArray, PhaseId, SinglesHeat, SinglesHeatsArray, Target } from "@hookgen/model";
-import { data, Link, useParams } from "react-router";
+import type { BibList, CompetitionId, CouplesHeat, DancerId, PhaseId, SinglesHeat, Target } from "@hookgen/model";
+import { useParams } from "react-router";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
-import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, useGetApiPhaseIdHeats, useGetApiPhaseIdSinglesHeats, usePutApiPhaseIdInitHeats, usePutApiPhaseIdPromote } from "@hookgen/heat/heat";
-import { useQueries, useQueryClient } from "@tanstack/react-query";
-import { BareBibListComponent } from '@routes/bib/BibList';
+import {
+    getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey,
+    useGetApiPhaseIdHeats, usePutApiPhaseIdInitHeats,
+} from "@hookgen/heat/heat";
+import { useQueryClient } from "@tanstack/react-query";
+import { BareBibListComponent } from '@routes/bib/BibComponents';
 import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
+import { InitHeatsForm } from '@routes/heat/InitHeatsForm';
 
 const iter_target_dancers = (t: Target) => t.target_type === "single"
     ? [t.target]
@@ -15,8 +19,8 @@ const iter_target_dancers = (t: Target) => t.target_type === "single"
 function SingleHeatTable({ heat, dataBibs }: { heat: SinglesHeat, dataBibs: BibList }) {
 
 
-    const followers : DancerId[] = heat.followers.flatMap(u => iter_target_dancers(u));
-    const leaders : DancerId[] = heat.leaders.flatMap(u => iter_target_dancers(u));
+    const followers: DancerId[] = heat.followers.flatMap(u => iter_target_dancers(u));
+    const leaders: DancerId[] = heat.leaders.flatMap(u => iter_target_dancers(u));
     const get_bibs = (dancer_list: DancerId[]) => dataBibs?.bibs.filter(b => iter_target_dancers(b.target).map(dancer => dancer_list?.includes(dancer)).includes(true));
 
     return (
@@ -65,24 +69,6 @@ export default function HeatsList() {
         }
     });
 
-    const { mutate: promotePhase } = usePutApiPhaseIdPromote({
-        mutation: {
-            onSuccess: (nextPhase) => {
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiPhaseIdCouplesHeatsQueryKey(nextPhase),
-                });
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiPhaseIdSinglesHeatsQueryKey(nextPhase),
-                });
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiPhaseIdHeatsQueryKey(nextPhase),
-                });
-            },
-            onError: (err) => {
-                console.error('Error creating phase:', err);
-            }
-        }
-    });
 
     const { data: heats, isSuccess: isSuccessHeats } = useGetApiPhaseIdHeats(id_phase_number);
 
@@ -98,19 +84,8 @@ export default function HeatsList() {
     return (
         <>
             <p>
-                <button type="button" onClick={() => {
-                    console.log("init heats")
-                    mutate({ id: id_phase_number, data: 0 })
-                }}>
-                    Init heats
-                </button>
+                <InitHeatsForm id_phase={id_phase_number} />
 
-                <button type="button" onClick={() => {
-                    console.log("init heats")
-                    promotePhase({ id: id_phase_number, data: 0 })
-                }}>
-                    Promote
-                </button>
             </p>
 
             {heats?.heats && heats?.heats.map((heat, index) => (
@@ -132,3 +107,7 @@ export default function HeatsList() {
         </>
     );
 }
+
+export const handle = {
+  breadcrumb: () => "Heats"
+};
