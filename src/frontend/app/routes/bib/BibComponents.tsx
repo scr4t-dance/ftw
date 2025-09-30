@@ -5,13 +5,14 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { useGetApiDancerId } from '@hookgen/dancer/dancer';
 import {
-    type Bib, type BibList, type CompetitionId, type CoupleTarget, type DancerId, RoleItem,
+    type Bib, type BibList, type CompetitionId, type CompetitionIdList, type CoupleTarget, type DancerId, RoleItem,
     type SingleTarget, type Target
 } from "@hookgen/model";
 
 import { useGetApiCompIdBibs, useDeleteApiCompIdBib, getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib, } from "@hookgen/bib/bib";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { Field } from "@routes/index/field";
+import { NewTargetBibFormComponent } from './NewBibFormComponent';
 
 const dancerLink = "dancers/"
 
@@ -167,7 +168,7 @@ function BibRowEditable({ formObject, onUpdate, onCancel }: BibRowEditableProps)
     );
 }
 
-function EditableBibDetails({ bib_object, index }: { bib_object: Bib, index: number }) {
+function EditableBibDetails({ bib_object }: { bib_object: Bib }) {
 
 
     const [isEditing, setIsEditing] = useState(false);
@@ -224,25 +225,26 @@ function EditableBibDetails({ bib_object, index }: { bib_object: Bib, index: num
     }, [bib_object, reset]);
 
     return (
-        <tr key={`${bib_object.competition}-${bib_object.bib}`}
-            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
-
-            {isEditing ? (
-                <BibRowEditable
-                    formObject={formObject}
-                    onUpdate={handleUpdate}
-                    onCancel={handleCancel}
-                />
-            ) : (
-                <BibRowReadOnly
-                    bib_object={bib_object}
-                    onEdit={() => setIsEditing(true)}
-                    onDelete={() => deleteBib({ id: bib_object.competition, data: bib_object })}
-                />
-            )
+        <>
+            {
+                isEditing ? (
+                    <BibRowEditable
+                        formObject={formObject}
+                        onUpdate={handleUpdate}
+                        onCancel={handleCancel}
+                    />
+                ) : (
+                    <BibRowReadOnly
+                        bib_object={bib_object}
+                        onEdit={() => setIsEditing(true)}
+                        onDelete={() => deleteBib({
+                            id: bib_object.competition, data: bib_object
+                        })
+                        }
+                    />
+                )
             }
-        </tr >
-
+        </>
     );
 }
 
@@ -262,7 +264,10 @@ export function BareBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
                     </tr>
 
                     {bib_list.map((bibObject, index) => (
-                        <EditableBibDetails bib_object={bibObject} index={index} />
+                        <tr key={`${bibObject.competition}-${bibObject.bib}`}
+                            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+                            <EditableBibDetails bib_object={bibObject} />
+                        </tr >
                     ))}
                 </tbody>
             </table>
@@ -288,6 +293,65 @@ export function BibListComponent({ id_competition }: { id_competition: Competiti
                     <BareBibListComponent bib_list={bib_list.bibs} />
                 </>
             }
+        </>
+    );
+}
+
+
+export function BibListEventAdminComponent({ competition_list, bibs_list_array }: { competition_list: CompetitionIdList, bibs_list_array: BibList[] }) {
+
+    const dancer_list = [...new Set(bibs_list_array.flatMap((bibs_list) => (
+        bibs_list.bibs.flatMap((bib) => dancerArrayFromTarget(bib.target)))
+    ))];
+
+    return (
+        <>
+            <h1>Liste Compétiteur-ices</h1>
+            <table>
+                <tbody>
+                    <tr>
+                        <th>Target</th>
+                        {competition_list.competitions.map((id_competition) => (
+                            <th colSpan={5}>
+                                <Link to={`../competitions/${id_competition}`}>Compétition {id_competition}</Link>
+                            </th>
+                        ))}
+                    </tr>
+                    {dancer_list.map((id_dancer, t_index) => (
+                        <tr>
+                            <td>
+                                <DancerCell id_dancer={id_dancer} />
+                            </td>
+
+                            {competition_list.competitions.map((id_competition, index) => {
+                                const bib_object = bibs_list_array[index].bibs.find((bib) => (
+                                    dancerArrayFromTarget(bib.target).includes(id_dancer)
+                                ));
+
+                                if (bib_object === undefined) {
+                                    const target = bibs_list_array.flatMap((bl) => bl.bibs.map((b) => b.target)).find((t) => dancerArrayFromTarget(t).includes(id_dancer)) as Target;
+                                    return (
+                                        <td colSpan={5}>
+                                            <NewTargetBibFormComponent id_competition={id_competition} bibs_list={bibs_list_array[index]} target={target} />
+                                        </td>
+                                    );
+                                }
+
+                                return <EditableBibDetails bib_object={bib_object} />
+                            })}
+                        </tr>
+                    ))}
+                    <tr>
+
+                        <td>New</td>
+                        {competition_list.competitions.map((id_competition) => (
+                            <td colSpan={5}>
+                                <Link to={`../competitions/${id_competition}/bibs/new`}>Nouveau bib Compétition {id_competition}</Link>
+                            </td>
+                        ))}
+                    </tr>
+                </tbody>
+            </table>
         </>
     );
 }
