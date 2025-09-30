@@ -1,15 +1,10 @@
-import "~/styles/ContentStyle.css"
-
 import PageTitle from "./PageTitle";
-import Header from "@routes/header/header";
-import Footer from "@routes/footer/footer";
 
 
 function About() {
     return (
         <>
             <PageTitle title="About SCR4T" />
-            <Header />
             <div className="content-container">
                 <h3>Qui sommes-nous ?</h3>
                 <p>
@@ -51,7 +46,6 @@ function About() {
                 <h3>Les administrateurs</h3>
                 <p>Le SCR4T est administré par des volontaires qui ont participé à sa conception : Léa Cimelli, Guillaume de Longuemar et Guillaume Bury.</p>
             </div>
-            <Footer />
         </>
     );
 }
