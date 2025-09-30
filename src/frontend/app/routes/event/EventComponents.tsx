@@ -7,9 +7,6 @@ import { type Event, type EventId, type EventIdList, type Date, type Competition
 import PageTitle from '@routes/index/PageTitle';
 import { CompetitionTable, EventCompetitionListComponent } from '@routes/competition/CompetitionComponents';
 
-export type loaderProps = Promise<{
-    event_list: EventIdList;
-}>
 
 
 // TEMPORAIRE
