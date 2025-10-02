@@ -63,3 +63,15 @@ val get_id : State.t -> Phase.id -> int -> Bib.any_target -> (Id.t option, strin
 
 val simple_init : State.t -> phase:Id.t -> int -> int -> unit
 val simple_promote : State.t -> phase:Id.t -> int -> unit
+
+val add_target: State.t ->
+phase_id:Id.t ->
+int ->
+Bib.any_target ->
+(Id.t, string) result
+
+val delete_target: State.t ->
+phase_id:Id.t ->
+int ->
+Bib.any_target ->
+(Id.t, string) result

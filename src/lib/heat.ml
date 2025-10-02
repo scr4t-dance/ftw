@@ -342,3 +342,58 @@ let simple_promote st ~(phase:Id.t) (_max_number_of_targets_to_pass:int) =
           AND heats.phase_id = ?
           |}
     (Phase.id new_phase) phase
+
+
+let row_of_any_target heat_number (target:Bib.any_target) =
+  begin match target with
+    | Any Single { target=t; role=Role.Leader } ->
+      {target_id=0;heat_number=heat_number;leader=Some t;follow=None}
+    | Any Single { target=t; role=Role.Follower } ->
+      {target_id=0;heat_number=heat_number;leader=None;follow=Some t}
+    | Any Couple {leader;follower;} ->
+      {target_id=0;heat_number=heat_number;leader=Some leader;follow=Some follower}
+  end
+
+let add_target st ~(phase_id:Id.t) heat_number (target:Bib.any_target) =
+  let r = row_of_any_target heat_number target in
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[int;int;nullable int;nullable int]
+    {| insert into heats (phase_id, heat_number, leader_id, follower_id)
+      VALUES (?, ?, ?, ?)
+          |}
+    phase_id r.heat_number r.leader r.follow;
+  Ok phase_id
+
+
+let delete_target st ~(phase_id:Id.t) heat_number (target:Bib.any_target) =
+  let open Sqlite3_utils.Ty in
+  begin match target with
+    | Any Couple {leader;follower;} ->
+      State.insert ~st ~ty:[int;int;int;int]
+        {| DELETE FROM heats
+       WHERE 0=0
+       AND phase_id = ?
+       AND heat_number = ?
+       AND leader_id = ?
+       AND follower_id = ? |}
+        phase_id heat_number leader follower
+    | Any Single { target=t; role=Role.Leader } ->
+      State.insert ~st ~ty:[int;int;int]
+        {| DELETE FROM heats
+       WHERE 0=0
+       AND phase_id = ?
+       AND heat_number = ?
+       AND leader_id = ?
+       AND follower_id is NULL |}
+        phase_id heat_number t
+    | Any Single { target=t; role=Role.Follower } ->
+      State.insert ~st ~ty:[int;int;int]
+        {| DELETE FROM heats
+       WHERE 0=0
+       AND phase_id = ?
+       AND heat_number = ?
+       AND leader_id is NULL
+       AND follower_id = ? |}
+        phase_id heat_number t
+  end;
+  Ok phase_id
