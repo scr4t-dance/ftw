@@ -9,10 +9,13 @@ import {
     type SingleTarget, type Target
 } from "@hookgen/model";
 
-import { useGetApiCompIdBibs, useDeleteApiCompIdBib, getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib, } from "@hookgen/bib/bib";
-import { useForm, type UseFormReturn } from "react-hook-form";
+import {
+    useGetApiCompIdBibs, useDeleteApiCompIdBib,
+    getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib,
+} from "@hookgen/bib/bib";
+import { Controller, useForm, type UseFormReturn } from "react-hook-form";
 import { Field } from "@routes/index/field";
-import { NewTargetBibFormComponent } from './NewBibFormComponent';
+import { NewTargetBibFormComponent } from '@routes/bib/NewBibFormComponent';
 
 const dancerLink = "dancers/"
 
@@ -252,7 +255,6 @@ export function BareBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
 
     return (
         <>
-            <h1>Liste Compétiteur-ices</h1>
             <table>
                 <tbody>
                     <tr>
