@@ -54,6 +54,29 @@ let get_artefact_description st id_phase (panel: Ftw.Judge.panel) id_judge =
   end in
   artefact_descr
 
+let set_artefact_of_htja ~(st:Ftw.State.t) ~(id:Ftw.Phase.id) (htja: Types.HeatTargetJudgeArtefact.t) =
+  let htj = htja.heat_target_judge in
+  match htj.phase_id with
+  | p_id when p_id = id ->
+    let dancer_target = Types.Target.to_ftw htj.target in
+    let judge = htj.judge in
+    let heat_id_option = Ftw.Heat.get_id st id htj.heat_number dancer_target in
+    let+ heat_id = begin match heat_id_option with
+      | Ok None -> Error (Error.generic "Target not found in heat")
+      | Ok Some w -> Ok w
+      | Error e -> Error (Error.generic e)
+    end in
+    let artefact_option = Option.bind htja.artefact Types.Artefact.to_ftw in
+    let h = begin match artefact_option with
+      | Some artefact -> Ftw.Artefact.set ~st ~judge ~target:heat_id artefact
+      | None -> Ftw.Artefact.delete ~st ~judge ~target:heat_id
+    end in
+    begin match h with
+      | Ok _ -> Ok htj
+      | Error e -> Error (Error.generic e)
+    end
+  | _ -> Error (Error.generic "Phase id do not match payload")
+
 
 (*
 let get_target_ranks st id_phase (panel: Ftw.Judge.panel) =
@@ -273,10 +296,10 @@ let rec routes router =
       "404", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Heat, Target or Judge not found";
     ]
-    (* TODO ADD AN API THAT SHOWS ALL ARTEFACTS for a given phase and judging type
-      should be used to show all artefacts of targets per judges in the same table.
-      It is unwieldy to implement it in the frontend.
-    *)
+(* TODO ADD AN API THAT SHOWS ALL ARTEFACTS for a given phase and judging type
+   should be used to show all artefacts of targets per judges in the same table.
+   It is unwieldy to implement it in the frontend.
+*)
 (*
   |> Router.get "/api/phase/:id/ranks" get_ranks
     ~tags:["artefact"; "heat"; "judge"; "phase"]
@@ -343,27 +366,8 @@ and set_artefact =
     (
       fun req st (htja : Types.HeatTargetJudgeArtefact.t) ->
         let+ id = Utils.int_param req "id" in
-        let htj = htja.heat_target_judge in
-        match htj.phase_id with
-        | p_id when p_id = id ->
-          let dancer_target = Types.Target.to_ftw htj.target in
-          let judge = htj.judge in
-          let heat_id_option = Ftw.Heat.get_id st id htj.heat_number dancer_target in
-          let heat_id = begin match heat_id_option with
-            | Ok None -> Error "Target not found in heat"
-            | Ok Some w -> Ok w
-            | Error e -> Error e
-          end in
-          let a = Option.to_result ~none:"Artefact cannot be empty" htja.artefact in
-          let artefact = Result.map Types.Artefact.to_ftw a in
-          let set_artefact = fun target -> Result.map (Ftw.Artefact.set ~st ~judge ~target) in
-          let h = Result.bind heat_id (fun t -> set_artefact t artefact) in
-          let hh = Result.join h in
-          begin match hh with
-            | Ok _ -> Ok htj
-            | Error e -> Error (Error.generic e)
-          end
-        | _ -> Error (Error.generic "Phase id do not match payload")
+        let r = set_artefact_of_htja ~st ~id htja in
+        r
     )
 and get_artefact_heat =
   Api.get
@@ -424,34 +428,11 @@ and set_artefact_heat =
     (
       fun req st htja_array ->
         let+ id = Utils.int_param req "id" in
-        let set_artefact_of_htja (htja: Types.HeatTargetJudgeArtefact.t) =
-          let htj = htja.heat_target_judge in
-          match htj.phase_id with
-          | p_id when p_id = id ->
-            let dancer_target = Types.Target.to_ftw htj.target in
-            let judge = htj.judge in
-            let heat_id_option = Ftw.Heat.get_id st id htj.heat_number dancer_target in
-            let heat_id = begin match heat_id_option with
-              | Ok None -> Error "Target not found in heat"
-              | Ok Some w -> Ok w
-              | Error e -> Error e
-            end in
-            let a = Option.to_result ~none:"Artefact cannot be empty" htja.artefact in
-            let artefact = Result.map Types.Artefact.to_ftw a in
-            let set_artefact = fun target -> Result.map (Ftw.Artefact.set ~st ~judge ~target) in
-            let h = Result.bind heat_id (fun t -> set_artefact t artefact) in
-            let hh = Result.join h in
-            begin match hh with
-              | Ok _ -> Ok htj
-              | Error e -> Error (Error.generic e)
-            end
-          | _ -> Error (Error.generic "Phase id do not match payload")
-        in
-        let htja_result_list = List.map set_artefact_of_htja htja_array.artefacts in
-        let htja_list_result = List.fold_left (fun acc htja_result -> Result.bind acc (fun acc_list -> Result.map (fun htja -> acc_list @ [htja]) htja_result)) (Ok []) htja_result_list in
+        let htja_result_list = List.map (set_artefact_of_htja ~st ~id) htja_array.artefacts in
+        let+ htja_list_result = List.fold_left (fun acc htja_result -> Result.bind acc (fun acc_list -> Result.map (fun htja -> acc_list @ [htja]) htja_result)) (Ok []) htja_result_list in
         let get_judge = fun ({judge;_}: Types.HeatTargetJudge.t) -> judge in
-        let t = Result.map (fun w -> Types.DancerIdList.{dancers=List.map get_judge w}) htja_list_result in
-        t
+        let t = Types.DancerIdList.{dancers=List.map get_judge htja_list_result} in
+        Ok t
     )
 
 and delete_artefact =

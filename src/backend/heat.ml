@@ -84,7 +84,7 @@ let rec routes router =
         ~required:true
         ~content:[
           Spec.json,
-          Spec.make_media_type_object () ~schema:(Types.(ref PhaseId.ref));
+          Spec.make_media_type_object () ~schema:(Types.(ref InitHeatsFormData.ref));
         ]
     )
     ~parameters:[
@@ -111,11 +111,11 @@ let rec routes router =
     ~summary:"Promote dancers to next round"
     ~request_body:(
       Types.obj @@ Spec.make_request_body_object ()
-        ~description:"Placeholder"
+        ~description:"Treshold for next phase"
         ~required:true
         ~content:[
           Spec.json,
-          Spec.make_media_type_object () ~schema:(Types.(ref PhaseId.ref));
+          Spec.make_media_type_object () ~schema:(Types.(ref NextPhaseFormData.ref));
         ]
     )
     ~parameters:[
@@ -124,6 +124,68 @@ let rec routes router =
         ~description:"Id of the queried Phase"
         ~required:true
         ~schema:Types.(ref PhaseId.ref)
+    ]
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Successful operation"
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref PhaseId.ref));
+        ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid input";
+      "404", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Phase not found";
+    ]
+  |> Router.put "/api/phase/:id/heat_target" add_target
+    ~tags:["heat"; "phase"]
+    ~summary:"add a target to a heat"
+    ~request_body:(
+      Types.obj @@ Spec.make_request_body_object ()
+        ~description:"a HeatTargetJudge object, where judge data is not used"
+        ~required:true
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref HeatTargetJudge.ref));
+        ]
+    )
+    ~parameters:[
+      Types.obj @@ Spec.make_parameter_object ()
+        ~name:"id" ~in_:Path
+        ~description:"Id of the queried Phase"
+        ~required:true
+        ~schema:Types.(ref PhaseId.ref)
+    ]
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Successful operation"
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref PhaseId.ref));
+        ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid input";
+      "404", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Phase not found";
+    ]
+  |> Router.delete "/api/phase/:id/heat_target" delete_target
+    ~tags:["heat"; "phase"]
+    ~summary:"delete a target from a heat"
+    ~request_body:(
+      Types.obj @@ Spec.make_request_body_object ()
+        ~description:"a HeatTargetJudge object, where judge data is not used"
+        ~required:true
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref HeatTargetJudge.ref));
+        ]
+    )
+    ~parameters:[
+      Types.obj @@ Spec.make_parameter_object ()
+        ~name:"id" ~in_:Path
+        ~description:"Id of the queried Competition"
+        ~required:true
+        ~schema:Types.(ref CompetitionId.ref)
     ]
     ~responses:[
       "200", Types.obj @@ Spec.make_response_object ()
@@ -172,20 +234,40 @@ and get_heats =
 
 and init_heats =
   Api.put
-    ~of_yojson:Types.PhaseId.of_yojson
+    ~of_yojson:Types.InitHeatsFormData.of_yojson
     ~to_yojson:Types.PhaseId.to_yojson
-    (fun req st _d ->
+    (fun req st treshold_list ->
        let+ id = Utils.int_param req "id" in
-       Ftw.Heat.simple_init st ~phase:id;
+       Ftw.Heat.simple_init st ~phase:id treshold_list.min_number_of_targets treshold_list.max_number_of_targets;
        Ok id
     )
 
 and promote =
   Api.put
-    ~of_yojson:Types.PhaseId.of_yojson
+    ~of_yojson:Types.NextPhaseFormData.of_yojson
     ~to_yojson:Types.PhaseId.to_yojson
-    (fun req st _d ->
+    (fun req st form_data ->
        let+ id = Utils.int_param req "id" in
-       Ftw.Heat.simple_promote st ~phase:id;
+       Ftw.Heat.simple_promote st ~phase:id form_data.number_of_targets_to_promote;
        Ok id
+    )
+
+and add_target =
+  Api.put
+    ~of_yojson:Types.HeatTargetJudge.of_yojson
+    ~to_yojson:Types.PhaseId.to_yojson
+    (fun req st htj ->
+       let+ id = Utils.int_param req "id" in
+       let r = Ftw.Heat.add_target st ~phase_id:id htj.heat_number (Types.Target.to_ftw htj.target) in
+       Result.map_error Error.generic r
+    )
+
+and delete_target =
+  Api.put
+    ~of_yojson:Types.HeatTargetJudge.of_yojson
+    ~to_yojson:Types.PhaseId.to_yojson
+    (fun req st htj ->
+       let+ id = Utils.int_param req "id" in
+       let r = Ftw.Heat.delete_target st ~phase_id:id htj.heat_number (Types.Target.to_ftw htj.target) in
+       Result.map_error Error.generic r
     )
