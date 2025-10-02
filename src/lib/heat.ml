@@ -472,7 +472,7 @@ let all_single_judgement_targets { singles_heats; } =
 let all_couple_judgement_targets { couples_heats; } =
   Array.fold_left (fun map { couples; passages = _; } ->
       List.fold_left (fun map { leader; follower; target_id; } ->
-        (* all couples are judged, even if some dancer dances more than one time *)
+          (* all couples are judged, even if some dancer dances more than one time *)
           Id.Map.add target_id (Target.Couple {leader; follower }) map
         ) map couples
     ) Id.Map.empty couples_heats
@@ -539,3 +539,45 @@ let ranking ~st ~phase:id =
   | _ ->
     failwith "Incoherence between heats and judge panels"
 
+
+
+let add_target st ~(phase_id:Id.t) heat_number (target:target_id Target.any) =
+  match target with
+  | Any Single {target; role} -> Ok (add_single ~st ~phase:phase_id ~heat:heat_number ~role target)
+  | Any Couple {leader; follower} -> Ok (add_couple ~st ~phase:phase_id ~heat:heat_number ~leader ~follower)
+  | Any Trouple _ -> Error "add_target for Trouple not implemented"
+
+let delete_target st ~(phase_id:Id.t) heat_number (target:target_id Target.any) =
+  let open Sqlite3_utils.Ty in
+  begin match target with
+    | Any Couple {leader;follower;} ->
+      State.insert ~st ~ty:[int;int;int;int]
+        {| DELETE FROM heats
+       WHERE 0=0
+       AND phase_id = ?
+       AND heat_number = ?
+       AND leader_id = ?
+       AND follower_id = ? |}
+        phase_id heat_number leader follower
+    | Any Single { target=t; role=Role.Leader } ->
+      State.insert ~st ~ty:[int;int;int]
+        {| DELETE FROM heats
+       WHERE 0=0
+       AND phase_id = ?
+       AND heat_number = ?
+       AND leader_id = ?
+       AND follower_id is NULL |}
+        phase_id heat_number t
+    | Any Single { target=t; role=Role.Follower } ->
+      State.insert ~st ~ty:[int;int;int]
+        {| DELETE FROM heats
+       WHERE 0=0
+       AND phase_id = ?
+       AND heat_number = ?
+       AND leader_id is NULL
+       AND follower_id = ? |}
+        phase_id heat_number t
+    | Any Trouple _ ->
+      failwith "not implemented"
+  end;
+  Ok phase_id

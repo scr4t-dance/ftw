@@ -107,3 +107,15 @@ val get_singles : st:State.t -> phase:Phase.id -> singles_heats
 val get_couples : st:State.t -> phase:Phase.id -> couples_heats
 
 
+
+val add_target: State.t ->
+  phase_id:Id.t ->
+  int ->
+  target_id Target.any ->
+  (Id.t, string) result
+
+val delete_target: State.t ->
+  phase_id:Id.t ->
+  int ->
+  target_id Target.any ->
+  (Id.t, string) result
