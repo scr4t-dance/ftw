@@ -48,6 +48,7 @@ module One = struct
     { ranks = Array.make n None; }
 
   let get { ranks; } r =
+    Logs.debug ~src (fun k->k "get: rank size %d, rank %d" (Array.length ranks) (Rank.rank r));
     let i = Rank.to_index r in
     match ranks.(i) with
     | None -> Option.None
@@ -164,9 +165,7 @@ module Matrix = struct
   let missing_artefacts t = t.missing_artefacts
 
   let artefact t ~i ~j =
-    match t.artefacts.(i).(j) with
-    | None -> failwith "missing artefact"
-    | Some artefact -> artefact
+    t.artefacts.(i).(j)
 
   (* debug printing *)
 
@@ -217,17 +216,23 @@ module Matrix = struct
     let ranks = One.map_targets ~f t.ranks in
     { t with targets; judges; ranks;  }
 
+
+  let iteri ~targets:f ~judges:g t =
+    Array.iteri g t.judges;
+    Array.iteri f t.targets
+
   (* filing up the matrix with artefacts *)
 
   let acc_bonus ~i ~bonus t =
     t.bonus.(i) <- bonus
 
   let acc_artefact ~i ~j ~artefact t =
-    match t.artefacts.(i).(j) with
-    | None ->
+    match t.artefacts.(i).(j), artefact with
+    | None, Some art ->
       t.missing_artefacts <- t.missing_artefacts - 1;
-      t.artefacts.(i).(j) <- Some artefact
-    | Some _ -> failwith "duplicate artefact"
+      t.artefacts.(i).(j) <- Some art
+    | Some _, _ -> failwith "duplicate artefact"
+    | None, None -> ()
 
   (* Ranking helpers *)
 
@@ -355,8 +360,9 @@ module Yan_weighted = struct
   let acc _n = { judges = 0; head = 0; bonus = 0; }
 
   let extract artefact =
-    match (artefact : Artefact.t) with
-    | Yans l -> l
+    match (artefact : Artefact.t option) with
+    | Some Yans l -> Some l
+    | None -> None
     | _ -> failwith "bad artefact"
 
   let sum yans weights =
@@ -381,7 +387,10 @@ module Yan_weighted = struct
           then conf.head_weights
           else conf.weights
         in
-        let total = sum yans weights in
+        let total = begin match yans with
+          | Some l -> sum l weights
+          | None -> 0
+        end in
         acc :=
           if Matrix.is_head matrix ~j
           then { !acc with head = total; }
@@ -398,7 +407,7 @@ module Yan_weighted = struct
         { judges = j2; head = h2; bonus = b2; } =
       CCOrd.(int j2 j1 <?> (int, h2, h1) <?> (int, b2, b1))
     in
-    (* comoute total scores  sort the matrix *)
+    (* compute total scores  sort the matrix *)
     compute_totals ~conf matrix;
     Matrix.sort matrix ~cmp ~start:0 ~stop:(n - 1);
     Matrix.segments matrix ~cmp ~start:0 ~stop:(n - 1)
@@ -457,7 +466,7 @@ module RPSS = struct
     let res = ref 0 in
     for j = 0 to Matrix.width matrix - 1 do
       match Matrix.artefact matrix ~i ~j with
-      | Rank r -> if Rank.to_index r <= k then incr res
+      | Some Rank r -> if Rank.to_index r <= k then incr res
       | _ -> failwith "incorrect artefact"
     done;
     !res
@@ -466,7 +475,7 @@ module RPSS = struct
     let res = ref 0 in
     for j = 0 to Matrix.width matrix - 1 do
       match Matrix.artefact matrix ~i ~j with
-      | Rank r -> if Rank.to_index r <= k then res := Rank.rank r + !res
+      | Some Rank r -> if Rank.to_index r <= k then res := Rank.rank r + !res
       | _ -> failwith "incorrect artefact"
     done;
     !res
@@ -539,7 +548,7 @@ module RPSS = struct
       for i = start to stop do
         let rank =
           match Matrix.artefact matrix ~i ~j with
-          | Rank r -> Rank.rank r
+          | Some Rank r -> Rank.rank r
           | _ -> failwith "incorrect artefact"
         in
         (Matrix.get matrix ~i).(k).head <- Some rank
@@ -573,6 +582,7 @@ module Res = struct
   }
 
   let status { status; _ } = status
+  let info { info; _ } = info
 
   let ranking { info; _ } =
     match info with
@@ -598,6 +608,12 @@ module Res = struct
       | Yan_weighted matrix -> Yan_weighted (Matrix.map ~targets ~judges matrix)
     in
     { status; info; }
+
+  let iteri ~targets ~judges {info; _} =
+    match info with
+    | RPSS matrix -> Matrix.iteri ~targets ~judges matrix
+    | Yan_weighted matrix -> Matrix.iteri ~targets ~judges matrix
+
 
 end
 

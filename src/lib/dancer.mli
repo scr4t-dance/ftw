@@ -63,7 +63,7 @@ val add :
   ?birthday:Date.t -> ?email:string ->
   as_leader:Divisions.t -> as_follower:Divisions.t ->
   unit -> t
-(** Add a dancer, and returns its id. *)
+(** Add a dancer, and returns the dancer data saved in the database. *)
 
 val update :
   st:State.t -> id_dancer:id -> ?birthday:Date.t ->

@@ -28,5 +28,5 @@ export default function CompetitionDetailsRoute({
     const id_event = Number(params.id_event) as EventId;
     const id_competition = Number(params.id_competition) as CompetitionId;
 
-    return (<CompetitionDetailsComponent id_competition={id_competition} isAdmin={false} />)
+    return (<CompetitionDetailsComponent id_competition={id_competition} isAdmin={false} />);
 }

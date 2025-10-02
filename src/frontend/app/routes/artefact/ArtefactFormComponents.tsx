@@ -10,14 +10,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey, useGetApiPhaseIdArtefactJudgeIdJudge, usePutApiPhaseIdArtefactJudgeIdJudge, } from '@hookgen/artefact/artefact';
 import { Controller, FormProvider, get, useFieldArray, useForm, useFormContext, type SubmitHandler } from 'react-hook-form';
 import { Field } from '@routes/index/field';
-import { DancerCell } from '@routes/bib/BibComponents';
+import { dancerArrayFromTarget, DancerCell } from '@routes/bib/BibComponents';
 import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
 
 const yan_values: (string | undefined)[] = Object.values(YanItem);
-
-const iter_target_dancers = (t: Target) => t.target_type === "single"
-  ? [t.target]
-  : [t.follower, t.leader];
 
 type validateArtefactProps = {
   htjaArray: HeatTargetJudgeArtefactArray,
@@ -295,8 +291,6 @@ function RankingArtefactFormTable({ artefactData, heat_number, artefactInput, da
   const sortedDefaultFields = React.useMemo(() => {
     if (!defaultValues?.artefacts) return fields.map((f, i) => ({ field: f, originalIndex: i }));
 
-    //console.log("defualt ", defaultValues.artefacts?.[0]?.artefact);
-
     return [...fields]
       .map((field, index) => {
         const defaultArtefact = defaultValues.artefacts?.[index]?.artefact;
@@ -383,8 +377,10 @@ function RankingArtefactFormTable({ artefactData, heat_number, artefactInput, da
                     {field.heat_target_judge.target.target_type == "couple" &&
                       "couple"}
                   </p>
-                  {iter_target_dancers(field.heat_target_judge.target).map((i) => (
-                    <DancerCell key={`bib.${index}`} id_dancer={i} link={false} />
+                  {dancerArrayFromTarget(field.heat_target_judge.target).map((i) => (
+                    <p key={`bib.${index}`}>
+                      <DancerCell id_dancer={i} link={false} />
+                    </p>
                   ))}
                   <Field
                     error={get(errors, `artefacts.${index}.artefact.artefact_type.message`)}
@@ -473,8 +469,10 @@ function YanArtefactFormTable({ artefactData, heat_number, artefactInput, dataBi
                     </p>
                   </div>
                   <p className="table_comp_dancer_name">
-                    {iter_target_dancers(field.heat_target_judge.target).map((i) => (
-                      <DancerCell key={`bib.${index}`} id_dancer={i} />
+                    {dancerArrayFromTarget(field.heat_target_judge.target).map((i) => (
+                      <p key={`bib.${index}`}>
+                        <DancerCell id_dancer={i} link={false} />
+                      </p>
                     ))}
                     <Field
                       error={get(errors, `artefacts.${index}.artefact.artefact_type.message`)}
@@ -746,10 +744,10 @@ export function ArtefactFormJudge({ artefactData, dataBibs }: ArtefactFormCompon
 type ArtefactFormProps = {
   id_phase: PhaseId,
   id_judge: DancerId,
-  id_competition : CompetitionId
+  id_competition: CompetitionId
 }
 
-export function ArtefactFormRoute({id_phase, id_judge, id_competition} : ArtefactFormProps) {
+export function ArtefactFormRoute({ id_phase, id_judge, id_competition }: ArtefactFormProps) {
 
   const { data: phaseData, isSuccess: isSuccessPhase } = useGetApiPhaseId(id_phase);
   const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(id_competition);
@@ -781,7 +779,7 @@ export function ArtefactFormRoute({id_phase, id_judge, id_competition} : Artefac
 }
 
 
-export function ArtefactFormJudgeRoute({id_phase, id_judge, id_competition} : ArtefactFormProps) {
+export function ArtefactFormJudgeRoute({ id_phase, id_judge, id_competition }: ArtefactFormProps) {
 
   const { data: phaseData, isSuccess: isSuccessPhase } = useGetApiPhaseId(id_phase);
   const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(id_competition);

@@ -21,7 +21,7 @@ export function CompetitionTable({ competition_id_list, competition_data_list }:
 
   return (
     <>
-      <h2>Liste Compétitions</h2>
+      <h2>Liste Compétitions 2</h2>
       <table>
         <thead>
           <tr>
@@ -41,7 +41,7 @@ export function CompetitionTable({ competition_id_list, competition_data_list }:
               <tr key={index} className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
                 <td>
                   <Link to={`${url}${competitionId}`}>
-                    {competition.name}
+                    {competition.name === "" ? "unnamed" : competition.name}
                   </Link>
                 </td>
                 <td>{competition.kind}</td>
@@ -57,9 +57,6 @@ export function CompetitionTable({ competition_id_list, competition_data_list }:
 
 
 export function CompetitionTableComponent({ id_event, competition_id_list }: { id_event: EventId, competition_id_list: CompetitionIdList }) {
-
-  const location = useLocation();
-  const url = location.pathname.includes("competition") ? "" : "competitions/";
 
   const competitionDetailsQueries = useQueries({
     queries: competition_id_list.competitions.map((competitionId) => ({
@@ -83,40 +80,10 @@ export function CompetitionTableComponent({ id_event, competition_id_list }: { i
       }
     </div>);
 
+  const competition_data_list = competitionDetailsQueries.map(q => q.data as Competition);
+
   return (
-    <>
-      <h2>Liste Compétitions</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Nom de la compétition</th>
-            <th>Type</th>
-            <th>Catégorie</th>
-          </tr>
-        </thead>
-        <tbody>
-
-          {competitionDetailsQueries.map((competitionDetailsQuery, index) => {
-            const competitionId = competition_id_list.competitions[index];
-            const competition = competitionDetailsQuery.data;
-
-            if (!competition) return null;
-
-            return (
-              <tr key={index} className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
-                <td>
-                  <Link to={`${url}${competitionId}`}>
-                    {competition.name}
-                  </Link>
-                </td>
-                <td>{competition.kind}</td>
-                <td>{competition.category}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </>
+    <CompetitionTable competition_id_list={competition_id_list} competition_data_list={competition_data_list} />
   );
 }
 
@@ -178,7 +145,7 @@ export default function CompetitionDetailsComponent({ id_competition, isAdmin }:
   const { data: bibs_list, isLoading: isLoadingBibs, isError: isErrorBibs } = useGetApiCompIdBibs(id_competition);
 
   const { data: phase_list } = useGetApiCompIdPhases(id_competition);
-  const { data: dancer_list} = useGetApiDancers();
+  const { data: dancer_list } = useGetApiDancers();
 
   if (isLoadingCompetition) return (<div>Chargement de la competition</div>);
   if (isErrorCompetition) return (<div>Erreur chargement de la competition</div>);
@@ -186,7 +153,7 @@ export default function CompetitionDetailsComponent({ id_competition, isAdmin }:
   if (isLoadingBibs) return (<div>Chargement des dossards</div>);
   if (!bibs_list || isErrorBibs) return (<div>Erreur chargement des dossards</div>);
 
-  if(!dancer_list) return (<div>Chargement liste danseurs</div>)
+  if (!dancer_list) return (<div>Chargement liste danseurs</div>)
 
   //const url = `/events/${loaderData.id_event}/competitions/${loaderData.id_competition}`;
   const url = "";
@@ -198,11 +165,8 @@ export default function CompetitionDetailsComponent({ id_competition, isAdmin }:
       <p>Catégorie : {competition?.category}</p>
       {!isAdmin &&
         <>
-
-          <h2>Dossards solo</h2>
+          <h2>Dossards</h2>
           <PublicBibList bib_list={bibs_list.bibs.filter((b) => b.target.target_type === "single")} />
-          <h2>Dossards couples</h2>
-          <PublicBibList bib_list={bibs_list.bibs.filter((b) => b.target.target_type === "couple")} />
         </>
       }
 

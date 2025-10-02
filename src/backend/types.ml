@@ -987,6 +987,26 @@ module BibList = struct
 end
 
 
+module OldBibNewBib = struct
+
+  type t = {
+    old_bib: Bib.t;
+    new_bib: Bib.t;
+  } [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"OldBibNewBib"
+      ~typ:(Obj Object)
+      ~properties:[
+        "old_bib", ref Bib.ref;
+        "new_bib", ref Bib.ref;
+      ]
+      ~required:["old_bib"; "new_bib";]
+
+end
+
 (* Heats *)
 (* ************************************************************************* *)
 
@@ -1521,8 +1541,8 @@ module TargetRPSSRank = struct
   type t = {
     ranking_type: string;
     target : Target.t;
-    rank: int option;
-    artefact_list: ArtefactRank.t list;
+    rank: int;
+    (*artefact_list: ArtefactRank.t list; *)
     ranking_details: string list; (* one element per rank, to plot on the right hand side*)
   } [@@deriving yojson]
 
@@ -1536,9 +1556,6 @@ module TargetRPSSRank = struct
           ~typ:string
           ~enum:[`String "rpss"];
         "target", (ref Target.ref);
-        "artefact_list", obj @@ S.make_schema()
-          ~typ:array
-          ~items:(ref ArtefactRank.ref);
         "rank",  obj @@ S.make_schema()
           ~typ:int;
         "ranking_details", obj @@ S.make_schema()
@@ -1547,6 +1564,46 @@ module TargetRPSSRank = struct
                     ~typ:string);
       ]
       ~required:["ranking_type";"target";"rank";"ranking_details"]
+
+  type cell = Ftw.Ranking.RPSS.cell = {
+    mutable votes : int option;
+    mutable sum : int option;
+    mutable head : int option;
+  }
+
+  type acc = Ftw.Ranking.RPSS.acc
+
+  let get_votes {votes;sum;head} =
+    let print_list = begin match votes with
+      | Some 0 ->
+        [""]
+      | Some v (* v > 0 *) ->
+        let sum_head_string = begin match sum with
+          | Some s ->
+            let head_string = begin match head with
+              | Some _ -> "*"
+              | None -> ""
+            end in
+            ["(" ^ (string_of_int s) ^ ")"; head_string]
+          | None -> [""]
+        end in
+        (string_of_int v) :: sum_head_string
+      | None ->
+        ["--"]
+    end in
+    String.concat "\n" print_list
+
+  let of_ftw r =
+    let ranking_info, rank_data = r in
+    match rank_data with
+    | None -> failwith "No ranking data"
+    | Some (rank, target) ->
+      let get_ranking_details c = get_votes c in
+      let ranking_details = Array.map get_ranking_details ranking_info |> Array.to_list in
+      {
+        ranking_type="rpss";target=target;rank=Ftw.Rank.rank rank;
+        ranking_details=ranking_details
+      }
 end
 
 module TargetYanRank = struct
@@ -1554,8 +1611,8 @@ module TargetYanRank = struct
   type t = {
     ranking_type: string;
     target : Target.t;
-    rank: int option;
-    artefact_list: ArtefactYans.t list;
+    rank: int;
+    (*artefact_list: ArtefactYans.t list;*)
     score: float option;
   } [@@deriving yojson]
 
@@ -1569,15 +1626,32 @@ module TargetYanRank = struct
           ~typ:string
           ~enum:[`String "yan"];
         "target", (ref Target.ref);
-        "artefact_list", obj @@ S.make_schema()
-          ~typ:array
-          ~items:(ref ArtefactYans.ref);
         "rank",  obj @@ S.make_schema()
           ~typ:int;
         "score", obj @@ S.make_schema()
           ~typ:int;
       ]
-      ~required:["ranking_type"; "target"; "artefact_list";"rank";"score"]
+      ~required:["ranking_type"; "target";"rank";"score"]
+
+  type acc = Ftw.Ranking.Yan_weighted.acc = {
+    judges : int;
+    head : int;
+    bonus : Ftw.Bonus.t;
+  }
+
+  let get_sum {judges;head;bonus} = Float.add (float_of_int judges) (Float.add (Float.div (float_of_int head) 10.) (Float.div (float_of_int bonus) 100.))
+
+  let of_ftw r =
+    let ranking_info, rank_data = r in
+    match rank_data with
+    | None -> failwith "No ranking data"
+    | Some (rank, target) ->
+      let get_ranking_details a = get_sum a in
+      let score = get_ranking_details ranking_info in
+      {
+        ranking_type="yan";target=target;rank=Ftw.Rank.rank rank;
+        score=Some score
+      }
 end
 
 module TargetRank = struct
@@ -1598,12 +1672,42 @@ module TargetRank = struct
       ]
 
   (* TODO implement to_yojson  *)
+  let to_yojson target =
+    match target with
+    | YanRank {rank=t} ->
+      let schema_fields =
+        begin match TargetYanRank.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("ranking_type", `String "yan");] @ schema_fields)
+    | RPSSRank {rank=t} ->
+      let schema_fields =
+        begin match TargetRPSSRank.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("ranking_type", `String "rpss");] @ schema_fields)
+
+  let of_yojson json =
+    match json with
+    | `Assoc fields -> (
+        match List.assoc_opt "ranking_type" fields with
+        | Some (`String "yan") -> TargetYanRank.of_yojson json |> Result.map (fun s -> YanRank {rank=s})
+        | Some (`String "rpss") -> TargetRPSSRank.of_yojson json |> Result.map (fun s -> RPSSRank {rank=s})
+        | Some (`String unknown) -> Error ("Unrecognised ranking_type: " ^ unknown)
+        | Some _  -> Error ("Unrecognised ranking_type")
+        | None -> Error "Missing key: ranking_type"
+      )
+    | _ -> Error "Expected JSON object for TargetRank"
 end
 
 
 
 
-module PhaseRanking = struct
+module OneRanking = struct
 
   type t = {
     (* hypothesis dense rank
@@ -1616,24 +1720,174 @@ module PhaseRanking = struct
        the frontend doesn't know the condition for the ranking to be valid.
        It just applies warning colors to ranks that contains more than 1 target.
     *)
-    ranks: TargetRank.t list list;
+    ranks: TargetRank.t list;
   } [@@deriving yojson]
 
   let ref, schema =
     make_schema ()
-      ~name:"PhaseRanks"
+      ~name:"OneRanking"
       ~typ:object_
       ~properties:[
         "ranks", obj @@ S.make_schema()
           ~typ:array
-          ~items:(
-            obj @@ S.make_schema()
-              ~typ:array
-              ~items:(ref TargetRank.ref)
-          );
+          ~items:(ref TargetRank.ref)
       ]
       ~required:["ranks"]
+
+  let of_ftw (r:'a Ftw.Ranking.Res.t) =
+    let ranking = Ftw.Ranking.Res.ranking r in
+    let map_rank matrix = List.map
+        (fun rank_integer -> let rank = Ftw.Rank.mk rank_integer in
+          (Ftw.Ranking.Matrix.get ~i:(Ftw.Rank.to_index rank) matrix,
+           Ftw.Ranking.One.get ranking rank))
+        (List.init (Ftw.Ranking.Matrix.length matrix) succ)
+    in
+    let impossible_map_rank matrix = List.map
+        (fun rank_integer -> let rank = Ftw.Rank.mk rank_integer in
+          (Ftw.Ranking.Matrix.get ~i:(Ftw.Rank.to_index rank) matrix,
+           Some (Ftw.Rank.mk 0, Ftw.Ranking.Matrix.target matrix ~i:(Ftw.Rank.to_index rank))))
+        (List.init (Ftw.Ranking.Matrix.length matrix) succ)
+    in
+    let m = Ftw.Ranking.Res.info r in
+    match m with
+    | Ftw.Ranking.Res.RPSS matrix ->
+      let map_rank_status = begin match Ftw.Ranking.Res.status r with
+        | Partial -> map_rank
+        | Complete -> map_rank
+        | Impossible -> impossible_map_rank
+      end in
+      let rank_list = map_rank_status matrix in
+      let rpss_rank_list = List.map TargetRPSSRank.of_ftw rank_list in
+      let target_rank_list = List.map (fun x -> TargetRank.RPSSRank {rank=x}) rpss_rank_list in
+      {ranks=target_rank_list}
+    | Ftw.Ranking.Res.Yan_weighted matrix ->
+      let map_rank_status = begin match Ftw.Ranking.Res.status r with
+        | Partial -> map_rank
+        | Complete -> map_rank
+        | Impossible -> impossible_map_rank
+      end in
+      let rank_list = map_rank_status matrix in
+      let yan_rank_list = List.map TargetYanRank.of_ftw rank_list in
+      let target_rank_list = List.map (fun x -> TargetRank.YanRank {rank=x}) yan_rank_list in
+      {ranks=target_rank_list}
 end
+
+module PhaseRankingSingles = struct
+
+  type t = {
+    target_type: string;
+    leaders: OneRanking.t;
+    followers: OneRanking.t;
+  } [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"PhaseRankingSingles"
+      ~typ:(Obj Object)
+      ~properties:[
+        "target_type", obj @@ S.make_schema()
+          ~typ:string
+          ~enum:[`String "single"];
+        "leaders", (ref OneRanking.ref);
+        "followers", (ref OneRanking.ref);
+      ]
+      ~required:["target_type";"leaders";"followers"]
+
+  let of_ftw sr =
+    match sr with
+    | Ftw.Heat.Singles {leaders;follows;} -> {
+        target_type="single";
+        leaders=OneRanking.of_ftw leaders;
+        followers=OneRanking.of_ftw follows
+      }
+    | Ftw.Heat.Couples _ -> failwith "unexpected type"
+
+end
+
+module PhaseRankingCouples = struct
+
+  type t = {
+    target_type: string;
+    couples: OneRanking.t;
+  } [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"PhaseRankingCouples"
+      ~typ:(Obj Object)
+      ~properties:[
+        "target_type", obj @@ S.make_schema()
+          ~typ:string
+          ~enum:[`String "couple"];
+        "couples", (ref OneRanking.ref);
+      ]
+      ~required:["target_type";"couples"]
+
+  let of_ftw cr =
+    match cr with
+    | Ftw.Heat.Couples r -> {target_type="couple"; couples=OneRanking.of_ftw r.couples}
+    | Ftw.Heat.Singles _ -> failwith "unexpected type"
+
+end
+
+
+module PhaseRanking = struct
+
+  type t =
+    | Singles of PhaseRankingSingles.t
+    | Couples of PhaseRankingCouples.t
+  [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"PhaseRanking"
+      ~typ:object_
+      ~one_of:[
+        (ref PhaseRankingSingles.ref);
+        (ref PhaseRankingCouples.ref);
+      ]
+
+  let of_ftw r =
+    match r with
+    | Ftw.Heat.Singles _ as sr -> Singles (PhaseRankingSingles.of_ftw sr)
+    | Ftw.Heat.Couples _ as cr -> Couples (PhaseRankingCouples.of_ftw cr)
+
+
+  let to_yojson target =
+    match target with
+    | Singles t ->
+      let schema_fields =
+        begin match PhaseRankingSingles.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("target_type", `String "single");] @ schema_fields)
+    | Couples t ->
+      let schema_fields =
+        begin match PhaseRankingCouples.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("target_type", `String "couple");] @ schema_fields)
+
+  let of_yojson json =
+    match json with
+    | `Assoc fields -> (
+        match List.assoc_opt "target_type" fields with
+        | Some (`String "single") -> PhaseRankingSingles.of_yojson json |> Result.map (fun s -> Singles s)
+        | Some (`String "couple") -> PhaseRankingCouples.of_yojson json |> Result.map (fun s -> Couples s)
+        | Some (`String unknown) -> Error ("Unrecognised target_type: " ^ unknown)
+        | Some _  -> Error ("Unrecognised target_type")
+        | None -> Error "Missing key: target_type"
+      )
+    | _ -> Error "Expected JSON object for PhaseRanking"
+end
+
 
 
 
@@ -1676,4 +1930,42 @@ module InitHeatsFormData = struct
       ~required:["min_number_of_targets"; "max_number_of_targets"]
 end
 
+module HeatNumber = struct
 
+  type t = {
+    heat_number: int;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatNumber"
+      ~typ:object_
+      ~properties:[
+        "heat_number", obj @@ S.make_schema()
+          ~typ:int
+      ]
+      ~required:["heat_number"]
+
+end
+
+module HeatCoupleTargetList = struct
+
+  type t = {
+    couples: Target.t list;
+    heat_number: int;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatCoupleTargetList"
+      ~typ:object_
+      ~properties:[
+        "couples", obj @@ S.make_schema()
+          ~typ:array
+          ~items:(ref Target.ref);
+        "heat_number", obj @@ S.make_schema()
+          ~typ:int
+      ]
+      ~required:["couples"; "heat_number"]
+
+end

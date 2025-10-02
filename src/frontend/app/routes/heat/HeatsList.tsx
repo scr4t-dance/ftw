@@ -31,10 +31,7 @@ export async function loader({ params }: Route.LoaderArgs) {
     return { dehydratedState: dehydrate(queryClient) };
 }
 
-
 export default function HeatsList({ params }: Route.ComponentProps) {
-
-
     const id_event = Number(params.id_event) as EventId;
     const id_competition = Number(params.id_competition) as CompetitionId;
     const id_phase = Number(params.id_phase) as PhaseId;
