@@ -20,6 +20,7 @@ import {
   getGetApiPhaseIdJudgesQueryKey, getGetApiPhaseIdJudgesQueryOptions,
   getApiPhaseIdJudges
 } from "./hookgen/judge/judge";
+import { getApiPhaseIdHeats, getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdHeatsQueryOptions } from "./hookgen/heat/heat";
 
 
 export const queryClient = new QueryClient({
@@ -252,5 +253,15 @@ export const judgePanelLoader = createLoader({
   fetchServer: getApiPhaseIdJudges,
   getQueryKey: getGetApiPhaseIdJudgesQueryKey,
   getQueryOptions: getGetApiPhaseIdJudgesQueryOptions,
+  queryClient,
+});
+
+export const heatListLoader = createLoader({
+  idKey: "id_phase",
+  dataKey: "heat_list",
+  idParser: (param: string) => Number(param) as PhaseId,
+  fetchServer: getApiPhaseIdHeats,
+  getQueryKey: getGetApiPhaseIdHeatsQueryKey,
+  getQueryOptions: getGetApiPhaseIdHeatsQueryOptions,
   queryClient,
 });

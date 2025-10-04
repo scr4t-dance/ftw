@@ -1,3 +1,4 @@
+import type { Route } from './+types/HeatsList';
 import React from 'react';
 
 import type { CompetitionId, PhaseId, } from "@hookgen/model";
@@ -10,22 +11,62 @@ import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
 import { HeatsListComponent } from './HeatComponents';
 
 
-export default function HeatsList() {
+import {
+    combineClientLoader, combineServerLoader, bibsListLoader,
+    competitionLoader, eventLoader, phaseListLoader, heatListLoader, queryClient,
+} from '~/queryClient';
 
-    let { id_phase:id_phase_string } = useParams();
-    let id_phase = Number(id_phase_string) as PhaseId;
-    const { data: phaseData, isLoading } = useGetApiPhaseId(id_phase);
 
-    const { data: heats, isSuccess: isSuccessHeats } = useGetApiPhaseIdHeats(id_phase);
+const loader_array = [eventLoader, competitionLoader, bibsListLoader, phaseListLoader, heatListLoader];
 
-    const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(phaseData?.competition as CompetitionId);
 
-    if (isLoading) return <div>Chargement...</div>;
-    if (!phaseData) return null;
+export async function loader({ params }: Route.LoaderArgs) {
+
+    const combinedData = await combineServerLoader(loader_array, params);
+
+    return combinedData;
+}
+
+let isInitialRequest = true;
+
+export async function clientLoader({
+    params,
+    serverLoader,
+}: Route.ClientLoaderArgs) {
+
+    if (isInitialRequest) {
+        isInitialRequest = false;
+        const serverData = await serverLoader();
+
+        loader_array.forEach((l) => l.cache(queryClient, serverData));
+
+        return serverData;
+    }
+
+    const combinedData = await combineClientLoader(loader_array, params);
+    return combinedData;
+}
+clientLoader.hydrate = true;
+
+
+export default function HeatsList({ loaderData }: Route.ComponentProps) {
+
+    const { data: heats, isSuccess: isSuccessHeats } = useGetApiPhaseIdHeats(loaderData.id_phase, {
+        query: {
+            initialData: loaderData.heat_list
+        }
+    });
+
+    const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(loaderData.id_competition, {
+        query: {
+            initialData:loaderData.bibs_list
+        }
+    });
+
     if (!isSuccessBibs) return <div>Chargement des bibs...</div>;
     if (!isSuccessHeats) return <div>Chargement des heats...</div>;
 
-    return <HeatsListComponent id_phase={id_phase} heats={heats} dataBibs={dataBibs} />
+    return <HeatsListComponent id_phase={loaderData.id_phase} heats={heats} dataBibs={dataBibs} />
 
 }
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, type JSX } from 'react';
 
 import { useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm, type UseFormReturn } from "react-hook-form";
@@ -68,11 +68,13 @@ type HeatTargetRowEditableProps = {
     missingBibList: BibList;
     onUpdate: () => void;
     onCancel: () => void;
+    error: string | undefined;
+    success: string | undefined;
 };
 
 
 
-function BibHeatRowEditable({ formObject, missingBibList, onUpdate, onCancel }: HeatTargetRowEditableProps) {
+function BibHeatRowEditable({ formObject, missingBibList, onUpdate, onCancel, error, success }: HeatTargetRowEditableProps) {
     const {
         control,
         formState: { errors, defaultValues },
@@ -85,6 +87,16 @@ function BibHeatRowEditable({ formObject, missingBibList, onUpdate, onCancel }: 
         <>
             <td>
                 {targetType}
+                {error &&
+                    <p>
+                        {error}
+                    </p>
+                }
+                {success &&
+                    <p>
+                        {success}
+                    </p>
+                }
             </td>
 
             <td>
@@ -144,8 +156,13 @@ function EditableHeatTarget({ heatTargetJudge, bib, index, missingBibList }: { h
 
     const [isEditing, setIsEditing] = useState(false);
 
+    const defaultHeatTargetJudge = {
+        ...heatTargetJudge,
+        target: bib.target
+    }
+
     const formObject = useForm<HeatTargetJudge>({
-        defaultValues: heatTargetJudge
+        defaultValues: defaultHeatTargetJudge,
     });
 
     const {
@@ -156,7 +173,7 @@ function EditableHeatTarget({ heatTargetJudge, bib, index, missingBibList }: { h
 
     const queryClient = useQueryClient();
 
-    const { mutate: addTargetToHeat } = usePutApiPhaseIdHeatTarget({
+    const { mutate: addTargetToHeat, error, isError, isSuccess } = usePutApiPhaseIdHeatTarget({
         mutation: {
             onSuccess: (id_phase) => {
                 queryClient.invalidateQueries({
@@ -175,7 +192,7 @@ function EditableHeatTarget({ heatTargetJudge, bib, index, missingBibList }: { h
         mutation: {
             onSuccess: (id_phase) => {
                 queryClient.invalidateQueries({
-                    queryKey: getGetApiCompIdBibsQueryKey(id_phase),
+                    queryKey: getGetApiPhaseIdHeatsQueryKey(id_phase),
                 });
             },
             onError: (err) => {
@@ -194,12 +211,15 @@ function EditableHeatTarget({ heatTargetJudge, bib, index, missingBibList }: { h
         setIsEditing(false);
     };
 
-    useEffect(() => {
-        reset(heatTargetJudge);
-    }, [heatTargetJudge, reset]);
+    // useEffect(() => {
+    //     reset(defaultHeatTargetJudge);
+    // }, [, heatTargetJudge, bib, reset]);
+
+    const errorMessage = isError ? error.message : undefined;
+    const successMessage = isSuccess ? "Bib correctly added" : undefined;
 
     return (
-        <tr key={`${heatTargetJudge.phase_id}-${heatTargetJudge.target}`}
+        <tr key={`${defaultHeatTargetJudge.phase_id}-${defaultHeatTargetJudge.target.target_type}-${index}`}
             className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
 
             {isEditing ? (
@@ -208,13 +228,15 @@ function EditableHeatTarget({ heatTargetJudge, bib, index, missingBibList }: { h
                     missingBibList={missingBibList}
                     onUpdate={handleUpdate}
                     onCancel={handleCancel}
+                    error={errorMessage}
+                    success={successMessage}
                 />
             ) : (
                 <HeatTargetRowReadOnly
-                    heatTarget={heatTargetJudge}
+                    heatTarget={defaultHeatTargetJudge}
                     bib={bib}
                     onEdit={() => setIsEditing(true)}
-                    onDelete={() => deleteTargetFromHeat({ id: heatTargetJudge.phase_id, data: heatTargetJudge })}
+                    onDelete={() => deleteTargetFromHeat({ id: defaultHeatTargetJudge.phase_id, data: defaultHeatTargetJudge })}
                 />
             )
             }
@@ -233,17 +255,19 @@ function NewHeatTarget({ defaultHeatTargetJudge, missingBibList }: { defaultHeat
         control,
         watch,
         setError,
-        formState: { errors, defaultValues }
+        reset,
+        formState: { errors, defaultValues, isSubmitSuccessful }
     } = formObject;
 
     const queryClient = useQueryClient();
 
-    const { mutate: addTargetToHeat } = usePutApiPhaseIdHeatTarget({
+    const { mutate: addTargetToHeat, isError, error } = usePutApiPhaseIdHeatTarget({
         mutation: {
             onSuccess: (id_phase) => {
                 queryClient.invalidateQueries({
                     queryKey: getGetApiPhaseIdHeatsQueryKey(id_phase),
                 });
+                reset();
             },
             onError: (err) => {
                 console.error('Error updating competition:', err);
@@ -253,6 +277,11 @@ function NewHeatTarget({ defaultHeatTargetJudge, missingBibList }: { defaultHeat
     });
 
     const handleUpdate = handleSubmit((data) => {
+        console.log("submit", data);
+        if (JSON.stringify(data.target) === JSON.stringify(defaultValues?.target)) {
+            setError("root.serverError", { message: "Cannot be default" });
+            return;
+        }
         addTargetToHeat({ id: data.phase_id, data });
     });
 
@@ -264,7 +293,7 @@ function NewHeatTarget({ defaultHeatTargetJudge, missingBibList }: { defaultHeat
                 {targetType}
             </td>
 
-            <td>
+            <td colSpan={2}>
                 <Field label="" error={errors.target?.message}>
                     <Controller
                         control={control}
@@ -273,20 +302,30 @@ function NewHeatTarget({ defaultHeatTargetJudge, missingBibList }: { defaultHeat
                             <select
                                 onChange={(e) => {
                                     const index = Number(e.target.value);
+                                    console.log("onChange Target1", index);
+                                    if (index === -1) {
+                                        field.onChange({
+                                            ...e,
+                                            target: {
+                                                ...e.target,
+                                                value: defaultValues?.target
+                                            }
+                                        });
+                                        return;
+                                    }
                                     const selected = {
                                         ...e,
                                         target: {
                                             ...e.target,
-                                            value: {
-                                                ...defaultValues,
-                                                target: missingBibList.bibs[index].target
-                                            }
+                                            value: missingBibList.bibs[index].target
                                         }
                                     };
+                                    console.log("onChange Target", index, selected);
                                     field.onChange(selected);
                                 }}
                             >
-                                {[{ bib: 0, target: defaultValues?.target } as Bib].concat(missingBibList.bibs).map((bib, index) => (
+                                <option key={-1} value={-1}>----</option>
+                                {missingBibList.bibs.map((bib, index) => (
                                     <option key={index} value={index}>{bib.bib}</option>)
                                 )}
                             </select>
@@ -295,19 +334,19 @@ function NewHeatTarget({ defaultHeatTargetJudge, missingBibList }: { defaultHeat
                 </Field>
             </td>
 
-            {targetType === "single" && (
-                <>
-                    <td><DancerCell id_dancer={formObject.getValues("target.target")} /></td>
-                    <td>{formObject.getValues("target.role")?.join(", ")}</td>
-                </>
-            )}
+            <td>
+                {isError &&
+                    <p>
+                        {error.message}
+                    </p>
+                }
+                {isSubmitSuccessful &&
+                    <p>
+                        Bib correctly added
+                    </p>
+                }
+            </td>
 
-            {targetType === "couple" && (
-                <>
-                    <td><DancerCell id_dancer={formObject.getValues("target.follower")} /></td>
-                    <td><DancerCell id_dancer={formObject.getValues("target.leader")} /></td>
-                </>
-            )}
             <td>
                 <button type="submit" onClick={() => handleUpdate()}>Add new</button>
             </td>
@@ -315,10 +354,10 @@ function NewHeatTarget({ defaultHeatTargetJudge, missingBibList }: { defaultHeat
     );
 }
 
-export function BibHeatListComponent({ bib_list, id_phase, heat_number, missingBibList }: { bib_list: Bib[], id_phase: PhaseId, heat_number: number, missingBibList: BibList }) {
+export function BibHeatListComponent({ bib_list, id_phase, heat_number, missingBibList, defaultTarget }: { bib_list: Bib[], id_phase: PhaseId, heat_number: number, missingBibList: BibList, defaultTarget: Target }) {
 
     const defaultHeatTarget = {
-        phase_id: id_phase, heat_number: heat_number, target: { target_type: "single" } as Target,
+        phase_id: id_phase, heat_number: heat_number, target: defaultTarget,
         judge: -1,
         description: {
             artefact: "ranking",
@@ -366,25 +405,38 @@ type SingleHeatProps = {
 
 export function SingleHeatTable({ heat, dataBibs, missing_bibs, heat_number, id_phase }: SingleHeatProps) {
 
-
-    const followers: DancerId[] = heat.followers.flatMap(u => iter_target_dancers(u));
-    const leaders: DancerId[] = heat.leaders.flatMap(u => iter_target_dancers(u));
     const get_bibs = (dancer_list: DancerId[]) => dataBibs?.bibs.filter(b => iter_target_dancers(b.target).map(dancer => dancer_list?.includes(dancer)).includes(true));
+    const followers = get_bibs(heat.followers.flatMap(u => iter_target_dancers(u)));
+    const leaders = get_bibs(heat.leaders.flatMap(u => iter_target_dancers(u)));
+    const notInHeatFollowerBibs = {
+        bibs: dataBibs.bibs
+            .filter((b) => (b.target.target_type === "single" && b.target.role[0] === "Follower"
+                && !followers.map((hb) => hb.bib).includes(b.bib)
+            ))
+    } as BibList;
+    const notInHeatLeaderBibs = {
+        bibs: dataBibs.bibs
+            .filter((b) => (b.target.target_type === "single" && b.target.role[0] === "Leader"
+                && !leaders.map((hb) => hb.bib).includes(b.bib)
+            ))
+    } as BibList;
 
     return (
         <>
             <div>
                 <h3>Followers</h3>
-                <BibHeatListComponent bib_list={get_bibs(followers)}
-                    heat_number={heat_number} missingBibList={missing_bibs}
+                <BibHeatListComponent bib_list={followers}
+                    heat_number={heat_number} missingBibList={notInHeatFollowerBibs}
                     id_phase={id_phase}
+                    defaultTarget={{ target_type: "single", role: ["Follower"] } as Target}
                 />
             </div>
             <div>
                 <h3>Leaders</h3>
-                <BibHeatListComponent bib_list={get_bibs(leaders)}
-                    heat_number={heat_number} missingBibList={missing_bibs}
+                <BibHeatListComponent bib_list={leaders}
+                    heat_number={heat_number} missingBibList={notInHeatLeaderBibs}
                     id_phase={id_phase}
+                    defaultTarget={{ target_type: "single", role: ["Leader"] } as Target}
                 />
             </div>
         </>);
@@ -401,13 +453,21 @@ export function CoupleHeatTable({ heat, dataBibs, missing_bibs, heat_number, id_
 
 
     const get_bibs = (dancer_list: DancerId[]) => dataBibs?.bibs.filter(b => iter_target_dancers(b.target).map(dancer => dancer_list?.includes(dancer)).includes(true));
+    const couples = get_bibs(heat.couples.flatMap(u => iter_target_dancers(u)));
+    const missingBibList = {
+        bibs: dataBibs.bibs
+            .filter((b) => (b.target.target_type === "couple")
+                && (couples.filter((heat_couple) => b.bib === heat_couple.bib) ? false : true)
+            )
+    } as BibList;
 
     return (
         <>
             <h3>Couples</h3>
-            <BibHeatListComponent bib_list={get_bibs(heat.couples.flatMap(u => iter_target_dancers(u)))}
-                heat_number={heat_number} missingBibList={missing_bibs}
+            <BibHeatListComponent bib_list={couples}
+                heat_number={heat_number} missingBibList={missingBibList}
                 id_phase={id_phase}
+                defaultTarget={{ target_type: "couple" } as Target}
             />
         </>);
 }
@@ -433,10 +493,8 @@ export function HeatsListComponent({ id_phase, heats, dataBibs }: { id_phase: nu
 
     return (
         <>
-            <p>
-                <InitHeatsForm id_phase={id_phase} />
+            <InitHeatsForm id_phase={id_phase} />
 
-            </p>
 
             {heats?.heats && heats?.heats.map((heat, index) => (
                 <>
