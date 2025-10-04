@@ -147,7 +147,7 @@ export function ArtefactListComponent({ phase_id, judges, head_judge, heat_numbe
                         return (
                             <th>
                                 {index === judges.dancers.length && "Head "}
-                                <Link to={`/phases/${phase_id}/artefacts/judge/${judgeId}`}>
+                                <Link to={`judge/${judgeId}`}>
                                     {judgeData.first_name + " " + judgeData.last_name}
                                 </Link>
                             </th>

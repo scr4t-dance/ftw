@@ -27,10 +27,12 @@ const admin_routes = disable_admin ? [] : [
                 index("routes/phase/PhasePage.tsx"),
                 route("edit", "routes/phase/EditPhaseForm.tsx"),
                 route("heats", "routes/heat/HeatsList.tsx"),
-                route("artefacts", "routes/artefact/ArtefactList.tsx"),
+                route("artefacts", "routes/artefact/ArtefactHome.tsx", [
+                  index("routes/artefact/ArtefactList.tsx"),
+                  route("judge/:id_judge", "routes/artefact/ArtefactForm.tsx"),
+                ]),
                 route("judges", "routes/judge/JudgeList.tsx"),
                 route("edit_judges", "routes/judge/JudgeForm.tsx"),
-                route("artefacts/judge/:id_judge", "routes/artefact/ArtefactForm.tsx"),
                 route("ranks", "routes/artefact/RankList.tsx"),
               ]),
             ]),
@@ -66,9 +68,9 @@ export default [
         index("routes/competition/CompetitionListPublic.tsx"),
         route(":id_competition", "routes/competition/CompetitionHomePublic.tsx", [
           index("routes/competition/CompetitionDetailsPublic.tsx"),
-            route("bibs", "routes/bib/BibHomePublic.tsx", [
-              index("routes/bib/BibListPublic.tsx"),
-            ]),
+          route("bibs", "routes/bib/BibHomePublic.tsx", [
+            index("routes/bib/BibListPublic.tsx"),
+          ]),
         ]),
       ]),
     ]),
