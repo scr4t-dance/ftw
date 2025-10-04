@@ -11,6 +11,7 @@ import { useDeleteApiCompIdBib, getGetApiCompIdBibsQueryKey, usePatchApiCompIdBi
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { Field } from "@routes/index/field";
 import { useGetApiPhaseIdJudges } from "@hookgen/judge/judge";
+import { DancerCell } from '../bib/BibComponents';
 
 
 const dancerLink = "dancers/"
@@ -49,22 +50,6 @@ function dancerArrayFromTarget(t: Target): DancerId[] {
     return t.target_type === "single"
         ? [t.target]
         : [t.follower, t.leader]
-}
-
-
-export function DancerCell({ id_dancer }: { id_dancer: DancerId }) {
-
-    const { data: dancer } = useGetApiDancerId(id_dancer);
-
-    if (!dancer) return "Loading dancer..."
-
-    return (
-        <p>
-            <Link to={`/${dancerLink}${id_dancer}`}>
-                {dancer.last_name} {dancer.first_name}
-            </Link>
-        </p>
-    )
 }
 
 type BibRowReadOnlyProps = {
