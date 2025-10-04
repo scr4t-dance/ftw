@@ -36,7 +36,7 @@ export function JudgeFormComponent({ phase_id, panel }: { phase_id: PhaseId, pan
         }
     });
 
-    const formObject = useForm<SinglePanel | CouplePanel>({
+    const formObject = useForm<Panel>({
         defaultValues: panel
     });
 
@@ -90,12 +90,15 @@ export function JudgeFormComponent({ phase_id, panel }: { phase_id: PhaseId, pan
                 </Field>
                 {panelType === "single" && (
                     <>
+                    <h3>Followers</h3>
                         <JudgeListFormElement artefact_description_name={"followers"} />
+                    <h3>Leaders</h3>
                         <JudgeListFormElement artefact_description_name={"leaders"} />
                     </>
                 )}
                 {panelType === "couple" && (
                     <>
+                    <h3>Couples</h3>
                         <JudgeListFormElement artefact_description_name={"couples"} />
                     </>
                 )}

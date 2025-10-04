@@ -1,7 +1,9 @@
-import type { CouplePanel, DancerIdList, SinglePanel } from '@hookgen/model';
+import type { CouplePanel, DancerId, DancerIdList, SinglePanel } from '@hookgen/model';
 import React, { useEffect } from 'react';
-import { get, useFieldArray, useFormContext } from 'react-hook-form';
+import { Controller, get, useFieldArray, useFormContext } from 'react-hook-form';
 import { Field } from '@routes/index/field';
+import { useGetApiDancerId } from '~/hookgen/dancer/dancer';
+import { Link } from 'react-router';
 
 type KeysOfType<T, ValueType> = {
     [K in keyof T]: T[K] extends ValueType ? K : never;
@@ -13,14 +15,36 @@ interface Props {
     artefact_description_name: JudgeListDescriptionKeys
 }
 
+export function DancerCell({ id_dancer }: { id_dancer: DancerId }) {
+
+    const { data: dancer } = useGetApiDancerId(id_dancer);
+
+    if (!dancer) return "Loading dancer..."
+
+    return (
+        <>
+            <td>
+                <Link to={`/admin/dancers/${id_dancer}`}>
+                    {dancer.first_name}
+                </Link>
+            </td>
+            <td>
+                <Link to={`/admin/dancers/${id_dancer}`}>
+                    {dancer.last_name}
+                </Link>
+            </td>
+        </>
+    )
+}
+
 export function JudgeListFormElement({ artefact_description_name }: Props) {
 
     const {
         register,
         watch,
         control,
+        getValues,
         formState: { errors, defaultValues },
-        setValue,
     } = useFormContext();
 
     const { fields, append, remove } = useFieldArray({
@@ -28,12 +52,14 @@ export function JudgeListFormElement({ artefact_description_name }: Props) {
         name: `${artefact_description_name}.dancers`,
     });
 
-    const artefactType = watch(`panel_type`);
-    const propName = `${artefact_description_name}.dancers`;
+    const watchFieldArray = watch(`${artefact_description_name}.dancers`);
+    const controlledFields = fields.map((field, index) => {
+        return {
+            ...field,
+            ...watchFieldArray[index],
+        };
+    })
 
-    useEffect(() => {
-        setValue(propName, { dancers: [] });
-    }, [artefactType, setValue]);
 
     return (
         <table>
@@ -45,27 +71,35 @@ export function JudgeListFormElement({ artefact_description_name }: Props) {
                 </tr>
             </thead>
             <tbody>
-                {fields && fields.map((key, index) => (
-                    <tr key={key.id}>
-                        <td>
-                            <Field
-                                error={get(errors, `${artefact_description_name}.dancers.${index}.message`)}
-                            >
-                                <input
-                                    type="number" {...register(`${artefact_description_name}.dancers.${index}`,
-                                        {
-                                            required: "Name should not be empty",
-                                            valueAsNumber: true,
-                                        }
-                                    )} />
-                            </Field>
-                            <button type="button" onClick={() => {
-                                remove(index);
-                            }}>Delete</button>
+                {fields && fields.map((item, index) => (
+                    <tr key={item.id}>
+                        <Controller
+                            name={`${artefact_description_name}.dancers.${index}`}
+                            render={({ field }) => (
+                                <>
+                                    <td>
+                                        <Field
+                                            error={get(errors, `${artefact_description_name}.dancers.${index}.message`)}
+                                        >
+                                            <input type="number"
+                                value={Number(field.value)}
+                                onChange={(e) => {
+                                    field.onChange(e.target.value);
+                                }}
+                                            />
+                                        </Field>
+                                        <button type="button" onClick={() => {
+                                            remove(index);
+                                        }}>
+                                            Delete
+                                        </button>
 
-                        </td>
-                        <td>yes</td>
-                        <td>alt</td>
+                                    </td>
+                                    <DancerCell id_dancer={field.value} />
+                                </>
+                            )}
+                            control={control} />
+
                     </tr>
                 ))}
                 <tr>
