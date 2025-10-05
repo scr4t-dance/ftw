@@ -10,7 +10,7 @@ import { getApiCompIdBibs } from "@hookgen/bib/bib";
 import type { Route } from './+types/BibListPublic';
 import { getApiCompId } from '@hookgen/competition/competition';
 import { getApiEventId } from '@hookgen/event/event';
-import { BareBibListComponent } from './BibComponents';
+import { BareBibListComponent } from '@routes/bib/BibComponents';
 
 
 const dancerLink = "dancers/"
