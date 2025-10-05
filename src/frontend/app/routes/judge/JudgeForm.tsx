@@ -62,7 +62,7 @@ export default function JudgeForm({loaderData}: Route.ComponentProps) {
     return (
         <>
             <JudgeFormComponent
-                phase_id={id_phase}
+                id_phase={id_phase}
                 panel={judgePanel}
             />
         </>
