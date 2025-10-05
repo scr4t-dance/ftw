@@ -34,6 +34,7 @@ const admin_routes = disable_admin ? [] : [
                 route("judges", "routes/judge/JudgeList.tsx"),
                 route("edit_judges", "routes/judge/JudgeForm.tsx"),
                 route("ranks", "routes/artefact/RankList.tsx"),
+                route("pairings", "routes/phase/Pairings.tsx"),
               ]),
             ]),
           ]),

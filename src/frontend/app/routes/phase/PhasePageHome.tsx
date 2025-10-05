@@ -43,36 +43,43 @@ function PhasePageHome({
     return (
         <>
             <h1>Phase {phase?.round} {competition?.name}</h1>
-            <p>
-                <Link to={`${url}edit`}>
-                    Edit Phase
-                </Link>
-            </p>
-            <p>
-                <Link to={`${url}heats`}>
-                    Phase Heats
-                </Link>
-            </p>
-            <p>
-                <Link to={`${url}artefacts`}>
-                    Phase Artefacts
-                </Link>
-            </p>
-            <p>
-                <Link to={`${url}ranks`}>
-                    Phase Ranks
-                </Link>
-            </p>
-            <p>
-                <Link to={`${url}judges`}>
-                    Phase Judges
-                </Link>
-            </p>
-            <p>
-                <Link to={`${url}edit_judges`}>
-                    Edit Phase Judges
-                </Link>
-            </p>
+            <ol>
+                <li>
+                    <Link to={`${url}edit_judges`}>
+                        Edit Phase Judges
+                    </Link>
+                </li>
+                <li>
+                    <Link to={`${url}judges`}>
+                        Phase Judges
+                    </Link>
+                </li>
+                <li>
+                    <Link to={`${url}pairings`}>
+                        Appairage
+                    </Link>
+                </li>
+                <li>
+                    <Link to={`${url}edit`}>
+                        Edit Phase
+                    </Link>
+                </li>
+                <li>
+                    <Link to={`${url}heats`}>
+                        Phase Heats
+                    </Link>
+                </li>
+                <li>
+                    <Link to={`${url}artefacts`}>
+                        Phase Artefacts
+                    </Link>
+                </li>
+                <li>
+                    <Link to={`${url}ranks`}>
+                        Phase Ranks
+                    </Link>
+                </li>
+            </ol>
             <Outlet />
 
         </>
@@ -82,5 +89,5 @@ function PhasePageHome({
 export default PhasePageHome;
 
 export const handle = {
-  breadcrumb: () => "Phase"
+    breadcrumb: () => "Phase"
 };
