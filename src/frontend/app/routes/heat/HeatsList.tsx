@@ -13,11 +13,12 @@ import { HeatsListComponent } from './HeatComponents';
 
 import {
     combineClientLoader, combineServerLoader, bibsListLoader,
-    competitionLoader, eventLoader, phaseListLoader, heatListLoader, queryClient,
+    competitionLoader, eventLoader, heatListLoader, queryClient,
+    phaseLoader,
 } from '~/queryClient';
 
 
-const loader_array = [eventLoader, competitionLoader, bibsListLoader, phaseListLoader, heatListLoader];
+const loader_array = [eventLoader, competitionLoader, bibsListLoader, phaseLoader, heatListLoader,];
 
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -63,10 +64,17 @@ export default function HeatsList({ loaderData }: Route.ComponentProps) {
         }
     });
 
+    const { data: dataPhase, isSuccess: isSuccessPhase } = useGetApiPhaseId(loaderData.id_phase, {
+        query: {
+            initialData:loaderData.phase_data
+        }
+    });
+
     if (!isSuccessBibs) return <div>Chargement des bibs...</div>;
     if (!isSuccessHeats) return <div>Chargement des heats...</div>;
+    if (!isSuccessPhase) return <div>Chargement de la phase...</div>;
 
-    return <HeatsListComponent id_phase={loaderData.id_phase} heats={heats} dataBibs={dataBibs} />
+    return <HeatsListComponent id_phase={loaderData.id_phase} phase={dataPhase} heats={heats} dataBibs={dataBibs} />
 
 }
 
