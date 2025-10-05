@@ -6,7 +6,7 @@ import { useGetApiDancerId, useGetApiDancerIdCompetitionHistory } from '@hookgen
 import { useQueries } from "@tanstack/react-query";
 import { getGetApiCompIdQueryOptions } from "@hookgen/competition/competition";
 import { getGetApiCompIdBibsQueryOptions } from '~/hookgen/bib/bib';
-import { Badge } from './DancerComponents';
+import { Badge } from '@routes/dancer/DancerComponents';
 
 // https://stackoverflow.com/questions/14446511/most-efficient-method-to-groupby-on-an-array-of-objects
 const groupByToMap = <T, Q>(array: T[], predicate: (value: T, index: number, array: T[]) => Q) =>

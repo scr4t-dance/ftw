@@ -6,7 +6,7 @@ import {
     type PhaseId,
 } from "@hookgen/model";
 
-import { JudgeListComponent } from './JudgeComponents';
+import { JudgeListComponent } from '@routes/judge/JudgeComponents';
 import {
     combineClientLoader, combineServerLoader, competitionListLoader, competitionLoader,
     eventLoader, queryClient, phaseLoader, judgePanelLoader,

@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import type { Panel, PhaseId, } from "@hookgen/model";
 import { useParams } from "react-router";
 import { useGetApiPhaseIdJudges, } from '@hookgen/judge/judge';
-import { JudgeFormComponent } from './JudgeComponents';
+import { JudgeFormComponent } from '@routes/judge/JudgeComponents';
 import {
     combineClientLoader, combineServerLoader, competitionListLoader, competitionLoader,
     eventLoader, queryClient, phaseLoader, judgePanelLoader,

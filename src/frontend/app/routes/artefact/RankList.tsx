@@ -11,7 +11,7 @@ import { DancerCell } from '@routes/bib/BibComponents';
 import { getGetApiDancerIdQueryOptions } from '~/hookgen/dancer/dancer';
 import { useGetApiPhaseIdJudges } from '~/hookgen/judge/judge';
 import { useGetApiPhaseIdRanking } from '~/hookgen/ranking/ranking';
-import NextPhaseForm from '@routes/phase/NextPhaseForm';
+import NextPhaseForm from '@routes/artefact/NextPhaseForm';
 
 const yan_rank_list_list = {
     ranks: [

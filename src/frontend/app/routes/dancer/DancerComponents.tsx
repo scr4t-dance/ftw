@@ -3,8 +3,8 @@ import { useGetApiDancers, useGetApiDancerId, getGetApiDancerIdQueryOptions } fr
 
 import { DivisionItem, DivisionsItem, type Dancer, type DancerId, type DancerIdList, type Divisions } from "@hookgen/model";
 import { Link, useLocation } from "react-router";
-import DancerCompetitionHistory from './DancerCompetitionHistory';
-import { SaveDancerFormComponent } from './NewDancerForm';
+import DancerCompetitionHistory from '@routes/dancer/DancerCompetitionHistory';
+import { SaveDancerFormComponent } from '@routes/dancer/NewDancerForm';
 import { useQueries } from '@tanstack/react-query';
 
 
