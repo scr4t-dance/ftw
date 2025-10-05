@@ -98,7 +98,7 @@ export function JudgeListFormElement({ artefact_description_name }: Props) {
                       <input type="number"
                         value={Number(field.value)}
                         onChange={(e) => {
-                          field.onChange(e.target.value);
+                          field.onChange(Number(e.target.value));
                         }}
                       />
                     </Field>
@@ -134,7 +134,7 @@ export function JudgeListFormElement({ artefact_description_name }: Props) {
 }
 
 
-export function JudgeFormComponent({ phase_id, panel }: { phase_id: PhaseId, panel: Panel }) {
+export function JudgeFormComponent({ id_phase, panel }: { id_phase: PhaseId, panel: Panel }) {
 
   const queryClient = useQueryClient();
 
@@ -142,7 +142,7 @@ export function JudgeFormComponent({ phase_id, panel }: { phase_id: PhaseId, pan
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: getGetApiPhaseIdJudgesQueryKey(phase_id),
+          queryKey: getGetApiPhaseIdJudgesQueryKey(id_phase),
         });
       },
       onError: (err) => {
@@ -165,11 +165,11 @@ export function JudgeFormComponent({ phase_id, panel }: { phase_id: PhaseId, pan
     formState: { errors } } = formObject;
 
   const onSubmit: SubmitHandler<Panel> = (dataArray) => {
-    console.log({ id: phase_id, data: dataArray });
+    console.log("submit panel", { id: id_phase, data: dataArray });
 
-    const d = sanitizePanel(dataArray);
+    const d: Panel = sanitizePanel(dataArray);
 
-    mutateArtefacts({ id: phase_id, data: d })
+    mutateArtefacts({ id: id_phase, data: d })
   };
 
   const panelType = watch("panel_type");
