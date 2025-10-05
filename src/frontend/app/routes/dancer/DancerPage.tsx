@@ -3,7 +3,7 @@ import React from 'react';
 
 import { type DancerId } from "@hookgen/model";
 import { getApiDancerId } from '@hookgen/dancer/dancer';
-import { DancerPageComponent } from './DancerComponents';
+import { DancerPageComponent } from '@routes/dancer/DancerComponents';
 
 export async function loader({ params }: Route.LoaderArgs) {
 
