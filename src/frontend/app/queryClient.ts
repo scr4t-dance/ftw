@@ -1,9 +1,25 @@
 import { QueryClient } from "@tanstack/react-query";
-import type { CompetitionId, EventId, PhaseId } from "@hookgen/model";
-import { getApiEventId, getApiEventIdComps, getGetApiEventIdCompsQueryKey, getGetApiEventIdCompsQueryOptions, getGetApiEventIdQueryKey, getGetApiEventIdQueryOptions } from "@hookgen/event/event";
-import { getApiCompId, getGetApiCompIdQueryKey, getGetApiCompIdQueryOptions } from "./hookgen/competition/competition";
-import { getApiCompIdBibs, getGetApiCompIdBibsQueryKey, getGetApiCompIdBibsQueryOptions } from "./hookgen/bib/bib";
-import { getApiCompIdPhases, getApiPhaseId, getGetApiCompIdPhasesQueryKey, getGetApiCompIdPhasesQueryOptions, getGetApiPhaseIdQueryKey, getGetApiPhaseIdQueryOptions } from "@hookgen/phase/phase";
+import type { CompetitionId, EventId, Phase, PhaseId } from "@hookgen/model";
+import {
+  getApiEventId, getApiEventIdComps, getGetApiEventIdCompsQueryKey,
+  getGetApiEventIdCompsQueryOptions, getGetApiEventIdQueryKey,
+  getGetApiEventIdQueryOptions
+} from "@hookgen/event/event";
+import {
+  getApiCompId, getGetApiCompIdQueryKey, getGetApiCompIdQueryOptions
+} from "./hookgen/competition/competition";
+import {
+  getApiCompIdBibs, getGetApiCompIdBibsQueryKey, getGetApiCompIdBibsQueryOptions
+} from "./hookgen/bib/bib";
+import {
+  getApiCompIdPhases, getApiPhaseId, getGetApiCompIdPhasesQueryKey,
+  getGetApiCompIdPhasesQueryOptions, getGetApiPhaseIdQueryKey,
+  getGetApiPhaseIdQueryOptions
+} from "@hookgen/phase/phase";
+import {
+  getGetApiPhaseIdJudgesQueryKey, getGetApiPhaseIdJudgesQueryOptions,
+  getApiPhaseIdJudges
+} from "./hookgen/judge/judge";
 
 
 export const queryClient = new QueryClient({
@@ -225,5 +241,16 @@ export const phaseListLoader = createLoader({
   fetchServer: getApiCompIdPhases,
   getQueryKey: getGetApiCompIdPhasesQueryKey,
   getQueryOptions: getGetApiCompIdPhasesQueryOptions,
+  queryClient,
+});
+
+
+export const judgePanelLoader = createLoader({
+  idKey: "id_phase",
+  dataKey: "panel_data",
+  idParser: (param: string) => Number(param) as PhaseId,
+  fetchServer: getApiPhaseIdJudges,
+  getQueryKey: getGetApiPhaseIdJudgesQueryKey,
+  getQueryOptions: getGetApiPhaseIdJudgesQueryOptions,
   queryClient,
 });
