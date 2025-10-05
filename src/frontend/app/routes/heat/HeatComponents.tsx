@@ -7,10 +7,7 @@ import {
     type Bib,
     type HeatTargetJudge, RoleItem,
 } from "@hookgen/model";
-import type { BibList, CouplesHeat, DancerId, HeatsArray, Phase, PhaseId, SinglesHeat, Target } from "@hookgen/model";
-import {
-    getGetApiCompIdBibsQueryKey,
-} from "@hookgen/bib/bib";
+import type { BibList, CouplesHeat, DancerId, HeatsArray, Panel, Phase, PhaseId, SinglesHeat, Target } from "@hookgen/model";
 import {
     getGetApiPhaseIdHeatsQueryKey, useDeleteApiPhaseIdHeatTarget, usePutApiPhaseIdHeatTarget
 } from '~/hookgen/heat/heat';
@@ -473,9 +470,10 @@ export function CoupleHeatTable({ heat, dataBibs, missing_bibs, heat_number, id_
 }
 
 
-export function HeatsListComponent({ id_phase, phase, heats, dataBibs }: { id_phase: number, phase: Phase, heats: HeatsArray, dataBibs: BibList }) {
+export function HeatsListComponent({ id_phase, panel_data, heats, dataBibs }: { id_phase: number, panel_data: Panel, heats: HeatsArray, dataBibs: BibList }) {
 
-    const sameTargetTypeDataBibs = {bibs: dataBibs.bibs.filter((b) => b.target.target_type === )}
+    const sameTargetTypeDataBibs = {bibs: dataBibs.bibs.filter((b) => b.target.target_type === panel_data.panel_type)};
+
     const bibHeats: Target[] = heats?.heats ? (
         heats.heat_type === 'couple' ?
             heats.heats.flatMap((h) => h.couples)
@@ -483,14 +481,14 @@ export function HeatsListComponent({ id_phase, phase, heats, dataBibs }: { id_ph
                 h.leaders.concat(h.followers)
             ))
     ) : [];
-    const missing_bibs_array = dataBibs.bibs.filter(
+    const missing_bibs_array = sameTargetTypeDataBibs.bibs.filter(
         (bib) =>
             !bibHeats.some(
                 (t) => JSON.stringify(bib.target) === JSON.stringify(t) // deep compare targets
             )
     );
     const missing_bibs = { bibs: missing_bibs_array };
-    console.log("heat_type ", heats.heat_type, "bibHeats", bibHeats, "missing_bibs", missing_bibs, "dataBibs", dataBibs);
+    console.log("heat_type ", heats.heat_type, "bibHeats", bibHeats, "missing_bibs", missing_bibs, "sameTargetTypeDataBibs", sameTargetTypeDataBibs);
 
     return (
         <>
@@ -502,14 +500,14 @@ export function HeatsListComponent({ id_phase, phase, heats, dataBibs }: { id_ph
                     <h1>Heat {index}</h1>
                     {heats.heat_type === "couple" &&
                         <CoupleHeatTable heat={heat as CouplesHeat}
-                            dataBibs={dataBibs} missing_bibs={missing_bibs}
+                            dataBibs={sameTargetTypeDataBibs} missing_bibs={missing_bibs}
                             id_phase={id_phase}
                             heat_number={index}
                         />
                     }
                     {heats.heat_type === "single" &&
                         <SingleHeatTable heat={heat as SinglesHeat}
-                            dataBibs={dataBibs} missing_bibs={missing_bibs}
+                            dataBibs={sameTargetTypeDataBibs} missing_bibs={missing_bibs}
                             id_phase={id_phase}
                             heat_number={index}
                         />
@@ -520,14 +518,14 @@ export function HeatsListComponent({ id_phase, phase, heats, dataBibs }: { id_ph
             <h1>New Heat {heats?.heats.length}</h1>
             {heats.heat_type === "couple" &&
                 <CoupleHeatTable heat={{ couples: [] } as CouplesHeat}
-                    dataBibs={dataBibs} missing_bibs={missing_bibs}
+                    dataBibs={sameTargetTypeDataBibs} missing_bibs={missing_bibs}
                     id_phase={id_phase}
                     heat_number={heats?.heats.length}
                 />
             }
             {heats.heat_type === "single" &&
                 <SingleHeatTable heat={{ leaders: [], followers: [] } as SinglesHeat}
-                    dataBibs={dataBibs} missing_bibs={missing_bibs}
+                    dataBibs={sameTargetTypeDataBibs} missing_bibs={missing_bibs}
                     id_phase={id_phase}
                     heat_number={heats?.heats.length}
                 />

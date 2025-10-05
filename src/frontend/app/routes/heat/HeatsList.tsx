@@ -1,9 +1,6 @@
 import type { Route } from './+types/HeatsList';
 import React from 'react';
 
-import type { CompetitionId, PhaseId, } from "@hookgen/model";
-import { useParams } from "react-router";
-import { useGetApiPhaseId } from "@hookgen/phase/phase";
 import {
     useGetApiPhaseIdHeats,
 } from "@hookgen/heat/heat";
@@ -15,10 +12,12 @@ import {
     combineClientLoader, combineServerLoader, bibsListLoader,
     competitionLoader, eventLoader, heatListLoader, queryClient,
     phaseLoader,
+    judgePanelLoader,
 } from '~/queryClient';
+import { useGetApiPhaseIdJudges } from '~/hookgen/judge/judge';
 
 
-const loader_array = [eventLoader, competitionLoader, bibsListLoader, phaseLoader, heatListLoader,];
+const loader_array = [eventLoader, competitionLoader, bibsListLoader, phaseLoader, heatListLoader,judgePanelLoader];
 
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -64,17 +63,17 @@ export default function HeatsList({ loaderData }: Route.ComponentProps) {
         }
     });
 
-    const { data: dataPhase, isSuccess: isSuccessPhase } = useGetApiPhaseId(loaderData.id_phase, {
+    const { data: panel_data, isSuccess: isSuccessPanel } = useGetApiPhaseIdJudges(loaderData.id_phase, {
         query: {
-            initialData:loaderData.phase_data
+            initialData:loaderData.panel_data
         }
     });
 
     if (!isSuccessBibs) return <div>Chargement des bibs...</div>;
     if (!isSuccessHeats) return <div>Chargement des heats...</div>;
-    if (!isSuccessPhase) return <div>Chargement de la phase...</div>;
+    if (!isSuccessPanel) return <div>Chargement de la phase...</div>;
 
-    return <HeatsListComponent id_phase={loaderData.id_phase} phase={dataPhase} heats={heats} dataBibs={dataBibs} />
+    return <HeatsListComponent id_phase={loaderData.id_phase} panel_data={panel_data} heats={heats} dataBibs={dataBibs} />
 
 }
 
