@@ -7,7 +7,7 @@ import {
     type Bib,
     type HeatTargetJudge, RoleItem,
 } from "@hookgen/model";
-import type { BibList, CouplesHeat, DancerId, HeatsArray, PhaseId, SinglesHeat, Target } from "@hookgen/model";
+import type { BibList, CouplesHeat, DancerId, HeatsArray, Phase, PhaseId, SinglesHeat, Target } from "@hookgen/model";
 import {
     getGetApiCompIdBibsQueryKey,
 } from "@hookgen/bib/bib";
@@ -473,8 +473,9 @@ export function CoupleHeatTable({ heat, dataBibs, missing_bibs, heat_number, id_
 }
 
 
-export function HeatsListComponent({ id_phase, heats, dataBibs }: { id_phase: number, heats: HeatsArray, dataBibs: BibList }) {
+export function HeatsListComponent({ id_phase, phase, heats, dataBibs }: { id_phase: number, phase: Phase, heats: HeatsArray, dataBibs: BibList }) {
 
+    const sameTargetTypeDataBibs = {bibs: dataBibs.bibs.filter((b) => b.target.target_type === )}
     const bibHeats: Target[] = heats?.heats ? (
         heats.heat_type === 'couple' ?
             heats.heats.flatMap((h) => h.couples)

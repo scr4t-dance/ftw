@@ -40,7 +40,7 @@ export function SingleDancerField({ formObject, bibs_list }: Props) {
             },
             validate:{
               checkUniqueness: (t) => {
-                return !bibs_list.bibs.flatMap((b) => dancerArrayFromTarget(b.target)).includes(t) || `Dancer ${t} already has a bib`
+                return !bibs_list.bibs.filter((b) => b.target.target_type === "single").flatMap((b) => dancerArrayFromTarget(b.target)).includes(t) || `Dancer ${t} already has a bib`
               }
             }
           })}
