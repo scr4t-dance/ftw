@@ -1,4 +1,4 @@
-import React, { useEffect, useState, type JSX } from 'react';
+import React, { useState    } from 'react';
 
 import { useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm, type UseFormReturn } from "react-hook-form";
@@ -7,12 +7,12 @@ import {
     type Bib,
     type HeatTargetJudge, RoleItem,
 } from "@hookgen/model";
-import type { BibList, CouplesHeat, DancerId, HeatsArray, Panel, Phase, PhaseId, SinglesHeat, Target } from "@hookgen/model";
+import type { BibList, CouplesHeat, HeatsArray, Panel, PhaseId, SinglesHeat, Target } from "@hookgen/model";
 import {
     getGetApiPhaseIdHeatsQueryKey, useDeleteApiPhaseIdHeatTarget, usePutApiPhaseIdHeatTarget
 } from '~/hookgen/heat/heat';
 
-import { BareBibListComponent, dancerArrayFromTarget, DancerCell, } from '@routes/bib/BibComponents';
+import { BareBibListComponent, dancerArrayFromTarget, DancerCell, get_bibs, } from '@routes/bib/BibComponents';
 import { Field } from "@routes/index/field";
 import { InitHeatsForm } from './InitHeatsForm';
 
@@ -402,19 +402,18 @@ type SingleHeatProps = {
 
 export function SingleHeatTable({ heat, dataBibs, missing_bibs, heat_number, id_phase }: SingleHeatProps) {
 
-    const get_bibs = (dancer_list: DancerId[]) => dataBibs?.bibs.filter(b => iter_target_dancers(b.target).map(dancer => dancer_list?.includes(dancer)).includes(true));
-    const followers = get_bibs(heat.followers.flatMap(u => iter_target_dancers(u)));
-    const leaders = get_bibs(heat.leaders.flatMap(u => iter_target_dancers(u)));
+    const followers = get_bibs(dataBibs, heat.followers);
+    const leaders = get_bibs(dataBibs, heat.leaders);
     const notInHeatFollowerBibs = {
         bibs: dataBibs.bibs
             .filter((b) => (b.target.target_type === "single" && b.target.role[0] === "Follower"
-                && !followers.map((hb) => hb.bib).includes(b.bib)
+                && !followers.bibs.map((hb) => hb.bib).includes(b.bib)
             ))
     } as BibList;
     const notInHeatLeaderBibs = {
         bibs: dataBibs.bibs
             .filter((b) => (b.target.target_type === "single" && b.target.role[0] === "Leader"
-                && !leaders.map((hb) => hb.bib).includes(b.bib)
+                && !leaders.bibs.map((hb) => hb.bib).includes(b.bib)
             ))
     } as BibList;
 
@@ -422,7 +421,7 @@ export function SingleHeatTable({ heat, dataBibs, missing_bibs, heat_number, id_
         <>
             <div>
                 <h3>Followers</h3>
-                <BibHeatListComponent bib_list={followers}
+                <BibHeatListComponent bib_list={followers.bibs}
                     heat_number={heat_number} missingBibList={notInHeatFollowerBibs}
                     id_phase={id_phase}
                     defaultTarget={{ target_type: "single", role: ["Follower"] } as Target}
@@ -430,7 +429,7 @@ export function SingleHeatTable({ heat, dataBibs, missing_bibs, heat_number, id_
             </div>
             <div>
                 <h3>Leaders</h3>
-                <BibHeatListComponent bib_list={leaders}
+                <BibHeatListComponent bib_list={leaders.bibs}
                     heat_number={heat_number} missingBibList={notInHeatLeaderBibs}
                     id_phase={id_phase}
                     defaultTarget={{ target_type: "single", role: ["Leader"] } as Target}
@@ -449,19 +448,18 @@ type CoupleHeatTableProps = {
 export function CoupleHeatTable({ heat, dataBibs, missing_bibs, heat_number, id_phase }: CoupleHeatTableProps) {
 
 
-    const get_bibs = (dancer_list: DancerId[]) => dataBibs?.bibs.filter(b => iter_target_dancers(b.target).map(dancer => dancer_list?.includes(dancer)).includes(true));
-    const couples = get_bibs(heat.couples.flatMap(u => iter_target_dancers(u)));
+    const couples = get_bibs(dataBibs, heat.couples);
     const missingBibList = {
         bibs: dataBibs.bibs
             .filter((b) => (b.target.target_type === "couple")
-                && (couples.filter((heat_couple) => b.bib === heat_couple.bib) ? false : true)
+                && !couples.bibs.map((hb) => hb.bib).includes(b.bib)
             )
     } as BibList;
 
     return (
         <>
             <h3>Couples</h3>
-            <BibHeatListComponent bib_list={couples}
+            <BibHeatListComponent bib_list={couples.bibs}
                 heat_number={heat_number} missingBibList={missingBibList}
                 id_phase={id_phase}
                 defaultTarget={{ target_type: "couple" } as Target}
@@ -472,7 +470,7 @@ export function CoupleHeatTable({ heat, dataBibs, missing_bibs, heat_number, id_
 
 export function HeatsListComponent({ id_phase, panel_data, heats, dataBibs }: { id_phase: number, panel_data: Panel, heats: HeatsArray, dataBibs: BibList }) {
 
-    const sameTargetTypeDataBibs = {bibs: dataBibs.bibs.filter((b) => b.target.target_type === panel_data.panel_type)};
+    const sameTargetTypeDataBibs = { bibs: dataBibs.bibs.filter((b) => b.target.target_type === panel_data.panel_type) };
 
     const bibHeats: Target[] = heats?.heats ? (
         heats.heat_type === 'couple' ?
