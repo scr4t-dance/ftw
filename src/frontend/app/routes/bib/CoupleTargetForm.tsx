@@ -1,6 +1,6 @@
 // components/CoupleTargetForm.tsx
 import { Field } from "@routes/index/field";
-import { type UseFormReturn } from "react-hook-form";
+import { Controller, type UseFormReturn } from "react-hook-form";
 import { type Bib, type BibList, type CoupleTarget } from "@hookgen/model";
 import { dancerArrayFromTarget } from "./BibComponents";
 
@@ -49,7 +49,7 @@ export function CoupleTargetForm({ formObject, bibs_list }: Props) {
               value: 0,
               message: "Le numéro compétiteur doit être un entier positif.",
             },
-            validate:{
+            validate: {
               checkUniqueness: (t) => {
                 return !bibs_list.bibs.filter((b) => b.target.target_type === "couple").flatMap((b) => dancerArrayFromTarget(b.target)).includes(t) || `Dancer ${t} already has a bib`
               }

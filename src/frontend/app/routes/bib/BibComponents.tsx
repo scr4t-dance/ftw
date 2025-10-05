@@ -21,6 +21,13 @@ import {
 
 const dancerLink = "dancers/"
 
+export function get_bibs(dataBibs: BibList, target_list: Target[]): BibList {
+    const bibs_list = target_list.map(
+        (t) => dataBibs?.bibs.find(b => JSON.stringify(b.target) === JSON.stringify(t))
+    ).filter((b) => b !== undefined);
+
+    return { bibs: bibs_list };
+}
 
 function convert_target(target: Target | undefined) {
 
@@ -80,7 +87,7 @@ type BibRowReadOnlyProps = {
     onDelete: () => void
 };
 
-function BibRowReadOnly({ bib_object, onEdit, onDelete }: BibRowReadOnlyProps) {
+export function BibRowReadOnly({ bib_object, onEdit, onDelete }: BibRowReadOnlyProps) {
 
     const dancer_list = dancerArrayFromTarget(bib_object.target);
     return (
