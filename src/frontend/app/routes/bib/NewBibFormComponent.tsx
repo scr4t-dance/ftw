@@ -11,12 +11,13 @@ import {
   RoleItem,
   type BibList,
   type Target,
+  type DancerIdList,
 } from '@hookgen/model';
 import { Field } from '@routes/index/field';
 import { type SingleBib, SingleTargetForm } from '@routes/bib/SingleTargetForm';
 import { type CoupleBib, CoupleTargetForm } from '@routes/bib/CoupleTargetForm';
 
-export function NewBibFormComponent({ id_competition,bibs_list }: { id_competition: CompetitionId, bibs_list:BibList }) {
+export function NewBibFormComponent({ id_competition,bibs_list, dancer_list }: { id_competition: CompetitionId, bibs_list:BibList, dancer_list:DancerIdList }) {
 
   const url = "/admin/dancers/"
 
