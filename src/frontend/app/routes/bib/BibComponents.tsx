@@ -6,18 +6,15 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useGetApiDancerId } from '@hookgen/dancer/dancer';
 import {
     type Bib, type BibList, type CompetitionId, type CoupleTarget, type DancerId,
-    type HeatTargetJudge, type PhaseId, RoleItem, type SingleTarget, type Target
+    RoleItem, type SingleTarget, type Target
 } from "@hookgen/model";
 
 import {
     useGetApiCompIdBibs, useDeleteApiCompIdBib,
     getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib,
 } from "@hookgen/bib/bib";
-import { Controller, useForm, type UseFormReturn } from "react-hook-form";
+import { useForm, type UseFormReturn } from "react-hook-form";
 import { Field } from "@routes/index/field";
-import {
-    getGetApiPhaseIdHeatsQueryKey, useDeleteApiPhaseIdHeatTarget, usePutApiPhaseIdHeatTarget
-} from '~/hookgen/heat/heat';
 
 const dancerLink = "dancers/"
 

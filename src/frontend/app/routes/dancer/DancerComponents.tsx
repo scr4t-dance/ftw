@@ -1,11 +1,13 @@
 import React from 'react';
-import { useGetApiDancers, useGetApiDancerId, getGetApiDancerIdQueryOptions } from '@hookgen/dancer/dancer';
+import { useGetApiDancers, getGetApiDancerIdQueryOptions } from '@hookgen/dancer/dancer';
 
-import { DivisionItem, DivisionsItem, type Dancer, type DancerId, type DancerIdList, type Divisions } from "@hookgen/model";
+import { DivisionsItem, type Dancer, type DancerId, type DancerIdList, type Divisions } from "@hookgen/model";
 import { Link, useLocation } from "react-router";
 import DancerCompetitionHistory from '@routes/dancer/DancerCompetitionHistory';
 import { SaveDancerFormComponent } from '@routes/dancer/NewDancerForm';
 import { useQueries } from '@tanstack/react-query';
+import { useCombobox } from 'downshift';
+import cx from 'classnames'
 
 
 const divisionColors: Record<DivisionsItem, string> = {
@@ -163,4 +165,168 @@ export function DancerPagePublicComponent({ dancer, id_dancer }: { dancer: Dance
 
         </>
     );
+}
+
+// Dancer Search bar
+
+type DancerWithId = Dancer & { id_dancer: number, prefix: string };
+
+function dancerWithIdToString(dancerWithId: DancerWithId) {
+    return dancerWithId.prefix.concat(
+        " ", dancerWithId.first_name,
+        " ", dancerWithId.last_name,
+        " ", dancerWithId.id_dancer.toString(),
+    );
+}
+
+export function newDancerWithId(dancerIdArray: DancerId[], dancerArray: Dancer[], id_dancer: DancerId, prefix: string): DancerWithId {
+
+    const dancerTargetArray = dancerArray.map((d, index) => ({ ...d, id_dancer: dancerIdArray[index] })).find((d) => d.id_dancer === id_dancer);
+
+    return {
+        ...dancerTargetArray,
+        prefix: prefix,
+    } as DancerWithId;
+
+}
+
+function getDancerWithIdFilter(inputValue: string) {
+    const lowerCasedInputValue = inputValue.toLowerCase()
+
+    return function bibFilter(dancerData: DancerWithId) {
+        return (
+            !inputValue ||
+            dancerData.first_name.toLowerCase().includes(lowerCasedInputValue) ||
+            dancerData.last_name.toLowerCase().includes(lowerCasedInputValue) ||
+            dancerData.id_dancer.toString().includes(lowerCasedInputValue) ||
+            dancerData.prefix.toString().includes(lowerCasedInputValue) ||
+            dancerWithIdToString(dancerData).toLowerCase().includes(lowerCasedInputValue)
+        );
+    }
+}
+
+export function DancerComboBox({ bibNameList, selectedItem, setSelectedItem, label, error }: { bibNameList: DancerWithId[], selectedItem: DancerWithId | undefined, setSelectedItem: (d: DancerId | undefined) => void, label?: string, error?: string }) {
+
+    const [items, setItems] = React.useState(bibNameList)
+    const {
+        isOpen,
+        getToggleButtonProps,
+        getLabelProps,
+        getMenuProps,
+        getInputProps,
+        highlightedIndex,
+        getItemProps,
+    } = useCombobox({
+        onInputValueChange({ inputValue }) {
+            setItems(bibNameList.filter(getDancerWithIdFilter(inputValue)))
+        },
+        items,
+        itemToString(item: DancerWithId | null) {
+            return item ? dancerWithIdToString(item) : ''
+        },
+        selectedItem,
+        onSelectedItemChange: ({ selectedItem: newSelectedItem }) =>
+            setSelectedItem(newSelectedItem?.id_dancer),
+    })
+
+    return (
+        <div className="form_subelem">
+            <div className="w-72 flex flex-col gap-1">
+                <label className="w-fit" {...getLabelProps()}>
+                    {label ? label : ""}
+                </label>
+                <div className="flex shadow-sm bg-white gap-0.5">
+                    <input
+                        placeholder="Default Dancer"
+                        className="w-full p-1.5"
+                        {...getInputProps()}
+                    />
+                    <button
+                        aria-label="toggle menu"
+                        className="px-2"
+                        type="button"
+                        {...getToggleButtonProps()}
+                    >
+                        {isOpen ? <>&#8593;</> : <>&#8595;</>}
+                    </button>
+                </div>
+            </div>
+            <ul
+                className={`absolute w-72 bg-white mt-1 shadow-md max-h-80 overflow-scroll p-0 z-10 ${!(isOpen && items.length) && 'hidden'
+                    }`}
+                {...getMenuProps()}
+            >
+                {isOpen &&
+                    items.map((item, index) => (
+                        <li
+                            className={cx(
+                                highlightedIndex === index && 'bg-blue-300',
+                                selectedItem === item && 'font-bold',
+                                'py-2 px-3 shadow-sm flex flex-col',
+                            )}
+                            key={item.id_dancer}
+                            {...getItemProps({ item, index })}
+                        >
+                            <span>{item.prefix} {item.first_name} {item.last_name}</span>
+                            <span className="text-sm text-gray-700">{item.id_dancer}</span>
+                        </li>
+                    ))}
+            </ul>
+
+            {error && (
+                <div role="alert" className="error_message">
+                    {error}
+                </div>
+            )}
+        </div>
+    )
+}
+
+export function DancerComboBoxComponent({ dancerIdList, selectedItem, setSelectedItem, label, error, prefixArray }: { dancerIdList: DancerIdList, selectedItem: DancerId | undefined, setSelectedItem: (d: DancerId | undefined) => void, label?: string, error?: string, prefixArray?: string[] }) {
+
+    const idDancerArray = [...new Set(dancerIdList.dancers)];
+
+    const dancerQueries = useQueries({
+        queries: idDancerArray.map((id_dancer) => ({
+            ...getGetApiDancerIdQueryOptions(id_dancer),
+        })),
+    });
+
+    const isDancersLoading = dancerQueries.some((query) => query.isLoading);
+    const isDancersError = dancerQueries.some((query) => query.isError);
+    const isDancerSuccess = dancerQueries.some((query) => query.isSuccess);
+
+    if (isDancersLoading) return <div>Loading dancers details...</div>;
+    if (isDancersError) return (
+        <div>
+            Error loading dancer data
+            {
+                dancerQueries.map((query) => {
+                    return (<p>{query.error?.message}</p>);
+                })
+            }
+        </div>);
+    if (!isDancerSuccess) {
+        return (<p>Unsuccessful queries</p>);
+    }
+
+    const dancerData = dancerIdList.dancers.map((id_dancer, index) => {
+        const indexData = idDancerArray.findIndex((id_d) => id_dancer === id_d);
+
+        return {
+            ...(dancerQueries[indexData].data as Dancer),
+            id_dancer: id_dancer,
+            prefix: prefixArray ? prefixArray[index] : "",
+        } as DancerWithId;
+    })
+
+    return (
+        <>
+            <DancerComboBox bibNameList={dancerData}
+                selectedItem={dancerData.find((d) => d.id_dancer === selectedItem)}
+                setSelectedItem={setSelectedItem}
+                label={label} error={error}
+            />
+        </>
+    )
 }

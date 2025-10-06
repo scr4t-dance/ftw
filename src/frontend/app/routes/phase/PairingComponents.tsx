@@ -1,12 +1,12 @@
 import React, { useState, } from 'react';
 
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm, type UseFormReturn } from "react-hook-form";
 
 import {
     type Bib,
 } from "@hookgen/model";
-import type { BibList, CompetitionId, CoupleTarget, Panel, PhaseId, SinglesHeat, Target } from "@hookgen/model";
+import type { BibList, CompetitionId, CoupleTarget, Dancer, DancerId, DancerIdList, Panel, PhaseId, SinglesHeat, Target } from "@hookgen/model";
 import {
     useGetApiPhaseIdHeats,
 } from '~/hookgen/heat/heat';
@@ -14,6 +14,10 @@ import {
 import { BareBibListComponent, BibRowReadOnly, DancerCell, get_bibs, } from '@routes/bib/BibComponents';
 import { Field } from "@routes/index/field";
 import { getGetApiCompIdBibsQueryKey, useDeleteApiCompIdBib, usePutApiCompIdBib } from '~/hookgen/bib/bib';
+
+import { getGetApiDancerIdQueryOptions } from '@hookgen/dancer/dancer';
+import { DancerComboBox, DancerComboBoxComponent, newDancerWithId } from '@routes/dancer/DancerComponents';
+
 
 
 type BibCoupleTargetForm = UseFormReturn<Bib & { target: CoupleTarget }, any, Bib & { target: CoupleTarget }>;
@@ -23,81 +27,61 @@ interface SelectCoupleTargetFormProps {
     select_bibs_list: BibList,
 }
 
+const iter_target_dancers = (t: Target) => t.target_type === "single"
+    ? [t.target]
+    : [t.follower, t.leader];
+
 export function SelectCoupleTargetForm({ formObject, select_bibs_list }: SelectCoupleTargetFormProps) {
 
     const {
         control,
         watch,
-        formState: { errors, defaultValues },
+        formState: { errors },
     } = formObject;
 
+    const target_type = watch("target.target_type");
+
     const follower_select_bibs_list = select_bibs_list.bibs.map(
-        (b) => b.target.target_type === "single" && b.target.role[0] === "Follower" ? b.target.target : undefined
+        (b) => b.target.target_type === "single" && b.target.role[0] === "Follower" ? { id_dancer: b.target.target, prefix: b.bib.toString() } : undefined
     ).filter((v) => v != null);
     const leader_select_bibs_list = select_bibs_list.bibs.map(
-        (b) => b.target.target_type === "single" && b.target.role[0] === "Leader" ? b.target.target : undefined
+        (b) => b.target.target_type === "single" && b.target.role[0] === "Leader" ? { id_dancer: b.target.target, prefix: b.bib.toString() } : undefined
     ).filter((v) => v != null);
 
-    const target_type = watch("target.target_type");
 
     return (
         <>
             {target_type === "couple" &&
                 <>
-                    <Field label="Follower" error={errors.target?.follower?.message}>
-                        <Controller
-                            control={control}
-                            name={"target.follower"}
-                            render={({ field }) => (
-                                <select
-                                    onChange={(e) => {
-                                        const index = Number(e.target.value);
-                                        const selected = {
-                                            ...e,
-                                            target: {
-                                                ...e.target,
-                                                value: follower_select_bibs_list[index],
-                                            }
-                                        };
-                                        field.onChange(selected);
-                                    }}
-                                >
-                                    <option key={-1} value={-1}>----</option>
-                                    {follower_select_bibs_list.map((id_dancer, index) => (
-                                        <option key={index} value={index}>{id_dancer}</option>)
-                                    )}
-                                </select>
-                            )}
-                        />
-                    </Field>
+                    <Controller
+                        control={control}
+                        name={"target.follower"}
+                        render={({ field }) => (
+                            <DancerComboBoxComponent
+                                label="Follower"
+                                error={errors.target?.follower?.message}
+                                dancerIdList={{ dancers: follower_select_bibs_list.map(d => d.id_dancer) } as DancerIdList}
+                                selectedItem={field.value}
+                                setSelectedItem={field.onChange}
+                                prefixArray={follower_select_bibs_list.map(d => d.prefix)}
+                            />
+                        )}
+                    />
 
-                    <Field label="Leader" error={errors.target?.leader?.message}>
-                        <Controller
-                            control={control}
-                            name={"target.leader"}
-                            render={({ field }) => (
-                                <select
-                                    onChange={(e) => {
-                                        const index = Number(e.target.value);
-                                        const selected = {
-                                            ...e,
-                                            target: {
-                                                ...e.target,
-                                                value: leader_select_bibs_list[index],
-                                            }
-                                        };
-                                        field.onChange(selected);
-                                    }}
-                                >
-                                    <option key={-1} value={-1}>----</option>
-                                    {leader_select_bibs_list.map((id_dancer, index) => (
-                                        <option key={index} value={index}>{id_dancer}</option>)
-                                    )}
-                                </select>
-                            )}
-                        />
-                    </Field>
-
+                    <Controller
+                        control={control}
+                        name={"target.leader"}
+                        render={({ field }) => (
+                            <DancerComboBoxComponent
+                                label="Leader"
+                                error={errors.target?.leader?.message}
+                                dancerIdList={{ dancers: leader_select_bibs_list.map(d => d.id_dancer) } as DancerIdList}
+                                selectedItem={field.value}
+                                setSelectedItem={field.onChange}
+                                prefixArray={leader_select_bibs_list.map(d => d.prefix)}
+                            />
+                        )}
+                    />
                 </>
             }
         </>
@@ -410,6 +394,11 @@ export function PairingComponent({ id_competition: id_competition, panel_data, p
 
     const previousPhaseBibList: BibList = get_bibs(otherTargetTypeBibList, heatsTarget);
 
+    const includedBibList: DancerId[] = sameTargetTypeBibList.bibs.flatMap((sb) => iter_target_dancers(sb.target));
+    const unmatchedPreviousPhaseBibList: BibList = {
+        bibs: previousPhaseBibList.bibs.filter((b) => !iter_target_dancers(b.target).some((id_d) => includedBibList.includes(id_d)))
+    }
+
     if (!isSuccess) return <p>Loading heats...</p>;
     //if (panel_data.panel_type !== previousPhaseHeats.heat_type) return <p>Panel {panel_data.panel_type} != Heats {previousPhaseHeats.heat_type} </p>;
 
@@ -432,8 +421,8 @@ export function PairingComponent({ id_competition: id_competition, panel_data, p
                 <p>to be implemented for single panels. Are you sure judges are correctly configured?</p>
             }
 
-            <h3>Previous bibs</h3>
-            <BareBibListComponent bib_list={previousPhaseBibList.bibs} />
+            <h3>Unmatched bibs of previous phase</h3>
+            <BareBibListComponent bib_list={unmatchedPreviousPhaseBibList.bibs} />
         </>
     );
 }
