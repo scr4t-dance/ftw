@@ -1,6 +1,6 @@
 // components/CoupleTargetForm.tsx
 import { Field } from "@routes/index/field";
-import { Controller, type UseFormReturn } from "react-hook-form";
+import { type UseFormReturn } from "react-hook-form";
 import { type Bib, type BibList, type CoupleTarget } from "@hookgen/model";
 import { dancerArrayFromTarget } from "./BibComponents";
 

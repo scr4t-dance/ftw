@@ -13,7 +13,7 @@ import {
     useGetApiCompIdBibs, useDeleteApiCompIdBib,
     getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib,
 } from "@hookgen/bib/bib";
-import { Controller, useForm, type UseFormReturn } from "react-hook-form";
+import { useForm, type UseFormReturn } from "react-hook-form";
 import { Field } from "@routes/index/field";
 import { NewTargetBibFormComponent } from '@routes/bib/NewBibFormComponent';
 
