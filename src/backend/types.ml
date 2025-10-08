@@ -987,6 +987,26 @@ module BibList = struct
 end
 
 
+module OldBibNewBib = struct
+
+  type t = {
+    old_bib: Bib.t;
+    new_bib: Bib.t;
+  } [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"OldBibNewBib"
+      ~typ:(Obj Object)
+      ~properties:[
+        "old_bib", ref Bib.ref;
+        "new_bib", ref Bib.ref;
+      ]
+      ~required:["old_bib"; "new_bib";]
+
+end
+
 (* Heats *)
 (* ************************************************************************* *)
 

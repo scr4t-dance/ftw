@@ -4,92 +4,25 @@ import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm, type UseFormReturn } from "react-hook-form";
 
 import {
+    RoleItem,
     type Bib,
 } from "@hookgen/model";
-import type { BibList, CompetitionId, CoupleTarget, Dancer, DancerId, DancerIdList, Panel, PhaseId, SinglesHeat, Target } from "@hookgen/model";
+import type { BibList, CompetitionId, CoupleTarget, Dancer, DancerId, DancerIdList, OldBibNewBib, Panel, PhaseId, SinglesHeat, SingleTarget, Target } from "@hookgen/model";
 import {
     useGetApiPhaseIdHeats,
 } from '~/hookgen/heat/heat';
 
 import { BareBibListComponent, BibRowReadOnly, DancerCell, get_bibs, } from '@routes/bib/BibComponents';
 import { Field } from "@routes/index/field";
-import { getGetApiCompIdBibsQueryKey, useDeleteApiCompIdBib, usePutApiCompIdBib } from '~/hookgen/bib/bib';
-
-import { getGetApiDancerIdQueryOptions } from '@hookgen/dancer/dancer';
-import { DancerComboBox, DancerComboBoxComponent, newDancerWithId } from '@routes/dancer/DancerComponents';
-
-
-
-type BibCoupleTargetForm = UseFormReturn<Bib & { target: CoupleTarget }, any, Bib & { target: CoupleTarget }>;
-
-interface SelectCoupleTargetFormProps {
-    formObject: BibCoupleTargetForm,
-    select_bibs_list: BibList,
-}
+import { getGetApiCompIdBibsQueryKey, useDeleteApiCompIdBib, usePatchApiCompIdBib, usePutApiCompIdBib } from '~/hookgen/bib/bib';
+import { get_follower_from_bib, get_leader_from_bib, SelectCoupleTargetForm, SelectSingleTargetForm, type BibCoupleTargetForm, type BibSingleTargetForm } from '../bib/NewBibFormComponent';
 
 const iter_target_dancers = (t: Target) => t.target_type === "single"
     ? [t.target]
     : [t.follower, t.leader];
 
-export function SelectCoupleTargetForm({ formObject, select_bibs_list }: SelectCoupleTargetFormProps) {
-
-    const {
-        control,
-        watch,
-        formState: { errors },
-    } = formObject;
-
-    const target_type = watch("target.target_type");
-
-    const follower_select_bibs_list = select_bibs_list.bibs.map(
-        (b) => b.target.target_type === "single" && b.target.role[0] === "Follower" ? { id_dancer: b.target.target, prefix: b.bib.toString() } : undefined
-    ).filter((v) => v != null);
-    const leader_select_bibs_list = select_bibs_list.bibs.map(
-        (b) => b.target.target_type === "single" && b.target.role[0] === "Leader" ? { id_dancer: b.target.target, prefix: b.bib.toString() } : undefined
-    ).filter((v) => v != null);
-
-
-    return (
-        <>
-            {target_type === "couple" &&
-                <>
-                    <Controller
-                        control={control}
-                        name={"target.follower"}
-                        render={({ field }) => (
-                            <DancerComboBoxComponent
-                                label="Follower"
-                                error={errors.target?.follower?.message}
-                                dancerIdList={{ dancers: follower_select_bibs_list.map(d => d.id_dancer) } as DancerIdList}
-                                selectedItem={field.value}
-                                setSelectedItem={field.onChange}
-                                prefixArray={follower_select_bibs_list.map(d => d.prefix)}
-                            />
-                        )}
-                    />
-
-                    <Controller
-                        control={control}
-                        name={"target.leader"}
-                        render={({ field }) => (
-                            <DancerComboBoxComponent
-                                label="Leader"
-                                error={errors.target?.leader?.message}
-                                dancerIdList={{ dancers: leader_select_bibs_list.map(d => d.id_dancer) } as DancerIdList}
-                                selectedItem={field.value}
-                                setSelectedItem={field.onChange}
-                                prefixArray={leader_select_bibs_list.map(d => d.prefix)}
-                            />
-                        )}
-                    />
-                </>
-            }
-        </>
-    );
-}
-
 type BibPairingRowEditableProps = {
-    formObject: UseFormReturn<Bib, any, Bib>;
+    formObject: UseFormReturn<OldBibNewBib, any, OldBibNewBib>;
     missingBibList: BibList;
     onUpdate: () => void;
     onCancel: () => void;
@@ -105,7 +38,7 @@ function BibPairingRowEditable({ formObject, missingBibList, onUpdate, onCancel,
         watch
     } = formObject;
 
-    const targetType = watch("target.target_type");
+    const targetType = watch("new_bib.target.target_type");
 
     return (
         <>
@@ -124,8 +57,8 @@ function BibPairingRowEditable({ formObject, missingBibList, onUpdate, onCancel,
             </td>
 
             <td>
-                <Field label="Dossard" error={errors.bib?.message}>
-                    <input type="number" {...register("bib", {
+                <Field label="Dossard" error={errors?.new_bib?.bib?.message}>
+                    <input type="number" {...register("new_bib.bib", {
                         valueAsNumber: true,
                         required: true,
                         min: {
@@ -144,17 +77,20 @@ function BibPairingRowEditable({ formObject, missingBibList, onUpdate, onCancel,
 
             {targetType === "single" && (
                 <>
-                    <td><DancerCell id_dancer={formObject.getValues("target.target")} /></td>
-                    <td>{formObject.getValues("target.role")?.join(", ")}</td>
+                    <td><DancerCell id_dancer={formObject.getValues("new_bib.target.target")} /></td>
+                    <td>{formObject.getValues("new_bib.target.role")?.join(", ")}</td>
                 </>
             )}
 
             {targetType === "couple" && (
                 <>
-                    <SelectCoupleTargetForm formObject={formObject as BibCoupleTargetForm} select_bibs_list={missingBibList} />
                     <td>
-                        <DancerCell id_dancer={formObject.getValues("target.follower")} />
-                        <DancerCell id_dancer={formObject.getValues("target.leader")} />
+                        <p>{RoleItem.Follower}</p>
+                        <p>{RoleItem.Leader}</p>
+                    </td>
+                    <td>
+                        <DancerCell id_dancer={formObject.getValues("new_bib.target.follower")} />
+                        <DancerCell id_dancer={formObject.getValues("new_bib.target.leader")} />
                     </td>
                 </>
             )}
@@ -166,14 +102,14 @@ function BibPairingRowEditable({ formObject, missingBibList, onUpdate, onCancel,
     );
 }
 
-function EditablePairingTarget({ bib, index, missingBibList }: { bib: Bib, index: number, missingBibList: BibList }) {
+function EditablePairingTarget({ bib, missingBibList }: { bib: Bib, missingBibList: BibList }) {
 
     const id_competition = bib.competition;
 
     const [isEditing, setIsEditing] = useState(false);
 
-    const formObject = useForm<Bib>({
-        defaultValues: bib,
+    const formObject = useForm<OldBibNewBib>({
+        defaultValues: { old_bib: bib, new_bib: bib },
     });
 
     const {
@@ -184,7 +120,7 @@ function EditablePairingTarget({ bib, index, missingBibList }: { bib: Bib, index
 
     const queryClient = useQueryClient();
 
-    const { mutate: addTargetToHeat, error, isError, isSuccess } = usePutApiCompIdBib({
+    const { mutate: addTargetToHeat, error, isError, isSuccess } = usePatchApiCompIdBib({
         mutation: {
             onSuccess: () => {
                 queryClient.invalidateQueries({
@@ -214,7 +150,8 @@ function EditablePairingTarget({ bib, index, missingBibList }: { bib: Bib, index
     });
 
     const handleUpdate = handleSubmit((data) => {
-        addTargetToHeat({ id: data.competition, data });
+        if (data.old_bib.bib !== data.new_bib.bib) addTargetToHeat({ id: data.old_bib.competition, data });
+        setIsEditing(false);
     });
 
     const handleCancel = () => {
@@ -226,9 +163,7 @@ function EditablePairingTarget({ bib, index, missingBibList }: { bib: Bib, index
     const successMessage = isSuccess ? "Bib correctly added" : undefined;
 
     return (
-        <tr key={`${bib.competition}-${bib.target.target_type}-${index}`}
-            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
-
+        <>
             {isEditing ? (
                 <BibPairingRowEditable
                     formObject={formObject}
@@ -246,12 +181,19 @@ function EditablePairingTarget({ bib, index, missingBibList }: { bib: Bib, index
                 />
             )
             }
-        </tr >
+        </>
 
     );
 }
 
-function NewPairingTarget({ id_competition, defaultBib, missingBibList }: { id_competition: CompetitionId, defaultBib: Bib, missingBibList: BibList }) {
+type NewPairingTargetProps = {
+    id_competition: CompetitionId,
+    defaultBib: Bib,
+    existingBibList: BibList,
+    missingBibList: BibList
+};
+
+function NewPairingTarget({ id_competition, defaultBib, existingBibList, missingBibList }: NewPairingTargetProps) {
 
     const formObject = useForm<Bib>({
         defaultValues: { competition: id_competition, bib: 0, target: defaultBib.target } as Bib,
@@ -294,6 +236,13 @@ function NewPairingTarget({ id_competition, defaultBib, missingBibList }: { id_c
         addTargetToBibs({ id: id_competition, data });
     });
 
+    const follower_select_bibs_list = existingBibList.bibs.map(
+        (b) => get_follower_from_bib(b, (bib: Bib) => bib.bib.toString().concat(" "))
+    ).filter((v) => v != null);
+    const leader_select_bibs_list = existingBibList.bibs.map(
+        (b) => get_leader_from_bib(b, (bib: Bib) => bib.bib.toString().concat(" "))
+    ).filter((v) => v != null);
+
     return (
         <tr>
             <td>
@@ -310,14 +259,11 @@ function NewPairingTarget({ id_competition, defaultBib, missingBibList }: { id_c
                             value: 0,
                             message: "Le numéro de dossard doit être un entier positif.",
                         },
+                        validate: {
+                            checkUniqueness: (b) => !existingBibList.bibs.map((b) => b.bib).includes(b) || `Bib ${b} already already exist`
+                        }
                     })}
                     />
-                </Field>
-            </td>
-
-            <td>
-                <Field label="" error={errors.target?.message}>
-                    <SelectCoupleTargetForm formObject={formObject as BibCoupleTargetForm} select_bibs_list={missingBibList} />
                 </Field>
             </td>
 
@@ -335,19 +281,45 @@ function NewPairingTarget({ id_competition, defaultBib, missingBibList }: { id_c
             </td>
 
             <td>
+                {targetType === "couple" &&
+                    <Field label="" error={errors.target?.message}>
+                        <SelectCoupleTargetForm
+                            formObject={formObject as BibCoupleTargetForm}
+                            follower_id_list={follower_select_bibs_list}
+                            leader_id_list={leader_select_bibs_list} />
+                    </Field>
+                }
+                {targetType === "single" &&
+                    <Field label="" error={errors.target?.message}>
+                        <SelectSingleTargetForm
+                            formObject={formObject as BibSingleTargetForm}
+                            follower_id_list={follower_select_bibs_list}
+                            leader_id_list={leader_select_bibs_list} />
+                    </Field>
+                }
+
+            </td>
+
+            <td>
                 <button type="submit" onClick={() => handleUpdate()}>Add new</button>
             </td>
         </tr>
     );
 }
 
-export function BibPairingListComponent({ bib_list, id_competition, otherTargetTypeBibList, defaultTarget }: { bib_list: Bib[], id_competition: CompetitionId, otherTargetTypeBibList: BibList, defaultTarget: Target }) {
+export function BibPairingListComponent({ bib_list, id_competition, otherTargetTypeBibList, defaultTarget }: { bib_list: BibList, id_competition: CompetitionId, otherTargetTypeBibList: BibList, defaultTarget: Target }) {
 
     const defaultBib = {
         competition: id_competition,
         target: defaultTarget,
         bib: 0,
     } as Bib;
+
+    function getTargetKey(bib: Bib) {
+        return bib.target.target_type === "single" ?
+            String(bib.target.role).concat("-", String(bib.target.target))
+            : String(bib.target.follower).concat("-", String(bib.target.leader));
+    }
 
     return (
         <>
@@ -361,13 +333,21 @@ export function BibPairingListComponent({ bib_list, id_competition, otherTargetT
                         <th>Action</th>
                     </tr>
 
-                    {bib_list.map((bibObject, index) => (
-                        <EditablePairingTarget
-                            missingBibList={otherTargetTypeBibList}
-                            bib={bibObject}
-                            index={index} />
+                    {bib_list.bibs.map((bibObject, index) => (
+                        <tr key={`${bibObject.competition}-${bibObject.target.target_type}-${getTargetKey(bibObject)}`}
+                            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+
+                            <EditablePairingTarget
+                                missingBibList={otherTargetTypeBibList}
+                                bib={bibObject}
+                            />
+                        </tr>
                     ))}
-                    <NewPairingTarget id_competition={id_competition} defaultBib={defaultBib} missingBibList={otherTargetTypeBibList} />
+                    <NewPairingTarget
+                        id_competition={id_competition}
+                        defaultBib={defaultBib}
+                        existingBibList={bib_list}
+                        missingBibList={otherTargetTypeBibList} />
                 </tbody>
             </table>
         </>
@@ -410,7 +390,7 @@ export function PairingComponent({ id_competition: id_competition, panel_data, p
             {panel_data.panel_type === "couple" &&
                 <>
                     <h3>Couples</h3>
-                    <BibPairingListComponent bib_list={sameTargetTypeBibList.bibs}
+                    <BibPairingListComponent bib_list={sameTargetTypeBibList}
                         otherTargetTypeBibList={previousPhaseBibList}
                         id_competition={id_competition}
                         defaultTarget={{ target_type: "couple" } as Target}
