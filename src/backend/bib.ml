@@ -70,7 +70,7 @@ let rec routes router =
         ~required:true
         ~content:[
           Spec.json,
-          Spec.make_media_type_object () ~schema:(Types.(ref Bib.ref));
+          Spec.make_media_type_object () ~schema:(Types.(ref OldBibNewBib.ref));
         ])
     ~parameters:[
       Types.obj @@ Spec.make_parameter_object ()
@@ -158,20 +158,18 @@ and add_bib =
 
 and update_bib =
   Api.put
-    ~of_yojson:Types.Bib.of_yojson
+    ~of_yojson:Types.OldBibNewBib.of_yojson
     ~to_yojson:Types.DancerIdList.to_yojson
-    (fun _req _st (_bib : Types.Bib.t) ->
+    (fun _req _st (_bib : Types.OldBibNewBib.t) ->
        Error (Error.generic "broken, needs to be fixed")
          (*
-       let+ id = Utils.int_param req "id" in
-       match bib.competition with
-       | comp_id when comp_id = id ->
-         let target = Types.Target.to_ftw bib.target in
-         Ftw.Bib.delete ~st ~competition:id ~bib:bib.bib;
-         Ftw.Bib.add ~st ~competition:id ~target ~bib:bib.bib;
-         let dancer_list : Types.DancerIdList.t = {dancers=Types.Target.dancers bib.target} in
-         Ok dancer_list
-       | _ -> Error (Error.generic "Competition id do not match payload")
+        let+ id = Utils.int_param req "id" in
+        match bib.old_bib.competition with
+        | comp_id when comp_id = id ->
+          Ftw.Bib.update ~st ~competition:id ~old_bib:bib.old_bib.bib ~new_bib:bib.new_bib.bib;
+          let dancer_list : Types.DancerIdList.t = {dancers=Types.Target.dancers bib.new_bib.target} in
+          Ok dancer_list
+        | _ -> Error (Error.generic "Competition id do not match payload")
         *)
     )
 

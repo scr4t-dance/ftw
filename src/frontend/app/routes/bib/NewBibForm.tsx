@@ -2,7 +2,7 @@
 import React from 'react';
 
 import type { Route } from './+types/NewBibForm';
-import { NewBibFormComponent } from '@routes/bib/NewBibFormComponent';
+import { SelectNewBibFormComponent } from '@routes/bib/NewBibFormComponent';
 import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
 import {
     bibsListLoader, combineClientLoader, combineServerLoader, competitionLoader,
@@ -62,7 +62,7 @@ function BibHomePublic({ loaderData }: Route.ComponentProps) {
         <>
             <h1>Compétition {loaderData.competition_data.name}</h1>
             <h2>Ajouter une compétiteurice</h2>
-            <NewBibFormComponent id_competition={loaderData.id_competition} bibs_list={bibs_list} dancer_list={dancer_list}/>
+            <SelectNewBibFormComponent id_competition={loaderData.id_competition} bibs_list={bibs_list} dancer_list={dancer_list}/>
         </>
     );
 }

@@ -20,11 +20,24 @@ val get_all : st:State.t -> competition:Competition.id -> (t * Id.t Target.any) 
 val add :
   st:State.t -> competition:Competition.id ->
   target:Id.t Target.any -> bib:t -> unit
-(** Set the bib for a given target in a competition. *)
+(** Set the bib for a given target in a competition.
+
+    The primary key for bib table is bib,competition_id,role.
+    It allows to work with either
+    * same bib for dancer as lead and follow
+    * different bibs for leaders and followers
+*)
 
 val delete :
   st:State.t -> competition:Competition.id ->
   bib:t -> unit
+(** Update the bib for a given target in a competition. *)
+
+
+val update :
+  st:State.t -> competition:Competition.id ->
+  old_bib:t ->
+  new_bib:t -> unit
 (** Update the bib for a given target in a competition. *)
 
 
