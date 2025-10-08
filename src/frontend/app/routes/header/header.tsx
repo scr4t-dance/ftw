@@ -11,7 +11,7 @@ export default function Header({ userId }: { userId: string | null }) {
     params.set("from", location.pathname);
 
     return (
-        <header>
+        <header className="no-print">
             <div className="header-top">
                 <div className="logo">
                     <Link to="/">
