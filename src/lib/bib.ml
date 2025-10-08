@@ -118,7 +118,7 @@ let get_bib_from_target ~st ~competition ~target =
         t (Role.to_int role) competition
     | Any Couple { leader; follower; } ->
       State.query_list_where ~st ~conv ~p:[int;int;int;int;int]
-      {| SELECT *
+        {| SELECT *
         FROM bibs
         WHERE 0=0
         AND (
@@ -127,14 +127,15 @@ let get_bib_from_target ~st ~competition ~target =
           (dancer_id = ? AND role = ?)
         )
         AND competition_id = ? |}
-      leader (Role.to_int Role.Leader) follower (Role.to_int Role.Follower) competition
+        leader (Role.to_int Role.Leader) follower (Role.to_int Role.Follower) competition
   end
   in
   let bib_list = List.map (fun r -> r.bib) rows in
   match bib_list with
   | [] -> Ok None
   | [x] -> Ok (Some x)
-  | _::_ -> Error "Inconsistent bibs numbers"
+  | [x; y] when x=y -> Ok (Some x)
+  | _::_ -> Error ("Inconsistent bibs numbers: " ^ String.concat ", " (List.map string_of_int bib_list))
 
 let list_from_comp ~st ~competition =
   let update_aux acc (r : row) =
@@ -190,11 +191,11 @@ let set ~st ~competition ~target ~bib =
   insert_target ~st ~competition ~target ~bib
 
 
-let update ~st ~competition ~target ~bib =
-  let existing_bib_result = get_bib_from_target ~st ~competition ~target in
-  let new_target = get ~st ~competition ~bib in
-  begin match existing_bib_result, new_target with
-    | Ok Some existing_bib, Ok None ->
+let update ~st ~competition ~old_bib ~new_bib =
+  let existing_target_result = get ~st ~competition ~bib:old_bib in
+  let new_target = get ~st ~competition ~bib:new_bib in
+  begin match existing_target_result, new_target with
+    | Ok Some _, Ok None ->
       let open Sqlite3_utils.Ty in
       State.insert ~st ~ty:[int;int;int]
         {| UPDATE bibs
@@ -203,7 +204,7 @@ let update ~st ~competition ~target ~bib =
         AND competition_id = ?
         AND bib = ?
         |}
-        bib competition existing_bib
+        new_bib competition old_bib
     | Ok None, _ -> raise Not_found
     | Error e, _ -> raise (Failure e)
     | _, Ok Some _ -> raise (Failure "new bib already in use")

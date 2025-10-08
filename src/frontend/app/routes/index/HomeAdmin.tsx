@@ -2,11 +2,10 @@ import type { Route } from "./+types/HomeAdmin";
 
 import { Outlet } from "react-router";
 
-import { authMiddleware } from "~/auth.server";
-
-export const middleware: Route.MiddlewareFunction[] = [
-  authMiddleware,
-];
+// import { authMiddleware } from "~/auth.server";
+// export const middleware: Route.MiddlewareFunction[] = [
+//   authMiddleware,
+// ];
 
 
 export default function EventsHomeAdmin({

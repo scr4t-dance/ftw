@@ -835,7 +835,7 @@
           "description": "New bib value",
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/Bib" }
+              "schema": { "$ref": "#/components/schemas/OldBibNewBib" }
             }
           },
           "required": true
@@ -1788,6 +1788,14 @@
           }
         },
         "required": [ "bibs" ]
+      },
+      "OldBibNewBib": {
+        "type": "object",
+        "properties": {
+          "old_bib": { "$ref": "#/components/schemas/Bib" },
+          "new_bib": { "$ref": "#/components/schemas/Bib" }
+        },
+        "required": [ "old_bib", "new_bib" ]
       },
       "SinglesHeat": {
         "type": "object",
