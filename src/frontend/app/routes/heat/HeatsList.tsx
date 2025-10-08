@@ -83,7 +83,7 @@ export default function HeatsList() {
 
     return (
         <>
-            <p>
+            <p className='no-print'>
                 <InitHeatsForm id_phase={id_phase_number} />
             </p>
 
