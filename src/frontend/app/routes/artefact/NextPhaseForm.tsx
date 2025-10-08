@@ -55,7 +55,7 @@ export default function NextPhaseForm({ id_phase, treshold_callback }: { id_phas
     }, [treshold]);
 
     return (
-        <>
+        <div className='no-print'>
             <FormProvider {...formObject}>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     {isSubmitSuccessful &&
@@ -87,6 +87,6 @@ export default function NextPhaseForm({ id_phase, treshold_callback }: { id_phas
 
                 </form>
             </FormProvider>
-        </>
+        </div>
     );
 }

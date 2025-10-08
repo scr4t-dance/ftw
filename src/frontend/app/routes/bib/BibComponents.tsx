@@ -96,7 +96,7 @@ function BibRowReadOnly({ bib_object, onEdit, onDelete }: BibRowReadOnlyProps) {
                 ))
                 }
             </td>
-            <td>
+            <td className='no-print'>
                 <button type="button" onClick={() => onEdit()}>
                     Edition
                 </button>
@@ -256,7 +256,7 @@ export function BareBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
                         <th>Bib</th>
                         <th>Rôle</th>
                         <th>Target</th>
-                        <th>Action</th>
+                        <th className='no-print'>Action</th>
                     </tr>
 
                     {bib_list.map((bibObject, index) => (
