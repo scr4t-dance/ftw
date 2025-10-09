@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useGetApiDancerId } from '@hookgen/dancer/dancer';
 import {
     type Bib, type BibList, type Competition, type CompetitionId, type CompetitionIdList, type CoupleTarget, type DancerId, RoleItem,
-    type SingleTarget, type Target
+    type SingleTarget, type Target, type OldBibNewBib,
 } from "@hookgen/model";
 
 import {
@@ -201,7 +201,7 @@ function EditableBibDetails({ bib_object }: { bib_object: Bib }) {
                 queryClient.invalidateQueries({
                     queryKey: getGetApiCompIdBibsQueryKey(bib_object.competition),
                 });
-                reset(variables.data);
+                reset(variables.data.new_bib);
                 setIsEditing(false);
             },
             onError: (err) => {
@@ -222,7 +222,7 @@ function EditableBibDetails({ bib_object }: { bib_object: Bib }) {
     });
 
     const handleUpdate = handleSubmit((data) => {
-        updateBib({ id: bib_object.competition, data });
+        updateBib({ id: bib_object.competition, data:{old_bib: bib_object, new_bib:data} as OldBibNewBib });
     });
 
     const handleCancel = () => {
@@ -284,6 +284,47 @@ export function BareBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
     );
 }
 
+
+export function PublicBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
+
+    return (
+        <>
+            <table>
+                <tbody>
+                    <tr>
+                        <th>Type target</th>
+                        <th>Bib</th>
+                        <th>Rôle</th>
+                        <th>Target</th>
+                    </tr>
+
+                    {bib_list.map((bib_object, index) => (
+                        <tr key={`${bib_object.competition}-${bib_object.bib}`}
+                            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+                            <td>
+                                {bib_object.target.target_type}
+                            </td>
+                            <td>{bib_object.bib}</td>
+
+                            <td>{bib_object.target.target_type === "single" ?
+                                bib_object.target.role :
+                                <> {RoleItem.Follower}
+                                    <br /> {RoleItem.Leader}
+                                </>
+                            }</td>
+                            <td>
+                                {dancerArrayFromTarget(bib_object.target).map((i) => (
+                                    <DancerCell id_dancer={i} />
+                                ))
+                                }
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </>
+    );
+}
 
 export function BibListComponent({ id_competition }: { id_competition: CompetitionId }) {
 

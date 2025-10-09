@@ -7,7 +7,7 @@ import {
 import { Link, useParams } from "react-router";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
 import { useQueries } from "@tanstack/react-query";
-import { DancerCell } from '@routes/bib/BibComponents';
+import { dancerArrayFromTarget, DancerCell } from '@routes/bib/BibComponents';
 import { getGetApiDancerIdQueryOptions } from '~/hookgen/dancer/dancer';
 import { useGetApiPhaseIdJudges } from '~/hookgen/judge/judge';
 import { useGetApiPhaseIdRanking } from '~/hookgen/ranking/ranking';
@@ -56,9 +56,6 @@ const rpss_rank_list_list: PhaseRanks = {
     ]
 } satisfies PhaseRanks;
 
-const iter_target_dancers = (t: Target) => t.target_type === "single"
-    ? [t.target]
-    : [t.follower, t.leader];
 
 function ArtefactCell({ artefact }: { artefact: Artefact }) {
 
@@ -76,7 +73,7 @@ function ArtefactCell({ artefact }: { artefact: Artefact }) {
 
 function RankRow({ target_rank, index }: { target_rank: TargetRank, index: number }) {
 
-    const dancer_list = iter_target_dancers(target_rank.target);
+    const dancer_list = dancerArrayFromTarget(target_rank.target);
 
     return (
         <tr key={index}
