@@ -1,22 +1,15 @@
 import React, { useState } from 'react';
 
 import type {
-    Bib, BibList, CompetitionId, CoupleTarget, DancerId, DancerIdList, HeatsArray, HeatTargetJudgeArtefact,
-    HeatTargetJudgeArtefactArray, Panel, PhaseId, Target
+    Bib, BibList, CoupleTarget, DancerId, DancerIdList, HeatsArray, HeatTargetJudgeArtefact,
+    HeatTargetJudgeArtefactArray, Panel, PhaseId,
 } from "@hookgen/model";
-import { Link, useParams } from "react-router";
-import { useGetApiPhaseId } from "@hookgen/phase/phase";
-import { useGetApiPhaseIdHeats, } from "~/hookgen/heat/heat";
+import { Link, } from "react-router";
 import { useQueries } from "@tanstack/react-query";
-import { DancerCell, get_bibs } from '@routes/bib/BibComponents';
-import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
+import { dancerArrayFromTarget, DancerCell, get_bibs } from '@routes/bib/BibComponents';
 import { getGetApiDancerIdQueryOptions } from '@hookgen/dancer/dancer';
 import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryOptions } from '@hookgen/artefact/artefact';
-import { useGetApiPhaseIdJudges } from '@hookgen/judge/judge';
 
-const iter_target_dancers = (t: Target) => t.target_type === "single"
-    ? [t.target]
-    : [t.follower, t.leader];
 
 function ArtefactCell({ htja }: { htja: HeatTargetJudgeArtefact }) {
 
@@ -45,7 +38,7 @@ function ArtefactRow({ htja_array, index }: { htja_array: HeatTargetJudgeArtefac
     }
 
     const target = artefacts[0].heat_target_judge.target;
-    const dancer_list = iter_target_dancers(target);
+    const dancer_list = dancerArrayFromTarget(target);
 
     return (
         <tr key={`${artefacts[0].heat_target_judge.heat_number}-${artefacts[0].heat_target_judge.target}`}
