@@ -4,7 +4,7 @@ import PageTitle from "./PageTitle";
 import Header from "@routes/header/header";
 import Footer from "@routes/footer/footer";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 interface AccordionItem {
     id: number;
@@ -14,12 +14,14 @@ interface AccordionItem {
 
 function Accordion({ item }: { item: AccordionItem }) {
     const [isActive, setIsActive] = useState(false);
+    const contentRef = useRef<HTMLDivElement>(null);
 
     return (
         <div className="accordion-item">
             <button
                 id={`accordion-button-${item.id}`}
                 aria-expanded={isActive}
+                aria-controls={`accordion-content-${item.id}`}
                 onClick={() => setIsActive(!isActive)}
             >
                 <span className="accordion-question">{item.q}</span>
@@ -28,10 +30,21 @@ function Accordion({ item }: { item: AccordionItem }) {
                     aria-hidden="true"
                 />
             </button>
-            {isActive &&
-                <div className="accordion-answer">
+            <div
+                id={`accordion-content-${item.id}`}
+                className="accordion-answer"
+                role="region"
+                aria-labelledby={`accordion-button-${item.id}`}
+                ref={contentRef}
+                                style={{
+                                    maxHeight: isActive
+                                        ? `${contentRef.current?.scrollHeight || 0}px`
+                                        : '0px',
+                                    opacity: isActive? 1 : 0
+                                }}
+            >
                 <p dangerouslySetInnerHTML={{ __html: item.a }} />
-                </div>}
+            </div>
         </div>
     );
 };
@@ -181,14 +194,6 @@ function FAQ() {
         }
     ]
 
-
-    const [activeIndex, setActiveIndex] = useState<number | null>(null);
-    const contentRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-    const toggleAccordion = (index: number) => {
-        setActiveIndex(activeIndex === index ? null : index);
-    };
-
     return (
         <>
             <PageTitle title="FAQ" />
@@ -198,14 +203,14 @@ function FAQ() {
                 <h2>Pour les compétiteur•ice•s</h2>
                 <div className="accordion">
                     {faqDataComp.map((item, index) => (
-                        <Accordion item={item}  />
+                        <Accordion item={item} />
                     ))}
                 </div>
 
                 <br />
                 <h2>Pour les organisateur•ice•s de compétitions</h2>
                 <div className="accordion">
-                    {faqDataOrg.map((item, index) => (
+                    {faqDataOrg.map((item) => (
                         <Accordion item={item} />
                     ))}
                 </div>
