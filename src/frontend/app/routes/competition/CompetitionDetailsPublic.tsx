@@ -1,7 +1,7 @@
 import type { Route } from "./+types/CompetitionDetailsPublic"
 
-import type { BibList, Competition, } from "@hookgen/model";
-import { BareBibListComponent } from "@routes/bib/BibComponents";
+import type { Competition, } from "@hookgen/model";
+import { PublicBibListComponent } from "@routes/bib/BibComponents";
 import { useGetApiCompIdBibs } from "~/hookgen/bib/bib";
 import { bibsListLoader, combineClientLoader, combineServerLoader, competitionLoader, eventLoader, queryClient } from "~/queryClient";
 
@@ -53,7 +53,10 @@ export default function CompetitionDetails({
             <h1>Compétition {competition?.name}</h1>
             <p>Type : {competition?.kind}</p>
             <p>Catégorie : {competition?.category}</p>
-            <BareBibListComponent bib_list={bibs_list.bibs} />
+            <h2>Dossards solo</h2>
+            <PublicBibListComponent bib_list={bibs_list.bibs.filter((b) => b.target.target_type === "single")} />
+            <h2>Dossards couples</h2>
+            <PublicBibListComponent bib_list={bibs_list.bibs.filter((b) => b.target.target_type === "couple")} />
         </>
     );
 }

@@ -7,19 +7,16 @@ import {
     RoleItem,
     type Bib,
 } from "@hookgen/model";
-import type { BibList, CompetitionId, CoupleTarget, Dancer, DancerId, DancerIdList, OldBibNewBib, Panel, PhaseId, SinglesHeat, SingleTarget, Target } from "@hookgen/model";
+import type { BibList, CompetitionId, DancerId, OldBibNewBib, Panel, PhaseId, SinglesHeat, Target } from "@hookgen/model";
 import {
     useGetApiPhaseIdHeats,
 } from '~/hookgen/heat/heat';
 
-import { BareBibListComponent, BibRowReadOnly, DancerCell, get_bibs, } from '@routes/bib/BibComponents';
+import { BareBibListComponent, BibRowReadOnly, dancerArrayFromTarget, DancerCell, get_bibs, } from '@routes/bib/BibComponents';
 import { Field } from "@routes/index/field";
 import { getGetApiCompIdBibsQueryKey, useDeleteApiCompIdBib, usePatchApiCompIdBib, usePutApiCompIdBib } from '~/hookgen/bib/bib';
 import { get_follower_from_bib, get_leader_from_bib, SelectCoupleTargetForm, SelectSingleTargetForm, type BibCoupleTargetForm, type BibSingleTargetForm } from '../bib/NewBibFormComponent';
 
-const iter_target_dancers = (t: Target) => t.target_type === "single"
-    ? [t.target]
-    : [t.follower, t.leader];
 
 type BibPairingRowEditableProps = {
     formObject: UseFormReturn<OldBibNewBib, any, OldBibNewBib>;
@@ -374,9 +371,9 @@ export function PairingComponent({ id_competition: id_competition, panel_data, p
 
     const previousPhaseBibList: BibList = get_bibs(otherTargetTypeBibList, heatsTarget);
 
-    const includedBibList: DancerId[] = sameTargetTypeBibList.bibs.flatMap((sb) => iter_target_dancers(sb.target));
+    const includedBibList: DancerId[] = sameTargetTypeBibList.bibs.flatMap((sb) => dancerArrayFromTarget(sb.target));
     const unmatchedPreviousPhaseBibList: BibList = {
-        bibs: previousPhaseBibList.bibs.filter((b) => !iter_target_dancers(b.target).some((id_d) => includedBibList.includes(id_d)))
+        bibs: previousPhaseBibList.bibs.filter((b) => !dancerArrayFromTarget(b.target).some((id_d) => includedBibList.includes(id_d)))
     }
 
     if (!isSuccess) return <p>Loading heats...</p>;

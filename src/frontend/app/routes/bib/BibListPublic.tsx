@@ -10,7 +10,7 @@ import { getApiCompIdBibs } from "@hookgen/bib/bib";
 import type { Route } from './+types/BibListPublic';
 import { getApiCompId } from '@hookgen/competition/competition';
 import { getApiEventId } from '@hookgen/event/event';
-import { BareBibListComponent } from '@routes/bib/BibComponents';
+import { PublicBibListComponent } from '@routes/bib/BibComponents';
 
 
 const dancerLink = "dancers/"
@@ -42,7 +42,7 @@ function BibList({
             <Link to={`/${dancerLink}new`}>
                 Créer un-e nouvel-le compétiteur-euse
             </Link>
-            <BareBibListComponent bib_list={loaderData.bibs_list.bibs} />
+            <PublicBibListComponent bib_list={loaderData.bibs_list.bibs} />
         </>
     );
 }
