@@ -15,9 +15,13 @@ body {
 }
 
 @media print {
-  .no-print {
-    display: none !important;
-  }
+    .no-print {
+        display: none !important;
+    }
+
+    body {
+        width: 100%;
+    }
 }
 
 /*=========================================+
@@ -172,6 +176,14 @@ ul li {
     flex-wrap: wrap;
 }
 
+.bib-table-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
 .logout_container {
     display: flex;
     flex-direction: column;
@@ -179,6 +191,10 @@ ul li {
     margin: 5rem 0 7rem 0;
 }
 
+.bib-table-column {
+    width: 50%;
+    max-width: 1000px;
+}
 
 /*=========================================+
 |                  BUTTONS                 |
@@ -264,7 +280,7 @@ table tr {
 
 table td,
 table th {
-    padding: 0.6rem 1rem;
+    padding: 0.5rem 1rem;
 }
 
 table th {
