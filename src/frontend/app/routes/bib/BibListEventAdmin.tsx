@@ -1,29 +1,34 @@
 
 import type { Route } from './+types/BibListEventAdmin';
 import React from 'react';
-import { Link, useLocation } from "react-router";
 
 import {
-    type BibList, type CompetitionId, type CompetitionIdList, type EventId,
+    type Competition,
+    type CompetitionIdList,
 } from "@hookgen/model";
-import { getApiEventId, getApiEventIdComps, getGetApiEventIdCompsQueryKey, getGetApiEventIdCompsQueryOptions, getGetApiEventIdQueryKey, getGetApiEventIdQueryOptions } from '@hookgen/event/event';
-import { BareBibListComponent, BibListEventAdminComponent } from '@routes/bib/BibComponents';
-import { getApiCompIdBibs, getGetApiCompIdBibsQueryKey, getGetApiCompIdBibsQueryOptions, useGetApiCompIdBibs } from '@hookgen/bib/bib';
-import { queryClient } from '~/queryClient';
+import { BibListEventAdminComponent } from '@routes/bib/BibComponents';
+import { getApiCompIdBibs, getGetApiCompIdBibsQueryKey, getGetApiCompIdBibsQueryOptions, } from '@hookgen/bib/bib';
+import { combineClientLoader, combineServerLoader, competitionListLoader, eventLoader, queryClient } from '~/queryClient';
 import { useQueries } from '@tanstack/react-query';
+import { getApiCompId, getGetApiCompIdQueryKey, getGetApiCompIdQueryOptions } from '~/hookgen/competition/competition';
+
+
+const loader_array = [eventLoader, competitionListLoader,];
+
 
 export async function loader({ params }: Route.LoaderArgs) {
 
-    const id_event = Number(params.id_event) as EventId;
-    const event_data = await getApiEventId(id_event);
-    const competition_list = await getApiEventIdComps(id_event);
-    const bibs_list_array = await Promise.all(
-        competition_list.competitions.map((id_competition) => getApiCompIdBibs(id_competition))
+    const combinedData = await combineServerLoader(loader_array, params);
+    const competition_data_list = await Promise.all(
+        combinedData.competition_list.competitions.map((id_competition) => getApiCompId(id_competition))
     );
+    const bibs_list_array = await Promise.all(
+        combinedData.competition_list.competitions.map((id_competition) => getApiCompIdBibs(id_competition))
+    );
+
     return {
-        id_event,
-        event_data,
-        competition_list,
+        ...combinedData,
+        competition_data_list,
         bibs_list_array,
     };
 }
@@ -39,8 +44,10 @@ export async function clientLoader({
         isInitialRequest = false;
         const serverData = await serverLoader();
 
-        queryClient.setQueryData(getGetApiEventIdQueryKey(serverData.id_event), serverData.event_data);
-        queryClient.setQueryData(getGetApiEventIdCompsQueryKey(serverData.id_event), serverData.competition_list);
+        loader_array.forEach((l) => l.cache(queryClient, serverData));
+        (serverData.competition_list as CompetitionIdList).competitions.forEach((id_competition, index) => (
+            queryClient.setQueryData(getGetApiCompIdQueryKey(id_competition), serverData.competition_data_list[index])
+        ));
         (serverData.competition_list as CompetitionIdList).competitions.forEach((id_competition, index) => (
             queryClient.setQueryData(getGetApiCompIdBibsQueryKey(id_competition), serverData.bibs_list_array[index])
         ));
@@ -48,18 +55,17 @@ export async function clientLoader({
         return serverData;
     }
 
-    const id_event = Number(params.id_event) as EventId;
-    const event_data = await queryClient.ensureQueryData(getGetApiEventIdQueryOptions(id_event));
-
-    const competition_list = await queryClient.ensureQueryData(getGetApiEventIdCompsQueryOptions(id_event));
+    const combinedData = await combineClientLoader(loader_array, params);
+    const competition_data_list = await Promise.all(
+        combinedData.competition_list.competitions.map((id_competition) => getApiCompId(id_competition))
+    );
     const bibs_list_array = await Promise.all(
-        competition_list.competitions.map((id_competition) => queryClient.ensureQueryData(getGetApiCompIdBibsQueryOptions(id_competition)))
+        combinedData.competition_list.competitions.map((id_competition) => getApiCompIdBibs(id_competition))
     );
 
     return {
-        id_event,
-        event_data,
-        competition_list,
+        ...combinedData,
+        competition_data_list,
         bibs_list_array,
     };
 }
@@ -71,6 +77,15 @@ function BibListEventAdmin({
     loaderData
 }: Route.ComponentProps) {
 
+
+    const competitionDetailsQueries = useQueries({
+        queries: loaderData.competition_list.competitions.map((id_competition, index) => ({
+            ...getGetApiCompIdQueryOptions(id_competition, {
+                query: { initialData: loaderData.competition_data_list[index] }
+            }),
+        })),
+    });
+
     const bibsQueries = useQueries({
         queries: loaderData.competition_list.competitions.map((id_competition, index) => ({
             ...getGetApiCompIdBibsQueryOptions(id_competition, {
@@ -79,11 +94,12 @@ function BibListEventAdmin({
         })),
     });
 
-    const bibs_list_array = bibsQueries.map((q) => q.data ?? {bibs:[]});
+    const competition_data_list = competitionDetailsQueries.map((q) => q.data as Competition)
+    const bibs_list_array = bibsQueries.map((q) => q.data ?? { bibs: [] });
 
     return (
         <>
-            <BibListEventAdminComponent competition_list={loaderData.competition_list} bibs_list_array={bibs_list_array} />
+            <BibListEventAdminComponent competition_list={loaderData.competition_list} competition_data_list={competition_data_list} bibs_list_array={bibs_list_array} />
         </>
     );
 }
