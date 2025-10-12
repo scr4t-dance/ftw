@@ -3,43 +3,29 @@ import React, { useEffect, useState } from 'react';
 import { Link } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 
-import PageTitle from "@routes/index/PageTitle";
-import Header from "@routes/header/header";
-import Footer from "@routes/footer/footer";
-
 import { useGetApiDancerId } from '@hookgen/dancer/dancer';
 import {
-    type Bib, type BibList, type CompetitionId, type CoupleTarget, type DancerId, type EventId, RoleItem,
-    type SingleTarget, type Target
+    type Bib, type BibList, type CompetitionId, type CoupleTarget, type DancerId,
+    type OldBibNewBib,
+    RoleItem, type SingleTarget, type Target
 } from "@hookgen/model";
 
-import { useGetApiCompIdBibs, useDeleteApiCompIdBib, getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib, getApiCompIdBibs } from "@hookgen/bib/bib";
+import {
+    useGetApiCompIdBibs, useDeleteApiCompIdBib,
+    getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib,
+} from "@hookgen/bib/bib";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { Field } from "@routes/index/field";
-import type { Route } from './+types/BibList';
-import { getApiCompId } from '@hookgen/competition/competition';
-import { getApiEventId } from '@hookgen/event/event';
-
 
 const dancerLink = "dancers/"
 
+export function get_bibs(dataBibs: BibList, target_list: Target[]): BibList {
+    const bibs_list = target_list.map(
+        (t) => dataBibs?.bibs.find(b => JSON.stringify(b.target) === JSON.stringify(t))
+    ).filter((b) => b !== undefined);
 
-export async function loader({ params }: Route.LoaderArgs) {
-
-    const id_event = Number(params.id_event) as EventId;
-    const event_data = getApiEventId(id_event);
-    const id_competition =  Number(params.id_competition) as CompetitionId;
-    const competition_data = getApiCompId(id_competition);
-    const bibs_list = await getApiCompIdBibs(id_competition);
-    return {
-        id_event,
-        event_data,
-        id_competition,
-        competition_data,
-        bibs_list,
-    };
+    return { bibs: bibs_list };
 }
-
 
 function convert_target(target: Target | undefined) {
 
@@ -71,7 +57,7 @@ function convert_bib_to_single_target(bib: Bib): Bib[] {
 
 }
 
-function dancerArrayFromTarget(t: Target): DancerId[] {
+export function dancerArrayFromTarget(t: Target): DancerId[] {
     return t.target_type === "single"
         ? [t.target]
         : [t.follower, t.leader]
@@ -99,7 +85,7 @@ type BibRowReadOnlyProps = {
     onDelete: () => void
 };
 
-function BibRowReadOnly({ bib_object, onEdit, onDelete }: BibRowReadOnlyProps) {
+export function BibRowReadOnly({ bib_object, onEdit, onDelete }: BibRowReadOnlyProps) {
 
     const dancer_list = dancerArrayFromTarget(bib_object.target);
     return (
@@ -213,7 +199,7 @@ function EditableBibDetails({ bib_object, index }: { bib_object: Bib, index: num
                 queryClient.invalidateQueries({
                     queryKey: getGetApiCompIdBibsQueryKey(bib_object.competition),
                 });
-                reset(variables.data);
+                reset(variables.data.new_bib);
                 setIsEditing(false);
             },
             onError: (err) => {
@@ -234,7 +220,7 @@ function EditableBibDetails({ bib_object, index }: { bib_object: Bib, index: num
     });
 
     const handleUpdate = handleSubmit((data) => {
-        updateBib({ id: bib_object.competition, data });
+        updateBib({ id: bib_object.competition, data:{old_bib: bib_object, new_bib:data} as OldBibNewBib });
     });
 
     const handleCancel = () => {
@@ -273,7 +259,6 @@ export function BareBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
 
     return (
         <>
-            <h1>Liste Compétiteur-ices</h1>
             <table>
                 <tbody>
                     <tr>
@@ -294,7 +279,48 @@ export function BareBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
 }
 
 
-function BibListComponent({ id_competition }: { id_competition: CompetitionId }) {
+export function PublicBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
+
+    return (
+        <>
+            <table>
+                <tbody>
+                    <tr>
+                        <th>Type target</th>
+                        <th>Bib</th>
+                        <th>Rôle</th>
+                        <th>Target</th>
+                    </tr>
+
+                    {bib_list.map((bib_object, index) => (
+                        <tr key={`${bib_object.competition}-${bib_object.bib}`}
+                            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+                            <td>
+                                {bib_object.target.target_type}
+                            </td>
+                            <td>{bib_object.bib}</td>
+
+                            <td>{bib_object.target.target_type === "single" ?
+                                bib_object.target.role :
+                                <> {RoleItem.Follower}
+                                    <br /> {RoleItem.Leader}
+                                </>
+                            }</td>
+                            <td>
+                                {dancerArrayFromTarget(bib_object.target).map((i) => (
+                                    <DancerCell id_dancer={i} />
+                                ))
+                                }
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </>
+    );
+}
+
+export function BibListComponent({ id_competition }: { id_competition: CompetitionId }) {
 
     console.log("BibListComponent", id_competition);
     const { data, isLoading, error } = useGetApiCompIdBibs(id_competition);
@@ -314,19 +340,3 @@ function BibListComponent({ id_competition }: { id_competition: CompetitionId })
         </>
     );
 }
-
-function BibList({
-    loaderData
-}: Route.ComponentProps) {
-
-    return (
-        <>
-            <Link to={`/${dancerLink}new`}>
-                Créer un-e nouvel-le compétiteur-euse
-            </Link>
-            <BareBibListComponent bib_list={loaderData.bibs_list.bibs} />
-        </>
-    );
-}
-
-export default BibList;

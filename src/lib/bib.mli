@@ -18,7 +18,7 @@ type 'kind target =
     dancer (e.g. during a Jack&Jill), but also to a couple (e.g. in a
     Strictly).
     In case of couple, give them both the same bib.
-    *)
+*)
 
 type any_target = Any : _ target -> any_target
 (** Existencial wrapper around the GADT. *)
@@ -58,7 +58,8 @@ val set :
 
 val update :
   st:State.t -> competition:Competition.id ->
-  target:any_target -> bib:t -> unit
+  old_bib:t ->
+  new_bib:t -> unit
 (** Update the bib for a given target in a competition. *)
 
 val delete_bib :

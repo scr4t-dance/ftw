@@ -137,6 +137,68 @@ let rec routes router =
       "404", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Phase not found";
     ]
+  |> Router.put "/api/phase/:id/heat_target" add_target
+    ~tags:["heat"; "phase"]
+    ~summary:"add a target to a heat"
+    ~request_body:(
+      Types.obj @@ Spec.make_request_body_object ()
+        ~description:"a HeatTargetJudge object, where judge data is not used"
+        ~required:true
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref HeatTargetJudge.ref));
+        ]
+    )
+    ~parameters:[
+      Types.obj @@ Spec.make_parameter_object ()
+        ~name:"id" ~in_:Path
+        ~description:"Id of the queried Phase"
+        ~required:true
+        ~schema:Types.(ref PhaseId.ref)
+    ]
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Successful operation"
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref PhaseId.ref));
+        ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid input";
+      "404", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Phase not found";
+    ]
+  |> Router.delete "/api/phase/:id/heat_target" delete_target
+    ~tags:["heat"; "phase"]
+    ~summary:"delete a target from a heat"
+    ~request_body:(
+      Types.obj @@ Spec.make_request_body_object ()
+        ~description:"a HeatTargetJudge object, where judge data is not used"
+        ~required:true
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref HeatTargetJudge.ref));
+        ]
+    )
+    ~parameters:[
+      Types.obj @@ Spec.make_parameter_object ()
+        ~name:"id" ~in_:Path
+        ~description:"Id of the queried Competition"
+        ~required:true
+        ~schema:Types.(ref CompetitionId.ref)
+    ]
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Successful operation"
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref PhaseId.ref));
+        ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid input";
+      "404", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Phase not found";
+    ]
 
 (* Heats query *)
 (* ************************************************************************* *)
@@ -188,4 +250,24 @@ and promote =
        let+ id = Utils.int_param req "id" in
        Ftw.Heat.simple_promote st ~phase:id form_data.number_of_targets_to_promote;
        Ok id
+    )
+
+and add_target =
+  Api.put
+    ~of_yojson:Types.HeatTargetJudge.of_yojson
+    ~to_yojson:Types.PhaseId.to_yojson
+    (fun req st htj ->
+       let+ id = Utils.int_param req "id" in
+       let r = Ftw.Heat.add_target st ~phase_id:id htj.heat_number (Types.Target.to_ftw htj.target) in
+       Result.map_error Error.generic r
+    )
+
+and delete_target =
+  Api.put
+    ~of_yojson:Types.HeatTargetJudge.of_yojson
+    ~to_yojson:Types.PhaseId.to_yojson
+    (fun req st htj ->
+       let+ id = Utils.int_param req "id" in
+       let r = Ftw.Heat.delete_target st ~phase_id:id htj.heat_number (Types.Target.to_ftw htj.target) in
+       Result.map_error Error.generic r
     )

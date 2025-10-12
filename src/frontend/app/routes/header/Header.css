@@ -7,6 +7,12 @@ header {
     border-bottom: solid 2px rgb(223, 223, 223);
 
     display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.header-top {
+    display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
@@ -38,6 +44,26 @@ nav ul li a:hover {
 
 
 /*=========================================+
+|                 BREADCRUMBS              |
++=========================================*/
+
+.header-breadcrumbs {
+    font-size: 0.9rem;
+    color: #617489;
+    padding-left: 0.5rem;
+}
+
+.header-breadcrumbs a {
+    color: #617489;
+    text-decoration: none;
+}
+
+.header-breadcrumbs a:hover {
+    text-decoration: underline;
+}
+
+
+/*=========================================+
 |                   LOGO                   |
 +=========================================*/
 
@@ -58,7 +84,7 @@ nav ul li a:hover {
 +=========================================*/
 
 .contact-button {
-    flex: 1; /* Le bouton prend de l'espace à droite */
+    flex: 1;
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -71,7 +97,7 @@ nav ul li a:hover {
     border-radius: 5px;
     text-decoration: none;
     transition: background-color 0.3s ease;
-    text-wrap: nowrap;
+    white-space: nowrap;
 }
 
 .contact-button .header-btn:hover {
@@ -84,13 +110,12 @@ nav ul li a:hover {
 +=========================================*/
 
 @media (max-width: 1500px) {
-    header {
+    .header-top {
         flex-direction: column;
         align-items: stretch;
     }
 
     nav ul li {
-        list-style-type: none;
         margin: 0.5rem 1.2rem;
     }
 
@@ -102,5 +127,10 @@ nav ul li a:hover {
     .contact-button {
         margin-top: 0.5rem;
         justify-content: center;
+    }
+
+    .header-breadcrumbs {
+        text-align: center;
+        padding-left: 0;
     }
 }

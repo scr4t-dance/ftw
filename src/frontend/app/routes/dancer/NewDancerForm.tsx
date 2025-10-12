@@ -6,7 +6,7 @@ import { getGetApiDancersQueryKey, usePutApiDancer, usePatchApiDancerId, getGetA
 
 import { DivisionsItem, type Dancer, type DancerId, type Date } from '@hookgen/model';
 
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { Controller, useForm, type SubmitHandler, type UseFormReturn } from 'react-hook-form';
 import { Field } from '@routes/index/field';
@@ -53,15 +53,15 @@ function putOrPatchApi({ queryClient, id_dancer, formObject }: { queryClient: Qu
 
     const putDancerApi = usePutApiDancer({
         mutation: {
-            onSuccess: (data) => {
+            onSuccess: () => {
                 queryClient.invalidateQueries({
                     queryKey: getGetApiDancersQueryKey(),
                 });
                 reset();
             },
             onError: (err) => {
-                console.error('Error updating competition:', err);
-                setError("root.serverError", { message: 'Erreur lors de l’ajout de la compétition.' });
+                console.error('Error updating dancer:', err);
+                setError("root.serverError", { message: 'Erreur lors de l’ajout de la danseureuse.' });
             }
         }
     });
@@ -75,7 +75,8 @@ function putOrPatchApi({ queryClient, id_dancer, formObject }: { queryClient: Qu
 
 export function SaveDancerFormComponent({ dancer, id_dancer }: { dancer?: Dancer, id_dancer?: DancerId }) {
 
-
+    const location = useLocation();
+    const url = location.pathname.includes("new") ? "../" : "";
 
     const default_dancer = id_dancer ? dancer : (
         {
@@ -100,7 +101,7 @@ export function SaveDancerFormComponent({ dancer, id_dancer }: { dancer?: Dancer
     const queryClient = useQueryClient();
     // Using the Orval hook to handle the PUT request
 
-    const { mutate: updateDancer, isSuccess, variables } = putOrPatchApi({ queryClient, id_dancer, formObject });
+    const { mutate: updateDancer, isSuccess, variables, data: dataDancer } = putOrPatchApi({ queryClient, id_dancer, formObject });
 
     const onSubmit: SubmitHandler<Dancer> = (data) => {
         console.log(data);
@@ -121,9 +122,10 @@ export function SaveDancerFormComponent({ dancer, id_dancer }: { dancer?: Dancer
             <form onSubmit={handleSubmit(onSubmit)}>
 
                 {isSuccess &&
-                    <div className="error_message">
-                        <span>&#x26A0; </span>
-                        Successfully added dancer "{variables.data.last_name} {variables.data.first_name}"
+                    <div className="success_message">
+                        ✅ Successfully added dancer "{variables.data.last_name} {variables.data.first_name}"
+                        <br />
+                        <Link to={`${url}${dataDancer}`}>Accéder à la page de la danseureuse</Link>
                     </div>
                 }
 
@@ -203,7 +205,7 @@ function NewDancerForm({
     return (
         <>
             <h1>Ajouter un-e compétiteur-euse</h1>
-            <SaveDancerFormComponent />
+            <SaveDancerFormComponent id_dancer={undefined} dancer={undefined} />
         </>
     );
 }
