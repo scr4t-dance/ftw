@@ -1,13 +1,12 @@
 import React from 'react';
 
-import type { BibList, CompetitionId, CouplesHeat, CouplesHeatsArray, DancerId, HeatsArray, PhaseId, SinglesHeat, SinglesHeatsArray, Target } from "@hookgen/model";
-import { data, Link, useParams } from "react-router";
+import type { BibList, CompetitionId, CouplesHeat, DancerId, PhaseId, SinglesHeat, Target } from "@hookgen/model";
+import { useParams } from "react-router";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
-import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, useGetApiPhaseIdHeats, useGetApiPhaseIdSinglesHeats, usePutApiPhaseIdInitHeats, usePutApiPhaseIdPromote } from "@hookgen/heat/heat";
-import { useQueries, useQueryClient } from "@tanstack/react-query";
+import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, useGetApiPhaseIdHeats, usePutApiPhaseIdInitHeats } from "@hookgen/heat/heat";
+import { useQueryClient } from "@tanstack/react-query";
 import { BareBibListComponent } from '@routes/bib/BibList';
 import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
-import NextPhaseForm from '@routes/artefact/NextPhaseForm';
 import { InitHeatsForm } from '@routes/heat/InitHeatsForm';
 
 const iter_target_dancers = (t: Target) => t.target_type === "single"
@@ -83,7 +82,6 @@ export default function HeatsList() {
         <>
             <p>
                 <InitHeatsForm id_phase={id_phase_number} />
-
             </p>
 
             {heats?.heats && heats?.heats.map((heat, index) => (
