@@ -2,7 +2,7 @@ import type { Route } from "./+types/CompetitionListAdmin"
 
 import React from 'react';
 
-import { CompetitionTable } from "@routes/competition/CompetitionComponents";
+import { CompetitionTableComponent } from "@routes/competition/CompetitionComponents";
 
 import {
     combineClientLoader, combineServerLoader, competitionListLoader, eventLoader,
@@ -55,7 +55,7 @@ export default function CompetitionList({
 
     return (
         <>
-            <CompetitionTable id_event={loaderData.id_event} competition_id_list={competition_list as CompetitionIdList} />
+            <CompetitionTableComponent id_event={loaderData.id_event} competition_id_list={competition_list as CompetitionIdList} />
         </>
     );
 }

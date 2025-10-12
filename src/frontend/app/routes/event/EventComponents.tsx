@@ -3,9 +3,9 @@ import React from 'react';
 import { Link, useLocation } from "react-router";
 
 
-import { type Event, type EventId, type EventIdList, type Date } from "@hookgen/model";
+import { type Event, type EventId, type EventIdList, type Date, type CompetitionIdList, type Competition } from "@hookgen/model";
 import PageTitle from '@routes/index/PageTitle';
-import { CompetitionListComponent } from '@routes/competition/CompetitionComponents';
+import { CompetitionTable, EventCompetitionListComponent } from '@routes/competition/CompetitionComponents';
 
 export type loaderProps = Promise<{
     event_list: EventIdList;
@@ -141,13 +141,13 @@ export function EventDetailsComponent({ event, id_event }: { event: Event, id_ev
             <p>Date de début : {formatDate(event?.start_date)}</p>
             <p>Date de fin : {formatDate(event?.end_date)}</p>
             <Link to={`competitions`}>Liste des competitions</Link>
-            <CompetitionListComponent id_event={id_event} />
+            <EventCompetitionListComponent id_event={id_event} />
         </>
     );
 
 }
 
-export function EventDetailsAdminComponent({ event, id_event }: { event: Event, id_event: EventId }) {
+export function EventDetailsAdminComponent({ event, id_event, competition_id_list, competition_data_list }: { event: Event, id_event: EventId, competition_id_list: CompetitionIdList, competition_data_list: Competition[] }) {
 
     if (!event) return <p>Pas de données sur l’événement {id_event}.</p>;
 
@@ -165,7 +165,7 @@ export function EventDetailsAdminComponent({ event, id_event }: { event: Event, 
             <p>Date de fin : {formatDate(event?.end_date)}</p>
             <Link to="competitions/new">Créer une competition</Link>
             <Link to="competitions">Liste des competitions</Link>
-            <CompetitionListComponent id_event={id_event} />
+            <CompetitionTable competition_id_list={competition_id_list} competition_data_list={competition_data_list} />
         </>
     );
 

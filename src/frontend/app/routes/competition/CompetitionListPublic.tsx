@@ -3,7 +3,7 @@ import type { Route } from "./+types/CompetitionListPublic"
 import React from 'react';
 
 import { type CompetitionIdList, type EventId } from "@hookgen/model";
-import { CompetitionTable } from "@routes/competition/CompetitionComponents";
+import { CompetitionTableComponent } from "@routes/competition/CompetitionComponents";
 
 import {
     combineClientLoader, combineServerLoader, competitionListLoader, eventLoader,
@@ -55,7 +55,7 @@ export default function CompetitionList({
 
     return (
         <>
-            <CompetitionTable id_event={loaderData.id_event} competition_id_list={competition_list} />
+            <CompetitionTableComponent id_event={loaderData.id_event} competition_id_list={competition_list} />
         </>
     );
 }
