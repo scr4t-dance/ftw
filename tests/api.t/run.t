@@ -190,7 +190,7 @@ init heats with bib from competition
 
   $ curl -s -X PUT localhost:8081/api/phase/1/init_heats \
   > -H "Content-Type: application/json" \
-  > -d '1'
+  > -d '{"min_number_of_targets":1, "max_number_of_targets":2}'
   1
 
 get heats

@@ -1,91 +1,32 @@
+import type { Route } from './+types/DancerList';
 import React from 'react';
-import { useGetApiDancers, useGetApiDancerId } from '@hookgen/dancer/dancer';
-
-import { type DancerId, type DancerIdList } from "@hookgen/model";
 import { Link } from "react-router";
+import { BareDancerListComponent, DancerListComponent } from '@routes/dancer/DancerComponents';
+import { getApiDancerId, getApiDancers } from '~/hookgen/dancer/dancer';
 
-const dancerLink = "dancers/"
 
-function DancerDetails({ id, index }: { id: DancerId, index: number }) {
-    const { data, isLoading } = useGetApiDancerId(id);
 
-    if (isLoading) return <div>Chargement...</div>;
-    if (!data) return null;
+export async function loader({ }: Route.LoaderArgs) {
 
-    const dancer = data;
-
-    return (
-        <tr key={id}
-            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
-            <td>
-                <Link to={`/${dancerLink}${id}`}>
-                    {id}
-                </Link>
-            </td>
-            <td>
-                <Link to={`/${dancerLink}${id}`}>
-                    {dancer.last_name}
-                </Link>
-            </td>
-            <td>
-                <Link to={`/${dancerLink}${id}`}>
-                    {dancer.first_name}
-                </Link>
-            </td>
-            <td>{dancer.as_follower}</td>
-            <td>{dancer.as_leader}</td>
-        </tr>
-
+    const dancer_list = await getApiDancers();
+    const dancer_data = await Promise.all(
+        dancer_list.dancers.map((id_dancer) => getApiDancerId(id_dancer))
     );
+    return {
+        dancer_list,
+        dancer_data,
+    };
 }
 
-export function BareDancerListComponent({ dancer_list }: { dancer_list: DancerIdList }) {
+function DancerList({ loaderData }: Route.ComponentProps) {
 
+    const {dancer_list, dancer_data} = loaderData;
     return (
         <>
-            <h1>Liste Compétiteur-ices</h1>
-            <table>
-                <tbody>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nom</th>
-                        <th>Prénom</th>
-                        <th>Division follower</th>
-                        <th>Division leader</th>
-                    </tr>
-
-                    {dancer_list?.dancers?.map((dancerId, index) => (
-                        <DancerDetails key={dancerId} id={dancerId} index={index} />
-                    ))}
-                </tbody>
-            </table>
-        </>
-    );
-}
-
-function DancerListComponent() {
-
-    const { data, isLoading, error } = useGetApiDancers();
-
-    if (isLoading) return <div>Chargement des compétiteur-euses...</div>;
-    if (error) return <div>Erreur: {(error as any).message}</div>;
-
-    return (
-        <>
-            <BareDancerListComponent dancer_list={data as DancerIdList} />
-        </>
-    );
-}
-
-
-function DancerList() {
-
-    return (
-        <>
-            <Link to={`/dancers/new`}>
+            <Link to={`new`}>
                 Créer un-e nouvel-le compétiteur-euse
             </Link>
-            <DancerListComponent />
+            <BareDancerListComponent dancer_list={dancer_list} dancer_data={dancer_data} />
         </>
     );
 }

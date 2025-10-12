@@ -35,45 +35,47 @@ function PhasePageHome({
     loaderData
 }: Route.ComponentProps) {
 
-    const url = `/events/${loaderData.id_event}/competitions/${loaderData.id_competition}/phases/${loaderData.id_phase}`;
+    //const url = `/events/${loaderData.id_event}/competitions/${loaderData.id_competition}/phases/${loaderData.id_phase}`;
+    const url = '';
     const phase = loaderData.phase_data;
     const competition = loaderData.competition_data;
 
     return (
         <>
-            <h1>Phase {phase?.round} {competition?.name}</h1>
-            <p>
-                <Link to={`${url}/edit`}>
-                    Edit Phase
-                </Link>
-            </p>
-            <p>
-                <Link to={`${url}/heats`}>
-                    Phase Heats
-                </Link>
-            </p>
-            <p>
-                <Link to={`${url}/artefacts`}>
-                    Phase Artefacts
-                </Link>
-            </p>
-            <p>
-                <Link to={`/phases/${id_phase_number}/ranks`}>
-                    Phase Ranks
-                </Link>
-            </p>
-            <p>
-                <Link to={`/phases/${id_phase_number}/judges`}>
-                    Phase Judges
-                </Link>
-            </p>
-            <p>
-                <Link to={`${url}/edit_judges`}>
-                    Edit Phase Judges
-                </Link>
-            </p>
+            <div className="no-print">
+                <h1>Phase {phase?.round} {competition?.name}</h1>
+                <p>
+                    <Link to={`${url}edit`}>
+                        Edit Phase
+                    </Link>
+                </p>
+                <p>
+                    <Link to={`${url}heats`}>
+                        Phase Heats
+                    </Link>
+                </p>
+                <p>
+                    <Link to={`${url}artefacts`}>
+                        Phase Artefacts
+                    </Link>
+                </p>
+                <p>
+                    <Link to={`${url}ranks`}>
+                        Phase Ranks
+                    </Link>
+                </p>
+                <p>
+                    <Link to={`${url}judges`}>
+                        Phase Judges
+                    </Link>
+                </p>
+                <p>
+                    <Link to={`${url}edit_judges`}>
+                        Edit Phase Judges
+                    </Link>
+                </p>
+            </div>
             <Outlet />
-
         </>
     );
 }
@@ -81,5 +83,5 @@ function PhasePageHome({
 export default PhasePageHome;
 
 export const handle = {
-  breadcrumb: () => "Phase"
+    breadcrumb: () => "Phase"
 };
