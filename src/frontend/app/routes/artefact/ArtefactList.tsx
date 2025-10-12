@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import type { Bib, CompetitionId, DancerId, DancerIdList, HeatTargetJudgeArtefact, HeatTargetJudgeArtefactArray, Phase, PhaseId, Target } from "@hookgen/model";
 import { Link, useParams } from "react-router";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
-import { useGetApiPhaseIdHeats } from "~/hookgen/heat/heat";
+import { useGetApiPhaseIdHeats, } from "~/hookgen/heat/heat";
 import { useQueries } from "@tanstack/react-query";
 import { DancerCell } from '@routes/bib/BibList';
 import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
