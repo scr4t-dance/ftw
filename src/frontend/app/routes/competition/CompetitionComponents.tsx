@@ -5,9 +5,51 @@ import { useQueries } from "@tanstack/react-query";
 
 import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
 import { useGetApiEventIdComps } from "@hookgen/event/event";
-import { type CompetitionIdList, type EventId } from "@hookgen/model";
+import { type Competition, type CompetitionIdList, type EventId } from "@hookgen/model";
 
-export function CompetitionTable({ id_event, competition_id_list }: { id_event: EventId, competition_id_list: CompetitionIdList }) {
+export function CompetitionTable({ competition_id_list, competition_data_list }: { competition_id_list: CompetitionIdList, competition_data_list: Competition[] }) {
+
+  const location = useLocation();
+  const url = location.pathname.includes("competition") ? "" : "competitions/";
+
+  return (
+    <>
+      <h2>Liste Compétitions</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nom de la compétition</th>
+            <th>Type</th>
+            <th>Catégorie</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          {competition_data_list.map((competition, index) => {
+            const competitionId = competition_id_list.competitions[index];
+
+            if (!competition) return null;
+
+            return (
+              <tr key={index} className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+                <td>
+                  <Link to={`${url}${competitionId}`}>
+                    {competition.name}
+                  </Link>
+                </td>
+                <td>{competition.kind}</td>
+                <td>{competition.category}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </>
+  );
+}
+
+
+export function CompetitionTableComponent({ id_event, competition_id_list }: { id_event: EventId, competition_id_list: CompetitionIdList }) {
 
   const location = useLocation();
   const url = location.pathname.includes("competition") ? "" : "competitions/";
@@ -71,7 +113,7 @@ export function CompetitionTable({ id_event, competition_id_list }: { id_event: 
   );
 }
 
-export function CompetitionListComponent({ id_event }: { id_event: EventId }) {
+export function EventCompetitionListComponent({ id_event }: { id_event: EventId }) {
 
   console.log("CompetitionList", id_event);
 
@@ -88,7 +130,7 @@ export function CompetitionListComponent({ id_event }: { id_event: EventId }) {
 
   return (
     <>
-      <CompetitionTable id_event={id_event} competition_id_list={competitionList as CompetitionIdList} />
+      <CompetitionTableComponent id_event={id_event} competition_id_list={competitionList as CompetitionIdList} />
     </>
   );
 }
