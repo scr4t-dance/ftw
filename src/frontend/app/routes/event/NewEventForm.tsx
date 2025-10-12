@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { getApiEvents, getGetApiEventsQueryKey, usePutApiEvent } from '@hookgen/event/event';
 import type { Event, Date } from '@hookgen/model';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { Field } from '@routes/index/field';
 
 
@@ -20,6 +20,9 @@ export async function loader({ params }: Route.LoaderArgs) {
 
 
 export function NewEventForm() {
+
+    const location = useLocation();
+    const url = location.pathname.includes("new") ? "../" : "";
 
     const queryClient = useQueryClient();
 
@@ -95,7 +98,7 @@ export function NewEventForm() {
                     <div className="success_message">
                         ✅ Evénement avec identifiant "{dataEvent}" ajouté avec succès.
                         <br />
-                        <Link to={`/events/${dataEvent}`}>Accéder à l'événement</Link>
+                        <Link to={`${url}${dataEvent}`}>Accéder à l'événement</Link>
                     </div>
                 }
 

@@ -3,42 +3,18 @@ import React, { useEffect, useState } from 'react';
 import { Link } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 
-import PageTitle from "@routes/index/PageTitle";
-import Header from "@routes/header/header";
-import Footer from "@routes/footer/footer";
-
 import { useGetApiDancerId } from '@hookgen/dancer/dancer';
 import {
-    type Bib, type BibList, type CompetitionId, type CoupleTarget, type DancerId, type EventId, RoleItem,
+    type Bib, type BibList, type Competition, type CompetitionId, type CompetitionIdList, type CoupleTarget, type DancerId, RoleItem,
     type SingleTarget, type Target
 } from "@hookgen/model";
 
-import { useGetApiCompIdBibs, useDeleteApiCompIdBib, getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib, getApiCompIdBibs } from "@hookgen/bib/bib";
+import { useGetApiCompIdBibs, useDeleteApiCompIdBib, getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib, } from "@hookgen/bib/bib";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { Field } from "@routes/index/field";
-import type { Route } from './+types/BibList';
-import { getApiCompId } from '@hookgen/competition/competition';
-import { getApiEventId } from '@hookgen/event/event';
-
+import { NewTargetBibFormComponent } from './NewBibFormComponent';
 
 const dancerLink = "dancers/"
-
-
-export async function loader({ params }: Route.LoaderArgs) {
-
-    const id_event = Number(params.id_event) as EventId;
-    const event_data = getApiEventId(id_event);
-    const id_competition =  Number(params.id_competition) as CompetitionId;
-    const competition_data = getApiCompId(id_competition);
-    const bibs_list = await getApiCompIdBibs(id_competition);
-    return {
-        id_event,
-        event_data,
-        id_competition,
-        competition_data,
-        bibs_list,
-    };
-}
 
 
 function convert_target(target: Target | undefined) {
@@ -71,7 +47,7 @@ function convert_bib_to_single_target(bib: Bib): Bib[] {
 
 }
 
-function dancerArrayFromTarget(t: Target): DancerId[] {
+export function dancerArrayFromTarget(t: Target): DancerId[] {
     return t.target_type === "single"
         ? [t.target]
         : [t.follower, t.leader]
@@ -190,7 +166,7 @@ function BibRowEditable({ formObject, onUpdate, onCancel }: BibRowEditableProps)
     );
 }
 
-function EditableBibDetails({ bib_object, index }: { bib_object: Bib, index: number }) {
+function EditableBibDetails({ bib_object }: { bib_object: Bib }) {
 
 
     const [isEditing, setIsEditing] = useState(false);
@@ -247,25 +223,26 @@ function EditableBibDetails({ bib_object, index }: { bib_object: Bib, index: num
     }, [bib_object, reset]);
 
     return (
-        <tr key={`${bib_object.competition}-${bib_object.bib}`}
-            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
-
-            {isEditing ? (
-                <BibRowEditable
-                    formObject={formObject}
-                    onUpdate={handleUpdate}
-                    onCancel={handleCancel}
-                />
-            ) : (
-                <BibRowReadOnly
-                    bib_object={bib_object}
-                    onEdit={() => setIsEditing(true)}
-                    onDelete={() => deleteBib({ id: bib_object.competition, data: bib_object })}
-                />
-            )
+        <>
+            {
+                isEditing ? (
+                    <BibRowEditable
+                        formObject={formObject}
+                        onUpdate={handleUpdate}
+                        onCancel={handleCancel}
+                    />
+                ) : (
+                    <BibRowReadOnly
+                        bib_object={bib_object}
+                        onEdit={() => setIsEditing(true)}
+                        onDelete={() => deleteBib({
+                            id: bib_object.competition, data: bib_object
+                        })
+                        }
+                    />
+                )
             }
-        </tr >
-
+        </>
     );
 }
 
@@ -285,7 +262,10 @@ export function BareBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
                     </tr>
 
                     {bib_list.map((bibObject, index) => (
-                        <EditableBibDetails bib_object={bibObject} index={index} />
+                        <tr key={`${bibObject.competition}-${bibObject.bib}`}
+                            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+                            <EditableBibDetails bib_object={bibObject} />
+                        </tr >
                     ))}
                 </tbody>
             </table>
@@ -294,7 +274,7 @@ export function BareBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
 }
 
 
-function BibListComponent({ id_competition }: { id_competition: CompetitionId }) {
+export function BibListComponent({ id_competition }: { id_competition: CompetitionId }) {
 
     console.log("BibListComponent", id_competition);
     const { data, isLoading, error } = useGetApiCompIdBibs(id_competition);
@@ -315,18 +295,79 @@ function BibListComponent({ id_competition }: { id_competition: CompetitionId })
     );
 }
 
-function BibList({
-    loaderData
-}: Route.ComponentProps) {
+type BibListEventAdminComponentProps = {
+    competition_list: CompetitionIdList,
+    competition_data_list: Competition[],
+    bibs_list_array: BibList[]
+}
+
+export function BibListEventAdminComponent({ competition_list, competition_data_list, bibs_list_array }: BibListEventAdminComponentProps) {
+
+    const dancer_list = [...new Set(bibs_list_array.flatMap((bibs_list) => (
+        bibs_list.bibs.flatMap((bib) => dancerArrayFromTarget(bib.target)))
+    ))];
+
+    const target_list_duplicates = dancer_list.map((id_dancer) => (
+        bibs_list_array.flatMap((bib_list) => (
+            bib_list.bibs.filter((bib) => dancerArrayFromTarget(bib.target).includes(id_dancer))
+        ).map((bib) => bib.target))
+    ));
+
+    const target_list = target_list_duplicates.map((target_dups) =>
+        [...new Set(target_dups.map((x) => JSON.stringify(x)))].map((x) => JSON.parse(x) as Target
+        ));
 
     return (
         <>
-            <Link to={`/${dancerLink}new`}>
-                Créer un-e nouvel-le compétiteur-euse
-            </Link>
-            <BareBibListComponent bib_list={loaderData.bibs_list.bibs} />
+            <h1>Liste Compétiteur-ices</h1>
+            <table>
+                <tbody>
+                    <tr>
+                        <th>Target</th>
+                        {competition_list.competitions.map((id_competition, index) => (
+                            <th colSpan={5}>
+                                <Link to={`../competitions/${id_competition}`}>{competition_data_list[index].name}</Link>
+                            </th>
+                        ))}
+                    </tr>
+                    {dancer_list.map((id_dancer, t_index) => (
+                        target_list[t_index].map((target) => (
+                            <tr>
+                                <td>
+                                    <DancerCell id_dancer={id_dancer} />
+                                </td>
+
+                                {competition_list.competitions.map((id_competition, index) => {
+                                    // target has unique bib per competition
+                                    const bib_object = bibs_list_array[index].bibs.find((bib) => (
+                                        JSON.stringify(bib.target) === JSON.stringify(target)
+                                    ));
+
+                                    if (bib_object === undefined) {
+                                        const target = bibs_list_array.flatMap((bl) => bl.bibs.map((b) => b.target)).find((t) => dancerArrayFromTarget(t).includes(id_dancer)) as Target;
+                                        return (
+                                            <td colSpan={5}>
+                                                <NewTargetBibFormComponent id_competition={id_competition} bibs_list={bibs_list_array[index]} target={target} />
+                                            </td>
+                                        );
+                                    }
+
+                                    return <EditableBibDetails bib_object={bib_object} />
+                                })}
+                            </tr>
+                        ))
+                    ))}
+                    <tr>
+
+                        <td>New</td>
+                        {competition_list.competitions.map((id_competition) => (
+                            <td colSpan={5}>
+                                <Link to={`../competitions/${id_competition}/bibs/new`}>Nouveau bib Compétition {id_competition}</Link>
+                            </td>
+                        ))}
+                    </tr>
+                </tbody>
+            </table>
         </>
     );
 }
-
-export default BibList;
