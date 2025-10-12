@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { useGetApiDancerId } from '@hookgen/dancer/dancer';
 import {
-    type Bib, type BibList, type CompetitionId, type CompetitionIdList, type CoupleTarget, type DancerId, RoleItem,
+    type Bib, type BibList, type Competition, type CompetitionId, type CompetitionIdList, type CoupleTarget, type DancerId, RoleItem,
     type SingleTarget, type Target
 } from "@hookgen/model";
 
@@ -295,12 +295,27 @@ export function BibListComponent({ id_competition }: { id_competition: Competiti
     );
 }
 
+type BibListEventAdminComponentProps = {
+    competition_list: CompetitionIdList,
+    competition_data_list: Competition[],
+    bibs_list_array: BibList[]
+}
 
-export function BibListEventAdminComponent({ competition_list, bibs_list_array }: { competition_list: CompetitionIdList, bibs_list_array: BibList[] }) {
+export function BibListEventAdminComponent({ competition_list, competition_data_list, bibs_list_array }: BibListEventAdminComponentProps) {
 
     const dancer_list = [...new Set(bibs_list_array.flatMap((bibs_list) => (
         bibs_list.bibs.flatMap((bib) => dancerArrayFromTarget(bib.target)))
     ))];
+
+    const target_list_duplicates = dancer_list.map((id_dancer) => (
+        bibs_list_array.flatMap((bib_list) => (
+            bib_list.bibs.filter((bib) => dancerArrayFromTarget(bib.target).includes(id_dancer))
+        ).map((bib) => bib.target))
+    ));
+
+    const target_list = target_list_duplicates.map((target_dups) =>
+        [...new Set(target_dups.map((x) => JSON.stringify(x)))].map((x) => JSON.parse(x) as Target
+        ));
 
     return (
         <>
@@ -309,35 +324,38 @@ export function BibListEventAdminComponent({ competition_list, bibs_list_array }
                 <tbody>
                     <tr>
                         <th>Target</th>
-                        {competition_list.competitions.map((id_competition) => (
+                        {competition_list.competitions.map((id_competition, index) => (
                             <th colSpan={5}>
-                                <Link to={`../competitions/${id_competition}`}>Compétition {id_competition}</Link>
+                                <Link to={`../competitions/${id_competition}`}>{competition_data_list[index].name}</Link>
                             </th>
                         ))}
                     </tr>
                     {dancer_list.map((id_dancer, t_index) => (
-                        <tr>
-                            <td>
-                                <DancerCell id_dancer={id_dancer} />
-                            </td>
+                        target_list[t_index].map((target) => (
+                            <tr>
+                                <td>
+                                    <DancerCell id_dancer={id_dancer} />
+                                </td>
 
-                            {competition_list.competitions.map((id_competition, index) => {
-                                const bib_object = bibs_list_array[index].bibs.find((bib) => (
-                                    dancerArrayFromTarget(bib.target).includes(id_dancer)
-                                ));
+                                {competition_list.competitions.map((id_competition, index) => {
+                                    // target has unique bib per competition
+                                    const bib_object = bibs_list_array[index].bibs.find((bib) => (
+                                        JSON.stringify(bib.target) === JSON.stringify(target)
+                                    ));
 
-                                if (bib_object === undefined) {
-                                    const target = bibs_list_array.flatMap((bl) => bl.bibs.map((b) => b.target)).find((t) => dancerArrayFromTarget(t).includes(id_dancer)) as Target;
-                                    return (
-                                        <td colSpan={5}>
-                                            <NewTargetBibFormComponent id_competition={id_competition} bibs_list={bibs_list_array[index]} target={target} />
-                                        </td>
-                                    );
-                                }
+                                    if (bib_object === undefined) {
+                                        const target = bibs_list_array.flatMap((bl) => bl.bibs.map((b) => b.target)).find((t) => dancerArrayFromTarget(t).includes(id_dancer)) as Target;
+                                        return (
+                                            <td colSpan={5}>
+                                                <NewTargetBibFormComponent id_competition={id_competition} bibs_list={bibs_list_array[index]} target={target} />
+                                            </td>
+                                        );
+                                    }
 
-                                return <EditableBibDetails bib_object={bib_object} />
-                            })}
-                        </tr>
+                                    return <EditableBibDetails bib_object={bib_object} />
+                                })}
+                            </tr>
+                        ))
                     ))}
                     <tr>
 
