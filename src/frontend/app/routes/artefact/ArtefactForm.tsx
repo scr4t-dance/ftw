@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import type {
-  Artefact, ArtefactDescription, ArtefactYans, DancerId,
+  Artefact, ArtefactDescription, ArtefactYans, Bib, BibList, CompetitionId, DancerId,
   HeatTargetJudgeArtefactArray, PhaseId, Target
 } from "@hookgen/model";
 import { YanItem } from "@hookgen/model";
@@ -10,8 +10,9 @@ import { useGetApiPhaseId } from "@hookgen/phase/phase";
 import { useQueryClient } from "@tanstack/react-query";
 import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey, useGetApiPhaseIdArtefactJudgeIdJudge, usePutApiPhaseIdArtefactJudgeIdJudge, } from '@hookgen/artefact/artefact';
 import { Controller, FormProvider, get, useFieldArray, useForm, useFormContext, type SubmitHandler } from 'react-hook-form';
-import { Field } from '@routes/index/field';
+import { Field, RadioField } from '@routes/index/field';
 import { DancerCell } from '@routes/bib/BibComponents';
+import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
 
 
 const yan_values: (string | undefined)[] = Object.values(YanItem);
@@ -32,7 +33,7 @@ function clean_artefact(artefact: Artefact): Artefact {
 
   return {
     ...artefact,
-    artefact_data: artefact.artefact_data.map((yan) => has_no_problems ? yan : null)
+    artefact_data: artefact.artefact_data.map((yan) => has_no_problems ? yan : [YanItem.No])
   }
 }
 
@@ -91,18 +92,19 @@ function YanDropDownInput({ form_key }: { form_key: `artefacts.${number}.artefac
   } = useFormContext<HeatTargetJudgeArtefactArray>();
 
   return (
-    <Field
+    <RadioField
       error={get(errors, `${form_key}.0.message`)}
     >
-      <select
-        {...register(`${form_key}.0`)}
-      >
-        {YanItem && Object.keys(YanItem).map(key => {
-          const value = YanItem[key as keyof typeof YanItem];
-          return <option key={key} value={value}>{value}</option>;
-        })}
-      </select>
-    </Field>
+      <label className='btn yan_yes'>
+        <input {...register(`${form_key}.0`)} type="radio" value={YanItem.Yes} />{YanItem.Yes}
+      </label>
+      <label className='btn yan_alt'>
+        <input {...register(`${form_key}.0`)} type="radio" value={YanItem.Alt} />{YanItem.Alt}
+      </label>
+      <label className='btn yan_no'>
+        <input {...register(`${form_key}.0`)} type="radio" value={YanItem.No} />{YanItem.No}
+      </label>
+    </RadioField >
   );
 }
 
@@ -167,16 +169,18 @@ function ArtefactValidCount({ artefactData }: { artefactData: HeatTargetJudgeArt
     )].length;
 
     return (
-      <table>
-        <tbody>
-          <tr>
-            <th>Number of unique ranks</th>
-          </tr>
-          <tr>
-            <td>{ranking_artefact_count}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div className='yan_table'>
+        <table>
+          <tbody>
+            <tr>
+              <th>Number of unique ranks</th>
+            </tr>
+            <tr>
+              <td>{ranking_artefact_count}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     );
 
   }
@@ -191,36 +195,43 @@ function ArtefactValidCount({ artefactData }: { artefactData: HeatTargetJudgeArt
   ));
 
   return (
-
-    <table>
-      <tbody>
-        <tr>
-          <th>Criterion</th>
-          {artefact_description.artefact_data.map((criterion, index) => {
-            return (
-              <th key={`yan.${index}`}>
-                {criterion}
-              </th>
-            );
-          })}
-        </tr>
-        {Object.keys(YanItem).map((yan, index) => (
+    <div className='yan_table'>
+      <table>
+        <tbody>
           <tr>
-            <td>{yan}</td>
-            {yan_artefact_count[index].map((criterion_count) => (
-              <td>
-                {criterion_count}
-              </td>
-            ))}
+            <th>Criterion</th>
+            {artefact_description.artefact_data.map((criterion, index) => {
+              return (
+                <th key={`yan.${index}`}>
+                  {criterion}
+                </th>
+              );
+            })}
           </tr>
-        ))}
-      </tbody>
-    </table>
+          {Object.keys(YanItem).map((yan, index) => (
+            <tr>
+              <td>{yan}</td>
+              {yan_artefact_count[index].map((criterion_count) => (
+                <td>
+                  {criterion_count}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div >
   );
 
 }
 
-function RankingArtefactFormTable({ artefactData, heat_number, artefactInput }: { artefactData: HeatTargetJudgeArtefactArray, heat_number: number | undefined, artefactInput: boolean }) {
+type RankingArtefactFormTableProps = {
+  artefactData: HeatTargetJudgeArtefactArray,
+  heat_number: number | undefined,
+  artefactInput: boolean,
+  dataBibs: BibList,
+};
+function RankingArtefactFormTable({ artefactData, heat_number, artefactInput, dataBibs }: RankingArtefactFormTableProps) {
 
   const artefact_description = artefactData.artefacts[0].heat_target_judge.description;
 
@@ -307,6 +318,7 @@ function RankingArtefactFormTable({ artefactData, heat_number, artefactInput }: 
     <table>
       <tbody>
         <tr>
+          <th>Bib</th>
           <th>Target</th>
           <th>Rank</th>
           <th>Move</th>
@@ -317,6 +329,9 @@ function RankingArtefactFormTable({ artefactData, heat_number, artefactInput }: 
             {(!isHeatView || (field.heat_target_judge.heat_number === heat_number)) &&
 
               <tr key={field.id}>
+                <td>
+                  {(dataBibs.bibs.find((bib) => JSON.stringify(bib.target) === JSON.stringify(field.heat_target_judge.target)) as Bib).bib}
+                </td>
                 <td>
                   <p>
                     {field.heat_target_judge.target.target_type == "single" &&
@@ -355,8 +370,14 @@ function RankingArtefactFormTable({ artefactData, heat_number, artefactInput }: 
   );
 }
 
+type YanArtefactFormTableProps = {
+  artefactData: HeatTargetJudgeArtefactArray,
+  heat_number: number | undefined,
+  artefactInput: boolean,
+  dataBibs: BibList,
+};
 
-function YanArtefactFormTable({ artefactData, heat_number, artefactInput }: { artefactData: HeatTargetJudgeArtefactArray, heat_number: number | undefined, artefactInput: boolean }) {
+function YanArtefactFormTable({ artefactData, heat_number, artefactInput, dataBibs }: YanArtefactFormTableProps) {
 
   const artefact_description = artefactData.artefacts[0].heat_target_judge.description;
 
@@ -381,6 +402,7 @@ function YanArtefactFormTable({ artefactData, heat_number, artefactInput }: { ar
     <table>
       <tbody>
         <tr>
+          <th>Bib</th>
           <th>Target</th>
           {artefact_description.artefact_data.map((criterion, index) => {
             return (
@@ -395,6 +417,9 @@ function YanArtefactFormTable({ artefactData, heat_number, artefactInput }: { ar
             {(!isHeatView || (field.heat_target_judge.heat_number === heat_number)) &&
 
               <tr key={field.id}>
+                <td>
+                  {(dataBibs.bibs.find((bib) => JSON.stringify(bib.target) === JSON.stringify(field.heat_target_judge.target)) as Bib).bib}
+                </td>
                 <td>
                   <p>
                     {field.heat_target_judge.target.target_type == "single" &&
@@ -439,8 +464,11 @@ function YanArtefactFormTable({ artefactData, heat_number, artefactInput }: { ar
   );
 }
 
-
-export function ArtefactFormComponent({ artefactData }: { artefactData: HeatTargetJudgeArtefactArray }) {
+type ArtefactFormComponentProps = {
+  artefactData: HeatTargetJudgeArtefactArray,
+  dataBibs: BibList,
+}
+export function ArtefactFormComponent({ artefactData, dataBibs }: ArtefactFormComponentProps) {
 
 
   const [isHeatView, setHeatView] = useState(true);
@@ -503,32 +531,50 @@ export function ArtefactFormComponent({ artefactData }: { artefactData: HeatTarg
       <ArtefactValidCount artefactData={artefactData} />
       <button type='button' onClick={() => setHeatView(!isHeatView)}>Change heat view</button>
       <button type='button' onClick={() => setArtefactInput(!artefactInput)}>{artefactInput ? "Change form to dropdowns" : "Change form to numbers"}</button>
-      <form onSubmit={handleSubmit(onSubmit)} >
+      <form onSubmit={handleSubmit(onSubmit)} className='yan_table' >
         {artefact_description.artefact === "yan" && isHeatView && unique_heat_number && unique_heat_number.map((heat_number) => (
           <>
             <h2>Heat {heat_number}</h2>
-            <YanArtefactFormTable artefactData={artefactData} heat_number={heat_number} artefactInput={artefactInput} />
+            <YanArtefactFormTable
+              artefactData={artefactData}
+              heat_number={heat_number}
+              artefactInput={artefactInput}
+              dataBibs={dataBibs}
+            />
           </>
 
         ))}
         {artefact_description.artefact === "yan" && !isHeatView && (
           <>
             <h2>All heats</h2>
-            <YanArtefactFormTable artefactData={artefactData} heat_number={undefined} artefactInput={artefactInput} />
+            <YanArtefactFormTable
+              artefactData={artefactData}
+              heat_number={undefined}
+              artefactInput={artefactInput}
+              dataBibs={dataBibs}
+            />
           </>
 
         )}
         {artefact_description.artefact === "ranking" && isHeatView && unique_heat_number && unique_heat_number.map((heat_number) => (
           <>
             <h2>Heat {heat_number}</h2>
-            <RankingArtefactFormTable artefactData={artefactData} heat_number={heat_number} artefactInput={artefactInput} />
+            <RankingArtefactFormTable
+              artefactData={artefactData}
+              heat_number={heat_number}
+              artefactInput={artefactInput}
+              dataBibs={dataBibs} />
           </>
 
         ))}
         {artefact_description.artefact === "ranking" && !isHeatView && (
           <>
             <h2>All heats</h2>
-            <RankingArtefactFormTable artefactData={artefactData} heat_number={undefined} artefactInput={artefactInput} />
+            <RankingArtefactFormTable
+              artefactData={artefactData}
+              heat_number={undefined}
+              artefactInput={artefactInput}
+              dataBibs={dataBibs} />
           </>
 
         )}
@@ -560,11 +606,14 @@ export function ArtefactFormComponent({ artefactData }: { artefactData: HeatTarg
 
 export default function ArtefactForm() {
 
-  let { id_phase, id_judge } = useParams();
-  let id_phase_number = Number(id_phase) as PhaseId;
-  let id_judge_number = Number(id_judge) as DancerId;
+  const { id_phase, id_judge, id_competition } = useParams();
+  const id_phase_number = Number(id_phase) as PhaseId;
+  const id_judge_number = Number(id_judge) as DancerId;
+  const id_competition_number = Number(id_competition) as CompetitionId;
+
 
   const { data: phaseData, isSuccess: isSuccessPhase } = useGetApiPhaseId(id_phase_number);
+  const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(id_competition_number);
 
   const { data: artefactData, isLoading, isSuccess, isError, error } = useGetApiPhaseIdArtefactJudgeIdJudge(id_phase_number, id_judge_number);
   if (isLoading) return <div>Loading artefacts...</div>;
@@ -578,11 +627,14 @@ export default function ArtefactForm() {
   if (!isSuccessPhase) return <div>Chargement...</div>;
   if (!phaseData) return null;
 
+  if (!isSuccessBibs) return <div>Chargement...</div>;
+
   return (
     <>
       <h1>Judge {id_judge_number}</h1>
       <ArtefactFormComponent
         artefactData={artefactData}
+        dataBibs={dataBibs}
       />
     </>
   );
