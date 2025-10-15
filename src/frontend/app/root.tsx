@@ -68,9 +68,9 @@ export default function App({ loaderData }: Route.ComponentProps) {
   return (
     <QueryClientProvider client={queryClient}>
 
-      <Header userId={userId ?? null} />
+      <Header />
       <Outlet />
-      <Footer />
+      <Footer userId={userId ?? null} />
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );

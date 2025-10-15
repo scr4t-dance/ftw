@@ -3,9 +3,8 @@ import "./Header.css";
 import logo from "~/assets/logo.png";
 import Breadcrumbs from "./breadcrumbs";
 
-export default function Header({ userId }: { userId: string | null }) {
+export default function Header() {
 
-    const disable_admin = import.meta.env.VITE_DISABLE_ADMIN === "true";
     const location = useLocation();
     let params = new URLSearchParams();
     params.set("from", location.pathname);
@@ -21,21 +20,12 @@ export default function Header({ userId }: { userId: string | null }) {
 
                 <nav>
                     <ul>
-                        <li><Link to="/">Page d'accueil</Link></li>
+                        <li><Link to="/">Accueil</Link></li>
                         <li><Link to="/events">Événements</Link></li>
                         <li><Link to="/dancers">Compétiteurs</Link></li>
                         <li><Link to="/rules">Règles</Link></li>
                         <li><Link to="/faq">FAQ</Link></li>
                         <li><Link to="/about">À propos</Link></li>
-                        {!disable_admin && userId &&
-                            <>
-                                <li><Link to="/admin">Admin</Link></li>
-                                <li><Link to={"/logout?" + params.toString()}>Log Out</Link></li>
-                            </>
-                        }
-                        {!disable_admin && !userId &&
-                            <li><Link to={"/login?" + params.toString()}>Log In</Link></li>
-                        }
                     </ul>
                 </nav>
 
