@@ -1,10 +1,7 @@
-import "~/styles/ContentStyle.css"
+import { useEffect } from "react";
+import { Link, useLocation, useParams } from "react-router";
 
 import PageTitle from "@routes/index/PageTitle";
-import Header from "@routes/header/header";
-import Footer from "@routes/footer/footer";
-import { Link, useLocation, useParams } from "react-router";
-import { useEffect } from "react";
 import RulesV0 from "@routes/index/rules/RulesV0";
 import RulesV1 from "@routes/index/rules/RulesV1";
 import RulesV2 from "@routes/index/rules/RulesV2";
@@ -39,12 +36,11 @@ function Rules() {
     return (
         <>
             <PageTitle title="Règles" />
-            <Header />
             <div className="content-container">
                 <h1>Les règles du SCR4T</h1>
                 <div id="rules-ver-buttons-container">
                     <div className="rules-ver-button btn">
-                        <Link to="/rules/2">Règles actuelles</Link>
+                        <Link to="/rules">Règles actuelles</Link>
                     </div>
 
                     <div className="rules-ver-button btn">
@@ -58,7 +54,6 @@ function Rules() {
 
                 <RenderVersion rule_id={rule_id} />
             </div>
-            <Footer />
         </>
     );
 }

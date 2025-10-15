@@ -43,10 +43,6 @@ export default function Header({ userId }: { userId: string | null }) {
                     <a href="mailto:scr4t.danse@gmail.com" className="btn">Nous contacter</a>
                 </div>
             </div>
-
-            <div className="header-breadcrumbs">
-                <Breadcrumbs />
-            </div>
         </header>
     );
 }
