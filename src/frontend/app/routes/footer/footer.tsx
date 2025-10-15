@@ -15,8 +15,8 @@ export default function Footer({ userId }: { userId: string | null }) {
         <footer>
             {!disable_admin && userId &&
                 <div className="footer_buttons">
-                    <li className="footer_button"><Link to="/admin">Admin</Link></li>
-                    <li className="footer_button"><Link to={"/logout?" + params.toString()}>Déconnexion</Link></li>
+                    <div className="footer_button"><Link to="/admin">Admin</Link></div>
+                    <div className="footer_button"><Link to={"/logout?" + params.toString()}>Déconnexion</Link></div>
                 </div>
             }
             {!disable_admin && !userId &&
