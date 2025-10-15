@@ -181,7 +181,7 @@ ul li {
     transition: all 0.3s ease;
 }
 
-.btn a {
+.btn a, .btn {
     text-wrap: wrap;
     color: #4a5c6e;
     text-decoration: none;
@@ -193,8 +193,9 @@ ul li {
 }
 
 .selected a,
+.btn:hover,
 .btn:hover a {
-    color: white;
+    color: white !important;
 }
 
 

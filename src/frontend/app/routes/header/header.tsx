@@ -34,7 +34,7 @@ export default function Header({ userId }: { userId: string | null }) {
                             </>
                         }
                         {!disable_admin && !userId &&
-                            <li><Link to={"/login?" + params.toString()}>LogIn</Link></li>
+                            <li><Link to={"/login?" + params.toString()}>Log In</Link></li>
                         }
                     </ul>
                 </nav>
