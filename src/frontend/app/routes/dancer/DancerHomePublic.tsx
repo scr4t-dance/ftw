@@ -1,7 +1,7 @@
 import PageTitle from "@routes/index/PageTitle";
 import { Outlet } from "react-router";
 
-function CompetitionHome() {
+function DancerHomePublic() {
 
     return (
         <>
@@ -13,8 +13,4 @@ function CompetitionHome() {
     );
 }
 
-export default CompetitionHome;
-
-export const handle = {
-  breadcrumb: () => "Dancers"
-};
+export default DancerHomePublic;
