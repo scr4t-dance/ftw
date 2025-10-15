@@ -4,12 +4,21 @@
 
 footer {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     flex-wrap: wrap;
 
     margin: 2rem 0;
     padding: 1rem 0;
 
-    color: rgb(120, 120, 120);
+    color: var(--footer-text);
     border-top: solid 2px rgb(223, 223, 223);
+}
+
+.footer_button {
+    margin-right: 1rem;
+}
+
+.footer_button a {
+    color: var(--footer-text);
+    text-decoration: none;
 }
