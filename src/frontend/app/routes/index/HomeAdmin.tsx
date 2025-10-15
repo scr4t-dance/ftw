@@ -3,6 +3,7 @@ import type { Route } from "./+types/HomeAdmin";
 import { Outlet } from "react-router";
 
 import { authMiddleware } from "~/auth.server";
+import Breadcrumbs from "@routes/header/breadcrumbs";
 
 export const middleware: Route.MiddlewareFunction[] = [
   authMiddleware,
@@ -10,15 +11,18 @@ export const middleware: Route.MiddlewareFunction[] = [
 
 
 export default function EventsHomeAdmin({
-    loaderData,
+  loaderData,
 }: Route.ComponentProps) {
 
-    return (
-        <>
-            <h1>Mode Admin</h1>
-            <Outlet />
-        </>
-    );
+  return (
+    <>
+      <div className="header-breadcrumbs">
+        <Breadcrumbs />
+      </div>
+      <h1>Mode Admin</h1>
+      <Outlet />
+    </>
+  );
 }
 
 
