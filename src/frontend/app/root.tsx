@@ -106,8 +106,3 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     </main>
   );
 }
-
-
-export const handle = {
-  breadcrumb: () => "Accueil"
-};

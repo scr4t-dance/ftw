@@ -1,7 +1,6 @@
-import { Link, useLocation, type LoaderFunctionArgs } from "react-router";
+import { Link, useLocation } from "react-router";
 import "./Header.css";
 import logo from "~/assets/logo.png";
-import Breadcrumbs from "./breadcrumbs";
 
 export default function Header({ userId }: { userId: string | null }) {
 
