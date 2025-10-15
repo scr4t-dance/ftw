@@ -9,10 +9,6 @@ header {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-}
-
-.header-top {
-    display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
@@ -40,26 +36,6 @@ nav ul li a {
 
 nav ul li a:hover {
     color: #617489;
-}
-
-
-/*=========================================+
-|                 BREADCRUMBS              |
-+=========================================*/
-
-.header-breadcrumbs {
-    font-size: 0.9rem;
-    color: #617489;
-    padding-left: 0.5rem;
-}
-
-.header-breadcrumbs a {
-    color: #617489;
-    text-decoration: none;
-}
-
-.header-breadcrumbs a:hover {
-    text-decoration: underline;
 }
 
 
@@ -110,7 +86,7 @@ nav ul li a:hover {
 +=========================================*/
 
 @media (max-width: 1500px) {
-    .header-top {
+    .header {
         flex-direction: column;
         align-items: stretch;
     }
@@ -129,8 +105,4 @@ nav ul li a:hover {
         justify-content: center;
     }
 
-    .header-breadcrumbs {
-        text-align: center;
-        padding-left: 0;
-    }
 }
