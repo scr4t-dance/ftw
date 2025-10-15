@@ -5,12 +5,11 @@ import logo from "~/assets/logo.png";
 export default function Header() {
     return (
         <header>
-            <div className="header-top">
-                <div className="logo">
-                    <Link to="/">
-                        <img src={logo} alt="Logo" />
-                    </Link>
-                </div>
+            <div className="logo">
+                <Link to="/">
+                    <img src={logo} alt="Logo" />
+                </Link>
+            </div>
 
             <nav>
                 <ul>
@@ -23,9 +22,8 @@ export default function Header() {
                 </ul>
             </nav>
 
-                <div className="contact-button">
-                    <a href="mailto:scr4t.danse@gmail.com" className="btn">Nous contacter</a>
-                </div>
+            <div className="contact-button">
+                <a href="mailto:scr4t.danse@gmail.com" className="btn">Nous contacter</a>
             </div>
         </header>
     );
