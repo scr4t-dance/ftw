@@ -43,6 +43,10 @@ type t =
 val check : descr:Descr.t -> t -> bool
 (** Check whether an artefact matches a description. *)
 
+val print : Format.formatter -> t -> unit
+
+val printbox : t -> PrintBox.t
+
 
 (* DB Interaction *)
 (* ************************************************************************* *)

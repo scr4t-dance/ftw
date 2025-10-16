@@ -42,6 +42,17 @@ module Lists = struct
 
 end
 
+(* Matrix *)
+(* ************************************************************************* *)
+
+module Matrix = struct
+
+  let (++) a b =
+    assert (Array.length a = Array.length b);
+    Array.map2 Array.append a b
+
+end
+
 (* Bitwise manipulations *)
 (* ************************************************************************* *)
 

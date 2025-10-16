@@ -94,6 +94,17 @@ let points ~st ~event ~comp ~role result =
     let placement = Results.placement result in
     Points.find ~date ~n ~placement
 
+(* Ranking helpers *)
+(* ************************************************************************* *)
+
+let dancer_ranking_res ~st r =
+  Ranking.Res.map r
+    ~judges:(fun dancer_id ->
+        Target.(Any (Single { role = Leader; target = Dancer.get ~st dancer_id; })))
+    ~targets:(fun heat_target_id ->
+      Heat.get_one ~st heat_target_id
+      |> Target.map_any ~f:(fun id -> Dancer.get ~st id))
+
 
 (* Import dancers *)
 (* ************************************************************************* *)
@@ -185,6 +196,29 @@ class virtual importer (st : State.t) = object(self)
   method import_dancers ~event:(_:Event.id) (_ : Otoml.t) = ()
 
 
+  (* === Ranking === *)
+  (* =============== *)
+
+  method log_ranking r =
+    let _debug fmt r =
+      Ranking.Res.debug ~pp:Id.print fmt r
+    in
+    let pp fmt r =
+      let r = dancer_ranking_res ~st r in
+      Ranking.Res.debug ~pp:(Target.print Dancer.print_compact) fmt r
+    in
+    match (r : _ Heat.ranking) with
+    | Singles { leaders; follows; } ->
+      Logs.debug ~src (fun k->
+          k "Rankings:@\nLeaders:@\n%a@\n@\nFollowers:@\n%a"
+            pp leaders pp follows)
+    | Couples { couples; } ->
+      Logs.debug ~src (fun k->k "Rankings:@\n%a" pp couples)
+
+  method compute_ranking ~phase =
+    Heat.ranking ~st ~phase:(Phase.id phase)
+
+
   (* === Phases === *)
   (* ============== *)
 
@@ -257,12 +291,42 @@ class virtual importer (st : State.t) = object(self)
     event:Event.id -> comp:Competition.t -> Otoml.t -> Results.r list
 
   method import_results ~event ~comp ?(check_divs=true) t =
+    (* parse the results list *)
     let l = Otoml.find t (self#parse_results_list ~event ~comp) ["results"] in
+    (* check whether we have imported artefacts for the finals, and if so
+       check the results are coherent *)
+    let finals_rankings =
+      match Phase.find_round st (Competition.id comp) Finals with
+      | None -> None
+      | Some phase ->
+        match Heat.ranking ~st ~phase:(Phase.id phase) with
+        | Couples { couples; } ->
+          Some (Ranking.Res.ranking @@ dancer_ranking_res ~st couples)
+        | Singles _ -> failwith "singles ranking for a finals is not allowed"
+    in
+    (* Record the results *)
     List.iter (fun (r : Results.r) ->
         (* Check whether the dancer had access to the division *)
         if check_divs then begin
           self#check_div_access ~comp r
         end;
+        (* check the result is coherent with the ranking of finals *)
+        begin match finals_rankings, r.result.finals with
+          | Some finals_ranking, Ranked rank ->
+            begin match Ranking.One.get finals_ranking rank with
+              | Some (rank', Target.Any Couple { leader; follower; })
+                when Rank.equal rank rank' && (
+                    Id.equal r.dancer (Dancer.id leader) ||
+                    Id.equal r.dancer (Dancer.id follower)) -> ()
+              | _ ->
+                Logs.err ~src (fun k ->
+                    k "Finals ranking and competition results do not match for rank %a: %a"
+                      Rank.print rank Dancer.print_compact (Dancer.get ~st r.dancer));
+                assert false
+            end
+          | _ -> ()
+        end;
+        (* actually record the results and compute adequate promotions *)
         Results.add ~st
           ~role:r.role
           ~dancer:r.dancer
@@ -421,7 +485,8 @@ class ftw_1 st = object(self)
     match (descr: Artefact.Descr.t) with
     | Ranking ->
       begin match scores with
-        | s :: scores -> Artefact.Rank (int_of_string s), scores
+        | s :: scores ->
+          Artefact.Rank (Rank.mk (int_of_string s)), scores
         | _ ->
           Logs.err ~src (fun k->k "Missing artefacts");
           assert false
@@ -462,18 +527,21 @@ class ftw_1 st = object(self)
     judge_artefact_descr:Artefact.Descr.t ->
     head_artefact_descr:Artefact.Descr.t ->
     split:(string list -> (a * string list) option) ->
+    skip_line:bool ->
     Otoml.t ->
-    judge list * (a * ((Judge.id * Artefact.t) list * Bonus.t option)) list
-    = fun ~event ~judge_artefact_descr ~head_artefact_descr ~split t ->
+    judge list * (a * ((Judge.id * Artefact.t) list * Bonus.t option)) list =
+    fun ~event ~judge_artefact_descr ~head_artefact_descr ~split ~skip_line t ->
     let l = split_tsv ~comments:false (Otoml.get_string t) in
     (* Get the list of judges *)
     let judges, l =
       match l with
-      | judges :: _ :: r -> self#parse_judges ~event judges, r
+      | judges :: _ :: r when skip_line -> self#parse_judges ~event judges, r
+      | judges :: r when not skip_line -> self#parse_judges ~event judges, r
       | _ ->
         Logs.err (fun k->k "Could not parse the list of judges (%d)" (List.length l));
         assert false
     in
+    Logs.debug ~src (fun k ->k "%d lines" (List.length l));
     (* Parse artefacts *)
     let artefacts =
       List.filter_map (fun line ->
@@ -491,7 +559,7 @@ class ftw_1 st = object(self)
   method import_singles_artefacts ~event ~phase t =
     let judge_artefact_descr = Phase.judge_artefact_descr phase in
     let head_artefact_descr = Phase.head_judge_artefact_descr phase in
-    let phase = Phase.id phase in
+    let phase_id = Phase.id phase in
     let split = function
       | _rank :: bib :: _name :: _total :: scores ->
         let id : Id.t = self#find_id ~bib:(int_of_string bib) in
@@ -500,28 +568,30 @@ class ftw_1 st = object(self)
     in
     let leader_judges, leader_artefacts =
       Otoml.find t (
-        self#parse_judges_and_artefacts ~event ~split
+        self#parse_judges_and_artefacts
+          ~event ~split ~skip_line:true
           ~judge_artefact_descr ~head_artefact_descr
       ) ["leaders_artefacts"]
     in
     let follow_judges, follow_artefacts =
       Otoml.find t (
-        self#parse_judges_and_artefacts ~event ~split
+        self#parse_judges_and_artefacts
+          ~event ~split ~skip_line:true
           ~judge_artefact_descr ~head_artefact_descr
       ) ["followers_artefacts"]
     in
     (* Set judges *)
     let panel = make_singles_panel leader_judges follow_judges in
-    Judge.set ~st ~phase panel;
+    Judge.set ~st ~phase:phase_id panel;
     (* add notes *)
     let add_heat_and_artefact ~role (dancer_id, (artefacts, bonus)) =
-      let target = Heat.add_single ~st ~phase ~heat:1 ~role dancer_id in
+      let target = Heat.add_single ~st ~phase:phase_id ~heat:1 ~role dancer_id in
       List.iter (fun (judge, artefact) ->
           Artefact.set ~st ~judge ~target artefact
         ) artefacts;
       match bonus with
       | None -> ()
-      | Some b -> Bonus.set ~st ~target b
+    | Some b -> Bonus.set ~st ~target b
     in
     List.iter (add_heat_and_artefact ~role:Leader) leader_artefacts;
     List.iter (add_heat_and_artefact ~role:Follower) follow_artefacts;
@@ -542,7 +612,8 @@ class ftw_1 st = object(self)
     in
     let judges, artefacts =
       Otoml.find t (
-        self#parse_judges_and_artefacts ~event ~split
+        self#parse_judges_and_artefacts
+          ~event ~split ~skip_line:false
           ~judge_artefact_descr ~head_artefact_descr
       ) ["artefacts"]
     in
@@ -564,9 +635,12 @@ class ftw_1 st = object(self)
     let comp = Competition.get st (Phase.competition phase) in
     match Competition.kind comp, Phase.round phase with
     | Jack_and_Jill, (Prelims | Octofinals | Quarterfinals | Semifinals) ->
-      self#import_singles_artefacts ~event ~phase t
+      self#import_singles_artefacts ~event ~phase t;
+      self#log_ranking (self#compute_ranking ~phase)
     | Jack_and_Jill, Finals ->
-      self#import_couples_artefacts ~event ~phase t
+      self#import_couples_artefacts ~event ~phase t;
+      self#log_ranking (self#compute_ranking ~phase)
+      (* TODO: check coherence between rankings and results *)
     | (Routine | Strictly | JJ_Strictly), _ ->
       Logs.warn ~src (fun k->k "Artefacts import not implemented yet for non-J&J")
 
@@ -584,7 +658,7 @@ class ftw_1 st = object(self)
       | "E" -> Results.octofinalist
       | _ ->
         begin match int_of_string res with
-          | i -> Results.mk ~finals:(Ranked i) ()
+          | i -> Results.mk ~finals:(Ranked (Rank.mk i)) ()
           | exception Failure _ ->
             raise (Otoml.Type_error ("invalid result: " ^ res))
         end

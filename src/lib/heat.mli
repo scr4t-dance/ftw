@@ -49,12 +49,6 @@ type t =
   | Couples of couples_heats (**)
 (** Uniform type for heats *)
 
-type one =
-  | Single of Role.t * single
-  | Couple of couple
-(** Type for a single target *)
-
-
 
 (* Serialization *)
 (* ************************************************************************* *)
@@ -68,12 +62,33 @@ val couples_heats_to_toml : couples_heats -> Otoml.t
 val couples_heats_of_toml : Otoml.t -> couples_heats
 
 
+(* Heat helpers *)
+(* ************************************************************************* *)
+
+val all_single_judgement_targets : singles_heats ->
+  ([ `Single ], Id.t) Target.t Id.Map.t * Id.t list * Id.t list
+
+val all_couple_judgement_targets : couples_heats ->
+  ([ `Couple ], Id.t) Target.t Id.Map.t
+
+type 'target ranking =
+  | Singles of {
+      leaders : 'target Ranking.Res.t;
+      follows : 'target Ranking.Res.t;
+    }
+  | Couples of {
+      couples : 'target Ranking.Res.t;
+    }
+
+val ranking : st:State.t -> phase:Phase.id -> Id.t ranking
+
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
 
 (* TODO: review/remove these *)
-val get_id : State.t -> Phase.id -> int -> Bib.any_target -> (Id.t option, string) result
+val get_id : State.t -> Phase.id -> int -> Id.t Target.any -> (Id.t option, string) result
 val simple_init : State.t -> phase:Phase.id -> int -> int -> unit
 val simple_promote : State.t -> phase:Phase.id -> int -> unit
 
@@ -85,7 +100,7 @@ val add_couple :
   st:State.t -> phase:Phase.id ->
   heat:int -> leader:Dancer.id -> follower:Dancer.id -> target_id
 
-val get_one : st:State.t -> target_id -> one
+val get_one : st:State.t -> target_id -> Id.t Target.any
 
 val get : st:State.t -> phase:Phase.id -> t
 val get_singles : st:State.t -> phase:Phase.id -> singles_heats
