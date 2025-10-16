@@ -50,7 +50,8 @@ backend: $(FRONTEND_TARGET)
 
 tests: backend
 	@dune runtest \
-		|| echo -e "\n\e[01;31m!!! TESTS FAILED !!!\e[0m\n-> run 'make promote' to update the tests result files\nRun 'make openapi' if tests fail"
+		|| echo -e "\n\e[01;31m!!! TESTS FAILED !!!\e[0m\n-> run 'make promote' to update the tests result files\nRun 'make openapi' if tests fail"; \
+		   exit 1
 
 promote:
 	dune promote

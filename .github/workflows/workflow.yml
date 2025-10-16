@@ -62,12 +62,12 @@ jobs:
         node-version: 23
         cache: 'npm'
         cache-dependency-path: 'src/frontend/package-lock.json'
-    # Run the node-specific CI
-    - name: Run node-specific CI
-      run: cd src/frontend && npm ci
     # Configure the repo/install the dependencies
     - name: Install deps
       run: make configure
+    # Run the node-specific CI
+    - name: Run node-specific CI
+      run: cd src/frontend && npm ci
     # Test the build
     - name: Build
       run: opam exec -- make
