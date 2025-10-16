@@ -3,8 +3,6 @@ import { Link, useLocation, type LoaderFunctionArgs } from "react-router";
 
 export default function Footer({ userId }: { userId: string | null }) {
 
-    console.log("userId:",userId)
-
     const location = useLocation();
     let params = new URLSearchParams();
     params.set("from", location.pathname);

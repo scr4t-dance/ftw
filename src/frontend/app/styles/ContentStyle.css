@@ -164,6 +164,7 @@ ul li {
 .row {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .logout_container {
@@ -196,6 +197,14 @@ ul li {
     transition: all 0.3s ease;
 }
 
+.colored_btn {
+    font-weight: 500;
+    border-width: 2px;
+    background-color: var(--button);
+    color: white !important;
+    border: none;
+}
+
 .btn a, .btn {
     text-wrap: wrap;
     color: #4a5c6e;
@@ -216,6 +225,16 @@ ul li {
 .link_button {
     color: var(--button);
     text-decoration: underline;
+}
+
+.buttons_judge_artefact_change_view {
+    display: flex;
+    gap: 1rem;
+}
+
+.buttons_judge_artefact_change_view .btn {
+    margin: 0;
+    width: 100%;
 }
 
 
@@ -320,6 +339,11 @@ form .error_message {
     border-radius: 0.2rem;
 }
 
+
+/*=========================================+
+|            JUDGES FORM TABLE             |
++=========================================*/
+
 .yan_table {
     max-width: none;
     width: 100%;
@@ -330,6 +354,20 @@ form .error_message {
     display: flex;
     flex-direction: row;
 }
+
+.table_comp_target {
+    width: 180px;
+}
+
+.table_comp_target p {
+    margin-bottom: 0;
+}
+
+.table_comp_bib {
+    margin-right: 0.6rem;
+    font-weight: 500;
+}
+
 
 @media screen and (max-width: 1000px) {
     .yan_radio {
@@ -344,13 +382,27 @@ form .error_message {
     .yan_table table td,
     .yan_table table th {
         padding: 0.6rem 0.3rem;
-        word-wrap: break-word
+        word-wrap: break-word;
     }
 
-    .btn {
+    .btn_radio_judge_form {
         padding: 0.5rem 0.1rem;
+        width: 10px;
+    }
+
+    .table_comp_res {
+        max-width: 10px;
+    }
+
+    .table_comp_res input {
+        max-width: 10px;
     }
 }
+
+
+/*=========================================+
+|        JUDGES FORM RADIO BUTTONS         |
++=========================================*/
 
 /* .yan_radio input[type="radio"] {
   appearance: none;
@@ -359,28 +411,55 @@ form .error_message {
   width:0;
 } */
 
-.yan_yes {
-    background-color: rgba(50, 205, 50, 0.5);
+.btn_radio_judge_form {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 5px 10px 5px 0;
+    padding: 0.5rem 1rem;
+
+    color: black;
+
+    border: solid 0px;
+    border-radius: 5px;
+
+    max-width: 25px;
+
+    opacity: 50%;
+
+    transition: all 0.2s ease;
 }
 
-.yan_yes:has(input[type="radio"]:checked) {
-    background-color: rgba(50, 205, 50, 0.9);
+.btn_radio_judge_form input { 
+    /* to hide the radio button */
+    display: none;
+}
+
+.btn_radio_judge_form:hover {
+    border-width: 0px;
+    opacity: 100%;
+}
+
+.yan_yes {
+    background-color: rgb(141, 196, 87);
+    border-color: rgb(87, 126, 47);
 }
 
 .yan_alt {
-    background-color: rgba(255, 165, 0, 0.5);
-}
-
-.yan_alt:has(input[type="radio"]:checked) {
-    background-color: rgba(255, 165, 0, 0.9);
+    background-color: rgb(253, 178, 38);
+    border-color: rgb(201, 132, 3);
 }
 
 .yan_no {
-    background-color: rgba(255, 0, 0, 0.5);
+    background-color: rgb(255, 84, 84);
+    border-color: rgb(220, 45, 45);
 }
 
-.yan_no:has(input[type="radio"]:checked) {
-    background-color: rgba(255, 0, 0, 0.9);
+.btn_radio_judge_form:has(input[type="radio"]:checked) {
+    opacity: 100%;
+    border-width: 3px;
+    font-weight: 500;
 }
 
 /*=========================================+
