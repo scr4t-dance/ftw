@@ -34,7 +34,6 @@ jobs:
     - name: Run Playwright tests
       run: npx playwright test
       working-directory: src/frontend
-      continue-on-error: true
 
     - name: Upload Playwright Report
       if: always()
