@@ -13,14 +13,21 @@ test('create event', async ({ page }) => {
   await page.getByRole('link', { name: 'Créer un nouvel événement' }).click();
   await page.locator('input[name="name"]').click();
   await page.locator('input[name="name"]').fill('Test playwright');
-  await page.locator('div').filter({ hasText: /^Date de fin$/ }).getByRole('textbox').fill('2025-09-25');
+  await page.locator('div').filter({ hasText: /^Date de début$/ }).getByRole('textbox').fill('2025-09-17');
+  await page.locator('div').filter({ hasText: /^Date de fin$/ }).getByRole('textbox').fill('2025-09-26');
   await page.getByRole('button', { name: 'Valider l\'événement' }).click();
   await page.getByRole('link', { name: 'Accéder à l\'événement' }).click();
+  await page.getByRole('link', { name: 'Créer une competition' }).click();
   await page.getByRole('textbox').click();
-  await page.getByRole('textbox').fill('Competition Playwright 1');
+  await page.getByRole('textbox').fill('test playwright comp');
   await page.locator('select[name="kind.0"]').selectOption('Strictly');
   await page.locator('select[name="category.0"]').selectOption('Advanced');
   await page.getByRole('button', { name: 'Créer la compétition' }).click();
   await page.getByRole('link', { name: 'Accéder à la compétition' }).click();
-  // todo : correct competition loading before proceding further
+  await page.getByRole('link', { name: 'Création Phase' }).click();
+  await page.locator('select[name="round.0"]').selectOption('Prelims');
+  await page.getByRole('button', { name: 'Créer la phase' }).click();
+  await page.getByRole('link', { name: 'Accéder à la Phase' }).click();
+  // todo correct phase before proceding further
+
 });
