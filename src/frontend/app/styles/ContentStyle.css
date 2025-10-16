@@ -431,7 +431,7 @@ form .error_message {
     transition: all 0.2s ease;
 }
 
-.btn_radio_judge_form input { 
+.btn_radio_judge_form input {
     /* to hide the radio button */
     display: none;
 }
@@ -456,7 +456,7 @@ form .error_message {
     border-color: rgb(220, 45, 45);
 }
 
-.btn_radio_judge_form:has(input[type="radio"]:checked) {
+.btn_radio_judge_form:has(input[type="checkbox"]:checked) {
     opacity: 100%;
     border-width: 3px;
     font-weight: 500;
