@@ -79,13 +79,13 @@ export default function Login({
 
   return (
     <div>
-      <h1>Log In</h1>
+      <h1>Se connecter</h1>
       {error ? <div className="error">{error}</div> : null}
-      <Form method="post">
+      <Form method="post" className="login_form">
         <input type="hidden" name="redirectTo" value={from} />
-        <input name="email" type="text" required />
-        <input name="password" type="password" required />
-        <button type="submit">Login</button>
+        <input name="email" type="text" placeholder="email" required />
+        <input name="password" type="password" placeholder="password" required />
+        <button type="submit">Valider</button>
       </Form>
     </div>
   );
