@@ -25,17 +25,15 @@ type validateArtefactProps = {
 	artefact_description: ArtefactDescription
 };
 
-function clean_artefact(artefact: Artefact | null): Artefact | null {
-
-	if (artefact == null) return null;
+function clean_artefact(artefact: Artefact): Artefact {
 
 	if (artefact.artefact_type === "ranking") return artefact;
 	const has_no_problems = artefact.artefact_data.every((yan) => yan && yan.length <= 1 && yan[0] != null);
 
-	return has_no_problems ? {
+	return {
 		...artefact,
 		artefact_data: artefact.artefact_data.map((yan) => has_no_problems ? yan : [YanItem.No])
-	} : null;
+	};
 }
 
 function validate_artefacts({ htjaArray, artefact_description }: validateArtefactProps): HeatTargetJudgeArtefactArray {
@@ -91,7 +89,7 @@ type YanCheckboxProps = {
 
 function YanCheckbox({ yan, value, updateCallback }: YanCheckboxProps) {
 
-	console.log("yancheckbox", yan,  value);
+	console.log("yancheckbox", yan, value);
 
 	return (
 		<>
@@ -99,7 +97,7 @@ function YanCheckbox({ yan, value, updateCallback }: YanCheckboxProps) {
 				checked={yan === value}
 				onChange={() => {
 					if (yan === value) {
-						updateCallback(null);
+						updateCallback(YanItem.No);
 						return;
 					}
 					updateCallback(yan);
@@ -130,9 +128,9 @@ function YanDropDownInput({ form_key }: { form_key: `artefacts.${number}.artefac
 						<label className='btn_radio_judge_form yan_alt'>
 							<YanCheckbox yan={YanItem.Alt} value={field.value ?? ''} updateCallback={(v) => field.onChange(v)} />
 						</label>
-						<label className='btn_radio_judge_form yan_no'>
+						{/* <label className='btn_radio_judge_form yan_no'>
 							<YanCheckbox yan={YanItem.No} value={field.value ?? ''} updateCallback={(v) => field.onChange(v)} />
-						</label>
+						</label> */}
 					</>
 				)}
 			/>
@@ -190,10 +188,11 @@ function YanNumberInput({ form_key }: { form_key: `artefacts.${number}.artefact.
 	);
 }
 
-function ArtefactValidCount({ artefactData }: { artefactData: HeatTargetJudgeArtefactArray }) {
+function ArtefactValidCount({ artefactData, artefactDataToSubmit }: { artefactData: HeatTargetJudgeArtefactArray, artefactDataToSubmit: HeatTargetJudgeArtefactArray }) {
 
 	const artefact_description = artefactData.artefacts[0].heat_target_judge.description;
 	const validArtefacts = validate_artefacts({ htjaArray: artefactData, artefact_description: artefact_description });
+	const validArtefactsToSubmit = validate_artefacts({ htjaArray: artefactDataToSubmit, artefact_description: artefact_description });
 
 	if (artefact_description.artefact === "ranking") {
 		const ranking_artefact_count = [...new Set(
@@ -226,6 +225,15 @@ function ArtefactValidCount({ artefactData }: { artefactData: HeatTargetJudgeArt
 		))
 	));
 
+	const yan_artefact_count_to_submit = Object.keys(YanItem).map((yan) => (
+		artefact_description.artefact_data.map((_criterion, index) => (
+			validArtefactsToSubmit.artefacts.filter((htja) => htja.artefact != null).filter((htja) => {
+				const artefact = (htja.artefact as ArtefactYans)
+				return artefact.artefact_data[index] && (artefact.artefact_data[index][0] === yan);
+			}).length
+		))
+	));
+
 	return (
 		<div className='yan_table'>
 			<table>
@@ -243,9 +251,12 @@ function ArtefactValidCount({ artefactData }: { artefactData: HeatTargetJudgeArt
 					{Object.keys(YanItem).map((yan, index) => (
 						<tr>
 							<td>{yan}</td>
-							{yan_artefact_count[index].map((criterion_count) => (
+							{yan_artefact_count[index].map((criterion_count, c_index) => (
 								<td>
 									{criterion_count}
+									{ yan_artefact_count_to_submit[index][c_index] !== criterion_count
+									&& `(-> ${yan_artefact_count_to_submit[index][c_index]})`
+									}
 								</td>
 							))}
 						</tr>
@@ -449,7 +460,7 @@ function YanArtefactFormTable({ artefactData, heat_number, artefactInput, dataBi
 					<>
 						{(!isHeatView || (field.heat_target_judge.heat_number === heat_number)) &&
 
-							<tr key={field.id} className={index%2===0?"odd-row":"even-row"}>
+							<tr key={field.id} className={index % 2 === 0 ? "odd-row" : "even-row"}>
 								<td className="table_comp_target">
 									<div className="row">
 										<p className="table_comp_bib">
@@ -566,7 +577,7 @@ export function ArtefactFormComponent({ artefactData, dataBibs }: ArtefactFormCo
 
 	return (
 		<FormProvider {...formObject}>
-			<ArtefactValidCount artefactData={getValues()} />
+			<ArtefactValidCount artefactData={artefactData} artefactDataToSubmit={getValues()} />
 			<div className="buttons_judge_artefact_change_view">
 				<button type='button' className="btn colored_btn" onClick={() => setHeatView(!isHeatView)}>Change heat view</button>
 				<button type='button' className="btn colored_btn" onClick={() => setArtefactInput(!artefactInput)}>{artefactInput ? "Change form to dropdowns" : "Change form to numbers"}</button>
