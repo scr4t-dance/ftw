@@ -55,7 +55,7 @@ let conv = Conv.mk p of_int
 
 let () =
   State.add_init_descr_table
-    ~table_name:"division_names" ~to_int ~to_descr:to_string
+    ~table_name:"competition_kinds" ~to_int ~to_descr:to_string
     ~values:[Routine; Strictly; JJ_Strictly; Jack_and_Jill]
 
 

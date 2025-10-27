@@ -1,2 +1,14 @@
+
+; Deps for cram tests
 (cram
- (deps %{bin:ftw}))
+  (deps %{bin:ftw})
+  (package ftw_bin)
+)
+
+; Generate a test DB using the import feature
+(rule
+  (target db.sqlite)
+  (deps (source_tree archive))
+  (action (run ftw import --db=%{target} --verbosity=error archive))
+)
+

@@ -181,13 +181,12 @@ and update_dancer =
         let birthday = Option.map
             (fun ({day;month;year;} : Types.Date.t) -> Ftw.Date.mk ~day:day ~month:month ~year:year) dancer.birthday
         in
-        let dancer =
-          Ftw.Dancer.update ~st ~id_dancer:id
-            ?birthday:birthday ~last_name:dancer.last_name ~first_name:dancer.first_name
-            ?email:dancer.email ~as_leader:dancer.as_leader ~as_follower:dancer.as_follower ()
-        in
-        Ok (Ftw.Dancer.id dancer)
+        Ftw.Dancer.update ~st ~id_dancer:id
+          ?birthday:birthday ~last_name:dancer.last_name ~first_name:dancer.first_name
+          ?email:dancer.email ~as_leader:dancer.as_leader ~as_follower:dancer.as_follower ();
+        Ok id
     )
+
 and get_dancer_competition_history =
   Api.get
     ~to_yojson:Types.CompetitionIdList.to_yojson

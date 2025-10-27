@@ -13,27 +13,31 @@ type t = Sqlite3.db
 
 let initializers = ref []
 
-let mk path =
-  Printexc.record_backtrace true;
+let mk ~init path =
   let st = Sqlite3.db_open path in
-  Logs.debug ~src (fun k->k "Starting DB initialization");
-  List.iter (fun (name, f)->
-      try f st
-      with
-      | Sqlite3.Error msg as exn ->
+  (* Enable foreign keys so that the "REFERENCES" uses in tables are
+     actually enforced and checked. *)
+  Sqlite3_utils.exec0_exn st {| PRAGMA foreign_keys = ON |};
+  if init then begin
+    Logs.debug ~src (fun k->k "Starting DB initialization");
+    List.iter (fun (name, f)->
+        try f st
+        with
+        | Sqlite3.Error msg as exn ->
           let bt = Printexc.get_backtrace () in
           Logs.err ~src (fun k ->
               k "SQLite error during initialization for %s: %s\nBacktrace:\n%s"
                 name msg bt);
           raise exn
-      | exn ->
+        | exn ->
           let bt = Printexc.get_backtrace () in
           Logs.err ~src (fun k ->
               k "Failed initialization for %s: %s\nBacktrace:\n%s"
                 name (Printexc.to_string exn) bt);
           raise exn
-    ) (List.rev !initializers);
-  Logs.debug ~src (fun k->k "Finished initialization of DB");
+      ) (List.rev !initializers);
+    Logs.debug ~src (fun k->k "Finished initialization of DB")
+  end;
   st
 
 let add_init ~name f =
@@ -67,8 +71,7 @@ let add_init_descr_table ~table_name ~to_int ~to_descr ~values =
 (* ************************************************************************* *)
 
 let atomically st ~f =
-  f st
-(* Sqlite3_utils.atomically st f *)
+  Sqlite3_utils.atomically st f
 
 let exec ~st sql =
   let open Sqlite3_utils in
@@ -110,3 +113,22 @@ let query_one_where ~p ~conv ~st sql =
   exec_exn st sql
     ~ty:(p, res, f_conv)
     ~f:(Sqlite3_utils.Cursor.get_one_exn)
+
+(* TODO: this doesn't do anything really, fix this *)
+module DatabaseVersion = struct
+
+  type t = Id.t
+
+  let to_int = fun a -> a
+
+  let to_string = string_of_int
+
+  let () =
+    add_init_descr_table
+      ~table_name:"database_version" ~to_int
+      ~to_descr:to_string ~values:[
+      2
+    ]
+end
+
+let _ = DatabaseVersion.to_string 1

@@ -14,6 +14,21 @@ type t = {
 (* Helper functions *)
 (* ************************************************************************* *)
 
+let day { day; _ } = day
+let month { month; _ } = month
+let year { year; _ } = year
+
+exception Invalid_date of [`Day | `Month]
+
+let mk ~day ~month ~year =
+  if day <= 0 || day > 31 then raise (Invalid_date `Day);
+  if month <= 0 || month > 12 then raise (Invalid_date `Month);
+  { day; month; year; }
+
+
+(* Usual functions *)
+(* ************************************************************************* *)
+
 let print fmt { day; month; year; } =
   Format.fprintf fmt "%02d/%02d/%04d" day month year
 
@@ -27,26 +42,13 @@ let equal d d' = compare d d' = 0
 
 module Aux = struct
   type nonrec t = t
+  let print = print
   let compare = compare
 end
 
 module Set = Set.Make(Aux)
 module Map = Map.Make(Aux)
-
-
-(* Helper functions *)
-(* ************************************************************************* *)
-
-let day { day; _ } = day
-let month { month; _ } = month
-let year { year; _ } = year
-
-exception Invalid_date of [`Day | `Month]
-
-let mk ~day ~month ~year =
-  if day <= 0 || day > 31 then raise (Invalid_date `Day);
-  if month <= 0 || month > 12 then raise (Invalid_date `Month);
-  { day; month; year; }
+module Itm = Interval.Map.Make(Aux)
 
 
 (* DB interactions *)

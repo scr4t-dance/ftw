@@ -4,6 +4,12 @@
 (* Result monadic operators *)
 (* ************************************************************************* *)
 
+module Opt : sig
+
+  val (let+) : 'a option -> ('a -> 'b option) -> 'b option
+
+end
+
 module Result : sig
 
   val (let+) : ('a, 'b) result -> ('a -> ('c, 'b) result) -> ('c, 'b) result

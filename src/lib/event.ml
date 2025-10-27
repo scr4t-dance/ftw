@@ -11,6 +11,7 @@ exception Not_found of id
 type t = {
   id : id;
   name : string;
+  short_name : string;
   start_date : Date.t;
   end_date : Date.t;
 }
@@ -20,6 +21,7 @@ type t = {
 
 let id { id; _ } = id
 let name { name; _ } = name
+let short_name { short_name; _ } = short_name
 let start_date { start_date; _ } = start_date
 let end_date { end_date; _ } = end_date
 
@@ -49,6 +51,7 @@ let () =
         CREATE TABLE IF NOT EXISTS events (
           id INTEGER PRIMARY KEY,
           name TEXT,
+          short_name TEXT,
           start_date TEXT,
           end_date TEXT,
           UNIQUE (name, start_date, end_date)
@@ -57,11 +60,11 @@ let () =
 
 let conv =
   Conv.mk
-    Sqlite3_utils.Ty.(p4 int text text text)
-    (fun id name start_date end_date ->
+    Sqlite3_utils.Ty.(p5 int text text text text)
+    (fun id name short_name start_date end_date ->
        let start_date = Date.of_string start_date in
        let end_date = Date.of_string end_date in
-       { id; name; start_date; end_date; })
+       { id; name; short_name; start_date; end_date; })
 
 let list st =
   State.query_list ~conv ~st
@@ -74,21 +77,32 @@ let get st id =
   with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
     raise (Not_found id)
 
-let create st name ~start_date ~end_date : Id.t =
+let import ~st ~id:event_id ~name ~short_name ~start_date ~end_date =
   Logs.debug ~src:State.src (fun k->
-      k "@[<hv 2>Creating event with@ name: %s@ start_date: %a@ end_date: %a@]"
-        name Date.print start_date Date.print end_date
+      k "@[<hv 2>Importing event with@ id: %d@ name: %s@ short: %s@ start_date: %a@ end_date: %a@]"
+        event_id name short_name Date.print start_date Date.print end_date
     );
   let open Sqlite3_utils.Ty in
-  State.insert ~st ~ty:[ text; text; text; ]
-    {| INSERT INTO events (name, start_date, end_date) VALUES (?,?,?) |}
-    name (Date.to_string start_date) (Date.to_string end_date);
+  State.insert ~st ~ty:[ int; text; text; text; text; ]
+    {| INSERT INTO events (id, name, short_name, start_date, end_date) VALUES (?,?,?,?,?) |}
+    event_id name short_name (Date.to_string start_date) (Date.to_string end_date)
+
+let create ~st ~name ~short_name ~start_date ~end_date : Id.t =
+  Logs.debug ~src:State.src (fun k->
+      k "@[<hv 2>Creating event with@ name: %s@ short: %s@ start_date: %a@ end_date: %a@]"
+        name short_name Date.print start_date Date.print end_date
+    );
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[ text; text; text; text; ]
+    {| INSERT INTO events (name, short_name, start_date, end_date) VALUES (?,?,?,?) |}
+    name short_name (Date.to_string start_date) (Date.to_string end_date);
   (* TODO: try and get the id of the new event from the insert statement above,
      rather than using a new query *)
   let id =
-    State.query_one_where ~p:[ text; text; text; ] ~conv:Id.conv ~st
-      {| SELECT id FROM events WHERE name=? AND start_date=? AND end_date=? |}
-      name (Date.to_string start_date) (Date.to_string end_date)
+    State.query_one_where ~p:[ text; text; text; text; ] ~conv:Id.conv ~st
+      {| SELECT id FROM events WHERE name=? AND short_name = ? AND start_date=? AND end_date=? |}
+      name short_name (Date.to_string start_date) (Date.to_string end_date)
   in
   Logs.debug ~src:State.src (fun k->k "Event created with id %d" id);
   id
+

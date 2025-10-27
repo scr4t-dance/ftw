@@ -29,6 +29,43 @@ module Set = Set.Make(Aux)
 module Map = Map.Make(Aux)
 
 
+(* Serialization *)
+(* ************************************************************************* *)
+
+let to_toml (Any target) =
+  match target with
+  | Couple { leader; follower; } ->
+    Otoml.inline_table [
+      "leader", Id.to_toml leader;
+      "follower", Id.to_toml follower;
+    ]
+  | Single { target; role; } ->
+    Otoml.inline_table [
+      "target", Id.to_toml target;
+      "role", Role.to_toml role;
+    ]
+
+let of_toml_single t =
+  let open Misc.Opt in
+  let+ target = Otoml.find_opt t Id.of_toml ["target"] in
+  let+ role = Otoml.find_opt t Role.of_toml ["role"] in
+  Some (Single { target; role})
+
+let of_toml_couple t =
+  let open Misc.Opt in
+  let+ leader = Otoml.find_opt t Id.of_toml ["leader"] in
+  let+ follower = Otoml.find_opt t Id.of_toml ["follower"] in
+  Some (Couple { leader; follower; })
+
+let of_toml t =
+  match of_toml_single t with
+  | Some single -> Any single
+  | None ->
+    match of_toml_couple t with
+    | Some couple -> Any couple
+    | None -> raise (Otoml.Type_error "not a bib target")
+
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
@@ -52,43 +89,6 @@ type row = {
   role : Role.t;
 }
 
-let row_to_string row = Printf.sprintf "(dancer: %d, competition: %d, bib: %d, role: %d)"
-    row.dancer_id row.competition_id row.bib (Role.to_int row.role)
-
-let bib_of_rows rows =
-  match rows with
-  (* Single case *)
-  | [ { dancer_id = target; role; _ } ] ->
-    Ok (Some (Any (Single { target; role; })))
-  (* Couple case 1*)
-  | [ { dancer_id = leader; role = Leader; bib = leader_bib; competition_id = competition_id_leader; };
-      { dancer_id = follower; role = Follower; bib = follower_bib; competition_id = competition_id_follower; } ]
-    when leader_bib = follower_bib && competition_id_leader = competition_id_follower ->
-    Ok (Some (Any (Couple { leader; follower; })))
-  (* Couple case 2*)
-  | [ { dancer_id = follower; role = Follower; bib = follower_bib; competition_id = competition_id_follower; };
-      { dancer_id = leader; role = Leader; bib = leader_bib; competition_id = competition_id_leader; } ]
-    when leader_bib = follower_bib && competition_id_leader = competition_id_follower ->
-    Ok (Some (Any (Couple { leader; follower; })))
-  (* ensure identical competition id. *)
-  | [ { competition_id = competition_id_leader; _ };
-      { competition_id = competition_id_follower; _ } ]
-    when competition_id_leader != competition_id_follower ->
-    Error "Expected a unique competition_id, got two."
-  (* ensure identical bib id. *)
-  | [ { bib = leader_bib; competition_id = competition_id_leader; _ };
-      { bib = follower_bib; competition_id = competition_id_follower; _ } ]
-    when leader_bib != follower_bib && competition_id_leader = competition_id_follower ->
-    Error "Expected a unique bib id, got two"
-  | [] -> Ok None
-  | exception Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND -> Ok None
-  (* This is an error (wrongly formatted database *)
-  | x -> Error (
-      Printf.sprintf "Got %d elements, expected 0, 1, or 2. List of value is:\n* " (List.length x)
-      ^ String.concat "\n* " (List.map row_to_string x)
-    )
-
-
 let conv =
   Conv.mk Sqlite3_utils.Ty.[int;int;int;int]
     (fun dancer_id competition_id bib role ->
@@ -96,75 +96,54 @@ let conv =
        { dancer_id; competition_id; bib; role; }
     )
 
+let conv_one_bib = function
+  (* Couple cases;
+     the "ORDER BY" clause in the SQL query should ensure the order. *)
+  | { dancer_id = leader; role = Leader; bib = leader_bib; _ } ::
+    { dancer_id = follower; role = Follower; bib = follow_bib; _ } :: r
+    when Id.equal leader_bib follow_bib ->
+    Some (r, leader_bib, Any (Couple { leader; follower; }))
+  (* Single case *)
+  | { dancer_id = target; role; bib; _ } :: r ->
+    Some (r, bib, Any (Single { target; role; }))
+  (* Not in database *)
+  | [] -> None
+
+let rec conv_all_bibs = function
+  | [] -> []
+  | (_ :: _) as l ->
+    begin match conv_one_bib l with
+      | Some (r, bib, any) -> (bib, any) :: conv_all_bibs r
+      | None -> assert false
+    end
+
 let get ~st ~competition ~bib =
   let open Sqlite3_utils.Ty in
-  let rows = State.query_list_where ~st ~conv ~p:[int;int]
+  let rows =
+    State.query_list_where ~st ~conv ~p:[int;int]
       {| SELECT * FROM bibs WHERE bib = ? AND competition_id = ? |}
       bib competition
   in
-  bib_of_rows rows
+  match rows with
+  | l ->
+    begin match conv_one_bib l with
+      | None -> None
+      | Some ([], _, res) -> Some res
+      | Some (_ :: _, _, _) ->
+        (* corrupted database *)
+        assert false
+    end
+  | exception Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND -> None
 
-let get_bib_from_target ~st ~competition ~target =
+let get_all ~st ~competition =
   let open Sqlite3_utils.Ty in
-  let rows = begin match target with
-    | Any Single { target=t; role; } ->
-      State.query_list_where ~st ~conv ~p:[int;int;int]
-        {| SELECT *
-        FROM bibs
-        WHERE 0=0
-        AND dancer_id = ?
-        AND role = ?
-        AND competition_id = ? |}
-        t (Role.to_int role) competition
-    | Any Couple { leader; follower; } ->
-      State.query_list_where ~st ~conv ~p:[int;int;int;int;int]
-      {| SELECT *
-        FROM bibs
-        WHERE 0=0
-        AND (
-          (dancer_id = ? AND role = ?)
-          OR
-          (dancer_id = ? AND role = ?)
-        )
-        AND competition_id = ? |}
-      leader (Role.to_int Role.Leader) follower (Role.to_int Role.Follower) competition
-  end
-  in
-  let bib_list = List.map (fun r -> r.bib) rows in
-  match bib_list with
-  | [] -> Ok None
-  | [x] -> Ok (Some x)
-  | _::_ -> Error "Inconsistent bibs numbers"
-
-let list_from_comp ~st ~competition =
-  let update_aux acc (r : row) =
-    let new_value = match Id.Map.find_opt r.bib acc with
-      | None -> [r]
-      | Some l -> r::l
-    in
-    Id.Map.add r.bib new_value acc
-  in
-  let open Sqlite3_utils.Ty in
-  let row_list =
+  match
     State.query_list_where ~st ~conv ~p:[int]
-      {| SELECT * FROM bibs WHERE competition_id = ? ORDER BY dancer_id |}
+      {| SELECT * FROM bibs WHERE competition_id = ? ORDER BY bib, role |}
       competition
-  in
-  let row_map = List.fold_left update_aux Id.Map.empty row_list in
-  let target_option_result_map = Id.Map.map bib_of_rows row_map in
-  let target_option_map_result = Id.Map.fold
-      (fun key value acc -> match value, acc with
-         | Ok v, Ok a -> Ok (Id.Map.add key v a)
-         | Error e, Ok _ -> Error e
-         | Ok _, Error e -> Error e
-         | Error e, Error ae -> Error (ae ^ "\n" ^ e)
-      )
-      target_option_result_map (Ok Id.Map.empty)
-  in
-  let target_map_result = Result.map (Id.Map.filter_map (fun _ v -> v)) target_option_map_result
-  in
-  target_map_result
-
+  with
+  | l -> conv_all_bibs l
+  | exception Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND -> []
 
 let insert_row ~st ~competition ~dancer ~role ~bib =
   let open Sqlite3_utils.Ty in
@@ -172,7 +151,14 @@ let insert_row ~st ~competition ~dancer ~role ~bib =
     {| INSERT INTO bibs(dancer_id,competition_id,bib,role) VALUES (?,?,?,?) |}
     dancer competition bib (Role.to_int role)
 
-let insert_target ~st ~competition ~target ~bib =
+let add ~st ~competition ~target ~bib =
+  let existing_target = get ~st ~competition ~bib in
+  begin match existing_target with
+    | Some _ ->
+      (* duplicate bib *)
+      assert false
+    | None -> ()
+  end;
   match target with
   | Any Single { target; role; } ->
     insert_row ~st ~bib ~competition ~dancer:target ~role
@@ -180,51 +166,19 @@ let insert_target ~st ~competition ~target ~bib =
     insert_row ~st ~bib ~competition ~dancer:leader ~role:Leader;
     insert_row ~st ~bib ~competition ~dancer:follower ~role:Follower
 
-let set ~st ~competition ~target ~bib =
+let delete ~st ~competition ~bib =
   let existing_target = get ~st ~competition ~bib in
   begin match existing_target with
-    | Ok Some _ -> assert false
-    | Ok None -> ()
-    | Error _ -> assert false
-  end;
-  insert_target ~st ~competition ~target ~bib
-
-
-let update ~st ~competition ~target ~bib =
-  let existing_bib_result = get_bib_from_target ~st ~competition ~target in
-  let new_target = get ~st ~competition ~bib in
-  begin match existing_bib_result, new_target with
-    | Ok Some existing_bib, Ok None ->
-      let open Sqlite3_utils.Ty in
-      State.insert ~st ~ty:[int;int;int]
-        {| UPDATE bibs
-        SET bib = ?
-        WHERE 0=0
-        AND competition_id = ?
-        AND bib = ?
-        |}
-        bib competition existing_bib
-    | Ok None, _ -> raise Not_found
-    | Error e, _ -> raise (Failure e)
-    | _, Ok Some _ -> raise (Failure "new bib already in use")
-    | _, Error e -> raise (Failure e)
-  end
-
-let delete_bib ~st ~competition ~bib =
-  let existing_target = get ~st ~competition ~bib in
-  begin match existing_target with
-    | Ok Some Any (Single starget) -> Logs.warn (fun k->
+    | Some Any (Single starget) -> Logs.warn (fun k->
         k "Delete target: %d %d with bib %d" starget.target (Role.to_int starget.role) bib); flush_all();
-    | Ok Some Any (Couple ctarget) -> Logs.warn (fun k->
+    | Some Any (Couple ctarget) -> Logs.warn (fun k->
         k "Delete target: leader %d folllower %d with bib %d" ctarget.leader ctarget.follower bib); flush_all();
-    | Ok None -> raise Not_found
-    | Error e -> raise (Failure e)
+    | None ->
+      (* TODO: error message ? *)
+      raise Not_found
   end;
   let open Sqlite3_utils.Ty in
   State.insert ~st ~ty:[int;int]
-    {| DELETE FROM bibs
-    WHERE 0=0
-    AND competition_id = ?
-    AND bib = ?
-    |}
+    {| DELETE FROM bibs WHERE competition_id = ? AND bib = ? |}
     competition bib
+

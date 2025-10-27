@@ -148,7 +148,7 @@ and singles_heats =
     (fun req st ->
        let+ id = Utils.int_param req "id" in
        let singles_heats = Ftw.Heat.get_singles ~st ~phase:id in
-       Ok (Types.HeatsArray.of_ftw singles_heats)
+       Ok (Types.HeatsArray.of_ftw (Singles singles_heats))
     )
 
 and couples_heats =
@@ -157,7 +157,7 @@ and couples_heats =
     (fun req st ->
        let+ id = Utils.int_param req "id" in
        let couples_heats = Ftw.Heat.get_couples ~st ~phase:id in
-       Ok (Types.HeatsArray.of_ftw couples_heats)
+       Ok (Types.HeatsArray.of_ftw (Couples couples_heats))
     )
 
 and get_heats =
@@ -165,9 +165,9 @@ and get_heats =
     ~to_yojson:Types.HeatsArray.to_yojson
     (fun req st ->
        let+ id = Utils.int_param req "id" in
-       let heats = Ftw.Heat.get_heats ~st ~phase:id in
-       let heatArray = Result.map Types.HeatsArray.of_ftw heats in
-       Result.map_error Error.generic heatArray
+       let heats = Ftw.Heat.get ~st ~phase:id in
+       let heatArray = Types.HeatsArray.of_ftw heats in
+       Ok heatArray
     )
 
 and init_heats =

@@ -45,21 +45,50 @@ type couples_heats = {
 }
 
 type t =
-  | Singles_heats of singles_heats
-  | Couples_heats of couples_heats
+  | Singles of singles_heats
+  | Couples of couples_heats (**)
+(** Uniform type for heats *)
 
-val get_dancer_list : t -> Bib.any_target list array
+type one =
+  | Single of Role.t * single
+  | Couple of couple
+(** Type for a single target *)
+
+
+
+(* Serialization *)
+(* ************************************************************************* *)
+
+val singles_heats_to_toml : singles_heats -> Otoml.t
+
+val singles_heats_of_toml : Otoml.t -> singles_heats
+
+val couples_heats_to_toml : couples_heats -> Otoml.t
+
+val couples_heats_of_toml : Otoml.t -> couples_heats
+
 
 (* DB interaction *)
 (* ************************************************************************* *)
 
-val get_singles : st:State.t -> phase:Phase.id -> t
-val get_couples : st:State.t -> phase:Phase.id -> t
 
-val get_heats : st:State.t -> phase:Phase.id -> (t, string) result
-
-
+(* TODO: review/remove these *)
 val get_id : State.t -> Phase.id -> int -> Bib.any_target -> (Id.t option, string) result
+val simple_init : State.t -> phase:Phase.id -> int -> int -> unit
+val simple_promote : State.t -> phase:Phase.id -> int -> unit
 
-val simple_init : State.t -> phase:Id.t -> int -> int -> unit
-val simple_promote : State.t -> phase:Id.t -> int -> unit
+val add_single :
+  st:State.t -> phase:Phase.id ->
+  heat:int -> role:Role.t -> Dancer.id -> target_id
+
+val add_couple :
+  st:State.t -> phase:Phase.id ->
+  heat:int -> leader:Dancer.id -> follower:Dancer.id -> target_id
+
+val get_one : st:State.t -> target_id -> one
+
+val get : st:State.t -> phase:Phase.id -> t
+val get_singles : st:State.t -> phase:Phase.id -> singles_heats
+val get_couples : st:State.t -> phase:Phase.id -> couples_heats
+
+

@@ -144,10 +144,12 @@ and create_event =
     (fun _req st (event : Types.Event.t) ->
        let+ start_date = Utils.import_date event.start_date in
        let+ end_date = Utils.import_date event.end_date in
+       let short_name = "" in (* TODO: add this in the API *)
        let+ () =
          if Ftw.Date.compare start_date end_date <= 0
          then Ok ()
          else Error.(mk @@ bad_event_dates ~start_date ~end_date)
        in
-       let id = Ftw.Event.create st event.name ~start_date ~end_date in
+       let id = Ftw.Event.create ~st ~name:event.name ~short_name ~start_date ~end_date in
        Ok id)
+

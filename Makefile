@@ -40,6 +40,8 @@ src/frontend/app/hookgen/hookgen.sentinel hookgen: src/openapi.json
 $(FRONTEND_TARGET): src/frontend/app/hookgen/hookgen.sentinel $(FRONTEND_DEPS)
 	cd src/frontend && npm run build
 
+frontend: $(FRONTEND_TARGET)
+
 backend: $(FRONTEND_TARGET)
 	dune build $(FLAGS) @install
 
@@ -50,8 +52,8 @@ backend: $(FRONTEND_TARGET)
 
 tests: backend
 	@dune runtest \
-		|| echo -e "\n\e[01;31m!!! TESTS FAILED !!!\e[0m\n-> run 'make promote' to update the tests result files\nRun 'make openapi' if tests fail"; \
-		   exit 1
+		|| (echo -e "\n\e[01;31m!!! TESTS FAILED !!!\e[0m\n-> run 'make promote' to update the tests result files\nRun 'make openapi' if tests fail"; \
+		    exit 1 )
 
 promote:
 	dune promote
@@ -88,5 +90,5 @@ manual_test: backend
 top:
 	dune utop
 
-.PHONY: all build top doc run dev tests promote clean
+.PHONY: all build top doc run dev tests promote clean frontend backend
 	hookgen openapi

@@ -44,8 +44,6 @@ and get_ranks =
     ~to_yojson:Types.PhaseRanking.to_yojson
     (fun req st ->
        let+ id = Utils.int_param req "id" in
-       let heats_result = Ftw.Heat.get_heats ~st ~phase:id in
-       let+ heats = Result.map_error Error.generic heats_result in
-       let _target_list = List.flatten @@ Array.to_list (Ftw.Heat.get_dancer_list heats) in
+       let _heats = Ftw.Heat.get ~st ~phase:id in
        Error (Error.generic "not implemented")
     )

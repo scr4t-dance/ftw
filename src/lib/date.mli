@@ -28,6 +28,9 @@ module Set : Set.S with type elt = t
 module Map : Map.S with type key = t
 (** Maps of dates *)
 
+module Itm : Interval.Map.S with type key = t
+(** Interval maps *)
+
 
 (* Helper functions *)
 (* ************************************************************************* *)

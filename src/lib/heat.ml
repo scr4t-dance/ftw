@@ -46,25 +46,79 @@ type couples_heats = {
 }
 
 type t =
-  | Singles_heats of singles_heats
-  | Couples_heats of couples_heats
+  | Singles of singles_heats
+  | Couples of couples_heats
+
+type one =
+  | Single of Role.t * single
+  | Couple of couple
 
 
-let target_of_singles_heat h =
-  let leaders = List.map (fun s -> Bib.Any (Bib.Single {target=s.dancer;role=Role.Leader})) h.leaders in
-  let followers = List.map (fun s -> Bib.Any (Bib.Single {target=s.dancer;role=Role.Follower})) h.followers in
-  followers @ leaders
+(* Serialization *)
+(* ************************************************************************* *)
 
-let target_of_couples_heat h =
-  let couples = List.map (fun s -> Bib.Any (Bib.Couple {leader=s.leader;follower=s.follower})) h.couples in
-  couples
+(* singles *)
 
-let get_dancer_list heats =
-  match heats with
-  | Singles_heats sh -> Array.map target_of_singles_heat sh.singles_heats
-  | Couples_heats ch -> Array.map target_of_couples_heat ch.couples_heats
+let single_to_toml { target_id; dancer; } =
+  Otoml.inline_table [
+    "target_id", Id.to_toml target_id;
+    "dancer", Id.to_toml dancer;
+  ]
 
-(* DB interaction - Regular table *)
+let single_of_toml t =
+  let target_id = Otoml.find t Id.of_toml ["target_id"] in
+  let dancer = Otoml.find t Id.of_toml ["dancer"] in
+  { target_id; dancer; }
+
+let singles_heat_to_toml { leaders; followers; passages = _; } =
+  Otoml.inline_table [
+    "leaders", Otoml.array (List.map single_to_toml leaders);
+    "followers", Otoml.array (List.map single_to_toml followers);
+  ]
+
+let singles_heat_of_toml t =
+  let leaders = Otoml.find t (Otoml.get_array single_of_toml) ["leaders"] in
+  let followers = Otoml.find t (Otoml.get_array single_of_toml) ["followers"] in
+  { leaders; followers; passages = Id.Map.empty; }
+
+let singles_heats_to_toml { singles_heats; } =
+  Otoml.array (Array.to_list (Array.map singles_heat_to_toml singles_heats))
+
+let singles_heats_of_toml t =
+  let l = Otoml.get_array singles_heat_of_toml t in
+  { singles_heats = Array.of_list l; }
+
+(* couples *)
+
+let couple_to_toml { target_id; leader; follower; } =
+  Otoml.inline_table [
+    "target_id", Id.to_toml target_id;
+    "leader", Id.to_toml leader;
+    "follower", Id.to_toml follower;
+  ]
+
+let couple_of_toml t =
+  let target_id = Otoml.find t Id.of_toml ["target_id"] in
+  let leader = Otoml.find t Id.of_toml ["leader"] in
+  let follower = Otoml.find t Id.of_toml ["follower"] in
+  { target_id; leader; follower; }
+
+let couples_heat_to_toml { couples; passages = _; } =
+  Otoml.array (List.map couple_to_toml couples)
+
+let couples_heat_of_toml t =
+  let couples = Otoml.get_array couple_of_toml t in
+  { couples; passages = Id.Map.empty; }
+
+let couples_heats_to_toml { couples_heats; } =
+  Otoml.array (Array.to_list (Array.map couples_heat_to_toml couples_heats))
+
+let couples_heats_of_toml t =
+  let l = Otoml.get_array couples_heat_of_toml t in
+  { couples_heats = Array.of_list l; }
+
+
+(* DB interaction *)
 (* ************************************************************************* *)
 
 let () =
@@ -78,6 +132,58 @@ let () =
           follower_id INTEGER REFERENCES dancers(id)
         )
       |})
+
+(* simple getter *)
+let get_one ~st tid =
+  let open Sqlite3_utils.Ty in
+  let conv =
+    Conv.mk [int; int; int; nullable int; nullable int]
+      (fun target_id _phase_id _heat_number leader_id follower_id ->
+         match leader_id, follower_id with
+         | None, None -> assert false
+         | Some id, None -> Single (Leader, { target_id; dancer = id; })
+         | None, Some id -> Single (Follower, { target_id; dancer = id; })
+         | Some leader, Some follower -> Couple { target_id; leader; follower; }
+      )
+  in
+  State.query_one_where ~st ~conv ~p:[int]
+    {| SELECT * FROM heats WHERE id = ? |} tid
+
+
+(* Setters *)
+let add_single ~st ~phase ~heat ~role dancer_id =
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[int; int; nullable int; nullable int]
+    {| INSERT INTO heats
+         (phase_id, heat_number,leader_id,follower_id)
+         VALUES (?,?,?,?) |}
+    phase heat
+    (match (role : Role.t) with Leader -> Some dancer_id | Follower -> None)
+    (match (role : Role.t) with Leader -> None | Follower -> Some dancer_id);
+  match (role : Role.t) with
+  | Leader ->
+    State.query_one_where ~st ~conv:Id.conv ~p:[int; int; int]
+      {| SELECT id FROM heats WHERE phase_id = ? AND heat_number = ?
+                              AND leader_id = ? AND follower_id ISNULL |}
+      phase heat dancer_id
+  | Follower ->
+    State.query_one_where ~st ~conv:Id.conv ~p:[int; int; int]
+      {| SELECT id FROM heats WHERE phase_id = ? AND heat_number = ?
+                              AND leader_id ISNULL AND follower_id = ? |}
+      phase heat dancer_id
+
+let add_couple ~st ~phase ~heat ~leader ~follower =
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[int; int; int; int]
+    {| INSERT INTO heats
+         (phase_id, heat_number, leader_id, follower_id)
+         VALUES (?,?,?,?) |}
+    phase heat leader follower;
+  State.query_one_where ~st ~conv:Id.conv ~p:[int; int; int; int]
+    {| SELECT id FROM heats WHERE phase_id = ? AND heat_number = ?
+                            AND leader_id = ? AND follower_id = ? |}
+    phase heat leader follower
+
 
 (* Helpers *)
 
@@ -126,7 +232,7 @@ let mk_singles (l : row list) =
   in
   (* Allocate the heats array and fill it.
      At the same time, compute the number of passages for each bib. *)
-  let a = Array.make n { leaders = []; followers = []; passages = Id.Map.empty; } in
+  let a = Array.make (n + 1) { leaders = []; followers = []; passages = Id.Map.empty; } in
   let num_total_passages = ref Id.Map.empty in
   update_heats a l
     ~f:(fun heat target_id ~leader ~follow ->
@@ -165,7 +271,7 @@ let mk_singles (l : row list) =
   { singles_heats = a; }
 
 let get_singles ~st ~phase =
-  Singles_heats (mk_singles @@ raw_get st ~phase)
+  mk_singles @@ raw_get st ~phase
 
 
 (* Couples heats *)
@@ -180,7 +286,7 @@ let mk_couples (l: row list) =
   in
   (* Allocate the heats array and fill it.
      At the same time, compute the number of passages for each bib. *)
-  let a = Array.make n { couples = []; passages = Id.Map.empty; } in
+  let a = Array.make (n + 1) { couples = []; passages = Id.Map.empty; } in
   let num_total_passages = ref Id.Map.empty in
   update_heats a l
     ~f:(fun (heat : couples_heat) target_id ~leader ~follow ->
@@ -219,21 +325,22 @@ let mk_couples (l: row list) =
   { couples_heats = a; }
 
 let get_couples ~st ~phase =
-  Couples_heats (mk_couples @@ raw_get st ~phase)
+  mk_couples @@ raw_get st ~phase
 
-let get_heats ~st ~phase =
-  let heats =
-    let panel = Judge.get ~st ~phase in
-    begin match panel with
-      | Ok Singles _ ->
-        let singles_heats = get_singles ~st ~phase in
-        Ok singles_heats
-      | Ok Couples _ ->
-        let couples_heats = get_couples ~st ~phase in
-        Ok couples_heats
-      | Error _ as err -> err
-    end in
-  heats
+
+(* Mixed accessor *)
+let get ~st ~phase =
+  match Judge.get ~st ~phase with
+  | Singles _ ->
+    let singles_heats = get_singles ~st ~phase in
+    Singles singles_heats
+  | Couples _ ->
+    let couples_heats = get_couples ~st ~phase in
+    Couples couples_heats
+
+
+
+(* New code below: to review *)
 
 let get_id st (phase_id:Phase.id) (heat_number:int) (target:Bib.any_target) =
   let heat_id_list = begin match target with
@@ -276,8 +383,6 @@ let get_id st (phase_id:Phase.id) (heat_number:int) (target:Bib.any_target) =
   | [h] -> Ok (Some h)
   | _ -> Error "Error too many matches"
 
-
-
 let simple_init st ~(phase:Id.t) (_min_number_of_targets:int) (_max_number_of_targets:int) =
   let open Sqlite3_utils.Ty in
   State.insert ~st ~ty:[int]
@@ -286,7 +391,6 @@ let simple_init st ~(phase:Id.t) (_min_number_of_targets:int) (_max_number_of_ta
         AND phase_id = ?
         |}
     phase;
-  let open Sqlite3_utils.Ty in
   State.insert ~st ~ty:[int;]
     {| insert into heats (phase_id, heat_number, leader_id, follower_id)
           select phases.id as phase_id
@@ -342,3 +446,19 @@ let simple_promote st ~(phase:Id.t) (_max_number_of_targets_to_pass:int) =
           AND heats.phase_id = ?
           |}
     (Phase.id new_phase) phase
+
+(*
+let target_of_singles_heat h =
+  let leaders = List.map (fun s -> Bib.Any (Bib.Single {target=s.dancer;role=Role.Leader})) h.leaders in
+  let followers = List.map (fun s -> Bib.Any (Bib.Single {target=s.dancer;role=Role.Follower})) h.followers in
+  followers @ leaders
+
+let target_of_couples_heat h =
+  let couples = List.map (fun s -> Bib.Any (Bib.Couple {leader=s.leader;follower=s.follower})) h.couples in
+  couples
+
+let get_dancer_list heats =
+  match heats with
+  | Singles_heats sh -> Array.map target_of_singles_heat sh.singles_heats
+  | Couples_heats ch -> Array.map target_of_couples_heat ch.couples_heats
+*)

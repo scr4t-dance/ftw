@@ -32,8 +32,18 @@ let semifinalist = mk () ~semifinals:Present
 let quarterfinalist = mk () ~quarterfinals:Present
 let octofinalist = mk () ~octofinals:Present
 
+let placement (t : t) : Points.placement =
+  match t.finals with
+  | Present -> Finals None
+  | Ranked rank -> Finals (Some rank)
+  | Not_present ->
+    begin match t.semifinals with
+      | Present | Ranked _ -> Semifinals
+      | Not_present -> Other
+    end
 
-(* DB/int serialization *)
+(* Int conversion *)
+(* ************************************************************************* *)
 
 let to_int t =
   let aux n r =
@@ -48,8 +58,8 @@ let to_int t =
     i lsl (n * 8)
   in
   aux 0 t.finals lor
-  aux 1 t.prelims lor
-  aux 2 t.semifinals lor
+  aux 1 t.semifinals lor
+  aux 2 t.prelims lor
   aux 3 t.quarterfinals lor
   aux 4 t.octofinals
 
@@ -62,14 +72,15 @@ let of_int i =
     | _ -> Ranked j
   in
   {
-    prelims = aux i 1;
+    prelims = aux i 2;
     octofinals = aux i 4;
     quarterfinals = aux i 3;
-    semifinals = aux i 2;
+    semifinals = aux i 1;
     finals = aux i 0;
   }
 
 (* TOML serialization *)
+(* ************************************************************************* *)
 
 let to_toml t =
   let aux name t' acc =

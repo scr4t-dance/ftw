@@ -13,4 +13,5 @@ _opam
 
 *.log
 
+src/frontend/src/hookgen
 src/frontend/app/hookgen

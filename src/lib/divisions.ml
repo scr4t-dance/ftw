@@ -23,13 +23,16 @@ let equal = Stdlib.(=)
 let compare = Stdlib.compare
 let max = Stdlib.max
 
-let print fmt = function
-  | None -> Format.fprintf fmt "N/A"
-  | Novice -> Format.fprintf fmt "novice"
-  | Novice_Intermediate -> Format.fprintf fmt "novice/inter"
-  | Intermediate -> Format.fprintf fmt "intermediate"
-  | Intermediate_Advanced -> Format.fprintf fmt "inter/adv"
-  | Advanced -> Format.fprintf fmt "advanced"
+let to_string = function
+  | None -> "N/A"
+  | Novice -> "novice"
+  | Novice_Intermediate -> "novice/inter"
+  | Intermediate -> "intermediate"
+  | Intermediate_Advanced -> "inter/adv"
+  | Advanced -> "advanced"
+
+let print fmt t =
+  Format.fprintf fmt "%s" (to_string t)
 
 let includes div t =
   match (div : Division.t) with
@@ -94,3 +97,4 @@ let () =
     Intermediate_Advanced;
     Advanced;
   ]
+

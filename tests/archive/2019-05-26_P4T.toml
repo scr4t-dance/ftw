@@ -1,8 +1,10 @@
-
 # FTW Event Info
+[config]
+format="ftw.1"
 
 [event]
 name = "Printemps 4 Temps"
+short = "p4t"
 start_date = 2019-05-24
 end_date = 2019-05-26
 
@@ -12,9 +14,7 @@ kind = "Jack_and_Jill"
 category = "Regular"
 leaders = 0
 follows = 0
-
-[event.comps.jj_debutants.results]
-csv = """
+results = """
 1	F	Daumal	Ange
 1	L	Khansa	Rémi
 
@@ -37,9 +37,7 @@ kind = "Jack_and_Jill"
 category = "Qualifying"
 leaders = 0
 follows = 0
-
-[event.comps.jj_confirmes.results]
-csv = """
+results = """
 1	F	Parquier	Claire
 1	L	Franque	Guillaume
 
@@ -68,9 +66,7 @@ kind = "Jack_and_Jill"
 category = "Invited"
 leaders = 0
 follows = 0
-
-[event.comps.jj_invite_old.results]
-csv = """
+results = """
 # Podium
 1	F	Vallerio	Héloise
 1	L	Bury	Guillaume
@@ -101,9 +97,7 @@ kind = "Jack_and_Jill"
 category = "Invited"
 leaders = 0
 follows = 0
-
-[event.comps.jj_invite_moderne.results]
-csv = """
+results= """
 # Podium
 1	F	Vallerio	Héloise
 1	L	Ben Kiran	Paul

@@ -4,54 +4,61 @@
 
 let src = Logs.Src.create "ftw.backend.artefact"
 
+(* Helper functions *)
+(* ************************************************************************* *)
+
 open Utils.Syntax
 
-let convert_result_list_to_list_result a = List.fold_left (fun acc result_list_element -> Result.bind acc (fun acc_list -> Result.map (fun htja -> acc_list @ [htja]) result_list_element)) (Ok []) a
+let convert_result_list_to_list_result a =
+  List.fold_left (fun acc result_list_element ->
+      Result.bind acc (fun acc_list ->
+          Result.map (fun htja -> acc_list @ [htja]) result_list_element
+        )
+    ) (Ok []) a
 
-let get_heat_followers (h: Ftw.Heat.t) =
-  let target_list_array = begin match h with
-    | Singles_heats sh -> Array.map (fun (singles_heat: Ftw.Heat.singles_heat) ->
+let get_heat_followers (sh: Ftw.Heat.singles_heats) =
+  let target_list_array =
+    Array.map (fun (singles_heat: Ftw.Heat.singles_heat) ->
         List.map (fun (d: Ftw.Heat.single) -> let dancer_id = d.dancer in
                    Ftw.Bib.Any (Single {target=dancer_id; role=Ftw.Role.Follower;}))
           singles_heat.followers) sh.singles_heats
-    | Couples_heats _ -> failwith "Unexpected heat type"
-  end in
+  in
   Array.to_list target_list_array
 
-let get_heat_leaders (h: Ftw.Heat.t) =
-  let target_list_array = begin match h with
-    | Singles_heats sh -> Array.map (fun (singles_heat: Ftw.Heat.singles_heat) ->
+let get_heat_leaders (sh: Ftw.Heat.singles_heats) =
+  let target_list_array =
+    Array.map (fun (singles_heat: Ftw.Heat.singles_heat) ->
         List.map (fun (d: Ftw.Heat.single) -> let dancer_id = d.dancer in
                    Ftw.Bib.Any (Single {target=dancer_id; role=Ftw.Role.Leader;}))
           singles_heat.leaders) sh.singles_heats
-    | Couples_heats _ -> failwith "Unexpected heat type"
-  end in
+  in
   Array.to_list target_list_array
 
-let get_heat_couples (h:Ftw.Heat.t) =
-  let target_list_array = begin match h with
-    | Singles_heats _ -> failwith "Unexpected heat type"
-    | Couples_heats ch -> Array.map (fun (couples_heat: Ftw.Heat.couples_heat) ->
+let get_heat_couples (ch:Ftw.Heat.couples_heats) =
+  let target_list_array =
+    Array.map (fun (couples_heat: Ftw.Heat.couples_heat) ->
         List.map (fun (couple:Ftw.Heat.couple) ->
             Ftw.Bib.Any (Couple {leader=couple.leader;follower=couple.follower}))
           couples_heat.couples) ch.couples_heats
-  end in
+  in
   Array.to_list target_list_array
 
 let get_artefact_description st id_phase (panel: Ftw.Judge.panel) id_judge =
-  let is_head_judge = begin match panel with
+  let is_head_judge =
+    match panel with
     | Singles panel_singles ->
       let is_head_judge = Option.equal Ftw.Id.equal (Some id_judge) panel_singles.head in
       is_head_judge
     | Couples panel_couples ->
       let is_head_judge = Option.equal Ftw.Id.equal (Some id_judge) panel_couples.head in
       is_head_judge
-  end in
+  in
   let phase = Ftw.Phase.get st id_phase in
-  let artefact_descr = begin match is_head_judge with
+  let artefact_descr =
+    match is_head_judge with
     | true -> Ftw.Phase.head_judge_artefact_descr phase
     | false -> Ftw.Phase.judge_artefact_descr phase
-  end in
+  in
   artefact_descr
 
 let set_artefact_of_htja ~(st:Ftw.State.t) ~(id:Ftw.Phase.id) (htja: Types.HeatTargetJudgeArtefact.t) =
@@ -67,14 +74,11 @@ let set_artefact_of_htja ~(st:Ftw.State.t) ~(id:Ftw.Phase.id) (htja: Types.HeatT
       | Error e -> Error (Error.generic e)
     end in
     let artefact_option = Option.bind htja.artefact Types.Artefact.to_ftw in
-    let h = begin match artefact_option with
+    let () = begin match artefact_option with
       | Some artefact -> Ftw.Artefact.set ~st ~judge ~target:heat_id artefact
       | None -> Ftw.Artefact.delete ~st ~judge ~target:heat_id
     end in
-    begin match h with
-      | Ok _ -> Ok htj
-      | Error e -> Error (Error.generic e)
-    end
+    Ok htj
   | _ -> Error (Error.generic "Phase id do not match payload")
 
 
@@ -341,19 +345,13 @@ and get_artefact =
            let judge = htj.judge in
            let descr = Types.ArtefactDescription.to_ftw htj.description in
            let t_option = Ftw.Heat.get_id st id htj.heat_number (Types.Target.to_ftw htj.target) in
-           let t = begin match t_option with
+           let+ target = begin match t_option with
              | Ok None -> Error "Target is not in heat"
              | Ok Some w -> Ok w
              | Error e -> Error e
            end in
-           let a = Result.bind t (fun target -> Ftw.Artefact.get ~st ~judge ~target ~descr) in
-           let artefact = begin match a with
-             | Ok None -> Ok None
-             | Ok (Some x) -> Ok (Some (Types.Artefact.of_ftw x))
-             | Error e -> Error e
-           end in
-           let build_htja = fun art -> Types.HeatTargetJudgeArtefact.{heat_target_judge=htj; artefact=art;} in
-           Result.map build_htja artefact
+           let artefact = Ftw.Artefact.get ~st ~judge ~target ~descr in
+           Ok Types.HeatTargetJudgeArtefact.{heat_target_judge=htj; artefact = Some (Types.Artefact.of_ftw artefact);}
          )
        in
        Result.map_error (fun e -> Error.generic e) htja_result
@@ -369,6 +367,7 @@ and set_artefact =
         let r = set_artefact_of_htja ~st ~id htja in
         r
     )
+
 and get_artefact_heat =
   Api.get
     ~to_yojson:Types.HeatTargetJudgeArtefactArray.to_yojson
@@ -377,24 +376,27 @@ and get_artefact_heat =
        let+ id_judge = Utils.int_param req "id_judge" in
        let phase = Ftw.Phase.get st id in
        let panel = Ftw.Judge.get ~st ~phase:id in
-       let target_list_list, judge_head = begin match panel with
-         | Ok Singles panel_singles -> let is_judge_follower = List.mem id_judge panel_singles.followers in
+       let target_list_list, judge_head =
+         match panel with
+         | Singles panel_singles ->
+           let is_judge_follower = List.mem id_judge panel_singles.followers in
            (* let judge_leader = List.mem id_judge singles.leaders in *)
            let is_head_judge = Option.equal Ftw.Id.equal (Some id_judge) panel_singles.head in
            let heats = Ftw.Heat.get_singles ~st ~phase:id in
-           let target_heat_list = begin match is_head_judge, is_judge_follower with
-             | true, _ -> List.map2 (fun fl ll -> fl @ ll) (get_heat_followers heats) (get_heat_leaders heats)
+           let target_heat_list =
+             match is_head_judge, is_judge_follower with
+             | true, _ ->
+               List.map2 (fun fl ll -> fl @ ll) (get_heat_followers heats) (get_heat_leaders heats)
              | false, true ->  get_heat_followers heats
              | false, false -> get_heat_leaders heats
-           end in
+           in
            (target_heat_list, panel_singles.head)
-         | Ok Couples panel_couples ->
+         | Couples panel_couples ->
            (* let judge_couples = List.mem id_judge couples.couples in *)
            let heats = Ftw.Heat.get_couples ~st ~phase:id in
            let target_heat_list = get_heat_couples heats in
            (target_heat_list, panel_couples.head)
-         | Error _ -> failwith "Inconsistent panel of judge"
-       end in
+       in
        let is_head_judge = Option.equal Ftw.Id.equal (Some id_judge) judge_head in
        let artefact_descr = begin match is_head_judge with
          | true -> Ftw.Phase.head_judge_artefact_descr phase
@@ -402,16 +404,20 @@ and get_artefact_heat =
        end in
        let htj_maker heat_number target = Types.HeatTargetJudge.{phase_id=id;heat_number=heat_number;target=Types.Target.of_ftw target;judge=id_judge;description=Types.ArtefactDescription.of_ftw artefact_descr} in
        let build_htj_target (htj: Types.HeatTargetJudge.t) = Ftw.Heat.get_id st id htj.heat_number (Types.Target.to_ftw htj.target) in
-       let get_art heat_target = Ftw.Artefact.get ~st ~judge:id_judge ~target:heat_target ~descr:artefact_descr in
+       let get_art heat_target =
+         try Ok (Some (Ftw.Artefact.get ~st ~judge:id_judge ~target:heat_target ~descr:artefact_descr))
+         with Not_found -> Error "artefact not found"
+       in
        let build_htja htj art = Types.HeatTargetJudgeArtefact.{heat_target_judge=htj; artefact=Option.map Types.Artefact.of_ftw art;} in
        let make_htja heat_number target =
          let htj = htj_maker heat_number target in
          let heat_target = build_htj_target htj in
-         let art = Result.bind heat_target (fun ht -> begin match ht with
-             | Some h_t -> get_art h_t
-             | None -> Ok None
-           end
-           ) in
+         let art =
+           Result.bind heat_target (fun ht ->
+               match ht with
+               | Some h_t -> get_art h_t
+               | None -> Ok None)
+         in
          let htja = Result.map (build_htja htj) art in
          htja in
        let htja_list_list = List.mapi (fun heat_number target_list -> List.map (fun t -> make_htja heat_number t) target_list) target_list_list in

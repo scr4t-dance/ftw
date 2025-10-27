@@ -5,7 +5,7 @@ Initialization
 --------------
 
 Launch the FTW server in the background
-  $ ftw --db="test.db" --port=8083 > /dev/null 2>&1 &
+  $ ftw --db=":memory:" --port=8083 > /dev/null 2>&1 &
 
 Sleep a bit to ensure that the server had had time to initialize and is ready
 to respond to requests

@@ -66,8 +66,10 @@ let conv =
       })
 
 let get st id =
+  try
   State.query_one_where ~st ~conv ~p:Id.p
     {|SELECT * FROM phases WHERE id=?|} id
+  with Sqlite3_utils.RcError NOTFOUND -> raise Not_found
 
 let find_ids st competition_id =
   State.query_list_where ~p:Id.p ~conv:Id.conv ~st
@@ -113,8 +115,8 @@ let create
     judge_artefact_descr
     head_judge_artefact_descr
     ranking_algorithm;
-  State.query_one_where ~st ~conv:Id.conv ~p:[int; int]
-    {| SELECT id FROM phases WHERE competition_id=? AND round=? |}
+  State.query_one_where ~st ~conv ~p:[int; int]
+    {| SELECT * FROM phases WHERE competition_id=? AND round=? |}
     competition_id round
 
 let update ~st phase_id
@@ -151,3 +153,4 @@ let delete ~st id_phase =
     {| DELETE FROM phases
         WHERE id=?|} id_phase;
   id_phase
+

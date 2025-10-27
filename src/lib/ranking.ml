@@ -3,23 +3,46 @@
 
 (* Type description *)
 (* ************************************************************************* *)
-
 (*
-type 'a t = 'a Target.t array array
-type 'a ranking = 'a t (* alias for use later in this file *)
+type ('target, 'acc) target = {
+  target : 'target;
+  heat_target_id : Id.t; (* = Heat.target_id *)
+  ranking_acc : 'acc;
+}
 
-
-type 'a rank =
-  | Ranked of 'a Target.t
+type ('target, 'acc) ranked =
+  | Rank of ('target, 'acc) target
   | Tie of {
       rank : int;
-      tie : 'a Target.t array;
+      tie : ('target, 'acc) target array;
     }
-*)
 
-(* Access functions *)
+type ('target, 'acc) t = ('target, 'acc) ranked array
+
+type status = Ranked | Tied
+
+
+(* Printing functions *)
 (* ************************************************************************* *)
 
+let target n t =
+  match t.(n) with
+  | Rank target -> Ranked, n, target
+  | Tie { rank; tie; } -> Tied, rank, tie.(n - rank)
+
+let grid_init ~pp t ~line ~col =
+  let status, rank, target = target line t in
+  match col, status with
+  | `Rank, Ranked -> PrintBox.int rank
+  | `Rank, Tied ->
+    PrintBox.asprintf_with_style
+      { PrintBox.Style.default with bold = true; fg_color = Some Red; }
+      "%d" rank
+  | `Heat_target_id, _ ->
+    PrintBox.asprintf "%d" target.heat_target_id
+  | `Target, _ -> pp target.target
+  | _ -> assert false
+*)
 
 (* Algorithms for creating rankings *)
 (* ************************************************************************* *)
@@ -108,6 +131,14 @@ module Algorithm = struct
   (* Algorithms implementations *)
   (* *********************************************************************** *)
 
-  (* TODO *)
+  (*
+  module Yan_weighted = struct
 
+    let get_artefacts ~st ~phase =
+      State.query_list_where ~st ~conv:
+
+
+
+  end
+*)
 end

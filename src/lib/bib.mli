@@ -24,47 +24,36 @@ type any_target = Any : _ target -> any_target
 (** Existencial wrapper around the GADT. *)
 
 
+(* Serialization *)
+(* ************************************************************************* *)
+
+val to_toml : any_target -> Otoml.t
+(** Serialization to toml. *)
+
+val of_toml : Otoml.t -> any_target
+(** Deserialization from toml.
+    @raise Otoml.Type_error *)
+
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
-val list_from_comp : st:State.t -> competition:Competition.id ->
-  (any_target Id.Map.t, string) result
-
-val get : st:State.t -> competition:Competition.id -> bib:t -> (any_target option, string) result
+val get : st:State.t -> competition:Competition.id -> bib:t -> any_target option
 (** Get the target of a bib, if it exists. *)
 
-val get_bib_from_target : st:State.t -> competition:t -> target:any_target -> (t option, string) result
-(** Get the bib of a target, if it exists. *)
+val get_all : st:State.t -> competition:Competition.id -> (t * any_target) list
+(** Get all bibs from a competition *)
 
-
-val insert_row :
-  st:State.t -> competition:Competition.id ->
-  dancer:Dancer.id -> role:Role.t -> bib:t -> unit
-
-val insert_target :
+val add :
   st:State.t -> competition:Competition.id ->
   target:any_target -> bib:t -> unit
+(** Set the bib for a given target in a competition. *)
 
-val set :
-  st:State.t -> competition:Competition.id ->
-  target:any_target -> bib:t -> unit
-(** Set the bib for a given target in a competition.
-
-    The primary key for bib table is bib,competition_id,role.
-    It allows to work with either
-    * same bib for dancer as lead and follow
-    * different bibs for leaders and followers
-*)
-
-val update :
-  st:State.t -> competition:Competition.id ->
-  target:any_target -> bib:t -> unit
-(** Update the bib for a given target in a competition. *)
-
-val delete_bib :
+val delete :
   st:State.t -> competition:Competition.id ->
   bib:t -> unit
 (** Update the bib for a given target in a competition. *)
+
 
 (* Usual functions *)
 (* ************************************************************************* *)

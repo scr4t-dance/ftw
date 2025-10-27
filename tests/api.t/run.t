@@ -6,7 +6,7 @@ Initialization
 
 Launch the FTW server in the background
 
-  $ ftw --db=":memory:" --port=8081 > /dev/null 2>&1 &
+  $ ftw --db=":memory:" -q --port=8081 > /dev/null &
 
 Sleep a bit to ensure that the server had had time to initialize and is ready
 to respond to requests
@@ -103,6 +103,7 @@ Update a phase
   2
 
   $ curl -s localhost:8081/api/phase/2
+  {"message":"Phase not found"}
 
 Dancer Management
 -----------------
@@ -190,12 +191,12 @@ init heats with bib from competition
 
   $ curl -s -X PUT localhost:8081/api/phase/1/init_heats \
   > -H "Content-Type: application/json" \
-  > -d '1'
+  > -d '{ "min_number_of_targets" : 1, "max_number_of_targets": 1}'
   1
 
 get heats
   $ curl -s localhost:8081/api/phase/1/heats
-  {"heat_type":"single","heat_type":"single","heats":[{"followers":[{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":1,"role":["Leader"]}]}]}
+  {"heat_type":"single","heat_type":"single","heats":[{"followers":[{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":1,"role":["Leader"]}]},{"followers":[],"leaders":[]}]}
 
 Artefacts
 ---------
@@ -203,10 +204,10 @@ Artefacts
 Get empty artefacts
 
   $ curl -s localhost:8081/api/phase/1/artefact/judge/1
-  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":0,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null}]}
+  {"message":"artefact not found"}
 
   $ curl -s localhost:8081/api/phase/1/artefact/judge/2
-  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":0,"target":{"target_type":"single","target":2,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null}]}
+  {"message":"artefact not found"}
 
 set artefact
 

@@ -55,6 +55,12 @@ type t =
   | Rank of Rank.t
   | Yans of yan list
 
+let check ~descr t =
+  match descr, t with
+  | Descr.Ranking, Rank _ -> true
+  | Descr.Yans { criterion; }, Yans l -> List.length criterion = List.length l
+  | _ -> false
+
 
 (* Encoding and decoding *)
 (* ************************************************************************* *)
@@ -135,22 +141,17 @@ let () =
     of circular dependencies *)
 let get ~st ~judge ~target ~descr =
   let open Sqlite3_utils.Ty in
-  let artefact_list = State.query_list_where ~st ~p:[int;int] ~conv:(conv ~descr)
+  try
+    State.query_one_where ~st ~p:[int;int] ~conv:(conv ~descr)
       {| SELECT artefact FROM artefacts WHERE target_id = ? AND judge = ? |}
       target judge
-  in
-  match artefact_list with
-  | [] -> Ok None
-  | [a] -> Ok (Some a)
-  | _ -> Error "Too many artefact found for target"
-
+  with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND -> raise Not_found
 
 let set ~st ~judge ~target t =
   let open Sqlite3_utils.Ty in
   State.insert ~st ~ty:[int;int;int]
     {| INSERT INTO artefacts(target_id,judge,artefact) VALUES (?,?,?) |}
-    target judge (to_int t);
-  Ok target
+    target judge (to_int t)
 
 let delete ~st ~judge ~target =
   let open Sqlite3_utils.Ty in
@@ -159,8 +160,7 @@ let delete ~st ~judge ~target =
     WHERE 0=0
     AND target_id = ?
     AND judge = ? |}
-    target judge;
-  Ok target
+    target judge
 
 
 (* Serialization *)
@@ -189,3 +189,28 @@ let of_toml ~descr t =
   match (descr : Descr.t) with
   | Ranking -> Rank (Rank.of_toml t)
   | Yans _ -> Yans (yans_of_toml t)
+
+(* Extended Serialization *)
+(* ************************************************************************* *)
+
+module Targeted = struct
+
+  type nonrec t = {
+    judge: Judge.id;
+    target : Id.t;
+    artefact : t;
+  }
+
+  let to_toml { judge; target; artefact; } =
+    Otoml.array [Id.to_toml judge; Id.to_toml target; to_toml artefact ]
+
+  let of_toml ~descr t =
+    match Otoml.get_array Otoml.get_value t with
+    | [ id; target; artefact ] ->
+      let judge = Id.of_toml id in
+      let target = Id.of_toml target in
+      let artefact = of_toml ~descr artefact in
+      { judge; target; artefact; }
+    | _ -> assert false
+
+end

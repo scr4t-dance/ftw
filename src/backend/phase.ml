@@ -139,16 +139,16 @@ and create_phase =
     ~of_yojson:Types.Phase.of_yojson
     ~to_yojson:Types.PhaseId.to_yojson
     (fun _req st (phase : Types.Phase.t) ->
-       let id =
-         let judge_artefact_descr = Types.ArtefactDescription.to_ftw phase.judge_artefact_descr in
-         let head_judge_artefact_descr = Types.ArtefactDescription.to_ftw phase.head_judge_artefact_descr in
-         let ranking_algorithm = Types.RankingAlgorithm.to_ftw phase.ranking_algorithm in
+       let judge_artefact_descr = Types.ArtefactDescription.to_ftw phase.judge_artefact_descr in
+       let head_judge_artefact_descr = Types.ArtefactDescription.to_ftw phase.head_judge_artefact_descr in
+       let ranking_algorithm = Types.RankingAlgorithm.to_ftw phase.ranking_algorithm in
+       let phase =
          Ftw.Phase.create ~st phase.competition phase.round
            ~ranking_algorithm:ranking_algorithm
            ~judge_artefact_descr:judge_artefact_descr
            ~head_judge_artefact_descr:head_judge_artefact_descr
        in
-       Ok id)
+       Ok (Ftw.Phase.id phase))
 
 and update_phase =
   Api.put

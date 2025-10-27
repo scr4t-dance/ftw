@@ -8,6 +8,7 @@ open Cmdliner
 
 type server = {
   db_path : string;
+  db_no_init : bool;
   server_port : int;
 }
 
@@ -15,20 +16,29 @@ type openapi = {
   file : string;
 }
 
+type init = {
+  db_path : string;
+  dancer_file : string option;
+}
+
 type import = {
   db_path : string;
+  db_no_init : bool;
   ev_path : string;
 }
 
 type export = {
   db_path : string;
+  db_no_init : bool;
   out_path : string;
   ev_id : int;
+  dancer_export : Ftw.Export.dancer_export;
 }
 
 type t =
   | Server of server
   | Openapi of openapi
+  | Init of init
   | Import of import
   | Export of export
 
@@ -54,9 +64,8 @@ let set_dream_logs level =
 
 let setup_log style_renderer level =
   Fmt_tty.setup_std_outputs ?style_renderer ();
-  Logs.set_level ~all:true level;
-  Logs.set_reporter (Logs_fmt.reporter ());
   set_dream_logs level;
+  Logs.set_level ~all:true level;
   ()
 
 let bt =
@@ -70,13 +79,30 @@ let setup_bt bt =
   end;
   ()
 
-
 (* Common args *)
 (* ************************************************************************* *)
 
 let db_path =
   let doc = "Path to the sqlite db to use" in
   Arg.(required & opt (some string) None & info ["db"] ~doc)
+
+let db_no_init =
+  let doc = "Disable db initialisation (useful when the db is read-only)" in
+  Arg.(value & flag & info ["no-init"] ~doc)
+
+let dancer_list =
+  let doc = "Whether to use stable (i.e. only use dancer ids) or not (and also
+             emit and use bib numbers" in
+  Arg.(value & opt (some file) None & info ["dancer-list"] ~doc)
+
+
+(* Helper functions *)
+(* ************************************************************************* *)
+
+let dancer_export dancer_list : Ftw.Export.dancer_export =
+  match dancer_list with
+  | None -> Internal
+  | Some dancer_file -> External { dancer_file }
 
 
 (* Server options *)
@@ -88,13 +114,14 @@ let server =
   and+ logs_level
   and+ logs_style
   and+ db_path
+  and+ db_no_init
   and+ server_port =
     let doc = "Port to listen on" in
     Arg.(value & opt int 8080 & info ["p"; "port"] ~doc)
   in
   setup_bt bt;
   setup_log logs_style logs_level;
-  Server { db_path; server_port; }
+  Server { db_path; db_no_init; server_port; }
 
 (* Openapi options *)
 (* ************************************************************************* *)
@@ -112,6 +139,22 @@ let openapi =
   setup_log logs_style logs_level;
   Openapi { file; }
 
+(* Init option *)
+(* ************************************************************************* *)
+
+let init =
+  let open Term.Syntax in
+  let+ bt
+  and+ db_path
+  and+ logs_level
+  and+ logs_style
+  and+ dancer_list
+  in
+  setup_bt bt;
+  setup_log logs_style logs_level;
+  Init { db_path; dancer_file = dancer_list; }
+
+
 (* Import options *)
 (* ************************************************************************* *)
 
@@ -119,6 +162,7 @@ let import =
   let open Term.Syntax in
   let+ bt
   and+ db_path
+  and+ db_no_init
   and+ logs_level
   and+ logs_style
   and+ ev_path =
@@ -130,15 +174,16 @@ let import =
   in
   setup_bt bt;
   setup_log logs_style logs_level;
-  Import { db_path; ev_path; }
+  Import { db_path; db_no_init; ev_path; }
 
-(* Import options *)
+(* Export options *)
 (* ************************************************************************* *)
 
 let export =
   let open Term.Syntax in
   let+ bt
   and+ db_path
+  and+ db_no_init
   and+ logs_level
   and+ logs_style
   and+ out_path =
@@ -147,8 +192,10 @@ let export =
   and+ ev_id =
     let doc = "Id of the event to export" in
     Arg.(required & opt (some int) None & info ["id"] ~doc)
+  and+ dancer_list
   in
   setup_bt bt;
   setup_log logs_style logs_level;
-  Export { db_path; out_path; ev_id; }
+  let dancer_export = dancer_export dancer_list in
+  Export { db_path; db_no_init; out_path; ev_id; dancer_export; }
 

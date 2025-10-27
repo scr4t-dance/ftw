@@ -29,6 +29,11 @@ val semifinalist : t
 val quarterfinalist : t
 val octofinalist : t
 
+val placement : t -> Points.placement
+
+(* Serialization *)
+(* ************************************************************************* *)
+
 val to_toml : t -> Otoml.t
 
 val of_toml : Otoml.t -> t

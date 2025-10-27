@@ -126,71 +126,65 @@ let rec routes router =
 (* Competition query *)
 (* ************************************************************************* *)
 
-
 and list_bibs =
   Api.get
     ~to_yojson:Types.BibList.to_yojson
     (fun req st ->
        let+ id = Utils.int_param req "id" in
-       let bib_map_result = Ftw.Bib.list_from_comp ~st ~competition:id in
-       let bib_converter (bib, t) : Types.Bib.t =
-         {competition=id; bib=bib;target= Types.Target.of_ftw t}
+       let bibs =
+         Ftw.Bib.get_all ~st ~competition:id
+         |> List.map (fun (bib, t) : Types.Bib.t ->
+             { competition = id; bib;
+               target = Types.Target.of_ftw t; }
+           )
        in
-       let aux bib_map : Types.Bib.t list =
-         Ftw.Id.Map.to_seq bib_map
-         |> List.of_seq
-         |> List.map bib_converter
-       in
-       let bib_list_result = Result.map aux bib_map_result in
-       let bib_list_with_error = Result.map_error
-           Error.generic bib_list_result
-       in Result.map (fun bibs : Types.BibList.t -> { bibs; }) bib_list_with_error
+       Ok { Types.BibList.bibs }
     )
 
 and add_bib =
   Api.put
     ~of_yojson:Types.Bib.of_yojson
     ~to_yojson:Types.DancerIdList.to_yojson
-    (
-      fun req st (bib : Types.Bib.t) ->
-        let+ id = Utils.int_param req "id" in
-        match bib.competition with
-        | comp_id when comp_id = id ->
-          let target = Types.Target.to_ftw bib.target in
-          Ftw.Bib.set ~st ~competition:id ~target ~bib:bib.bib;
-          let dancer_list : Types.DancerIdList.t = {dancers=Types.Target.dancers bib.target} in
-          Ok dancer_list
-        | _ -> Error (Error.generic "Competition id do not match payload")
+    (fun req st (bib : Types.Bib.t) ->
+       let+ id = Utils.int_param req "id" in
+       match bib.competition with
+       | comp_id when comp_id = id ->
+         let target = Types.Target.to_ftw bib.target in
+         Ftw.Bib.add ~st ~competition:id ~target ~bib:bib.bib;
+         let dancer_list : Types.DancerIdList.t = {dancers=Types.Target.dancers bib.target} in
+         Ok dancer_list
+       | _ -> Error (Error.generic "Competition id do not match payload")
     )
 
 and update_bib =
   Api.put
     ~of_yojson:Types.Bib.of_yojson
     ~to_yojson:Types.DancerIdList.to_yojson
-    (
-      fun req st (bib : Types.Bib.t) ->
-        let+ id = Utils.int_param req "id" in
-        match bib.competition with
-        | comp_id when comp_id = id ->
-          let target = Types.Target.to_ftw bib.target in
-          Ftw.Bib.update ~st ~competition:id ~target ~bib:bib.bib;
-          let dancer_list : Types.DancerIdList.t = {dancers=Types.Target.dancers bib.target} in
-          Ok dancer_list
-        | _ -> Error (Error.generic "Competition id do not match payload")
+    (fun _req _st (_bib : Types.Bib.t) ->
+       Error (Error.generic "broken, needs to be fixed")
+         (*
+       let+ id = Utils.int_param req "id" in
+       match bib.competition with
+       | comp_id when comp_id = id ->
+         let target = Types.Target.to_ftw bib.target in
+         Ftw.Bib.delete ~st ~competition:id ~bib:bib.bib;
+         Ftw.Bib.add ~st ~competition:id ~target ~bib:bib.bib;
+         let dancer_list : Types.DancerIdList.t = {dancers=Types.Target.dancers bib.target} in
+         Ok dancer_list
+       | _ -> Error (Error.generic "Competition id do not match payload")
+        *)
     )
-
 
 and delete_bib =
   Api.put
     ~of_yojson:Types.Bib.of_yojson
     ~to_yojson:Types.DancerIdList.to_yojson
-    (
-      fun req st (bib : Types.Bib.t) ->
-        let+ id = Utils.int_param req "id" in
-        match bib.competition with
-        | comp_id when comp_id = id ->
-          Ftw.Bib.delete_bib ~st ~competition:id ~bib:bib.bib;
-          let dancer_list : Types.DancerIdList.t = {dancers=Types.Target.dancers bib.target} in
-          Ok dancer_list
-        | _ -> Error (Error.generic "Competition id do not match payload")
+    (fun req st (bib : Types.Bib.t) ->
+       let+ id = Utils.int_param req "id" in
+       match bib.competition with
+       | comp_id when comp_id = id ->
+         Ftw.Bib.delete ~st ~competition:id ~bib:bib.bib;
+         let dancer_list : Types.DancerIdList.t = {dancers=Types.Target.dancers bib.target} in
+         Ok dancer_list
+       | _ -> Error (Error.generic "Competition id do not match payload")
     )
