@@ -6,11 +6,7 @@ Initialization
 
 Launch the FTW server in the background
 
-  $ ftw --db=":memory:" --verbosity=error --port=8081 > /dev/null &
-  16.10.25 12:24:33.577                       Running on 0.0.0.0:8081 (http://localhost:8081)
-  16.10.25 12:24:33.577                       Type Ctrl+C to stop
-  16.10.25 12:24:34.724    dream.logger ERROR REQ 35 500 in 88 μs
-  16.10.25 12:24:34.729    dream.logger ERROR REQ 36 500 in 131 μs
+  $ ftw --db=":memory:" -q --port=8081 > /dev/null &
 
 Sleep a bit to ensure that the server had had time to initialize and is ready
 to respond to requests
