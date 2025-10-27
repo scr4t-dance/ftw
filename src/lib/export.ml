@@ -94,28 +94,27 @@ let all_couples_artefacts ~st ~phase ~judge_artefacts ~head_artefacts (heats : H
   | Singles _ ->
     assert false
 
-let export_phase ~st ~kind phase =
+let export_phase ~st phase =
   let judge_artefacts = Phase.judge_artefact_descr phase in
   let head_artefacts = Phase.head_judge_artefact_descr phase in
   let ranking_algorithm = Phase.ranking_algorithm phase in
   let judge_panel = Judge.get ~st ~phase:(Phase.id phase) in
   let heats_toml, judge_artefacts_toml, head_artefacts_toml =
-    match (kind : Kind.t), Phase.round phase with
-    | Jack_and_Jill, Finals ->
+    match judge_panel with
+    | Couples _ ->
       let heats = Heat.get_couples ~st ~phase:(Phase.id phase) in
       let heats_toml = Heat.couples_heats_to_toml heats in
       let judge_artefacts_toml, head_artefacts_toml =
         all_couples_artefacts ~st ~phase:(Phase.id phase) ~judge_artefacts ~head_artefacts heats
       in
       heats_toml, judge_artefacts_toml, head_artefacts_toml
-    | Jack_and_Jill, ( Prelims | Octofinals | Quarterfinals | Semifinals ) ->
+    | Singles _ ->
       let heats = Heat.get_singles ~st ~phase:(Phase.id phase) in
       let heats_toml = Heat.singles_heats_to_toml heats in
       let judge_artefacts_toml, head_artefacts_toml =
         all_singles_artefacts ~st ~phase:(Phase.id phase) ~judge_artefacts ~head_artefacts heats
       in
       heats_toml, judge_artefacts_toml, head_artefacts_toml
-    | _ -> assert false
   in
   let t = Otoml.table [
       "judge_artefacts_descr", Artefact.Descr.to_toml judge_artefacts;
@@ -130,9 +129,9 @@ let export_phase ~st ~kind phase =
   let toml_key = Round.toml_key (Phase.round phase) in
   toml_key, t
 
-let export_phases ~st ~kind phases =
+let export_phases ~st phases =
   Logs.debug ~src (fun k->k "Starting phases export...");
-  let l = List.map (export_phase ~st ~kind) phases in
+  let l = List.map (export_phase ~st) phases in
   l
 
 (* Competitions *)
@@ -154,7 +153,7 @@ let export_comp ~st comp =
   Logs.debug ~src (fun k->k "Exporting competition %d" (Competition.id comp));
   let results_fields = export_results ~st comp in
   let phases = Phase.find st (Competition.id comp) in
-  let phases_fields = export_phases ~st ~kind:(Competition.kind comp) phases in
+  let phases_fields = export_phases ~st phases in
   let t = Otoml.table (
       ("id", Otoml.integer (Competition.id comp)) ::
       ("name", Otoml.string (Competition.name comp)) ::
