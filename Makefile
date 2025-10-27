@@ -90,5 +90,5 @@ manual_test: backend
 top:
 	dune utop
 
-.PHONY: all build top doc run dev tests promote clean
+.PHONY: all build top doc run dev tests promote clean frontend backend
 	hookgen openapi
