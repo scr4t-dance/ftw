@@ -431,7 +431,7 @@ end
 (* ************************************************************************* *)
 
 module YanCriterionWeights = struct
-  type t = Ftw.Ranking.Algorithm.yan_weight [@@deriving yojson]
+  type t = Ftw.Ranking.Yan_weighted.weight [@@deriving yojson]
 
   let ref, schema =
     make_schema ()
@@ -533,13 +533,13 @@ module RankingAlgorithm = struct
   let of_ftw s =
     match s with
     | Ftw.Ranking.Algorithm.Yan_weighted {weights;head_weights} -> Yan_weighted {algorithm={algorithm="Yan_weighted";weights=weights;head_weights=head_weights}}
-    | Ftw.Ranking.Algorithm.RPSS -> Ranking {algorithm={algorithm="ranking";algorithm_name="RPSS"}}
+    | Ftw.Ranking.Algorithm.RPSS () -> Ranking {algorithm={algorithm="ranking";algorithm_name="RPSS"}}
 
   let to_ftw s =
     match s with
     | Yan_weighted {algorithm={weights;head_weights; _}} -> Ftw.Ranking.Algorithm.Yan_weighted {weights;head_weights}
-    | Ranking {algorithm={algorithm_name="RPSS";_}} -> Ftw.Ranking.Algorithm.RPSS
-    | Ranking {algorithm=_} -> Ftw.Ranking.Algorithm.RPSS
+    | Ranking {algorithm={algorithm_name="RPSS";_}} -> Ftw.Ranking.Algorithm.RPSS ()
+    | Ranking {algorithm=_} -> Ftw.Ranking.Algorithm.RPSS ()
 
 
   let to_yojson target =
@@ -902,13 +902,14 @@ module Target = struct
 
   let of_ftw s =
     match s with
-    | Ftw.Bib.Any (Single {target;role}) -> TargetSingle {target={target;role;target_type="single"}}
-    | Ftw.Bib.Any (Couple {leader;follower}) -> TargetCouple {target={leader;follower;target_type="couple"}}
+    | Ftw.Target.Any Single {target;role} -> TargetSingle {target={target;role;target_type="single"}}
+    | Ftw.Target.Any Couple {leader;follower} -> TargetCouple {target={leader;follower;target_type="couple"}}
+    | Ftw.Target.Any Trouple _ -> failwith "not implemented"
 
   let to_ftw s =
     match s with
-    | TargetSingle {target={target;role; _}} -> Ftw.Bib.Any (Single {target;role})
-    | TargetCouple {target={leader;follower; _}} -> Ftw.Bib.Any (Couple {leader;follower})
+    | TargetSingle {target={target;role; _}} -> Ftw.Target.Any (Single {target;role})
+    | TargetCouple {target={leader;follower; _}} -> Ftw.Target.Any (Couple {leader;follower})
 
 
   let to_yojson target =
@@ -1119,9 +1120,10 @@ module HeatsArray = struct
       ]
   (* todo implement interfaces *)
 
-  let of_ftw h = match h with
-    | Ftw.Heat.Singles sh -> HeatsSingle {heats=SinglesHeatsArray.of_ftw sh}
-    | Ftw.Heat.Couples ch -> HeatsCouple {heats=CouplesHeatsArray.of_ftw ch}
+  let of_ftw h =
+    match (h : Ftw.Heat.t) with
+    | Singles sh -> HeatsSingle {heats=SinglesHeatsArray.of_ftw sh}
+    | Couples ch -> HeatsCouple {heats=CouplesHeatsArray.of_ftw ch}
 
   let to_yojson target =
     match target with
@@ -1294,14 +1296,12 @@ module Artefact = struct
   let of_ftw s =
     match s with
     | Ftw.Artefact.Yans c -> YanArtefact {artefact={artefact_type="yan";artefact_data=List.map (fun x -> Some x) c;}}
-    | Ftw.Artefact.Rank r -> RankArtefact {artefact={artefact_type="ranking";artefact_data=r;}}
-
+    | Ftw.Artefact.Rank r -> RankArtefact {artefact={artefact_type="ranking";artefact_data=Ftw.Rank.rank r;}}
 
   let to_ftw s =
     match s with
     | YanArtefact {artefact} -> ArtefactYans.to_ftw artefact
-    | RankArtefact {artefact={artefact_data; _}} -> Some (Ftw.Artefact.Rank artefact_data)
-
+    | RankArtefact {artefact={artefact_data; _}} -> Some (Ftw.Artefact.Rank (Ftw.Rank.mk artefact_data))
 
   let to_yojson target =
     match target with

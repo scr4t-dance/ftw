@@ -79,6 +79,10 @@ let find st competition_id =
   State.query_list_where ~p:Id.p ~conv ~st
     {| SELECT * FROM phases WHERE competition_id = ? ORDER BY id |} competition_id
 
+let find_round st competition_id r =
+  let phases = find st competition_id in
+  List.find_opt (fun phase -> Round.equal r (round phase)) phases
+
 let create
     ~st competition_id round
     ~ranking_algorithm
@@ -153,4 +157,5 @@ let delete ~st id_phase =
     {| DELETE FROM phases
         WHERE id=?|} id_phase;
   id_phase
+
 

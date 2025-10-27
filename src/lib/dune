@@ -9,6 +9,7 @@
   (libraries
     unix fmt logs
     gen containers
+    printbox printbox-text
     sqlite3 sqlite3_utils
     otoml spelll uutf uunf
   )

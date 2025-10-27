@@ -55,12 +55,33 @@ type t =
   | Rank of Rank.t
   | Yans of yan list
 
+let print fmt = function
+  | Rank r -> Rank.print fmt r
+  | Yans l ->
+    let pp_sep fmt () = Format.fprintf fmt "/" in
+    let pp fmt = function
+      | Yes -> Format.fprintf fmt "Y"
+      | Alt -> Format.fprintf fmt "A"
+      | No -> Format.fprintf fmt "N"
+    in
+    Format.pp_print_list ~pp_sep pp fmt l
+
+let printbox = function
+  | Rank r ->
+    PrintBox.hpad 1 @@ PrintBox.asprintf "%a" Rank.print r
+  | Yans l ->
+    let aux = function
+      | Yes -> PrintBox.asprintf "3"
+      | Alt -> PrintBox.asprintf "2"
+      | No -> PrintBox.asprintf "1"
+    in
+    PrintBox.hlist ~bars:true ~pad:(PrintBox.hpad 3) (List.map aux l)
+
 let check ~descr t =
   match descr, t with
   | Descr.Ranking, Rank _ -> true
   | Descr.Yans { criterion; }, Yans l -> List.length criterion = List.length l
   | _ -> false
-
 
 (* Encoding and decoding *)
 (* ************************************************************************* *)
@@ -93,7 +114,7 @@ let of_int ~descr v =
       No
   in
   match (descr : Descr.t) with
-  | Ranking -> Rank v
+  | Ranking -> Rank (Rank.mk v)
   | Yans { criterion; } ->
     let rec aux v i = function
       | [] -> []
@@ -112,7 +133,7 @@ let to_int t =
     | No -> v
   in
   match (t : t) with
-  | Rank r -> r
+  | Rank r -> Rank.rank r
   | Yans l ->
     fst @@ List.fold_left
       (fun (v, i) y -> (encode_yan v i y, i + 2)) (0, 0) l
@@ -145,7 +166,11 @@ let get ~st ~judge ~target ~descr =
     State.query_one_where ~st ~p:[int;int] ~conv:(conv ~descr)
       {| SELECT artefact FROM artefacts WHERE target_id = ? AND judge = ? |}
       target judge
-  with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND -> raise Not_found
+  with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
+    Logs.err ~src:State.src (fun k->
+        k "artefact not found for judge:%a, target: %a"
+          Id.print judge Id.print target);
+    raise Not_found
 
 let set ~st ~judge ~target t =
   let open Sqlite3_utils.Ty in

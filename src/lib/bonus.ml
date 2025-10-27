@@ -5,8 +5,7 @@
 (* ************************************************************************* *)
 
 type t = int
-(* Bonus are integers *)
-
+(* Bonus are positive integers *)
 
 (* DB interaction *)
 (* ************************************************************************* *)
@@ -24,10 +23,14 @@ let () =
         )
       |})
 
+let zero = 0
+
 let get ~st ~target =
-  State.query_one_where ~st ~p:Id.p ~conv
-    {| SELECT bonus FROM bonus WHERE target_id = ? |}
-    target
+  try
+    Some (State.query_one_where ~st ~p:Id.p ~conv
+            {| SELECT bonus FROM bonus WHERE target_id = ? |}
+            target)
+  with Sqlite3_utils.RcError NOTFOUND -> None
 
 let set ~st ~target bonus =
   let open Sqlite3_utils.Ty in

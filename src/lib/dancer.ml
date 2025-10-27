@@ -195,7 +195,7 @@ let update_divisions ~st ~dancer ~role ~divs =
 
 module Index = struct
 
-  let src = Logs.Src.create "ftw.dancer.index"
+  let src = Logs.Src.create "ftw.index"
 
   type dancer = t
   type t = dancer Str.Index.t Str.Index.t

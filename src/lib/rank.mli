@@ -4,9 +4,23 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type t = int
-(** A rank is represented as an integer. [1] represents first place,
-    [2] second palce, and so on... *)
+type t
+(** A rank. *)
+
+
+(* Conversions *)
+(* ************************************************************************* *)
+
+val mk : int -> t
+val rank : t -> int
+(* Human-readable conversions: the first place is the int [1], and so on ...*)
+
+val of_index : int -> t
+val to_index : t -> int
+(* Conversions to/from indexes, where the first rank is [0] *)
+
+val next : t -> t
+(** Next rank *)
 
 
 (* DB interaction *)
@@ -32,6 +46,9 @@ val of_toml : Otoml.t -> t
 
 (* Usual functions *)
 (* ************************************************************************* *)
+
+val print : Format.formatter -> t -> unit
+(** Print *)
 
 val equal : t -> t -> bool
 (** Equality function *)

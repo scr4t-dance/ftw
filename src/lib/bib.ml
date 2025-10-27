@@ -6,14 +6,6 @@
 
 type t = Id.t
 
-type 'kind target =
-  | Single :
-      { target : Id.t; role : Role.t; } -> [`Single] target
-  | Couple :
-      { leader : Id.t; follower : Id.t; } -> [`Couple] target
-
-type any_target = Any : _ target -> any_target
-
 (* Usual functions *)
 (* ************************************************************************* *)
 
@@ -27,44 +19,6 @@ end
 
 module Set = Set.Make(Aux)
 module Map = Map.Make(Aux)
-
-
-(* Serialization *)
-(* ************************************************************************* *)
-
-let to_toml (Any target) =
-  match target with
-  | Couple { leader; follower; } ->
-    Otoml.inline_table [
-      "leader", Id.to_toml leader;
-      "follower", Id.to_toml follower;
-    ]
-  | Single { target; role; } ->
-    Otoml.inline_table [
-      "target", Id.to_toml target;
-      "role", Role.to_toml role;
-    ]
-
-let of_toml_single t =
-  let open Misc.Opt in
-  let+ target = Otoml.find_opt t Id.of_toml ["target"] in
-  let+ role = Otoml.find_opt t Role.of_toml ["role"] in
-  Some (Single { target; role})
-
-let of_toml_couple t =
-  let open Misc.Opt in
-  let+ leader = Otoml.find_opt t Id.of_toml ["leader"] in
-  let+ follower = Otoml.find_opt t Id.of_toml ["follower"] in
-  Some (Couple { leader; follower; })
-
-let of_toml t =
-  match of_toml_single t with
-  | Some single -> Any single
-  | None ->
-    match of_toml_couple t with
-    | Some couple -> Any couple
-    | None -> raise (Otoml.Type_error "not a bib target")
-
 
 (* DB interaction *)
 (* ************************************************************************* *)
@@ -102,10 +56,10 @@ let conv_one_bib = function
   | { dancer_id = leader; role = Leader; bib = leader_bib; _ } ::
     { dancer_id = follower; role = Follower; bib = follow_bib; _ } :: r
     when Id.equal leader_bib follow_bib ->
-    Some (r, leader_bib, Any (Couple { leader; follower; }))
+    Some (r, leader_bib, Target.Any (Couple { leader; follower; }))
   (* Single case *)
   | { dancer_id = target; role; bib; _ } :: r ->
-    Some (r, bib, Any (Single { target; role; }))
+    Some (r, bib, Target.Any (Single { target; role; }))
   (* Not in database *)
   | [] -> None
 
@@ -159,20 +113,20 @@ let add ~st ~competition ~target ~bib =
       assert false
     | None -> ()
   end;
-  match target with
+  match (target : Id.t Target.any) with
   | Any Single { target; role; } ->
     insert_row ~st ~bib ~competition ~dancer:target ~role
   | Any Couple { leader; follower; } ->
     insert_row ~st ~bib ~competition ~dancer:leader ~role:Leader;
     insert_row ~st ~bib ~competition ~dancer:follower ~role:Follower
+  | Any Trouple _ ->
+    failwith "TODO"
 
 let delete ~st ~competition ~bib =
   let existing_target = get ~st ~competition ~bib in
   begin match existing_target with
-    | Some Any (Single starget) -> Logs.warn (fun k->
-        k "Delete target: %d %d with bib %d" starget.target (Role.to_int starget.role) bib); flush_all();
-    | Some Any (Couple ctarget) -> Logs.warn (fun k->
-        k "Delete target: leader %d folllower %d with bib %d" ctarget.leader ctarget.follower bib); flush_all();
+    | Some any ->
+      Logs.warn (fun k->k "Delete target: %a / %d" (Target.print Id.print) any bib)
     | None ->
       (* TODO: error message ? *)
       raise Not_found

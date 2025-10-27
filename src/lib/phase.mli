@@ -52,6 +52,9 @@ val find : State.t -> Competition.id -> t list
 val find_ids : State.t -> Competition.id -> id list
 (** Optimized version of {!find} that only returns phases ids. *)
 
+val find_round : State.t -> Competition.id -> Round.t -> t option
+(** Try and find the given round for the competition. *)
+
 val create :
   st:State.t -> Competition.id -> Round.t ->
   ranking_algorithm:Ranking.Algorithm.t ->

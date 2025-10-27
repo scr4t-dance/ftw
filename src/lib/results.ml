@@ -52,8 +52,9 @@ let to_int t =
       | Not_present -> 0
       | Present -> 255
       | Ranked r ->
+        let i = Rank.rank r in
         (* we encode each rank using 1 byte *)
-        assert (r <= 254); r
+        assert (1 <= i && i <= 254); i
     in
     i lsl (n * 8)
   in
@@ -69,7 +70,7 @@ let of_int i =
     match j with
     | 0 -> Not_present
     | 255 -> Present
-    | _ -> Ranked j
+    | _ -> Ranked (Rank.mk j)
   in
   {
     prelims = aux i 2;

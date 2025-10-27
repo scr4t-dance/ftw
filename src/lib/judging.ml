@@ -41,7 +41,7 @@ let conv =
   Conv.mk Sqlite3_utils.Ty.[int] of_int
 
 let () =
-  State.add_init_descr_table
+  State.add_init_descr_table ()
     ~table_name:"judging_names" ~to_int
     ~to_descr:to_string ~values:[
       Head; Couples;

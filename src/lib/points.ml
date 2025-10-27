@@ -24,15 +24,16 @@ let base finals ~semis =
   { finals; semifinals = semis; }
 
 let apply rule = function
-  | Finals Some i ->
-    if i <= Array.length rule.finals
-    then rule.finals.(i - 1)
+  | Finals Some rank ->
+    let i = Rank.to_index rank in
+    if i <= (Array.length rule.finals) - 1
+    then rule.finals.(i)
     else 0
   | Semifinals -> rule.semifinals
   | Finals None | Other -> 0
 
 
-(* Rules by date *)
+(* Points won by date/placement/number of competitors *)
 (* ************************************************************************* *)
 
 module IM = Interval.Map.Make(struct
@@ -62,6 +63,15 @@ let rules : rules =
         21, base [| 12; 10; 8; 6; 6; 3; 3; 3; 3; 3 |] ~semis:0;
         31, base [| 14; 12; 10; 8; 8; 6; 6; 3; 3; 3 |] ~semis:1;
         46, base [| 16; 14; 12; 10; 10; 8; 8; 6; 6; 6 |] ~semis:2;
+      ];
+    Date.mk ~day:9 ~month:7 ~year:2025,
+    IM.of_list [
+        1, base [| 6; 4; 2 |] ~semis:0;
+        11, base [| 8; 6; 4; 2; 1 |] ~semis:0;
+        21, base [| 10; 8; 6; 4; 2; 1; 1; 1; 1; 1 |] ~semis:0;
+        31, base [| 12; 10; 8; 6; 4; 2; 2; 2; 2; 2 |] ~semis:1;
+        46, base [| 14; 12; 10; 8; 6; 4; 4; 4; 2; 2 |] ~semis:1;
+        66, base [| 16; 14; 12; 10; 8; 6; 6; 6; 4; 4; 2; 2; 2; 2 |] ~semis:1;
       ];
   ]
 
