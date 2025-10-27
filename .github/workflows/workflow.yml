@@ -55,6 +55,8 @@ jobs:
       uses: ocaml/setup-ocaml@v3
       with:
         ocaml-compiler: ${{ matrix.ocaml-compiler }}
+        dune-cache: true
+        cache-prefix: v1-${{ matrix.os }}-${{ matrix.ocaml-compiler }}
     # Setup node/JS
     - name: Set-up node
       uses: actions/setup-node@v5
@@ -62,12 +64,12 @@ jobs:
         node-version: 23
         cache: 'npm'
         cache-dependency-path: 'src/frontend/package-lock.json'
-    # Run the node-specific CI
-    - name: Run node-specific CI
-      run: cd src/frontend && npm ci
     # Configure the repo/install the dependencies
     - name: Install deps
       run: make configure
+    # Run the node-specific CI
+    - name: Run node-specific CI
+      run: cd src/frontend && npm ci
     # Test the build
     - name: Build
       run: opam exec -- make
@@ -77,4 +79,3 @@ jobs:
     # Check the doc builds
     - name: Build the doc
       run: opam exec -- make doc
-
