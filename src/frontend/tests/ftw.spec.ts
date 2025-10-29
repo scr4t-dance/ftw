@@ -14,7 +14,16 @@ test('create event', async ({ page }) => {
   const randomCompetitionName = faker.string.alpha(10);
 
   await page.goto('http://localhost:3000/');
-  await page.getByRole('link', { name: 'Événements' }).click();
+
+  await page.getByRole('link', { name: 'LogIn' }).click();
+  await page.locator('input[name="email"]').click();
+  await page.locator('input[name="email"]').fill('test');
+  await page.locator('input[name="email"]').press('Tab');
+  await page.locator('input[name="password"]').fill('test');
+  await page.locator('input[name="password"]').press('Enter');
+  await page.getByRole('button', { name: 'Login' }).click();
+  await page.getByRole('link', { name: 'Admin' }).click();
+  await page.getByRole('link', { name: 'Events' }).click();
   await page.getByRole('link', { name: 'Créer un nouvel événement' }).click();
   await page.locator('input[name="name"]').click();
   await page.locator('input[name="name"]').fill(randomEventName);
