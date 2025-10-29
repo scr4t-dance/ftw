@@ -7,9 +7,9 @@ maintainer: "Guillaume Bury <guillaume.bury@gmail.com>"
 license: "GPL-3.0-or-later"
 build: [
   ["dune" "subst"] {pinned}
-  ["make" "conf-npm"]
-  ["make" "frontend"]
-  ["dune" "build" "-p" name "-j" jobs]
+  [make "conf-npm"]
+  [make "frontend"]
+  [dune "build" "-p" name "-j" jobs]
 ]
 depends: [
   "conf-npm"
