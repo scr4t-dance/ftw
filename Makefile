@@ -36,6 +36,7 @@ build: backend
 configure:
 	opam install . --deps-only --with-test --with-doc
 	cd src/frontend && npm install
+	cd src/frontend && npx playwright install chromium firefox webkit
 	cd src/hookgen && npm install
 
 src/frontend/app/hookgen/hookgen.sentinel hookgen: src/openapi.json

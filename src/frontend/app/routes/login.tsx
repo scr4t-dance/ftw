@@ -5,6 +5,7 @@ import {
 } from "~/auth.server";
 import type { Route } from "./+types/login";
 import { commitSession, getSession } from "~/sessions.server";
+import { Field } from "./index/field";
 
 
 type RedirectLocationState = {
@@ -83,8 +84,12 @@ export default function Login({
       {error ? <div className="error">{error}</div> : null}
       <Form method="post">
         <input type="hidden" name="redirectTo" value={from} />
-        <input name="email" type="text" required />
-        <input name="password" type="password" required />
+        <Field label="Courriel">
+          <input name="email" type="text" required />
+        </Field>
+        <Field label="Mot de passe">
+          <input name="password" type="password" required />
+        </Field>
         <button type="submit">Login</button>
       </Form>
     </div>
