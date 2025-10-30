@@ -1,11 +1,11 @@
+import type { Route } from './+types/NewPhaseForm';
 import React, { useEffect, useState } from 'react';
 // import { useNavigate } from "react-router";
 
-import { getApiEventId, getApiEventIdComps, useGetApiEventIdComps, useGetApiEvents } from '@hookgen/event/event';
 import { usePutApiPhase, getGetApiCompIdPhasesQueryKey, useGetApiCompIdPhases, useGetApiPhaseId, getGetApiPhaseIdQueryOptions, getApiCompIdPhases, getApiPhaseId } from '@hookgen/phase/phase';
 
 import type {
-    Phase, EventId,
+    Phase,
     CompetitionId,
     Competition,
 } from '@hookgen/model';
@@ -13,9 +13,8 @@ import { RoundItem } from "@hookgen/model";
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { Field } from '@routes/index/field';
-import { Link, useNavigate } from 'react-router';
-import { getApiCompId, useGetApiCompId } from '@hookgen/competition/competition';
-import type { Route } from './+types/NewPhaseForm';
+import { Link, useLocation } from 'react-router';
+import { useGetApiCompId } from '@hookgen/competition/competition';
 
 
 type NewPhaseFormProps = {
@@ -23,29 +22,63 @@ type NewPhaseFormProps = {
     competition_data: Competition,
     availableRounds: RoundItem[]
 };
+import {
+    combineClientLoader, combineServerLoader, competitionListLoader,
+    competitionLoader, eventLoader, phaseListLoader, queryClient,
+} from '~/queryClient';
+
+
+
+
+const loader_array = [eventLoader, competitionLoader, competitionListLoader, phaseListLoader];
+
 
 export async function loader({ params }: Route.LoaderArgs) {
 
-    let id_event = Number(params.id_event) as EventId;
-    const event_data = await getApiEventId(id_event);
-    const competition_list = await getApiEventIdComps(id_event);
-    const id_competition = Number(params.id_competition) as CompetitionId;
-    const competition_data = await getApiCompId(id_competition);
-    const phase_list = await getApiCompIdPhases(id_competition);
+    const combinedData = await combineServerLoader(loader_array, params);
     const phase_data_list = await Promise.all(
-        phase_list.phases.map((id_phase) => getApiPhaseId(id_phase))
+        combinedData.phase_list.phases.map((id_phase) => getApiPhaseId(id_phase))
     );
     return {
-        id_event,
-        id_competition,
-        event_data,
-        competition_list,
-        competition_data,
+        ...combinedData,
         phase_data_list,
     };
 }
 
+let isInitialRequest = true;
+
+export async function clientLoader({
+    params,
+    serverLoader,
+}: Route.ClientLoaderArgs) {
+
+    if (isInitialRequest) {
+        isInitialRequest = false;
+        const serverData = await serverLoader();
+
+        loader_array.forEach((l) => l.cache(queryClient, serverData));
+
+        return serverData;
+    }
+
+    const combinedData = await combineClientLoader(loader_array, params);
+    const phase_data_list = await Promise.all(
+        combinedData.phase_list.phases.map((id_phase) => getApiPhaseId(id_phase))
+    );
+    return {
+        ...combinedData,
+        phase_data_list,
+    };
+}
+clientLoader.hydrate = true;
+
+
 function NewPhaseForm({ id_competition, competition_data, availableRounds }: NewPhaseFormProps) {
+
+    const location = useLocation();
+    const url_new = location.pathname.includes("new") ? "../" : "";
+    const url_phase = location.pathname.includes("phase") ? "" : "phases/";
+    const url = url_new.concat(url_phase);
 
     const formObject = useForm<Phase>({
         defaultValues: {
@@ -88,7 +121,6 @@ function NewPhaseForm({ id_competition, competition_data, availableRounds }: New
     };
 
     const round = watch("round");
-    const url = `/events/${competition_data.event}/competitions/${id_competition}`
     return (
         <>
             <h1>Ajouter une phase</h1>
@@ -98,7 +130,7 @@ function NewPhaseForm({ id_competition, competition_data, availableRounds }: New
                         <div className="success_message">
                             ✅ Phase "{round}" avec identifiant "{dataPhase}" ajoutée avec succès à la compétition {id_competition}.
                             <br />
-                            <Link to={`${url}/phases/${dataPhase}`}>Accéder à la Phase</Link>
+                            <Link to={`${url}${dataPhase}`}>Accéder à la Phase</Link>
                         </div>
                     }
 
