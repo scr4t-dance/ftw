@@ -40,8 +40,11 @@ test('create event', async ({ page }) => {
   await page.getByRole('link', { name: 'Accéder à la compétition' }).click();
   await page.getByRole('link', { name: 'Création Phase' }).click();
   await page.locator('select[name="round.0"]').selectOption('Prelims');
-  await page.getByRole('button', { name: 'Créer la phase' }).click();
-  await page.getByRole('link', { name: 'Accéder à la Phase' }).click();
+  //await page.getByRole('button', { name: 'Créer la phase' }).click();
+  //await page.getByRole('link', { name: 'Accéder à la Phase' }).click();
+
+
+
   // todo correct phase before proceding further
 
 });

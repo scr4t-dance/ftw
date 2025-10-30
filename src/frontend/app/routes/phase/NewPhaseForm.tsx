@@ -1,11 +1,11 @@
+import type { Route } from './+types/NewPhaseForm';
 import React, { useEffect, useState } from 'react';
 // import { useNavigate } from "react-router";
 
-import { getApiEventId, getApiEventIdComps, useGetApiEventIdComps, useGetApiEvents } from '@hookgen/event/event';
 import { usePutApiPhase, getGetApiCompIdPhasesQueryKey, useGetApiCompIdPhases, useGetApiPhaseId, getGetApiPhaseIdQueryOptions, getApiCompIdPhases, getApiPhaseId } from '@hookgen/phase/phase';
 
 import type {
-    Phase, EventId,
+    Phase,
     CompetitionId,
     Competition,
 } from '@hookgen/model';
@@ -13,9 +13,8 @@ import { RoundItem } from "@hookgen/model";
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { Field } from '@routes/index/field';
-import { Link, useLocation, useNavigate } from 'react-router';
-import { getApiCompId, useGetApiCompId } from '@hookgen/competition/competition';
-import type { Route } from './+types/NewPhaseForm';
+import { Link, useLocation } from 'react-router';
+import { useGetApiCompId } from '@hookgen/competition/competition';
 
 
 type NewPhaseFormProps = {
@@ -25,13 +24,13 @@ type NewPhaseFormProps = {
 };
 import {
     combineClientLoader, combineServerLoader, competitionListLoader,
-    competitionLoader, eventLoader, phaseListLoader, phaseLoader, queryClient,
+    competitionLoader, eventLoader, phaseListLoader, queryClient,
 } from '~/queryClient';
 
 
 
 
-const loader_array = [eventLoader, competitionLoader, competitionListLoader, phaseLoader, phaseListLoader];
+const loader_array = [eventLoader, competitionLoader, competitionListLoader, phaseListLoader];
 
 
 export async function loader({ params }: Route.LoaderArgs) {
