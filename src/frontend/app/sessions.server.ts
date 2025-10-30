@@ -16,7 +16,8 @@ const { getSession, commitSession, destroySession } =
         name: "__session",
 
         // all of these are optional
-        domain: "localhost",
+        // domain: "localhost", // deactivated for webkit (safari) browsers
+
         // Expires can also be set (although maxAge overrides it when used in combination).
         // Note that this method is NOT recommended as `new Date` creates only one date on each server deployment, not a dynamic date in the future!
         //
@@ -24,9 +25,11 @@ const { getSession, commitSession, destroySession } =
         httpOnly: true,
         maxAge: 60_000,
         path: "/",
-        sameSite: "lax",
+        sameSite: "strict",
         secrets: ["s3cret1"],
-        secure: true,
+        // TODO : change `secure` to true for deployment on https
+        // is not supported by safari (webkit) in local tests
+        //secure: process.env.NODE_ENV === "production",
       },
     },
   );
