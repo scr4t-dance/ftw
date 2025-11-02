@@ -47,7 +47,7 @@ let p = Sqlite3_utils.Ty.([int])
 let conv = Conv.mk p of_int
 
 let () =
-  State.add_init_descr_table
+  State.add_init_descr_table ()
     ~table_name:"round_names" ~to_int
     ~to_descr:to_string ~values:[
       Prelims; Finals;

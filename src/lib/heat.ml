@@ -49,10 +49,6 @@ type t =
   | Singles of singles_heats
   | Couples of couples_heats
 
-type one =
-  | Single of Role.t * single
-  | Couple of couple
-
 
 (* Serialization *)
 (* ************************************************************************* *)
@@ -138,12 +134,15 @@ let get_one ~st tid =
   let open Sqlite3_utils.Ty in
   let conv =
     Conv.mk [int; int; int; nullable int; nullable int]
-      (fun target_id _phase_id _heat_number leader_id follower_id ->
+      (fun _target_id _phase_id _heat_number leader_id follower_id ->
          match leader_id, follower_id with
          | None, None -> assert false
-         | Some id, None -> Single (Leader, { target_id; dancer = id; })
-         | None, Some id -> Single (Follower, { target_id; dancer = id; })
-         | Some leader, Some follower -> Couple { target_id; leader; follower; }
+         | Some id, None ->
+           Target.(Any (Single { role = Leader; target = id; }))
+         | None, Some id ->
+           Target.(Any (Single { role = Follower; target = id; }))
+         | Some leader, Some follower ->
+           Target.(Any (Couple { leader; follower; }))
       )
   in
   State.query_one_where ~st ~conv ~p:[int]
@@ -342,8 +341,9 @@ let get ~st ~phase =
 
 (* New code below: to review *)
 
-let get_id st (phase_id:Phase.id) (heat_number:int) (target:Bib.any_target) =
-  let heat_id_list = begin match target with
+let get_id st phase_id heat_number target =
+  let heat_id_list =
+    match (target : Id.t Target.any) with
     | Any Single { target=t; role=Role.Leader } ->
       let open Sqlite3_utils.Ty in
       State.query_list_where ~st ~conv:Id.conv ~p:[int;int;int]
@@ -377,7 +377,9 @@ let get_id st (phase_id:Phase.id) (heat_number:int) (target:Bib.any_target) =
        AND leader_id = ?
        AND follower_id = ? |}
         phase_id heat_number leader follower
-  end in
+    | Any Trouple _ ->
+      failwith "not implemented"
+  in
   match heat_id_list with
   | [] -> Ok None
   | [h] -> Ok (Some h)
@@ -447,18 +449,93 @@ let simple_promote st ~(phase:Id.t) (_max_number_of_targets_to_pass:int) =
           |}
     (Phase.id new_phase) phase
 
-(*
-let target_of_singles_heat h =
-  let leaders = List.map (fun s -> Bib.Any (Bib.Single {target=s.dancer;role=Role.Leader})) h.leaders in
-  let followers = List.map (fun s -> Bib.Any (Bib.Single {target=s.dancer;role=Role.Follower})) h.followers in
-  followers @ leaders
+(* Helpers *)
+(* ************************************************************************* *)
 
-let target_of_couples_heat h =
-  let couples = List.map (fun s -> Bib.Any (Bib.Couple {leader=s.leader;follower=s.follower})) h.couples in
-  couples
+let all_single_judgement_targets { singles_heats; } =
+  let aux ~passages map acc role l =
+    List.fold_left (fun (map, acc) { target_id; dancer; } ->
+        (* only the first (or only) passage is judged *)
+        match Id.Map.find_opt dancer passages with
+        | Some Multiple { nth } when nth > 1 -> map, acc
+        | _ ->
+          let map = Id.Map.add target_id (Target.Single { target = dancer; role; }) map in
+          map, (target_id :: acc)
+      ) (map, acc) l
+  in
+  Array.fold_left (fun (map, acc_l, acc_f) { leaders; followers; passages; } ->
+      let map, acc_l = aux ~passages map acc_l Leader leaders in
+      let map, acc_f = aux ~passages map acc_f Follower followers in
+      (map, acc_l, acc_f)
+    ) (Id.Map.empty, [], []) singles_heats
 
-let get_dancer_list heats =
-  match heats with
-  | Singles_heats sh -> Array.map target_of_singles_heat sh.singles_heats
-  | Couples_heats ch -> Array.map target_of_couples_heat ch.couples_heats
-*)
+let all_couple_judgement_targets { couples_heats; } =
+  Array.fold_left (fun map { couples; passages = _; } ->
+      List.fold_left (fun map { leader; follower; target_id; } ->
+        (* all couples are judged, even if some dancer dances more than one time *)
+          Id.Map.add target_id (Target.Couple {leader; follower }) map
+        ) map couples
+    ) Id.Map.empty couples_heats
+
+
+(* Ranking *)
+(* ************************************************************************* *)
+
+type 'target ranking =
+  | Singles of {
+      leaders : 'target Ranking.Res.t;
+      follows : 'target Ranking.Res.t;
+    }
+  | Couples of {
+      couples : 'target Ranking.Res.t;
+    }
+
+let ranking ~st ~phase:id =
+  let phase = Phase.get st id in
+  let ranking_algorithm = Phase.ranking_algorithm phase in
+  let get_artefact ~head ~judge ~target =
+    let descr =
+      if (Option.equal Id.equal) (Some judge) head
+      then Phase.head_judge_artefact_descr phase
+      else Phase.judge_artefact_descr phase
+    in
+    Artefact.get ~st ~judge ~target ~descr
+  in
+  match get ~st ~phase:id, Judge.get ~st ~phase:id with
+  | Singles singles, Singles panel ->
+    let _map, leaders, follows = all_single_judgement_targets singles in
+    let leaders =
+      Ranking.Algorithm.compute
+        ~judges:panel.leaders
+        ~head:panel.head
+        ~targets:leaders
+        ~get_artefact:(get_artefact ~head:panel.head)
+        ~get_bonus:(Bonus.get ~st)
+        ~t:ranking_algorithm
+    in
+    let follows =
+      Ranking.Algorithm.compute
+        ~judges:panel.followers
+        ~head:panel.head
+        ~targets:follows
+        ~get_artefact:(get_artefact ~head:panel.head)
+        ~get_bonus:(Bonus.get ~st)
+        ~t:ranking_algorithm
+    in
+    Singles { leaders; follows; }
+  | Couples couples, Couples panel ->
+    let map = all_couple_judgement_targets couples in
+    let targets = Id.Map.bindings map |> List.map fst in
+    let couples =
+      Ranking.Algorithm.compute
+        ~judges:panel.couples
+        ~head:panel.head
+        ~targets
+        ~get_artefact:(get_artefact ~head:panel.head)
+        ~get_bonus:(Bonus.get ~st)
+        ~t:ranking_algorithm
+    in
+    Couples { couples; }
+  | _ ->
+    failwith "Incoherence between heats and judge panels"
+

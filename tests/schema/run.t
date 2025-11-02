@@ -28,9 +28,6 @@ If the definition changes
 * create migration script src/migration/migrate_V-1_to_V.sql
 * apply to existing database and tests data integrity (with a round trip of exported/imported data)
   $ sqlite3 "test.db" '.schema'
-  CREATE TABLE database_version (
-          id INTEGER PRIMARY KEY,
-          name TEXT UNIQUE);
   CREATE TABLE round_names (
           id INTEGER PRIMARY KEY,
           name TEXT UNIQUE);
@@ -98,6 +95,11 @@ If the definition changes
             PRIMARY KEY(target_id,judge)
             ON CONFLICT REPLACE
           );
+  CREATE TABLE bonus (
+            target_id INTEGER REFERENCES heats(id), -- = target id of judgement
+            bonus INTEGER NOT NULL,
+            PRIMARY KEY(target_id)
+          );
   CREATE TABLE phases (
             id INTEGER PRIMARY KEY,
             competition_id INT REFERENCES competitions(id),
@@ -107,6 +109,13 @@ If the definition changes
             ranking_algorithm TEXT,
             UNIQUE(competition_id, round)
           );
+  CREATE TABLE heats (
+            id INTEGER PRIMARY KEY,
+            phase_id INTEGER REFERENCES phases(id),
+            heat_number INTEGER NOT NULL,
+            leader_id INTEGER REFERENCES dancers(id),
+            follower_id INTEGER REFERENCES dancers(id)
+          );
   CREATE TABLE bibs (
             dancer_id INTEGER REFERENCES dancers(id),
             competition_id INTEGER REFERENCES competitions(id),
@@ -114,18 +123,6 @@ If the definition changes
             role INTEGER NOT NULL,
   
             PRIMARY KEY(bib,competition_id,role)
-          );
-  CREATE TABLE bonus (
-            target_id INTEGER REFERENCES heats(id), -- = target id of judgement
-            bonus INTEGER NOT NULL,
-            PRIMARY KEY(target_id)
-          );
-  CREATE TABLE heats (
-            id INTEGER PRIMARY KEY,
-            phase_id INTEGER REFERENCES phases(id),
-            heat_number INTEGER NOT NULL,
-            leader_id INTEGER REFERENCES dancers(id),
-            follower_id INTEGER REFERENCES dancers(id)
           );
 
 

@@ -19,8 +19,9 @@ let convert_result_list_to_list_result a =
 let get_heat_followers (sh: Ftw.Heat.singles_heats) =
   let target_list_array =
     Array.map (fun (singles_heat: Ftw.Heat.singles_heat) ->
-        List.map (fun (d: Ftw.Heat.single) -> let dancer_id = d.dancer in
-                   Ftw.Bib.Any (Single {target=dancer_id; role=Ftw.Role.Follower;}))
+        List.map (fun (d: Ftw.Heat.single) ->
+            let dancer_id = d.dancer in
+            Ftw.Target.Any (Single {target=dancer_id; role=Ftw.Role.Follower;}))
           singles_heat.followers) sh.singles_heats
   in
   Array.to_list target_list_array
@@ -28,8 +29,9 @@ let get_heat_followers (sh: Ftw.Heat.singles_heats) =
 let get_heat_leaders (sh: Ftw.Heat.singles_heats) =
   let target_list_array =
     Array.map (fun (singles_heat: Ftw.Heat.singles_heat) ->
-        List.map (fun (d: Ftw.Heat.single) -> let dancer_id = d.dancer in
-                   Ftw.Bib.Any (Single {target=dancer_id; role=Ftw.Role.Leader;}))
+        List.map (fun (d: Ftw.Heat.single) ->
+            let dancer_id = d.dancer in
+            Ftw.Target.Any (Single {target=dancer_id; role=Ftw.Role.Leader;}))
           singles_heat.leaders) sh.singles_heats
   in
   Array.to_list target_list_array
@@ -38,7 +40,7 @@ let get_heat_couples (ch:Ftw.Heat.couples_heats) =
   let target_list_array =
     Array.map (fun (couples_heat: Ftw.Heat.couples_heat) ->
         List.map (fun (couple:Ftw.Heat.couple) ->
-            Ftw.Bib.Any (Couple {leader=couple.leader;follower=couple.follower}))
+            Ftw.Target.Any (Couple {leader=couple.leader;follower=couple.follower}))
           couples_heat.couples) ch.couples_heats
   in
   Array.to_list target_list_array

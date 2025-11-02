@@ -44,7 +44,7 @@ artefacts="""
 Léa, Cimelli	Adrien, Nykol	Gabija, Purlyte	Guillaume, De Longuemar	Héloise, Vallerio	Lucille, Vignaud	Phillipe, Lam
 #234 Vincent Aron	#133 Alice Martel	1	1	2	1	2	1	4
 #201 Pierre Popineau	#120 Ai-My Le	2	3	1	2	3	3	1
-#204 Huy Hoang Le	#143 Aliénor Langlès	3	4	5	4	1	4	5
+#204 Huy Hoang Le	#143 Aliénor De Saint Léon	3	4	5	4	1	4	5
 #202 Théo Ziakovic	#103 Irène Bivas	5	2	6	3	4	6	2
 #236 Yann Lopez	#129 Valentine Lefrère	4	6	4	5	5	2	3
 #214 Charles Ducros	#132 Albane Desseaux	6	5	3	6	6	5	6
@@ -81,7 +81,7 @@ Phillipe, Lam	Héloise, Vallerio	Gabija, Purlyte	*Léa, Cimelli
 Rank	#	Dancer	Score	TK	M	TW	TK	M	TW	TK	M	TW	TK	M	TW
 1	132	Desseaux Albane	27 / 6	3	3	3	3	3	3	3	3	3	2	2	2
 2	103	Bivas Irène	26 / 9	3	3	3	3	3	3	2	3	3	3	3	3
-3	143	Langlès Aliénor	26 / 8	3	3	3	3	3	2	3	3	3	3	2	3
+3	143	De Saint Léon Aliénor	26 / 8	3	3	3	3	3	2	3	3	3	3	2	3
 4	133	Martel Alice	26 / 5	3	3	3	3	3	2	3	3	3	2	2	1
 5	120	Le Ai-My	24 / 9	2	3	2	3	3	3	3	3	2	3	3	3
 6	129	Lefrère Valentine	23 / 9	3	3	3	3	3	2	2	2	2	3	3	3
@@ -165,7 +165,7 @@ Léa, Cimelli	AiMy, Le	Claire, Parquier	Guillaume, DeGaulle	Mathilde, Varieras	P
 #220 Hugo Manet	#105 Marie-Lou Novene	4	7	7	10	9	6	6
 #215 Amaury Coso	#126 Romy Nguyen	8	6	10	8	7	9	8
 #231 Léo Régnier	#148 Anne-Marie Reclus	5	9	8	5	10	2	9
-#210 Sieffried Loew	#118 Alice Koeler	9	10	5	9	4	10	10
+#210 Siegfried Loew walker	#118 Alice Koeler	9	10	5	9	4	10	10
 """
 
 [event.comps.jj_initie.semifinals]
@@ -181,7 +181,7 @@ Rank	#	Dancer	Score	TK	M	TW	TK	M	TW	TK	M	TW	TK	M	TW
 1	203	Bivas Irène	27 / 9	3	3	3	3	3	3	3	3	3	3	3	3
 2	239	Martel Alice	27 / 9	3	3	3	3	3	3	3	3	3	3	3	3
 3	215	Coso Amaury	26 / 7	2	3	3	3	3	3	3	3	3	3	2	2
-4	210	Loew Sieffried	25 / 5	3	3	3	2	3	3	2	3	3	2	1	2
+4	210	Loew walker Siegfried	25 / 5	3	3	3	2	3	3	2	3	3	2	1	2
 5	230	Abbed Aniss	23 / 9	3	3	3	2	2	2	2	3	3	3	3	3
 6	217	Bellec Nicolas	22 / 9	3	3	2	2	1	2	3	3	3	3	3	3
 7	220	Manet Hugo	22 / 8	3	3	3	1	2	2	2	3	3	2	3	3
@@ -229,7 +229,7 @@ leaders_artefacts="""
 Rank	#	Dancer	Score	TK	M	TW	TK	M	TW	TK	M	TW	TK	M	TW
 1	203	Bivas Irène	27 / 9	3	3	3	3	3	3	3	3	3	3	3	3
 2	239	Martel Alice	27 / 9	3	3	3	3	3	3	3	3	3	3	3	3
-3	210	Loew Sieffried	26 / 8	3	3	3	3	3	2	3	3	3	3	3	2
+3	210	Loew walker Siegfried	26 / 8	3	3	3	3	3	2	3	3	3	3	3	2
 4	215	Coso Amaury	24 / 9	3	3	2	3	3	2	3	3	2	3	3	3
 5	230	Abbed Aniss	24 / 9	2	3	3	2	3	2	3	3	3	3	3	3
 6	231	Régnier Léo	24 / 9	3	3	3	2	2	2	3	3	3	3	3	3
@@ -386,7 +386,7 @@ Simon	Jouveshomme
 Emmanuelle	Kasztelan	# 235	# 146
 Alice	Koeler		# 118
 Philippe	Lam		
-Aliénor	Langlès		# 143
+Aliénor	De Saint Léon		# 143
 Loic	Lavastre		
 Thalie	Law		# 104
 Ai-My	Le		# 120
@@ -400,7 +400,7 @@ Valentine	Lefrère		# 129
 Ninon	Legardinier		
 Jules	Lerouge		
 Maria	Litzler-Italia		
-Sieffried	Loew	# 210	
+Siegfried	Loew walker	# 210	
 Kevin	Loncle	# 226	
 Yann	Lopez	# 236	
 Lilian	Loyer	# 250	
@@ -559,7 +559,7 @@ Simon	Jouveshomme
 Emmanuelle	Kasztelan	# 235	# 146
 Alice	Koeler		# 118
 Philippe	Lam		
-Aliénor	Langlès		# 143
+Aliénor	De Saint Léon		# 143
 Loic	Lavastre		
 Thalie	Law		# 104
 Ai-My	Le		# 120

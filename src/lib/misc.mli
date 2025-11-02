@@ -43,6 +43,16 @@ module Lists : sig
 
 end
 
+(* Lists *)
+(* ************************************************************************* *)
+
+module Matrix : sig
+
+  val (++) : 'a array array -> 'a array array -> 'a array array
+  (** Concatenates two matrix with the same number of lines. *)
+
+end
+
 (* Bitwise manipulations *)
 (* ************************************************************************* *)
 
