@@ -39,9 +39,15 @@ test('create event', async ({ page }) => {
   await page.getByRole('button', { name: 'Créer la compétition' }).click();
   await page.getByRole('link', { name: 'Accéder à la compétition' }).click();
   await page.getByRole('link', { name: 'Création Phase' }).click();
+  // unknown race condition in webkit requires a 1 second wait
+  // Prelim is correctly created, but is not shown on screen, and test fails
+  await page.waitForTimeout(1000);
+  //const selector = page.locator('select[name="round.0"] > option');
+  //console.log(await selector.allInnerTexts());
   await page.locator('select[name="round.0"]').selectOption('Prelims');
-  //await page.getByRole('button', { name: 'Créer la phase' }).click();
-  //await page.getByRole('link', { name: 'Accéder à la Phase' }).click();
+  //await expect(page.locator('select[name="round.0"]')).toHaveValue('Prelims');
+  await page.getByRole('button', { name: 'Créer la phase' }).click();
+  await page.getByRole('link', { name: 'Accéder à la Phase' }).click();
 
 
 
