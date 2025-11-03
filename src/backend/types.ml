@@ -1623,7 +1623,7 @@ end
 
 
 
-module PhaseRanking = struct
+module OneRanking = struct
 
   type t = {
     (* hypothesis dense rank
@@ -1636,12 +1636,12 @@ module PhaseRanking = struct
        the frontend doesn't know the condition for the ranking to be valid.
        It just applies warning colors to ranks that contains more than 1 target.
     *)
-    ranks: TargetRank.t list list;
+    ranks: TargetRank.t list;
   } [@@deriving yojson]
 
   let ref, schema =
     make_schema ()
-      ~name:"PhaseRanks"
+      ~name:"OneRanking"
       ~typ:object_
       ~properties:[
         "ranks", obj @@ S.make_schema()
@@ -1653,7 +1653,109 @@ module PhaseRanking = struct
           );
       ]
       ~required:["ranks"]
+
+  let of_ftw (r:'a Ftw.Ranking.Res.t) =
+    let ranking = Ftw.Ranking.Res.ranking r in
+    let map_rank matrix = List.map
+            (fun i -> (Ftw.Ranking.Matrix.get ~i matrix,
+                       Ftw.Ranking.One.get ranking (Ftw.Rank.of_index i)))
+            (List.init (Ftw.Ranking.Matrix.length matrix) succ)
+        in
+    let m = Ftw.Ranking.Res.info r in
+    let parser, matrix = begin match m with
+      | Ftw.Ranking.Res.RPSS matrix ->
+        let rank_list = map_rank matrix in
+        {ranks= List.map (TargetRank.RPSSRank TargetRPSSRank.of_ftw) rank_list}
+      | Ftw.Ranking.Res.Yan_weighted matrix -> TargetYanRank.of_ftw, matrix
+    end in
+    match Ftw.Ranking.Res.ranking r with
+    | {ranks;} as rr ->
+      let ranking_array = Array.mapi (map_rank) ranks in
+      let ranking_list = Array.to_list ranking_array in
+      {ranks=ranking_list}
 end
+
+module PhaseRankingSingles = struct
+
+  type t = {
+    target_type: string;
+    leaders: OneRanking.t;
+    followers: OneRanking.t;
+  } [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"PhaseRankingSingles"
+      ~typ:(Obj Object)
+      ~properties:[
+        "target_type", obj @@ S.make_schema()
+          ~typ:string
+          ~enum:[`String "single"];
+        "leaders", (ref OneRanking.ref);
+        "followers", (ref OneRanking.ref);
+      ]
+      ~required:["target_type";"leaders";"followers"]
+
+  let of_ftw sr =
+    match sr with
+    | Ftw.Heat.Singles {leaders;follows;} -> {target_type="single"; leaders=OneRanking.of_ftw leaders; followers=OneRanking.of_ftw follows}
+    | Ftw.Heat.Couples _ -> failwith "unexpected type"
+
+end
+
+module PhaseRankingCouples = struct
+
+  type t = {
+    target_type: string;
+    couples: OneRanking.t;
+  } [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"PhaseRankingCouples"
+      ~typ:(Obj Object)
+      ~properties:[
+        "target_type", obj @@ S.make_schema()
+          ~typ:string
+          ~enum:[`String "couple"];
+        "couples", (ref OneRanking.ref);
+      ]
+      ~required:["target_type";"couples"]
+
+  let of_ftw cr =
+    match cr with
+    | Ftw.Heat.Couples r -> {target_type="couple"; couples=OneRanking.of_ftw r.couples}
+    | Ftw.Heat.Singles _ -> failwith "unexpected type"
+
+end
+
+
+module PhaseRanking = struct
+
+  type t =
+    | Singles of PhaseRankingSingles.t
+    | Couples of PhaseRankingCouples.t
+  [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"TargetRank"
+      ~typ:object_
+      ~one_of:[
+        (ref PhaseRankingSingles.ref);
+        (ref PhaseRankingCouples.ref);
+      ]
+
+  let of_ftw r =
+    match r with
+    | Ftw.Heat.Singles _ as sr -> Singles (PhaseRankingSingles.of_ftw sr)
+    | Ftw.Heat.Couples _ as cr -> Couples (PhaseRankingCouples.of_ftw cr)
+
+end
+
 
 
 
@@ -1695,5 +1797,3 @@ module InitHeatsFormData = struct
       ]
       ~required:["min_number_of_targets"; "max_number_of_targets"]
 end
-
-

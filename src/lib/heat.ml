@@ -224,14 +224,14 @@ let update_heats ~f a l =
 
 let mk_singles (l : row list) =
   (* Compute the number of heats *)
-  let n =
+  let n_plus_one =
     List.fold_left
       (fun acc { heat_number; _ } -> max acc (heat_number + 1))
       0 l
   in
   (* Allocate the heats array and fill it.
      At the same time, compute the number of passages for each bib. *)
-  let a = Array.make (n + 1) { leaders = []; followers = []; passages = Id.Map.empty; } in
+  let a = Array.make n_plus_one { leaders = []; followers = []; passages = Id.Map.empty; } in
   let num_total_passages = ref Id.Map.empty in
   update_heats a l
     ~f:(fun heat target_id ~leader ~follow ->
@@ -278,14 +278,14 @@ let get_singles ~st ~phase =
 
 let mk_couples (l: row list) =
   (* Compute the number of heats *)
-  let n =
+  let n_plus_one =
     List.fold_left
       (fun acc { heat_number; _ } -> max acc (heat_number + 1))
       0 l
   in
   (* Allocate the heats array and fill it.
      At the same time, compute the number of passages for each bib. *)
-  let a = Array.make (n + 1) { couples = []; passages = Id.Map.empty; } in
+  let a = Array.make n_plus_one { couples = []; passages = Id.Map.empty; } in
   let num_total_passages = ref Id.Map.empty in
   update_heats a l
     ~f:(fun (heat : couples_heat) target_id ~leader ~follow ->
@@ -396,7 +396,7 @@ let simple_init st ~(phase:Id.t) (_min_number_of_targets:int) (_max_number_of_ta
   State.insert ~st ~ty:[int;]
     {| insert into heats (phase_id, heat_number, leader_id, follower_id)
           select phases.id as phase_id
-            , 0 as heat_number
+            , 1 as heat_number
             , leader_id
             , follower_id
           FROM (

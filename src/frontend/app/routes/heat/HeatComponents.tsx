@@ -331,7 +331,7 @@ export function HeatsListComponent({ id_phase, panel_data, heats, dataBibs }: { 
                 )
         )
     };
-    console.log("heat_type ", heats.heat_type, "bibHeats", bibHeats, "missing_bibs", missing_bibs, "sameTargetTypeDataBibs", sameTargetTypeDataBibs);
+    console.log("heat_type ", heats.heat_type, "heats", heats, "bibHeats", bibHeats, "missing_bibs", missing_bibs, "sameTargetTypeDataBibs", sameTargetTypeDataBibs);
 
     return (
         <>
@@ -339,6 +339,9 @@ export function HeatsListComponent({ id_phase, panel_data, heats, dataBibs }: { 
 
 
             {heats?.heats && heats?.heats.map((heat, index) => (
+                // heat 0 réservée pour calculs internes
+                // TODO : afficher warning si heat 0 non vide et Heat 1, ..., n non vides
+                index === 0 ? <></> :
                 <>
                     <h1>Heat {index}</h1>
                     {heats.heat_type === "couple" &&

@@ -573,6 +573,7 @@ module Res = struct
   }
 
   let status { status; _ } = status
+  let info { info; _ } = info
 
   let ranking { info; _ } =
     match info with

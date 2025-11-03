@@ -14,7 +14,7 @@ export function CompetitionTable({ competition_id_list, competition_data_list }:
 
   return (
     <>
-      <h2>Liste Compétitions</h2>
+      <h2>Liste Compétitions 2</h2>
       <table>
         <thead>
           <tr>
@@ -34,7 +34,7 @@ export function CompetitionTable({ competition_id_list, competition_data_list }:
               <tr key={index} className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
                 <td>
                   <Link to={`${url}${competitionId}`}>
-                    {competition.name}
+                    {competition.name === "" ? "unnamed" : competition.name}
                   </Link>
                 </td>
                 <td>{competition.kind}</td>
@@ -50,9 +50,6 @@ export function CompetitionTable({ competition_id_list, competition_data_list }:
 
 
 export function CompetitionTableComponent({ id_event, competition_id_list }: { id_event: EventId, competition_id_list: CompetitionIdList }) {
-
-  const location = useLocation();
-  const url = location.pathname.includes("competition") ? "" : "competitions/";
 
   const competitionDetailsQueries = useQueries({
     queries: competition_id_list.competitions.map((competitionId) => ({
@@ -76,40 +73,10 @@ export function CompetitionTableComponent({ id_event, competition_id_list }: { i
       }
     </div>);
 
+  const competition_data_list = competitionDetailsQueries.map(q => q.data as Competition);
+
   return (
-    <>
-      <h2>Liste Compétitions</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Nom de la compétition</th>
-            <th>Type</th>
-            <th>Catégorie</th>
-          </tr>
-        </thead>
-        <tbody>
-
-          {competitionDetailsQueries.map((competitionDetailsQuery, index) => {
-            const competitionId = competition_id_list.competitions[index];
-            const competition = competitionDetailsQuery.data;
-
-            if (!competition) return null;
-
-            return (
-              <tr key={index} className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
-                <td>
-                  <Link to={`${url}${competitionId}`}>
-                    {competition.name}
-                  </Link>
-                </td>
-                <td>{competition.kind}</td>
-                <td>{competition.category}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </>
+    <CompetitionTable competition_id_list={competition_id_list} competition_data_list={competition_data_list} />
   );
 }
 
