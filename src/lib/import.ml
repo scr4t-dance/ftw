@@ -102,8 +102,8 @@ let dancer_ranking_res ~st r =
     ~judges:(fun dancer_id ->
         Target.(Any (Single { role = Leader; target = Dancer.get ~st dancer_id; })))
     ~targets:(fun heat_target_id ->
-      Heat.get_one ~st heat_target_id
-      |> Target.map_any ~f:(fun id -> Dancer.get ~st id))
+        Heat.get_one ~st heat_target_id
+        |> Target.map_any ~f:(fun id -> Dancer.get ~st id))
 
 
 (* Import dancers *)
@@ -192,7 +192,7 @@ class virtual importer (st : State.t) = object(self)
   (* === Dancers === *)
   (* =============== *)
 
-  method import_bibs ~event:(_:Event.id) (_ : Otoml.t) = ()
+  method import_bibs ~event:(_:Event.id) ~comp:(_:Competition.t) (_ : Otoml.t) = ()
   method import_dancers ~event:(_:Event.id) (_ : Otoml.t) = ()
 
 
@@ -359,7 +359,7 @@ class virtual importer (st : State.t) = object(self)
           ~n_leaders ~n_follows ?check_divs;
         Competition.get st id
     in
-    self#import_bibs ~event t;
+    self#import_bibs ~event ~comp t;
     self#import_phases ~event ~comp t;
     self#import_results ~event ~comp ?check_divs t;
     ()
@@ -408,12 +408,16 @@ class ftw_1 st = object(self)
   (* ============ *)
 
   val mutable bibs = Id.Map.empty
+  val mutable finals_bibs = Id.Map.empty
 
   method find_id ~bib =
-    try Id.Map.find bib bibs
+    try
+      let single_target = Id.Map.find bib bibs in
+      match single_target with
+      | Target.Single {target;_} -> target
     with Not_found -> failwith (Format.asprintf "did not find bib %d" bib)
 
-  method! import_bibs ~event t =
+  method! import_bibs ~event ~comp t =
     match Otoml.find_opt t Otoml.get_string ["dancers"; "bibs"] with
     | None ->
       Logs.debug ~src (fun k->k "Not bibs found in file, skipping import")
@@ -421,12 +425,17 @@ class ftw_1 st = object(self)
       Logs.debug ~src (fun k->k "Bibs found, importing...");
       self#import_bibs_tsv ~event tsv
         ~first_name:0 ~last_name:1
-        ~leader_bib:2 ~follow_bib:3
+        ~leader_bib:2 ~follow_bib:3;
+      (* Set bibs *)
+      Id.Map.iter (fun bib single_target->
+          Bib.add ~st ~competition:(Competition.id comp)
+            ~target:(Target.Any single_target) ~bib
+        ) bibs
 
-  method add_bib_opt bib_opt dancer =
+  method add_bib_opt bib_opt single_target =
     match bib_opt with
     | None -> ()
-    | Some bib -> bibs <- Id.Map.add bib dancer bibs
+    | Some bib -> bibs <- Id.Map.add bib single_target bibs
 
   method import_bibs_tsv ~event ~first_name ~last_name ~leader_bib ~follow_bib tsv =
     List.iter (fun fields ->
@@ -441,8 +450,8 @@ class ftw_1 st = object(self)
               self#find_or_add_dancer ()
                 ~first_name ~last_name ~event
             in
-            self#add_bib_opt leader_bib (Dancer.id dancer);
-            self#add_bib_opt follow_bib (Dancer.id dancer);
+            self#add_bib_opt leader_bib (Target.Single {target=(Dancer.id dancer);role=Role.Leader});
+            self#add_bib_opt follow_bib (Target.Single {target=(Dancer.id dancer);role=Role.Follower});
             ()
         with Failure msg ->
           let line = String.concat "\t" fields in
@@ -591,7 +600,7 @@ class ftw_1 st = object(self)
         ) artefacts;
       match bonus with
       | None -> ()
-    | Some b -> Bonus.set ~st ~target b
+      | Some b -> Bonus.set ~st ~target b
     in
     List.iter (add_heat_and_artefact ~role:Leader) leader_artefacts;
     List.iter (add_heat_and_artefact ~role:Follower) follow_artefacts;
@@ -602,11 +611,17 @@ class ftw_1 st = object(self)
   method import_couples_artefacts ~event ~phase t =
     let judge_artefact_descr = Phase.judge_artefact_descr phase in
     let head_artefact_descr = Phase.head_judge_artefact_descr phase in
-    let phase = Phase.id phase in
+    let phase_id = Phase.id phase in
     let split = function
       | leader :: follower :: ranks ->
-        let leader_id = self#find_id ~bib:(extract_bib' leader) in
-        let follow_id = self#find_id ~bib:(extract_bib' follower) in
+        let leader_bib = extract_bib' leader in
+        let follower_bib = extract_bib' follower in
+        let leader_id = self#find_id ~bib:leader_bib in
+        let follow_id = self#find_id ~bib:follower_bib in
+        finals_bibs <- Id.Map.add
+            (int_of_string @@ string_of_int leader_bib ^ string_of_int follower_bib)
+            (Target.Couple {leader=leader_id;follower=follow_id})
+            finals_bibs;
         Some ((leader_id, follow_id), ranks)
       | _ -> None
     in
@@ -618,10 +633,15 @@ class ftw_1 st = object(self)
       ) ["artefacts"]
     in
     let panel = make_couples_panel judges in
-    Judge.set ~st ~phase panel;
+    let add_bib_couple bib couple_target =
+      Bib.add ~st ~competition:(Phase.competition phase)
+        ~target:(Target.Any couple_target) ~bib
+    in
+    Judge.set ~st ~phase:phase_id panel;
+    Id.Map.iter add_bib_couple finals_bibs;
     (* add notes *)
     let add_heat_and_artefact ((leader, follower), (artefacts, bonus)) =
-      let target = Heat.add_couple ~st ~phase ~heat:1 ~leader ~follower in
+      let target = Heat.add_couple ~st ~phase:phase_id ~heat:1 ~leader ~follower in
       List.iter (fun (judge, artefact) ->
           Artefact.set ~st ~judge ~target artefact
         ) artefacts;
@@ -640,7 +660,7 @@ class ftw_1 st = object(self)
     | Jack_and_Jill, Finals ->
       self#import_couples_artefacts ~event ~phase t;
       self#log_ranking (self#compute_ranking ~phase)
-      (* TODO: check coherence between rankings and results *)
+    (* TODO: check coherence between rankings and results *)
     | (Routine | Strictly | JJ_Strictly), _ ->
       Logs.warn ~src (fun k->k "Artefacts import not implemented yet for non-J&J")
 
@@ -878,4 +898,3 @@ let list_files path =
 
 let import_event ~st path =
   List.fold_left (from_file ~st) (Ok []) (list_files path)
-
