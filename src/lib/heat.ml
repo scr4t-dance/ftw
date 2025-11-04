@@ -417,16 +417,8 @@ let simple_init st ~(phase:Id.t) (_min_number_of_targets:int) (_max_number_of_ta
     phase
 
 
-let simple_promote st ~(phase:Id.t) (_max_number_of_targets_to_pass:int) =
-  let phase_data = Phase.get st phase in
-  let competition_id = Phase.competition phase_data in
-  let phase_list = List.sort
-      (fun k k' -> Round.compare (Phase.round k) (Phase.round k'))
-      (Phase.find st competition_id) in
-  let order_phase_list = List.filter
-      (fun k -> 1 = Round.compare (Phase.round k) (Phase.round phase_data))
-      phase_list in
-  let new_phase = List.hd order_phase_list in
+let simple_promote ~st ~(phase:Id.t) (_max_number_of_targets_to_pass:int) =
+  let new_phase = Phase.find_next_round ~st phase in
   Logs.err ~src (fun k->k "next phase %a" Round.print (Phase.round new_phase));
   let open Sqlite3_utils.Ty in
   State.insert ~st ~ty:[int]
@@ -439,7 +431,7 @@ let simple_promote st ~(phase:Id.t) (_max_number_of_targets_to_pass:int) =
   State.insert ~st ~ty:[int;int]
     {| insert into heats (phase_id, heat_number, leader_id, follower_id)
           select ? as phase_id
-            , 0 as heat_number
+            , 1 as heat_number
             , leader_id
             , follower_id
           FROM heats
@@ -549,6 +541,13 @@ let map_ranking ~targets ~judges r =
       couples=Ranking.Res.map ~targets ~judges couples;
     }
 
+let iteri ~targets ~judges r =
+  match r with
+  | Singles {leaders;follows} ->
+    Ranking.Res.iteri ~targets ~judges leaders;
+    Ranking.Res.iteri ~targets ~judges follows
+  | Couples {couples} ->
+    Ranking.Res.iteri ~targets ~judges couples
 
 let add_target st ~(phase_id:Id.t) heat_number (target:target_id Target.any) =
   match target with

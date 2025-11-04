@@ -87,6 +87,12 @@ val map_ranking: targets:('a -> 'b) ->
   'a ranking ->
   'b ranking
 
+val iteri: targets:(target_id -> 'a -> unit) ->
+  judges:(target_id -> 'a -> unit) ->
+  'a ranking ->
+  unit
+
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
@@ -94,7 +100,7 @@ val map_ranking: targets:('a -> 'b) ->
 (* TODO: review/remove these *)
 val get_id : State.t -> Phase.id -> int -> Id.t Target.any -> (Id.t option, string) result
 val simple_init : State.t -> phase:Phase.id -> int -> int -> unit
-val simple_promote : State.t -> phase:Phase.id -> int -> unit
+val simple_promote : st:State.t -> phase:Phase.id -> int -> unit
 
 val add_single :
   st:State.t -> phase:Phase.id ->

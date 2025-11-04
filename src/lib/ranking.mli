@@ -109,6 +109,11 @@ module Matrix : sig
     ('c, 'a) t ->
     ('c, 'b) t
 
+  val iteri: targets:(int -> 'a -> unit) ->
+    judges:(int -> 'a -> unit) ->
+    ('b, 'a) t ->
+    unit
+
   (* filing up the matrix with artefacts *)
 
   val acc_bonus : i:int -> bonus:int -> ('a, 'b) t -> unit
@@ -204,6 +209,12 @@ module Res : sig
     judges:('a -> 'b) ->
     'a t -> 'b t
   (** Map over the targets *)
+
+  val iteri: targets:(int -> 'a -> unit) ->
+    judges:(int -> 'a -> unit) ->
+    'a t ->
+    unit
+  (** Iter over the targets *)
 
   val debug :
     pp:(Format.formatter -> 'target -> unit) ->
