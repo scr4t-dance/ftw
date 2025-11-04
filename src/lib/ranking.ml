@@ -218,6 +218,11 @@ module Matrix = struct
     let ranks = One.map_targets ~f t.ranks in
     { t with targets; judges; ranks;  }
 
+
+  let iteri ~targets:f ~judges:g t =
+    Array.iteri g t.judges;
+    Array.iteri f t.targets
+
   (* filing up the matrix with artefacts *)
 
   let acc_bonus ~i ~bonus t =
@@ -600,6 +605,12 @@ module Res = struct
       | Yan_weighted matrix -> Yan_weighted (Matrix.map ~targets ~judges matrix)
     in
     { status; info; }
+
+  let iteri ~targets ~judges {info; _} =
+    match info with
+    | RPSS matrix -> Matrix.iteri ~targets ~judges matrix
+    | Yan_weighted matrix -> Matrix.iteri ~targets ~judges matrix
+
 
 end
 

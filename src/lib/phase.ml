@@ -67,8 +67,8 @@ let conv =
 
 let get st id =
   try
-  State.query_one_where ~st ~conv ~p:Id.p
-    {|SELECT * FROM phases WHERE id=?|} id
+    State.query_one_where ~st ~conv ~p:Id.p
+      {|SELECT * FROM phases WHERE id=?|} id
   with Sqlite3_utils.RcError NOTFOUND -> raise Not_found
 
 let find_ids st competition_id =
@@ -82,6 +82,17 @@ let find st competition_id =
 let find_round st competition_id r =
   let phases = find st competition_id in
   List.find_opt (fun phase -> Round.equal r (round phase)) phases
+
+let find_next_round ~st phase =
+  let phase_data = get st phase in
+  let competition_id = competition phase_data in
+  let phase_list = List.sort
+      (fun k k' -> Round.compare (round k) (round k'))
+      (find st competition_id) in
+  let order_phase_list = List.filter
+      (fun k -> 1 = Round.compare (round k) (round phase_data))
+      phase_list in
+  List.hd order_phase_list
 
 let create
     ~st competition_id round
@@ -157,5 +168,3 @@ let delete ~st id_phase =
     {| DELETE FROM phases
         WHERE id=?|} id_phase;
   id_phase
-
-

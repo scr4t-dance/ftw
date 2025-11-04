@@ -106,7 +106,7 @@ let rec routes router =
       "404", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Phase not found";
     ]
-  |> Router.put "/api/phase/:id/promote" promote
+  |> Router.put "/api/phase/:id/promote_all" promote
     ~tags:["heat"; "phase"]
     ~summary:"Promote dancers to next round"
     ~request_body:(
@@ -248,7 +248,7 @@ and promote =
     ~to_yojson:Types.PhaseId.to_yojson
     (fun req st form_data ->
        let+ id = Utils.int_param req "id" in
-       Ftw.Heat.simple_promote st ~phase:id form_data.number_of_targets_to_promote;
+       Ftw.Heat.simple_promote ~st ~phase:id form_data.number_of_targets_to_promote;
        Ok id
     )
 
