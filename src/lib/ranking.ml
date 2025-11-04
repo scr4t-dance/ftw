@@ -48,6 +48,7 @@ module One = struct
     { ranks = Array.make n None; }
 
   let get { ranks; } r =
+    Logs.debug ~src (fun k->k "get: rank size %d, rank %d" (Array.length ranks) (Rank.rank r));
     let i = Rank.to_index r in
     match ranks.(i) with
     | None -> Option.None
@@ -398,7 +399,7 @@ module Yan_weighted = struct
         { judges = j2; head = h2; bonus = b2; } =
       CCOrd.(int j2 j1 <?> (int, h2, h1) <?> (int, b2, b1))
     in
-    (* comoute total scores  sort the matrix *)
+    (* compute total scores  sort the matrix *)
     compute_totals ~conf matrix;
     Matrix.sort matrix ~cmp ~start:0 ~stop:(n - 1);
     Matrix.segments matrix ~cmp ~start:0 ~stop:(n - 1)

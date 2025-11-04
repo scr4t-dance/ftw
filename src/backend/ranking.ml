@@ -45,6 +45,10 @@ and get_ranks =
     (fun req st ->
        let+ id = Utils.int_param req "id" in
        let r = Ftw.Heat.ranking ~st ~phase:id in
-       let s = Types.PhaseRanking.of_ftw r in
+       let ftw_target_r = Ftw.Heat.map_ranking ~targets:(Ftw.Heat.get_one ~st)
+       ~judges:(fun tid -> Ftw.Target.Any (Ftw.Target.Single {target=tid;role=Ftw.Role.Follower})) r in
+       let target_r = Ftw.Heat.map_ranking ~targets:(Types.Target.of_ftw)
+       ~judges:(Types.Target.of_ftw) ftw_target_r in
+       let s = Types.PhaseRanking.of_ftw target_r in
        Ok s
     )

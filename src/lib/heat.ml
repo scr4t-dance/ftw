@@ -539,6 +539,15 @@ let ranking ~st ~phase:id =
   | _ ->
     failwith "Incoherence between heats and judge panels"
 
+let map_ranking ~targets ~judges r =
+  match r with
+  | Singles {leaders;follows} -> Singles {
+      leaders=Ranking.Res.map ~targets ~judges leaders;
+      follows=Ranking.Res.map ~targets ~judges follows
+    }
+  | Couples {couples} -> Couples {
+      couples=Ranking.Res.map ~targets ~judges couples;
+    }
 
 
 let add_target st ~(phase_id:Id.t) heat_number (target:target_id Target.any) =

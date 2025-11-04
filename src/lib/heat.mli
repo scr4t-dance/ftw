@@ -82,6 +82,10 @@ type 'target ranking =
 
 val ranking : st:State.t -> phase:Phase.id -> Id.t ranking
 
+val map_ranking: targets:('a -> 'b) ->
+  judges:('a -> 'b) ->
+  'a ranking ->
+  'b ranking
 
 (* DB interaction *)
 (* ************************************************************************* *)
