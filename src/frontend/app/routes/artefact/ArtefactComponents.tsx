@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import type {
     Bib, BibList, CoupleTarget, DancerId, DancerIdList, HeatsArray, HeatTargetJudgeArtefact,
     HeatTargetJudgeArtefactArray, Panel, PhaseId,
+    Target,
 } from "@hookgen/model";
 import { Link, } from "react-router";
 import { useQueries } from "@tanstack/react-query";
@@ -10,8 +11,25 @@ import { dancerArrayFromTarget, DancerCell, get_bibs } from '@routes/bib/BibComp
 import { getGetApiDancerIdQueryOptions } from '@hookgen/dancer/dancer';
 import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryOptions } from '@hookgen/artefact/artefact';
 
+function matchTarget(t1: Target, t2: Target) {
+    return JSON.stringify(t1) === JSON.stringify(t2);
+}
 
-function ArtefactCell({ htja }: { htja: HeatTargetJudgeArtefact }) {
+export function transposeJudgeTargetArtefacts(targetArray: Target[], judgeHTJAArray: HeatTargetJudgeArtefactArray[]) {
+
+    const target_artefacts = targetArray.map((target) => {
+        const htja_list: HeatTargetJudgeArtefact[] = judgeHTJAArray.map((htja_judge_array) => (
+            htja_judge_array.artefacts.filter((htja) => matchTarget(htja.heat_target_judge.target, target))[0]
+        ));
+        const htja_array: HeatTargetJudgeArtefactArray = { artefacts: htja_list };
+        return htja_array;
+    });
+
+    return target_artefacts;
+
+}
+
+export function ArtefactCell({ htja }: { htja: HeatTargetJudgeArtefact }) {
 
     return (
         <td>
@@ -25,15 +43,12 @@ function ArtefactCell({ htja }: { htja: HeatTargetJudgeArtefact }) {
     );
 }
 
-function ArtefactRow({ htja_array, index }: { htja_array: HeatTargetJudgeArtefactArray, index: number }) {
+function ArtefactRow({ htja_array }: { htja_array: HeatTargetJudgeArtefactArray }) {
     const artefacts = htja_array?.artefacts ?? [];
 
     if (!artefacts || !artefacts[0]) {
         return (
-            <tr className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
-
-                <td>{JSON.stringify(htja_array.artefacts[0].heat_target_judge.target)} No HTJA data</td>
-            </tr>
+            <td>{JSON.stringify(htja_array.artefacts[0].heat_target_judge.target)} No HTJA data</td>
         );
     }
 
@@ -41,8 +56,7 @@ function ArtefactRow({ htja_array, index }: { htja_array: HeatTargetJudgeArtefac
     const dancer_list = dancerArrayFromTarget(target);
 
     return (
-        <tr key={`${artefacts[0].heat_target_judge.heat_number}-${artefacts[0].heat_target_judge.target}`}
-            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+        <>
             <td>
                 {dancer_list && dancer_list.map((i) => (
                     <DancerCell id_dancer={i} />
@@ -51,18 +65,8 @@ function ArtefactRow({ htja_array, index }: { htja_array: HeatTargetJudgeArtefac
             {htja_array.artefacts.map((htja) => (
                 <ArtefactCell htja={htja} />
             ))}
-        </tr >
+        </>
     );
-}
-
-function matchHeatBib(htja: HeatTargetJudgeArtefact, bib: Bib, heat_number: number | undefined) {
-    if (heat_number === undefined) {
-        return JSON.stringify(htja.heat_target_judge.target) === JSON.stringify(bib.target);
-    }
-
-    return (
-        JSON.stringify(htja.heat_target_judge.target) === JSON.stringify(bib.target)
-        && (htja.heat_target_judge.heat_number === heat_number));
 }
 
 export function ArtefactTableArrayComponent({ phase_id, judges, head_judge, heat_number, bib_list }: { phase_id: PhaseId, judges: DancerIdList, head_judge: DancerId | undefined, heat_number: number | undefined, bib_list: Array<Bib> }) {
@@ -113,14 +117,9 @@ export function ArtefactTableArrayComponent({ phase_id, judges, head_judge, heat
     if (!isArtefactsSuccess) return <div>Failed loading artefact details...</div>;
 
     const htjaData = artefactDataQueries.map((artefactQuery) => (artefactQuery.data as HeatTargetJudgeArtefactArray));
+    const bibTargets = bib_list.map(b => b.target);
     //console.log("htjaData", htjaData);
-    const target_artefacts = bib_list.map((bib) => {
-        const htja_list: HeatTargetJudgeArtefact[] = htjaData.map((htja_judge_array) => (
-            htja_judge_array.artefacts.filter((htja) => matchHeatBib(htja, bib, heat_number))[0]
-        ));
-        const htja_array: HeatTargetJudgeArtefactArray = { artefacts: htja_list };
-        return htja_array;
-    });
+    const target_artefacts = transposeJudgeTargetArtefacts(bibTargets, htjaData);
 
     //console.log(htjaData[1].artefacts[3].heat_target_judge.target);
     //console.log(bib_list[0].target);
@@ -151,10 +150,11 @@ export function ArtefactTableArrayComponent({ phase_id, judges, head_judge, heat
                 {target_artefacts && target_artefacts.map((htja_array, index) => {
                     return (
                         <> {htja_array.artefacts &&
-                            <ArtefactRow
-                                htja_array={htja_array}
-                                index={index}
-                            />
+
+                            <tr key={`${htja_array.artefacts[0].heat_target_judge.heat_number}-${htja_array.artefacts[0].heat_target_judge.target}`}
+                                className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+                                <ArtefactRow htja_array={htja_array} />
+                            </tr>
                         }
                         </>
                     );
@@ -166,7 +166,7 @@ export function ArtefactTableArrayComponent({ phase_id, judges, head_judge, heat
 
 
 
-export function ArtefactListComponent({id_phase, heat_list, dataBibs, judgePanel}: {id_phase: PhaseId, heat_list: HeatsArray, dataBibs: BibList, judgePanel: Panel}) {
+export function ArtefactListComponent({ id_phase, heat_list, dataBibs, judgePanel }: { id_phase: PhaseId, heat_list: HeatsArray, dataBibs: BibList, judgePanel: Panel }) {
 
     const [isHeatView, setHeatView] = useState(false);
 

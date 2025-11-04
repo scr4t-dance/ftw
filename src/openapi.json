@@ -28,7 +28,7 @@
             "description": "Successful operation",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/PhaseRanks" }
+                "schema": { "$ref": "#/components/schemas/PhaseRanking" }
               }
             }
           },
@@ -1967,10 +1967,6 @@
         "properties": {
           "ranking_type": { "type": "string", "enum": [ "rpss" ] },
           "target": { "$ref": "#/components/schemas/Target" },
-          "artefact_list": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/ArtefactRank" }
-          },
           "rank": { "type": "integer" },
           "ranking_details": {
             "type": "array",
@@ -1984,16 +1980,10 @@
         "properties": {
           "ranking_type": { "type": "string", "enum": [ "yan" ] },
           "target": { "$ref": "#/components/schemas/Target" },
-          "artefact_list": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/ArtefactYans" }
-          },
           "rank": { "type": "integer" },
           "score": { "type": "integer" }
         },
-        "required": [
-          "ranking_type", "target", "artefact_list", "rank", "score"
-        ]
+        "required": [ "ranking_type", "target", "rank", "score" ]
       },
       "TargetRank": {
         "type": "object",
@@ -2002,18 +1992,39 @@
           { "$ref": "#/components/schemas/TargetRPSSRank" }
         ]
       },
-      "PhaseRanks": {
+      "OneRanking": {
         "type": "object",
         "properties": {
           "ranks": {
             "type": "array",
-            "items": {
-              "type": "array",
-              "items": { "$ref": "#/components/schemas/TargetRank" }
-            }
+            "items": { "$ref": "#/components/schemas/TargetRank" }
           }
         },
         "required": [ "ranks" ]
+      },
+      "PhaseRankingSingles": {
+        "type": "object",
+        "properties": {
+          "target_type": { "type": "string", "enum": [ "single" ] },
+          "leaders": { "$ref": "#/components/schemas/OneRanking" },
+          "followers": { "$ref": "#/components/schemas/OneRanking" }
+        },
+        "required": [ "target_type", "leaders", "followers" ]
+      },
+      "PhaseRankingCouples": {
+        "type": "object",
+        "properties": {
+          "target_type": { "type": "string", "enum": [ "couple" ] },
+          "couples": { "$ref": "#/components/schemas/OneRanking" }
+        },
+        "required": [ "target_type", "couples" ]
+      },
+      "PhaseRanking": {
+        "type": "object",
+        "oneOf": [
+          { "$ref": "#/components/schemas/PhaseRankingSingles" },
+          { "$ref": "#/components/schemas/PhaseRankingCouples" }
+        ]
       },
       "NextPhaseFormData": {
         "type": "object",

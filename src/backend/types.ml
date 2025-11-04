@@ -1541,8 +1541,8 @@ module TargetRPSSRank = struct
   type t = {
     ranking_type: string;
     target : Target.t;
-    rank: int option;
-    artefact_list: ArtefactRank.t list;
+    rank: int;
+    (*artefact_list: ArtefactRank.t list; *)
     ranking_details: string list; (* one element per rank, to plot on the right hand side*)
   } [@@deriving yojson]
 
@@ -1556,9 +1556,6 @@ module TargetRPSSRank = struct
           ~typ:string
           ~enum:[`String "rpss"];
         "target", (ref Target.ref);
-        "artefact_list", obj @@ S.make_schema()
-          ~typ:array
-          ~items:(ref ArtefactRank.ref);
         "rank",  obj @@ S.make_schema()
           ~typ:int;
         "ranking_details", obj @@ S.make_schema()
@@ -1567,6 +1564,33 @@ module TargetRPSSRank = struct
                     ~typ:string);
       ]
       ~required:["ranking_type";"target";"rank";"ranking_details"]
+
+  type cell = Ftw.Ranking.RPSS.cell = {
+    mutable votes : int option;
+    mutable sum : int option;
+    mutable head : int option;
+  }
+
+  type acc = Ftw.Ranking.RPSS.acc
+
+  let get_votes {votes;_} = votes
+
+  let of_ftw r =
+    let ranking_info, rank_data = r in
+    match rank_data with
+    | None -> failwith "No ranking data"
+    | Some (rank, target) ->
+      let get_ranking_details c =
+        begin match get_votes c with
+          | None -> ""
+          | Some i -> string_of_int i
+        end
+      in
+      let ranking_details = Array.map get_ranking_details ranking_info |> Array.to_list in
+      {
+        ranking_type="rpss";target=target;rank=Ftw.Rank.rank rank;
+        ranking_details=ranking_details
+      }
 end
 
 module TargetYanRank = struct
@@ -1574,8 +1598,8 @@ module TargetYanRank = struct
   type t = {
     ranking_type: string;
     target : Target.t;
-    rank: int option;
-    artefact_list: ArtefactYans.t list;
+    rank: int;
+    (*artefact_list: ArtefactYans.t list;*)
     score: float option;
   } [@@deriving yojson]
 
@@ -1589,15 +1613,32 @@ module TargetYanRank = struct
           ~typ:string
           ~enum:[`String "yan"];
         "target", (ref Target.ref);
-        "artefact_list", obj @@ S.make_schema()
-          ~typ:array
-          ~items:(ref ArtefactYans.ref);
         "rank",  obj @@ S.make_schema()
           ~typ:int;
         "score", obj @@ S.make_schema()
           ~typ:int;
       ]
-      ~required:["ranking_type"; "target"; "artefact_list";"rank";"score"]
+      ~required:["ranking_type"; "target";"rank";"score"]
+
+  type acc = Ftw.Ranking.Yan_weighted.acc = {
+    judges : int;
+    head : int;
+    bonus : Ftw.Bonus.t;
+  }
+
+  let get_sum {judges;head;bonus} = Float.add (float_of_int judges) (Float.add (Float.div (float_of_int head) 10.) (Float.div (float_of_int bonus) 100.))
+
+  let of_ftw r =
+    let ranking_info, rank_data = r in
+    match rank_data with
+    | None -> failwith "No ranking data"
+    | Some (rank, target) ->
+      let get_ranking_details a = get_sum a in
+      let score = get_ranking_details ranking_info in
+      {
+        ranking_type="yan";target=target;rank=Ftw.Rank.rank rank;
+        score=Some score
+      }
 end
 
 module TargetRank = struct
@@ -1618,6 +1659,36 @@ module TargetRank = struct
       ]
 
   (* TODO implement to_yojson  *)
+  let to_yojson target =
+    match target with
+    | YanRank {rank=t} ->
+      let schema_fields =
+        begin match TargetYanRank.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("ranking_type", `String "yan");] @ schema_fields)
+    | RPSSRank {rank=t} ->
+      let schema_fields =
+        begin match TargetRPSSRank.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("ranking_type", `String "rpss");] @ schema_fields)
+
+  let of_yojson json =
+    match json with
+    | `Assoc fields -> (
+        match List.assoc_opt "ranking_type" fields with
+        | Some (`String "yan") -> TargetYanRank.of_yojson json |> Result.map (fun s -> YanRank {rank=s})
+        | Some (`String "rpss") -> TargetRPSSRank.of_yojson json |> Result.map (fun s -> RPSSRank {rank=s})
+        | Some (`String unknown) -> Error ("Unrecognised ranking_type: " ^ unknown)
+        | Some _  -> Error ("Unrecognised ranking_type")
+        | None -> Error "Missing key: ranking_type"
+      )
+    | _ -> Error "Expected JSON object for TargetRank"
 end
 
 
@@ -1646,33 +1717,30 @@ module OneRanking = struct
       ~properties:[
         "ranks", obj @@ S.make_schema()
           ~typ:array
-          ~items:(
-            obj @@ S.make_schema()
-              ~typ:array
-              ~items:(ref TargetRank.ref)
-          );
+          ~items:(ref TargetRank.ref)
       ]
       ~required:["ranks"]
 
   let of_ftw (r:'a Ftw.Ranking.Res.t) =
     let ranking = Ftw.Ranking.Res.ranking r in
     let map_rank matrix = List.map
-            (fun i -> (Ftw.Ranking.Matrix.get ~i matrix,
-                       Ftw.Ranking.One.get ranking (Ftw.Rank.of_index i)))
-            (List.init (Ftw.Ranking.Matrix.length matrix) succ)
-        in
+        (fun rank_integer -> let rank = Ftw.Rank.mk rank_integer in
+          (Ftw.Ranking.Matrix.get ~i:(Ftw.Rank.to_index rank) matrix,
+           Ftw.Ranking.One.get ranking rank))
+        (List.init (Ftw.Ranking.Matrix.length matrix) succ)
+    in
     let m = Ftw.Ranking.Res.info r in
-    let parser, matrix = begin match m with
-      | Ftw.Ranking.Res.RPSS matrix ->
-        let rank_list = map_rank matrix in
-        {ranks= List.map (TargetRank.RPSSRank TargetRPSSRank.of_ftw) rank_list}
-      | Ftw.Ranking.Res.Yan_weighted matrix -> TargetYanRank.of_ftw, matrix
-    end in
-    match Ftw.Ranking.Res.ranking r with
-    | {ranks;} as rr ->
-      let ranking_array = Array.mapi (map_rank) ranks in
-      let ranking_list = Array.to_list ranking_array in
-      {ranks=ranking_list}
+    match m with
+    | Ftw.Ranking.Res.RPSS matrix ->
+      let rank_list = map_rank matrix in
+      let rpss_rank_list = List.map TargetRPSSRank.of_ftw rank_list in
+      let target_rank_list = List.map (fun x -> TargetRank.RPSSRank {rank=x}) rpss_rank_list in
+      {ranks=target_rank_list}
+    | Ftw.Ranking.Res.Yan_weighted matrix ->
+      let rank_list = map_rank matrix in
+      let yan_rank_list = List.map TargetYanRank.of_ftw rank_list in
+      let target_rank_list = List.map (fun x -> TargetRank.YanRank {rank=x}) yan_rank_list in
+      {ranks=target_rank_list}
 end
 
 module PhaseRankingSingles = struct
@@ -1699,7 +1767,11 @@ module PhaseRankingSingles = struct
 
   let of_ftw sr =
     match sr with
-    | Ftw.Heat.Singles {leaders;follows;} -> {target_type="single"; leaders=OneRanking.of_ftw leaders; followers=OneRanking.of_ftw follows}
+    | Ftw.Heat.Singles {leaders;follows;} -> {
+        target_type="single";
+        leaders=OneRanking.of_ftw leaders;
+        followers=OneRanking.of_ftw follows
+      }
     | Ftw.Heat.Couples _ -> failwith "unexpected type"
 
 end
@@ -1742,7 +1814,7 @@ module PhaseRanking = struct
 
   let ref, schema =
     make_schema ()
-      ~name:"TargetRank"
+      ~name:"PhaseRanking"
       ~typ:object_
       ~one_of:[
         (ref PhaseRankingSingles.ref);
@@ -1754,6 +1826,37 @@ module PhaseRanking = struct
     | Ftw.Heat.Singles _ as sr -> Singles (PhaseRankingSingles.of_ftw sr)
     | Ftw.Heat.Couples _ as cr -> Couples (PhaseRankingCouples.of_ftw cr)
 
+
+  let to_yojson target =
+    match target with
+    | Singles t ->
+      let schema_fields =
+        begin match PhaseRankingSingles.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("target_type", `String "single");] @ schema_fields)
+    | Couples t ->
+      let schema_fields =
+        begin match PhaseRankingCouples.to_yojson t with
+          | `Assoc fields -> fields
+          | _ -> failwith "Expected schema to serialize to an object"
+        end
+      in
+      `Assoc ([("target_type", `String "couple");] @ schema_fields)
+
+  let of_yojson json =
+    match json with
+    | `Assoc fields -> (
+        match List.assoc_opt "target_type" fields with
+        | Some (`String "single") -> PhaseRankingSingles.of_yojson json |> Result.map (fun s -> Singles s)
+        | Some (`String "couple") -> PhaseRankingCouples.of_yojson json |> Result.map (fun s -> Couples s)
+        | Some (`String unknown) -> Error ("Unrecognised target_type: " ^ unknown)
+        | Some _  -> Error ("Unrecognised target_type")
+        | None -> Error "Missing key: target_type"
+      )
+    | _ -> Error "Expected JSON object for PhaseRanking"
 end
 
 

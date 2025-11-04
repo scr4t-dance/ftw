@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import type {
     CompetitionId, DancerId, PhaseId,
 } from "@hookgen/model";
-import { Link, useParams } from "react-router";
+import { useParams } from "react-router";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
 import { useGetApiPhaseIdHeats, } from "~/hookgen/heat/heat";
 import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
