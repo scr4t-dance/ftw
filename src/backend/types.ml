@@ -1573,19 +1573,32 @@ module TargetRPSSRank = struct
 
   type acc = Ftw.Ranking.RPSS.acc
 
-  let get_votes {votes;_} = votes
+  let get_votes {votes;sum;head} =
+    let print_list = begin match votes with
+      | Some 0 ->
+        [""]
+      | Some v (* v > 0 *) ->
+        let sum_head_string = begin match sum with
+          | Some s ->
+            let head_string = begin match head with
+              | Some _ -> "*"
+              | None -> ""
+            end in
+            ["(" ^ (string_of_int s) ^ ")"; head_string]
+          | None -> [""]
+        end in
+        (string_of_int v) :: sum_head_string
+      | None ->
+        ["--"]
+    end in
+    String.concat "\n" print_list
 
   let of_ftw r =
     let ranking_info, rank_data = r in
     match rank_data with
     | None -> failwith "No ranking data"
     | Some (rank, target) ->
-      let get_ranking_details c =
-        begin match get_votes c with
-          | None -> ""
-          | Some i -> string_of_int i
-        end
-      in
+      let get_ranking_details c = get_votes c in
       let ranking_details = Array.map get_ranking_details ranking_info |> Array.to_list in
       {
         ranking_type="rpss";target=target;rank=Ftw.Rank.rank rank;

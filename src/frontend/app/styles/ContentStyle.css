@@ -240,6 +240,13 @@ table th {
     padding: 0.6rem 0.3rem;
 }
 
+.inner-vertical-line {
+    border-left: solid 1px;
+}
+
+.rank_table tbody tr {
+    text-align: center;
+}
 
 /*=========================================+
 |                   FORMS                  |
