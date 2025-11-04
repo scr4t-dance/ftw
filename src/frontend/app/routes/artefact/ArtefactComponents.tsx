@@ -32,14 +32,14 @@ export function transposeJudgeTargetArtefacts(targetArray: Target[], judgeHTJAAr
 export function ArtefactCell({ htja }: { htja: HeatTargetJudgeArtefact }) {
 
     return (
-        <td>
+        <>
             {htja?.artefact?.artefact_type === "yan" && (
                 htja.artefact.artefact_data.join('/')
             )}
             {htja?.artefact?.artefact_type === "ranking" && (
                 htja.artefact.artefact_data
             )}
-        </td>
+        </>
     );
 }
 
@@ -62,8 +62,10 @@ function ArtefactRow({ htja_array }: { htja_array: HeatTargetJudgeArtefactArray 
                     <DancerCell id_dancer={i} />
                 ))}
             </td>
-            {htja_array.artefacts.map((htja) => (
-                <ArtefactCell htja={htja} />
+            {htja_array.artefacts.map((htja, index) => (
+                <td className={index===0 ? "inner-vertical-line" : ""}>
+                    <ArtefactCell htja={htja} />
+                </td>
             ))}
         </>
     );

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import {
-    RoleItem, YanItem, type Artefact, type DancerId, type DancerIdList, type HeatTargetJudgeArtefactArray, type OneRanking, type Panel, type PhaseId,
+    RoleItem, YanItem, type Artefact, type Dancer, type DancerId, type DancerIdList, type HeatTargetJudgeArtefactArray, type OneRanking, type Panel, type PhaseId,
     type PhaseRanking, type PhaseRankingSingles, type Target, type TargetRank
 } from "@hookgen/model";
 import { Link, useParams } from "react-router";
@@ -86,15 +86,27 @@ function RankRow({ target_rank, all_judges, htjaArray }: { target_rank: TargetRa
                     <DancerCell id_dancer={i} />
                 ))}
             </td>
-            {artefactArray.map(htja => {
+            {artefactArray.map((htja, index) => {
                 if (htja)
-                    return (<ArtefactCell htja={htja} />);
+                    return (
+                        <td className={index === 0 ? "inner-vertical-line" : ""}>
+                            <ArtefactCell htja={htja} />
+                        </td>
+                    );
 
                 return (<td></td>)
             }
             )}
             {target_rank.ranking_type === "rpss" &&
-                <td>{target_rank.ranking_details}</td>
+                <td className='inner-vertical-line'>{target_rank.rank}</td>
+            }
+            {target_rank.ranking_type === "rpss" &&
+                target_rank.ranking_details.map((s, index) => (
+                    <td className={index === 0 ? "inner-vertical-line" : ""}>{s}</td>
+                ))
+            }
+            {target_rank.ranking_type === "rpss" && // head judge have no ranking_details
+                <td></td>
             }
         </>
     );
@@ -107,6 +119,19 @@ type OneRankListTableProps = {
     oneRanking: OneRanking,
     treshold: number | undefined,
 };
+
+function JudgeHeadCell({ judgeId, judgeData, isHead }: { judgeId: DancerId, judgeData: Dancer, isHead: boolean }) {
+
+    if (!judgeData) return null;
+    return (
+        <th>
+            {isHead && "Head "}
+            <Link to={`../artefacts/judge/${judgeId}`}>
+                {judgeData.first_name + " " + judgeData.last_name}
+            </Link>
+        </th>
+    );
+}
 
 function OneRankListTable({ phase_id, judges, head_judge, oneRanking, treshold }: OneRankListTableProps) {
 
@@ -163,8 +188,36 @@ function OneRankListTable({ phase_id, judges, head_judge, oneRanking, treshold }
     const first_target_rank = oneRanking.ranks[0];
 
     return (
-        <table>
+        <table className="large-table rank_table">
+            <colgroup>
+                <col />
+                {first_target_rank.ranking_type === "yan" &&
+                    <col />
+                }
+                <col />
+                <col span={all_judges.length} />
+                {first_target_rank.ranking_type === "rpss" &&
+                    <>
+                        <col />
+                        <col span={judges.dancers.length} />
+                    </>
+                }
+            </colgroup>
             <tbody>
+                <tr>
+                    <th />
+                    {first_target_rank.ranking_type === "yan" &&
+                        <th />
+                    }
+                    <th />
+                    <th colSpan={all_judges.length}>Judges Rankings</th>
+                    {first_target_rank.ranking_type === "rpss" &&
+                        <>
+                            <th />
+                            <th colSpan={judges.dancers.length}>Relative Placements</th>
+                        </>
+                    }
+                </tr>
                 <tr>
                     <th>Rank</th>
                     {first_target_rank.ranking_type === "yan" &&
@@ -173,24 +226,15 @@ function OneRankListTable({ phase_id, judges, head_judge, oneRanking, treshold }
                         </>
                     }
                     <th>Target</th>
-                    {judgeDataQueries.map((judgeQuery, index) => {
-                        const judgeId = all_judges[index];
-                        const judgeData = judgeQuery.data;
-
-                        if (!judgeData) return null;
-
-                        return (
-                            <th>
-                                {index === judges.dancers.length && "Head "}
-                                <Link to={`/phases/${phase_id}/artefacts/judge/${judgeId}`}>
-                                    {judgeData.first_name + " " + judgeData.last_name}
-                                </Link>
-                            </th>
-                        );
-                    })}
+                    {judgeDataQueries.map((judgeQuery, index) => (
+                        <JudgeHeadCell judgeId={all_judges[index]} judgeData={judgeQuery.data as Dancer} isHead={index === judges.dancers.length - 1} />
+                    ))}
                     {first_target_rank.ranking_type === "rpss" &&
                         <>
-                            <th>Ranking Details</th>
+                            <th>Rank</th>
+                            {judgeDataQueries.map((judgeQuery, index) => (
+                                <JudgeHeadCell judgeId={all_judges[index]} judgeData={judgeQuery.data as Dancer} isHead={index === judges.dancers.length - 1} />
+                            ))}
                         </>
                     }
                 </tr>
