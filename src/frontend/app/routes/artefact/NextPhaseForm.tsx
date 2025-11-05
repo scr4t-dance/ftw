@@ -16,7 +16,8 @@ export default function NextPhaseForm({ id_phase, treshold_callback }: { id_phas
 
     //const navigate = useNavigate();
 
-    const formObject = useForm<NextPhaseFormData>();
+    const formObject = useForm<NextPhaseFormData>({defaultValues: {number_of_targets_to_promote:0}}
+    );
 
     const {
         register,
@@ -73,6 +74,7 @@ export default function NextPhaseForm({ id_phase, treshold_callback }: { id_phas
                         <input type='number'
                         {...register("number_of_targets_to_promote", {
                             required: "Should be a number",
+                            min: 0,
                             valueAsNumber: true,
                         })} />
                     </Field>

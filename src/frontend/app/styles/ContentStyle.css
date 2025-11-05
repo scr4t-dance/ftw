@@ -248,6 +248,10 @@ table th {
     text-align: center;
 }
 
+.ranking_treshold {
+    border-bottom: solid 3px;
+}
+
 /*=========================================+
 |                   FORMS                  |
 +=========================================*/
