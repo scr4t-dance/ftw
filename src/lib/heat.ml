@@ -416,6 +416,14 @@ let simple_init st ~(phase:Id.t) (_min_number_of_targets:int) (_max_number_of_ta
           |}
     phase
 
+let clear ~st ~phase =
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[int]
+    {| DELETE FROM heats
+        WHERE 0=0
+        AND phase_id = ?
+        |}
+    phase
 
 let simple_promote ~st ~(phase:Id.t) (_max_number_of_targets_to_pass:int) =
   let new_phase = Phase.find_next_round ~st phase in

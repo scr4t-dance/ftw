@@ -100,6 +100,8 @@ val iteri: targets:(target_id -> 'a -> unit) ->
 (* TODO: review/remove these *)
 val get_id : State.t -> Phase.id -> int -> Id.t Target.any -> (Id.t option, string) result
 val simple_init : State.t -> phase:Phase.id -> int -> int -> unit
+val clear : st:State.t -> phase:Id.t -> unit
+(** Clear the heats for the given phase *)
 val simple_promote : st:State.t -> phase:Phase.id -> int -> unit
 
 val add_single :
