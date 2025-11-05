@@ -242,7 +242,7 @@ let mk_singles (l : row list) =
         | None, Some dancer ->
           incr_passage num_total_passages dancer;
           { heat with followers = { target_id; dancer; } :: heat.followers; }
-        | None, None | Some _, Some _ -> failwith "incorrect encoding for j&j heat"
+        | None, None | Some _, Some _ -> heat
       );
   (* Compute the passages *)
   let seen = ref (Id.Map.map (fun n ->
@@ -294,8 +294,7 @@ let mk_couples (l: row list) =
           incr_passage num_total_passages leader;
           incr_passage num_total_passages follower;
           { heat with couples = { target_id; leader; follower; } :: heat.couples; }
-        | None, _ | _, None ->
-          failwith "incorrect encoding of Jack&Strictly heat"
+        | None, _ | _, None -> heat
       );
   (* Compute the passages *)
   let seen = ref (Id.Map.map (fun n ->
@@ -383,7 +382,11 @@ let get_id st phase_id heat_number target =
   match heat_id_list with
   | [] -> Ok None
   | [h] -> Ok (Some h)
-  | _ -> Error "Error too many matches"
+  | tid_list ->
+    Logs.err ~src:State.src (fun k->
+        k "Error too many matches for target %a : %s"
+          (Target.print Id.print) target (String.concat ", " (List.map string_of_int tid_list)));
+    Error "Error too many matches"
 
 let simple_init st ~(phase:Id.t) (_min_number_of_targets:int) (_max_number_of_targets:int) =
   let open Sqlite3_utils.Ty in

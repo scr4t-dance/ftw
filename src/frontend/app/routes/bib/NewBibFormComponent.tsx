@@ -206,7 +206,7 @@ export function SelectCoupleTargetForm({ formObject, leader_id_list, follower_id
 
   const {
     control,
-    formState: { errors },
+    formState: { errors, defaultValues },
   } = formObject;
 
   return (
@@ -221,7 +221,7 @@ export function SelectCoupleTargetForm({ formObject, leader_id_list, follower_id
               error={errors.target?.follower?.message}
               dancerIdList={{ dancers: follower_id_list.map(d => d.id_dancer) } as DancerIdList}
               selectedItem={field.value}
-              setSelectedItem={field.onChange}
+              onChangeItem={(e) => { field.onChange(e ?? defaultValues?.target?.follower); }}
               prefixArray={follower_id_list.map(d => d.prefix)}
             />
           )}
@@ -236,7 +236,7 @@ export function SelectCoupleTargetForm({ formObject, leader_id_list, follower_id
               error={errors.target?.leader?.message}
               dancerIdList={{ dancers: leader_id_list.map(d => d.id_dancer) } as DancerIdList}
               selectedItem={field.value}
-              setSelectedItem={field.onChange}
+              onChangeItem={(e) => { field.onChange(e ?? defaultValues?.target?.leader); }}
               prefixArray={leader_id_list.map(d => d.prefix)}
             />
           )}
@@ -252,7 +252,7 @@ export function SelectSingleTargetForm({ formObject, leader_id_list, follower_id
   const {
     control,
     watch,
-    formState: { errors },
+    formState: { errors, defaultValues },
   } = formObject;
 
   const role = watch("target.role.0");
@@ -281,7 +281,7 @@ export function SelectSingleTargetForm({ formObject, leader_id_list, follower_id
               error={errors.target?.target?.message}
               dancerIdList={{ dancers: bibList.map(d => d.id_dancer) } as DancerIdList}
               selectedItem={field.value}
-              setSelectedItem={field.onChange}
+              onChangeItem={(e) => { field.onChange(e ?? defaultValues?.target?.target); }}
               prefixArray={bibList.map(d => d.prefix)}
             />
           )}
@@ -395,6 +395,14 @@ export function NewBibFormComponent({ id_competition, bibs_list, dancer_list }: 
         {targetType === "couple" && (
           <CoupleTargetForm formObject={formObject as BibCoupleTargetForm} bibs_list={bibs_list} />
         )}
+
+        {errors.root?.formValidation &&
+          <div className="error_message">⚠️ {errors.root.formValidation.message}</div>
+        }
+
+        {errors.root?.serverError &&
+          <div className="error_message">⚠️ {errors.root.serverError.message}</div>
+        }
 
         <button type="submit" >Inscrire un-e compétiteurice</button>
 
@@ -529,6 +537,13 @@ export function SelectNewBibFormComponent({ id_competition, bibs_list, dancer_li
             leader_id_list={leader_select_bibs_list} />
         )}
 
+        {errors.root?.formValidation &&
+          <div className="error_message">⚠️ {errors.root.formValidation.message}</div>
+        }
+
+        {errors.root?.serverError &&
+          <div className="error_message">⚠️ {errors.root.serverError.message}</div>
+        }
         <button type="submit" >Inscrire un-e compétiteurice</button>
 
       </form >

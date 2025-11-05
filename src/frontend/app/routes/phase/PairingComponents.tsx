@@ -7,9 +7,11 @@ import {
     RoleItem,
     type Bib,
 } from "@hookgen/model";
-import type { BibList, CompetitionId, DancerId, OldBibNewBib, Panel, PhaseId, SinglesHeat, Target } from "@hookgen/model";
+import type { BibList, CompetitionId, CouplesHeatsArray, CoupleTarget, DancerId, HeatsArray, OldBibNewBib, Panel, PhaseId, SinglesHeat, SinglesHeatsArray, SingleTarget, Target } from "@hookgen/model";
 import {
+    useGetApiPhaseIdCouplesHeats,
     useGetApiPhaseIdHeats,
+    useGetApiPhaseIdSinglesHeats,
 } from '~/hookgen/heat/heat';
 
 import { BareBibListComponent, BibRowReadOnly, dancerArrayFromTarget, DancerCell, get_bibs, } from '@routes/bib/BibComponents';
@@ -185,15 +187,26 @@ function EditablePairingTarget({ bib, missingBibList }: { bib: Bib, missingBibLi
 
 type NewPairingTargetProps = {
     id_competition: CompetitionId,
-    defaultBib: Bib,
     existingBibList: BibList,
     missingBibList: BibList
 };
 
-function NewPairingTarget({ id_competition, defaultBib, existingBibList, missingBibList }: NewPairingTargetProps) {
+function NewPairingTarget({ id_competition, existingBibList, missingBibList }: NewPairingTargetProps) {
 
+    const follower_select_bibs_list = missingBibList.bibs.map(
+        (b) => get_follower_from_bib(b, (bib: Bib) => bib.bib.toString().concat(" "))
+    ).filter((v) => v != null);
+    const leader_select_bibs_list = missingBibList.bibs.map(
+        (b) => get_leader_from_bib(b, (bib: Bib) => bib.bib.toString().concat(" "))
+    ).filter((v) => v != null);
+
+    const defaultTarget = {
+        target_type: "couple",
+        leader: -1,
+        follower: -1,
+    };
     const formObject = useForm<Bib>({
-        defaultValues: { competition: id_competition, bib: 0, target: defaultBib.target } as Bib,
+        defaultValues: { competition: id_competition, bib: 0, target: defaultTarget } as Bib,
     });
 
     const {
@@ -217,7 +230,7 @@ function NewPairingTarget({ id_competition, defaultBib, existingBibList, missing
             },
             onError: (err) => {
                 console.error('Error updating competition:', err);
-                setError("root.serverError", { message: 'Erreur lors de l’ajout de la compétition.' });
+                setError("root.serverError", { message: "Erreur lors de l'ajout de la nouvelle target dans les pairings" });
             }
         }
     });
@@ -227,18 +240,19 @@ function NewPairingTarget({ id_competition, defaultBib, existingBibList, missing
     const handleUpdate = handleSubmit((data) => {
         console.log("submit", data);
         if (JSON.stringify(data.target) === JSON.stringify(defaultValues?.target)) {
-            setError("root.serverError", { message: "Cannot be default" });
+            setError("root.formValidation", { message: "Cannot be default" });
+            return;
+        }
+        if (data.target.target_type === "couple" && data.target.follower === -1) {
+            setError("root.formValidation", { message: "Follower must be set" });
+            return;
+        }
+        if (data.target.target_type === "couple" && data.target.leader === -1) {
+            setError("root.formValidation", { message: "Leader must be set" });
             return;
         }
         addTargetToBibs({ id: id_competition, data });
     });
-
-    const follower_select_bibs_list = existingBibList.bibs.map(
-        (b) => get_follower_from_bib(b, (bib: Bib) => bib.bib.toString().concat(" "))
-    ).filter((v) => v != null);
-    const leader_select_bibs_list = existingBibList.bibs.map(
-        (b) => get_leader_from_bib(b, (bib: Bib) => bib.bib.toString().concat(" "))
-    ).filter((v) => v != null);
 
     return (
         <tr>
@@ -270,6 +284,14 @@ function NewPairingTarget({ id_competition, defaultBib, existingBibList, missing
                         {error.message}
                     </p>
                 }
+                {errors.root?.formValidation &&
+                    <div className="error_message">⚠️ {errors.root.formValidation.message}</div>
+                }
+
+                {errors.root?.serverError &&
+                    <div className="error_message">⚠️ {errors.root.serverError.message}</div>
+                }
+
                 {isSubmitSuccessful &&
                     <p>
                         Bib correctly added
@@ -304,17 +326,11 @@ function NewPairingTarget({ id_competition, defaultBib, existingBibList, missing
     );
 }
 
-export function BibPairingListComponent({ bib_list, id_competition, otherTargetTypeBibList, defaultTarget }: { bib_list: BibList, id_competition: CompetitionId, otherTargetTypeBibList: BibList, defaultTarget: Target }) {
-
-    const defaultBib = {
-        competition: id_competition,
-        target: defaultTarget,
-        bib: 0,
-    } as Bib;
+export function BibPairingListComponent({ bib_list, id_competition, otherTargetTypeBibList }: { bib_list: BibList, id_competition: CompetitionId, otherTargetTypeBibList: BibList }) {
 
     function getTargetKey(bib: Bib) {
         return bib.target.target_type === "single" ?
-            String(bib.target.role).concat("-", String(bib.target.target))
+            String(bib.target.role).concat("*", String(bib.target.target))
             : String(bib.target.follower).concat("-", String(bib.target.leader));
     }
 
@@ -342,7 +358,6 @@ export function BibPairingListComponent({ bib_list, id_competition, otherTargetT
                     ))}
                     <NewPairingTarget
                         id_competition={id_competition}
-                        defaultBib={defaultBib}
                         existingBibList={bib_list}
                         missingBibList={otherTargetTypeBibList} />
                 </tbody>
@@ -352,37 +367,56 @@ export function BibPairingListComponent({ bib_list, id_competition, otherTargetT
 }
 
 
-export function PairingComponent({ id_competition: id_competition, panel_data, previous_id_phase, dataBibs }: { id_competition: CompetitionId, panel_data: Panel, previous_id_phase: PhaseId, dataBibs: BibList }) {
+export function PairingComponent({ id_competition: id_competition, panel_data, id_phase, previous_id_phase, dataBibs }: { id_competition: CompetitionId, panel_data: Panel, id_phase: PhaseId, previous_id_phase: PhaseId, dataBibs: BibList }) {
 
+
+    const [showPreviousPhaseBibs, toggleBibView] = useState(false);
     const { data: previousPhaseHeats, isSuccess } = useGetApiPhaseIdHeats(previous_id_phase);
+    const { data: singlesHeats, isSuccess: isSuccessSingles } = useGetApiPhaseIdSinglesHeats(id_phase);
+    const { data: couplesHeats, isSuccess: isSuccessCouples } = useGetApiPhaseIdCouplesHeats(id_phase);
+
+    if (!isSuccess) return <p>Loading heats...</p>;
+    if (!isSuccessSingles) return <p>Loading singles heats...</p>;
+    if (!isSuccessCouples) return <p>Loading couples heats...</p>;
 
     const otherTargetTypeBibList = { bibs: dataBibs.bibs.filter((b) => b.target.target_type !== panel_data.panel_type) };
     const sameTargetTypeBibList = { bibs: dataBibs.bibs.filter((b) => b.target.target_type === panel_data.panel_type) };
 
-    const heatsTarget: Target[] = previousPhaseHeats?.heats ? (
-        previousPhaseHeats.heat_type === 'couple' ?
-            previousPhaseHeats.heats.flatMap((h) => h.couples)
-            : (previousPhaseHeats.heats as SinglesHeat[]).flatMap((h) => (
+    function get_heat_targets(heats: HeatsArray) {
+        return heats.heat_type === "couple" ?
+            heats.heats.flatMap(h => h.couples) :
+            (heats as SinglesHeatsArray).heats.flatMap((h) => (
                 h.leaders.concat(h.followers)
-            ))
-    ) : [];
+            ));
+    }
 
-    //const heatsBib = get_bibs(sameTargetTypeBibList, heatsTarget);
+    const heatsZeroTarget: Target[] = previousPhaseHeats.heat_type === 'couple' ?
+        get_heat_targets(couplesHeats)
+        : get_heat_targets(singlesHeats);
+
+    const heatsT = get_heat_targets(previousPhaseHeats)
+        .filter(t => !heatsZeroTarget.some(tt => JSON.stringify(tt) === JSON.stringify(t)));
+    const heatsTarget = showPreviousPhaseBibs
+        ? [...heatsZeroTarget, ...heatsT]
+        : [...heatsZeroTarget]; // force new array reference
 
     const previousPhaseBibList: BibList = get_bibs(otherTargetTypeBibList, heatsTarget);
+
+    console.log("singlesHeats", singlesHeats, "previosuPhaseBibList", previousPhaseBibList, "sameTargetTypeBibList", sameTargetTypeBibList);
 
     const includedBibList: DancerId[] = sameTargetTypeBibList.bibs.flatMap((sb) => dancerArrayFromTarget(sb.target));
     const unmatchedPreviousPhaseBibList: BibList = {
         bibs: previousPhaseBibList.bibs.filter((b) => !dancerArrayFromTarget(b.target).some((id_d) => includedBibList.includes(id_d)))
     }
 
-    if (!isSuccess) return <p>Loading heats...</p>;
     //if (panel_data.panel_type !== previousPhaseHeats.heat_type) return <p>Panel {panel_data.panel_type} != Heats {previousPhaseHeats.heat_type} </p>;
 
     //console.log("heat_type ", previousPhaseHeats.heat_type, "bibHeats", heatsTarget, "missing_bibs", previousPhaseBibList, "sameTargetTypeDataBibs", otherTargetTypeBibList);
 
     return (
         <>
+            <button type='button' onClick={() => toggleBibView(!showPreviousPhaseBibs)}>Toggle View Previous Phase bibs</button>
+            <p>state {String(showPreviousPhaseBibs)}</p>
             <h1>Pairings</h1>
             {panel_data.panel_type === "couple" &&
                 <>
@@ -390,7 +424,6 @@ export function PairingComponent({ id_competition: id_competition, panel_data, p
                     <BibPairingListComponent bib_list={sameTargetTypeBibList}
                         otherTargetTypeBibList={previousPhaseBibList}
                         id_competition={id_competition}
-                        defaultTarget={{ target_type: "couple" } as Target}
                     />
                 </>
             }

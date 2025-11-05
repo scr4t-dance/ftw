@@ -126,7 +126,7 @@ function NewHeatTarget({ defaultHeatTargetJudge, missingBibList }: { defaultHeat
     const handleUpdate = handleSubmit((data) => {
         console.log("submit", data);
         if (JSON.stringify(data.target) === JSON.stringify(defaultValues?.target)) {
-            setError("root.serverError", { message: "Cannot be default" });
+            setError("root.formValidation", { message: "Cannot be default" });
             return;
         }
         addTargetToHeat({ id: data.phase_id, data });
@@ -186,6 +186,13 @@ function NewHeatTarget({ defaultHeatTargetJudge, missingBibList }: { defaultHeat
                     <p>
                         {error.message}
                     </p>
+                }
+                {errors.root?.formValidation &&
+                    <div className="error_message">⚠️ {errors.root.formValidation.message}</div>
+                }
+
+                {errors.root?.serverError &&
+                    <div className="error_message">⚠️ {errors.root.serverError.message}</div>
                 }
                 {isSubmitSuccessful &&
                     <p>
@@ -342,23 +349,23 @@ export function HeatsListComponent({ id_phase, panel_data, heats, dataBibs }: { 
                 // heat 0 réservée pour calculs internes
                 // TODO : afficher warning si heat 0 non vide et Heat 1, ..., n non vides
                 index === 0 ? <></> :
-                <>
-                    <h1>Heat {index}</h1>
-                    {heats.heat_type === "couple" &&
-                        <CoupleHeatTable heat={heat as CouplesHeat}
-                            dataBibs={sameTargetTypeDataBibs}
-                            id_phase={id_phase}
-                            heat_number={index}
-                        />
-                    }
-                    {heats.heat_type === "single" &&
-                        <SingleHeatTable heat={heat as SinglesHeat}
-                            dataBibs={sameTargetTypeDataBibs}
-                            id_phase={id_phase}
-                            heat_number={index}
-                        />
-                    }
-                </>
+                    <>
+                        <h1>Heat {index}</h1>
+                        {heats.heat_type === "couple" &&
+                            <CoupleHeatTable heat={heat as CouplesHeat}
+                                dataBibs={sameTargetTypeDataBibs}
+                                id_phase={id_phase}
+                                heat_number={index}
+                            />
+                        }
+                        {heats.heat_type === "single" &&
+                            <SingleHeatTable heat={heat as SinglesHeat}
+                                dataBibs={sameTargetTypeDataBibs}
+                                id_phase={id_phase}
+                                heat_number={index}
+                            />
+                        }
+                    </>
             ))}
 
             <h1>New Heat {heats?.heats.length}</h1>

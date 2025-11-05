@@ -21,7 +21,8 @@ import { getGetApiPhaseIdQueryOptions } from '~/hookgen/phase/phase';
 import { RoundItem, type Phase } from '~/hookgen/model';
 
 
-const loader_array = [eventLoader, competitionLoader, phaseListLoader, bibsListLoader, phaseLoader, heatListLoader, judgePanelLoader];
+const loader_array = [eventLoader, competitionLoader, phaseListLoader,
+    bibsListLoader, phaseLoader, heatListLoader, judgePanelLoader];
 
 const roundOrder: Record<RoundItem, number> = {
     [RoundItem.Prelims]: 0,
@@ -118,8 +119,10 @@ export default function HeatsList({ loaderData }: Route.ComponentProps) {
 
     return (
         <>
-            <p>{loaderData.id_phase} {phase_list.phases.join(",")}</p>
-            <PairingComponent id_competition={loaderData.id_competition} panel_data={panel_data} previous_id_phase={previous_id_phase ?? loaderData.id_phase} dataBibs={dataBibs} />
+            <p>Current phase {loaderData.id_phase}; all phases : {phase_list.phases.join(",")}</p>
+            <PairingComponent id_competition={loaderData.id_competition} panel_data={panel_data}
+                id_phase={loaderData.id_phase}
+                previous_id_phase={previous_id_phase ?? loaderData.id_phase} dataBibs={dataBibs} />
         </>
     );
 
