@@ -165,9 +165,7 @@ module Matrix = struct
   let missing_artefacts t = t.missing_artefacts
 
   let artefact t ~i ~j =
-    match t.artefacts.(i).(j) with
-    | None -> failwith "missing artefact"
-    | Some artefact -> artefact
+    t.artefacts.(i).(j)
 
   (* debug printing *)
 
@@ -362,8 +360,9 @@ module Yan_weighted = struct
   let acc _n = { judges = 0; head = 0; bonus = 0; }
 
   let extract artefact =
-    match (artefact : Artefact.t) with
-    | Yans l -> l
+    match (artefact : Artefact.t option) with
+    | Some Yans l -> Some l
+    | None -> None
     | _ -> failwith "bad artefact"
 
   let sum yans weights =
@@ -388,7 +387,10 @@ module Yan_weighted = struct
           then conf.head_weights
           else conf.weights
         in
-        let total = sum yans weights in
+        let total = begin match yans with
+          | Some l -> sum l weights
+          | None -> 0
+        end in
         acc :=
           if Matrix.is_head matrix ~j
           then { !acc with head = total; }
@@ -464,7 +466,7 @@ module RPSS = struct
     let res = ref 0 in
     for j = 0 to Matrix.width matrix - 1 do
       match Matrix.artefact matrix ~i ~j with
-      | Rank r -> if Rank.to_index r <= k then incr res
+      | Some Rank r -> if Rank.to_index r <= k then incr res
       | _ -> failwith "incorrect artefact"
     done;
     !res
@@ -473,7 +475,7 @@ module RPSS = struct
     let res = ref 0 in
     for j = 0 to Matrix.width matrix - 1 do
       match Matrix.artefact matrix ~i ~j with
-      | Rank r -> if Rank.to_index r <= k then res := Rank.rank r + !res
+      | Some Rank r -> if Rank.to_index r <= k then res := Rank.rank r + !res
       | _ -> failwith "incorrect artefact"
     done;
     !res
@@ -546,7 +548,7 @@ module RPSS = struct
       for i = start to stop do
         let rank =
           match Matrix.artefact matrix ~i ~j with
-          | Rank r -> Rank.rank r
+          | Some Rank r -> Rank.rank r
           | _ -> failwith "incorrect artefact"
         in
         (Matrix.get matrix ~i).(k).head <- Some rank

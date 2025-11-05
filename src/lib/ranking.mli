@@ -82,7 +82,7 @@ module Matrix : sig
 
   val missing_artefacts : ('acc, 'target) t -> int
 
-  val artefact : ('acc, 'target) t -> i:int -> j:int -> Artefact.t
+  val artefact : ('acc, 'target) t -> i:int -> j:int -> Artefact.t option
 
   (* debug printing *)
 
