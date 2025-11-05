@@ -76,6 +76,17 @@ and get_ranks =
     (fun req st ->
        let+ id = Utils.int_param req "id" in
        let r = Ftw.Heat.ranking ~st ~phase:id in
+       begin match r with
+         | Singles {leaders;follows} ->
+           Logs.debug ~src (fun k -> k "Get ranks for phase %d" id);
+           Logs.debug ~src (fun k -> k "%a" (Ftw.Ranking.Res.debug ~pp:Ftw.Id.print) (leaders));
+           Logs.debug ~src (fun k -> k "%a" (Ftw.Ranking.Res.debug ~pp:Ftw.Id.print) (follows))
+         | Couples {couples} ->
+           Logs.debug ~src (fun k -> k "Get ranks for phase %d" id);
+           Logs.debug ~src (fun k -> k "Status %a" (Ftw.Ranking.Status.print) (Ftw.Ranking.Res.status couples));
+           Logs.debug ~src (fun k -> k "%a" (Ftw.Ranking.Res.debug ~pp:Ftw.Id.print) (couples));
+           Logs.debug ~src (fun k -> k "%a" (Ftw.Ranking.One.print ~pp:Ftw.Id.print) (Ftw.Ranking.Res.ranking couples))
+       end;
        let ftw_target_r = Ftw.Heat.map_ranking ~targets:(Ftw.Heat.get_one ~st)
            ~judges:(fun tid -> Ftw.Target.Any (Ftw.Target.Single {target=tid;role=Ftw.Role.Follower})) r in
        let target_r = Ftw.Heat.map_ranking ~targets:(Types.Target.of_ftw)
