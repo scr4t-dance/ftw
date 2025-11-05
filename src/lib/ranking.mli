@@ -118,7 +118,7 @@ module Matrix : sig
 
   val acc_bonus : i:int -> bonus:int -> ('a, 'b) t -> unit
 
-  val acc_artefact : i:int -> j:int -> artefact:Artefact.t -> ('a, 'b) t -> unit
+  val acc_artefact : i:int -> j:int -> artefact:Artefact.t option -> ('a, 'b) t -> unit
 
   (* Ranking helpers *)
 
@@ -248,7 +248,7 @@ module Algorithm : sig
     judges:Judge.id list ->
     head:Judge.id option ->
     targets:Id.t list ->
-    get_artefact:(judge:Judge.id -> target:Id.t -> Artefact.t) ->
+    get_artefact:(judge:Judge.id -> target:Id.t -> Artefact.t option) ->
     get_bonus:(target:Id.t -> int option) ->
     t:t -> Id.t Res.t
     (** Compute the result of a ranking algorithm *)

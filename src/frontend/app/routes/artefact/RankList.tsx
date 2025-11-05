@@ -214,7 +214,7 @@ function OneRankListTable({ phase_id, judges, head_judge, oneRanking, treshold }
                     {first_target_rank.ranking_type === "rpss" &&
                         <>
                             <th />
-                            <th colSpan={judges.dancers.length}>Relative Placements</th>
+                            <th colSpan={target_artefacts.length}>Relative Placements</th>
                         </>
                     }
                 </tr>
@@ -227,13 +227,13 @@ function OneRankListTable({ phase_id, judges, head_judge, oneRanking, treshold }
                     }
                     <th>Target</th>
                     {judgeDataQueries.map((judgeQuery, index) => (
-                        <JudgeHeadCell judgeId={all_judges[index]} judgeData={judgeQuery.data as Dancer} isHead={index === judges.dancers.length - 1} />
+                        <JudgeHeadCell judgeId={all_judges[index]} judgeData={judgeQuery.data as Dancer} isHead={index === judges.dancers.length} />
                     ))}
                     {first_target_rank.ranking_type === "rpss" &&
                         <>
                             <th>Rank</th>
-                            {judgeDataQueries.map((judgeQuery, index) => (
-                                <JudgeHeadCell judgeId={all_judges[index]} judgeData={judgeQuery.data as Dancer} isHead={index === judges.dancers.length - 1} />
+                            {target_artefacts.map((_, index) => (
+                                <th>{index + 1}</th>
                             ))}
                         </>
                     }

@@ -1742,15 +1742,31 @@ module OneRanking = struct
            Ftw.Ranking.One.get ranking rank))
         (List.init (Ftw.Ranking.Matrix.length matrix) succ)
     in
+    let impossible_map_rank matrix = List.map
+        (fun rank_integer -> let rank = Ftw.Rank.mk rank_integer in
+          (Ftw.Ranking.Matrix.get ~i:(Ftw.Rank.to_index rank) matrix,
+           Some (Ftw.Rank.mk 0, Ftw.Ranking.Matrix.target matrix ~i:(Ftw.Rank.to_index rank))))
+        (List.init (Ftw.Ranking.Matrix.length matrix) succ)
+    in
     let m = Ftw.Ranking.Res.info r in
     match m with
     | Ftw.Ranking.Res.RPSS matrix ->
-      let rank_list = map_rank matrix in
+      let map_rank_status = begin match Ftw.Ranking.Res.status r with
+        | Partial -> map_rank
+        | Complete -> map_rank
+        | Impossible -> impossible_map_rank
+      end in
+      let rank_list = map_rank_status matrix in
       let rpss_rank_list = List.map TargetRPSSRank.of_ftw rank_list in
       let target_rank_list = List.map (fun x -> TargetRank.RPSSRank {rank=x}) rpss_rank_list in
       {ranks=target_rank_list}
     | Ftw.Ranking.Res.Yan_weighted matrix ->
-      let rank_list = map_rank matrix in
+      let map_rank_status = begin match Ftw.Ranking.Res.status r with
+        | Partial -> map_rank
+        | Complete -> map_rank
+        | Impossible -> impossible_map_rank
+      end in
+      let rank_list = map_rank_status matrix in
       let yan_rank_list = List.map TargetYanRank.of_ftw rank_list in
       let target_rank_list = List.map (fun x -> TargetRank.YanRank {rank=x}) yan_rank_list in
       {ranks=target_rank_list}

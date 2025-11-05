@@ -502,7 +502,8 @@ let ranking ~st ~phase:id =
       then Phase.head_judge_artefact_descr phase
       else Phase.judge_artefact_descr phase
     in
-    Artefact.get ~st ~judge ~target ~descr
+    try Some (Artefact.get ~st ~judge ~target ~descr)
+    with Not_found -> None
   in
   match get ~st ~phase:id, Judge.get ~st ~phase:id with
   | Singles singles, Singles panel ->

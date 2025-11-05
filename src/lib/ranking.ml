@@ -229,11 +229,12 @@ module Matrix = struct
     t.bonus.(i) <- bonus
 
   let acc_artefact ~i ~j ~artefact t =
-    match t.artefacts.(i).(j) with
-    | None ->
+    match t.artefacts.(i).(j), artefact with
+    | None, Some art ->
       t.missing_artefacts <- t.missing_artefacts - 1;
-      t.artefacts.(i).(j) <- Some artefact
-    | Some _ -> failwith "duplicate artefact"
+      t.artefacts.(i).(j) <- Some art
+    | Some _, _ -> failwith "duplicate artefact"
+    | None, None -> ()
 
   (* Ranking helpers *)
 
