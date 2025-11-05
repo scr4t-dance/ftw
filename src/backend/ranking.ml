@@ -90,9 +90,10 @@ and promote =
     ~to_yojson:Types.PhaseId.to_yojson
     (fun req st form_data ->
        let+ id = Utils.int_param req "id" in
-       let panel = Ftw.Judge.get ~st ~phase:id in
+       (*let panel = Ftw.Judge.get ~st ~phase:id in*)
        let r = Ftw.Heat.ranking ~st ~phase:id in
        let new_phase = Ftw.Phase.find_next_round ~st id in
+       Ftw.Heat.clear ~st ~phase:(Ftw.Phase.id new_phase);
        let ftw_target_r = Ftw.Heat.map_ranking ~targets:(Ftw.Heat.get_one ~st)
            ~judges:(fun tid -> Ftw.Target.Any (Ftw.Target.Single {target=tid;role=Ftw.Role.Follower})) r in
        Ftw.Heat.iteri
@@ -100,6 +101,7 @@ and promote =
                       let _ = Ftw.Heat.add_target st ~phase_id:id 1 target in ())
          ~judges:(fun _i _target -> ())
          ftw_target_r;
-       Ftw.Judge.set ~st ~phase:(Ftw.Phase.id new_phase) panel;
+       (*Ftw.Judge.clear ~st ~phase:(Ftw.Phase.id new_phase);
+       Ftw.Judge.set ~st ~phase:(Ftw.Phase.id new_phase) panel;*)
        Ok (Ftw.Phase.id new_phase)
     )

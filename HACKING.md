@@ -102,7 +102,7 @@ Handling the databases
 You can build a test DB by executing the following from the root of the project.
 
 ```
-$ dune exec -- ftw import --db=tmp.sqlite tests/import
+$ dune exec -- ftw import --db=tests/test.db tests/archive &> import.logs
 ```
 
 Note that if `tmp.sqlite` already exists a contains data (e.g. from a previous
