@@ -205,7 +205,15 @@ function getDancerWithIdFilter(inputValue: string) {
     }
 }
 
-export function DancerComboBox({ bibNameList, selectedItem, setSelectedItem, label, error }: { bibNameList: DancerWithId[], selectedItem: DancerWithId | undefined, setSelectedItem: (d: DancerId | undefined) => void, label?: string, error?: string }) {
+type DancerComboboxProps = {
+    bibNameList: DancerWithId[],
+    selectedItem: DancerWithId | null,
+    onChangeItem: (d: DancerId | null) => void,
+    label?: string,
+    error?: string
+}
+
+export function DancerComboBox({ bibNameList, selectedItem, onChangeItem, label, error }: DancerComboboxProps) {
 
     const [items, setItems] = React.useState(bibNameList)
     const {
@@ -216,6 +224,7 @@ export function DancerComboBox({ bibNameList, selectedItem, setSelectedItem, lab
         getInputProps,
         highlightedIndex,
         getItemProps,
+        reset,
     } = useCombobox({
         onInputValueChange({ inputValue }) {
             setItems(bibNameList.filter(getDancerWithIdFilter(inputValue)))
@@ -226,7 +235,7 @@ export function DancerComboBox({ bibNameList, selectedItem, setSelectedItem, lab
         },
         selectedItem,
         onSelectedItemChange: ({ selectedItem: newSelectedItem }) =>
-            setSelectedItem(newSelectedItem?.id_dancer),
+            onChangeItem(newSelectedItem?.id_dancer ?? null),
     })
 
     return (
@@ -267,12 +276,19 @@ export function DancerComboBox({ bibNameList, selectedItem, setSelectedItem, lab
                             key={item.id_dancer}
                             {...getItemProps({ item, index })}
                         >
-                            <span>{item.prefix} {item.first_name} {item.last_name}</span>
+                            <span>{item.prefix} {item.first_name} {item.last_name} </span>
                             <span className="text-sm text-gray-700">{item.id_dancer}</span>
                         </li>
                     ))}
             </ul>
 
+            <button
+                onClick={() => {
+                    reset()
+                }}
+            >
+                Reset
+            </button>
             {error && (
                 <div role="alert" className="error_message">
                     {error}
@@ -282,7 +298,16 @@ export function DancerComboBox({ bibNameList, selectedItem, setSelectedItem, lab
     )
 }
 
-export function DancerComboBoxComponent({ dancerIdList, selectedItem, setSelectedItem, label, error, prefixArray }: { dancerIdList: DancerIdList, selectedItem: DancerId | undefined, setSelectedItem: (d: DancerId | undefined) => void, label?: string, error?: string, prefixArray?: string[] }) {
+type DancerComboBoxComponentProps = {
+    dancerIdList: DancerIdList,
+    selectedItem: DancerId | null,
+    onChangeItem: (d: DancerId | null) => void,
+    label?: string,
+    error?: string,
+    prefixArray?: string[]
+}
+
+export function DancerComboBoxComponent({ dancerIdList, selectedItem, onChangeItem, label, error, prefixArray }: DancerComboBoxComponentProps) {
 
     const idDancerArray = [...new Set(dancerIdList.dancers)];
 
@@ -323,8 +348,8 @@ export function DancerComboBoxComponent({ dancerIdList, selectedItem, setSelecte
     return (
         <>
             <DancerComboBox bibNameList={dancerData}
-                selectedItem={dancerData.find((d) => d.id_dancer === selectedItem)}
-                setSelectedItem={setSelectedItem}
+                selectedItem={dancerData.find((d) => d.id_dancer === selectedItem) ?? null}
+                onChangeItem={onChangeItem}
                 label={label} error={error}
             />
         </>

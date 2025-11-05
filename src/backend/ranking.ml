@@ -93,15 +93,21 @@ and promote =
        (*let panel = Ftw.Judge.get ~st ~phase:id in*)
        let r = Ftw.Heat.ranking ~st ~phase:id in
        let new_phase = Ftw.Phase.find_next_round ~st id in
-       Ftw.Heat.clear ~st ~phase:(Ftw.Phase.id new_phase);
+       let new_phase_id = Ftw.Phase.id new_phase in
+       Logs.debug ~src (fun k -> k "New phase id %d" new_phase_id);
+       Ftw.Heat.clear ~st ~phase:new_phase_id;
        let ftw_target_r = Ftw.Heat.map_ranking ~targets:(Ftw.Heat.get_one ~st)
            ~judges:(fun tid -> Ftw.Target.Any (Ftw.Target.Single {target=tid;role=Ftw.Role.Follower})) r in
        Ftw.Heat.iteri
          ~targets:(fun i target -> if i < form_data.number_of_targets_to_promote then
-                      let _ = Ftw.Heat.add_target st ~phase_id:id 1 target in ())
+                      let insert_ok = Ftw.Heat.add_target st ~phase_id:new_phase_id 0 target in
+                      begin match insert_ok with
+                        | Ok d -> Logs.debug ~src (fun k -> k "Insert Target in heat %d ok %d" 0 d)
+                        | Error e -> Logs.debug ~src (fun k -> k "Insert Target in heat %d error %s" 0 e)
+                      end)
          ~judges:(fun _i _target -> ())
          ftw_target_r;
        (*Ftw.Judge.clear ~st ~phase:(Ftw.Phase.id new_phase);
-       Ftw.Judge.set ~st ~phase:(Ftw.Phase.id new_phase) panel;*)
-       Ok (Ftw.Phase.id new_phase)
+         Ftw.Judge.set ~st ~phase:(Ftw.Phase.id new_phase) panel;*)
+       Ok new_phase_id
     )
