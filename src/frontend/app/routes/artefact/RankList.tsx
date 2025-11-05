@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import cx from "classnames";
 
 import {
     RoleItem, YanItem, type Artefact, type Dancer, type DancerId, type DancerIdList, type HeatTargetJudgeArtefactArray, type OneRanking, type Panel, type PhaseId,
@@ -241,7 +242,10 @@ function OneRankListTable({ phase_id, judges, head_judge, oneRanking, treshold }
                 {oneRanking && oneRanking.ranks.map((target_rank, index) => {
                     return (
                         <tr key={index}
-                            className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+                            className={cx(`${index % 2 === 0 ? 'even-row' : 'odd-row'}`,
+                                target_rank.rank===treshold ? "ranking_treshold" : ""
+                            )}
+                        >
                             <RankRow
                                 target_rank={target_rank}
                                 all_judges={all_judges}
@@ -331,7 +335,7 @@ function RankListComponent({ id_phase, treshold }: { id_phase: PhaseId, treshold
 }
 
 
-function DebugRankListComponent({ id_phase, treshold, debug }: { id_phase: PhaseId, treshold: number | undefined, debug: String | undefined }) {
+export function DebugRankListComponent({ id_phase, treshold, debug }: { id_phase: PhaseId, treshold: number | undefined, debug: String | undefined }) {
 
     const { data: phaseData, isLoading } = useGetApiPhaseId(id_phase);
 
@@ -372,11 +376,11 @@ export default function RankList() {
     return (
         <>
             <NextPhaseForm id_phase={id_phase_number} treshold_callback={setTreshold} />
-            <h1>Données simulées YAN !!!!</h1>
+            {/* <h1>Données simulées YAN !!!!</h1>
             <DebugRankListComponent id_phase={id_phase_number} treshold={treshold} debug={"yan"} />
             <h1>Données simulées RPSS !!!!</h1>
             <DebugRankListComponent id_phase={id_phase_number} treshold={treshold} debug={"rpss"} />
-            <h1>Données Phase !!!!!</h1>
+            <h1>Données Phase !!!!!</h1> */}
             <RankListComponent id_phase={id_phase_number} treshold={treshold} />
         </>
     );
