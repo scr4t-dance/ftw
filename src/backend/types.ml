@@ -14,6 +14,8 @@ let array = obj S.Array
 let string = obj S.String
 let object_ = obj S.Object
 
+let boolean = obj S.Boolean
+
 let schemas, make_schema =
   let l = Stdlib.ref [] in
   let schemas router =
@@ -1676,4 +1678,129 @@ module InitHeatsFormData = struct
       ~required:["min_number_of_targets"; "max_number_of_targets"]
 end
 
+module RankingResults = struct
+  type t =
+    | Not_present       (* or unknown *)
+    | Present           (* but rank unknown *)
+    | Ranked of int (* actual rank *)
+  [@@deriving yojson]
 
+
+  let ref, schema =
+    make_schema ()
+      ~name:"RankingResults"
+      ~typ:object_
+      ~one_of:[
+        obj @@ S.make_schema()
+          ~typ:object_
+          ~properties:[
+            "result_type", obj @@ S.make_schema()
+              ~typ:string
+              ~enum:[`String "ranked"];
+            "ranked", obj @@ S.make_schema()
+              ~typ:int;
+          ];
+        obj @@ S.make_schema()
+          ~typ:object_
+          ~properties:[
+            "result_type", obj @@ S.make_schema()
+              ~typ:string
+              ~enum:[`String "present"];
+            "present", obj @@ S.make_schema()
+              ~typ:boolean
+              ~enum:[`Bool true]
+          ];
+        obj @@ S.make_schema()
+          ~typ:object_
+          ~properties:[
+            "result_type", obj @@ S.make_schema()
+              ~typ:string
+              ~enum:[`String "not_present"];
+            "present", obj @@ S.make_schema()
+              ~typ:boolean
+              ~enum:[`Bool false]
+          ];
+      ]
+
+  let to_yojson a =
+    match a with
+    | Not_present -> `Assoc [("present", `Bool false); ("result_type", `String "not_present")]
+    | Present -> `Assoc [("present", `Bool true); ("result_type", `String "present")]
+    | Ranked i -> `Assoc [("ranked", `Int i); ("result_type", `String "ranked")]
+
+  let of_ftw (r:Ftw.Results.aux) =
+    match r with
+    | Not_present -> Not_present
+    | Present -> Present
+    | Ranked i -> Ranked (Ftw.Rank.rank i)
+end
+
+module DancerCompetitionResults = struct
+
+  type p = {
+    prelims :       RankingResults.t;
+    octofinals :    RankingResults.t;
+    quarterfinals : RankingResults.t;
+    semifinals :    RankingResults.t;
+    finals :        RankingResults.t;
+  } [@@deriving yojson]
+
+  type t = {
+    competition : CompetitionId.t;
+    dancer : DancerId.t;
+    role : Role.t;
+    result : p;
+    points : int;
+  } [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"DancerCompetitionResults"
+      ~typ:object_
+      ~properties:[
+        "competition", ref CompetitionId.ref;
+        "dancer", ref DancerId.ref;
+        "role", ref Role.ref;
+        "result", obj @@ S.make_schema()
+          ~typ:object_
+          ~properties:[
+            "prelims", ref RankingResults.ref;
+            "octofinals", ref RankingResults.ref;
+            "quarterfinals", ref RankingResults.ref;
+            "semifinals", ref RankingResults.ref;
+            "finals", ref RankingResults.ref;
+          ]
+          ~required:["prelims"; "octofinals"; "quarterfinals"; "semifinals"; "finals"];
+        "points", obj @@ S.make_schema()
+          ~typ:int;
+      ]
+      ~required:["competition"; "dancer"; "role"; "result"; "points"]
+
+  let of_ftw (r:Ftw.Results.r) =
+    let result = {
+      prelims=RankingResults.of_ftw r.result.prelims;
+      octofinals=RankingResults.of_ftw r.result.octofinals;
+      quarterfinals=RankingResults.of_ftw r.result.quarterfinals;
+      semifinals=RankingResults.of_ftw r.result.semifinals;
+      finals=RankingResults.of_ftw r.result.finals;
+    } in
+    {competition=r.competition;dancer=r.dancer;role=r.role;result=result;points=r.points}
+end
+
+module DancerCompetitionResultsList = struct
+  type t = {
+    results : DancerCompetitionResults.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"DancerCompetitionResultsList"
+      ~typ:object_
+      ~properties:[
+        "results", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref DancerCompetitionResults.ref);
+      ]
+      ~required:["results"]
+end

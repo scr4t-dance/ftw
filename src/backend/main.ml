@@ -41,6 +41,7 @@ let router () =
   |> Artefact.routes
   |> Judge.routes
   |> Ranking.routes
+  |> Results.routes
 
 let server (options : Options.server) =
   (* Default routes to serve the clients files (pages, scripts and css) *)
