@@ -14,7 +14,16 @@ export function InitHeatsForm({ id_phase }: { id_phase: PhaseId }) {
 
     //const navigate = useNavigate();
 
-    const formObject = useForm<InitHeatsFormData>();
+    const formObject = useForm<InitHeatsFormData>({
+        defaultValues:{
+            min_number_of_targets: 0,
+            max_number_of_targets: 0,
+            early_heat_range: 1,
+            early_heat_ids:"",
+            late_heat_range:1,
+            late_heat_ids:"",
+        }
+    });
 
     const {
         register,
@@ -83,6 +92,51 @@ export function InitHeatsForm({ id_phase }: { id_phase: PhaseId }) {
                             {...register("max_number_of_targets", {
                                 required: "Should be a number",
                                 valueAsNumber: true,
+                            })} />
+                    </Field>
+
+
+                    <Field
+                        label="Nombre de Heats dans lesquelles placer les Targets passant en dernier"
+                        error={errors.late_heat_range?.message}
+                    >
+                        <input type='number'
+                            {...register("late_heat_range", {
+                                required: "Should be a number",
+                                min: 0,
+                                valueAsNumber: true,
+                            })} />
+                    </Field>
+
+
+                    <Field
+                        label="Id des targets devant passer en dernier"
+                        error={errors.late_heat_ids?.message}
+                    >
+                        <input
+                            {...register("late_heat_ids", {
+                            })} />
+                    </Field>
+
+                    <Field
+                        label="Nombre de Heats dans lesquelles placer les Targets passant en premier"
+                        error={errors.early_heat_range?.message}
+                    >
+                        <input type='number'
+                            {...register("early_heat_range", {
+                                required: "Should be a number",
+                                min: 0,
+                                valueAsNumber: true,
+                            })} />
+                    </Field>
+
+
+                    <Field
+                        label="Id des targets devant passer en dernier"
+                        error={errors.early_heat_ids?.message}
+                    >
+                        <input
+                            {...register("early_heat_ids", {
                             })} />
                     </Field>
 
