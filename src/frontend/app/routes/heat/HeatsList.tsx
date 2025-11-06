@@ -3,14 +3,10 @@ import React from 'react';
 import type { BibList, CompetitionId, CouplesHeat, DancerId, PhaseId, SinglesHeat, Target } from "@hookgen/model";
 import { useParams } from "react-router";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
-import {
-    getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey,
-    useGetApiPhaseIdHeats, usePutApiPhaseIdInitHeats,
-} from "@hookgen/heat/heat";
-import { useQueryClient } from "@tanstack/react-query";
+import { useGetApiPhaseIdHeats } from "@hookgen/heat/heat";
 import { BareBibListComponent } from '@routes/bib/BibComponents';
 import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
-import { InitHeatsForm } from '@routes/heat/InitHeatsForm';
+import { InitHeatsWithBibForm, RandomizeHeatsForm } from '@routes/heat/InitHeatsForm';
 
 const iter_target_dancers = (t: Target) => t.target_type === "single"
     ? [t.target]
@@ -51,25 +47,6 @@ export default function HeatsList() {
     let id_phase_number = Number(id_phase) as PhaseId;
     const { data: phaseData, isLoading } = useGetApiPhaseId(id_phase_number);
 
-    const queryClient = useQueryClient();
-
-    const { mutate } = usePutApiPhaseIdInitHeats({
-        mutation: {
-            onSuccess: () => {
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiPhaseIdCouplesHeatsQueryKey(id_phase_number),
-                });
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiPhaseIdSinglesHeatsQueryKey(id_phase_number),
-                });
-            },
-            onError: (err) => {
-                console.error('Error creating phase:', err);
-            }
-        }
-    });
-
-
     const { data: heats, isSuccess: isSuccessHeats } = useGetApiPhaseIdHeats(id_phase_number);
 
     const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(phaseData?.competition as CompetitionId);
@@ -84,7 +61,8 @@ export default function HeatsList() {
     return (
         <>
             <p>
-                <InitHeatsForm id_phase={id_phase_number} />
+                <InitHeatsWithBibForm id_phase={id_phase_number} />
+                <RandomizeHeatsForm id_phase={id_phase_number} />
             </p>
 
             {heats?.heats && heats?.heats.map((heat, index) => (
@@ -108,5 +86,5 @@ export default function HeatsList() {
 }
 
 export const handle = {
-  breadcrumb: () => "Heats"
+    breadcrumb: () => "Heats"
 };

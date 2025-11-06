@@ -6,23 +6,22 @@ import type {
     InitHeatsFormData,
 } from '@hookgen/model';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
-import { useQueryClient } from '@tanstack/react-query';
 import { Field } from '@routes/index/field';
-import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, usePutApiPhaseIdInitHeats, usePutApiPhaseIdPromote } from '~/hookgen/heat/heat';
-import { getGetApiPhaseIdArtefactGetQueryKey, getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey } from '~/hookgen/artefact/artefact';
+import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, usePostApiPhaseIdInitHeatsWithBibs, usePutApiPhaseIdRandomizeHeats } from '~/hookgen/heat/heat';
+import { queryClient } from '~/queryClient';
 
-export function InitHeatsForm({ id_phase }: { id_phase: PhaseId }) {
+export function RandomizeHeatsForm({ id_phase }: { id_phase: PhaseId }) {
 
     //const navigate = useNavigate();
 
     const formObject = useForm<InitHeatsFormData>({
-        defaultValues:{
+        defaultValues: {
             min_number_of_targets: 0,
             max_number_of_targets: 0,
             early_heat_range: 1,
-            early_heat_ids:"",
-            late_heat_range:1,
-            late_heat_ids:"",
+            early_heat_ids: "",
+            late_heat_range: 1,
+            late_heat_ids: "",
         }
     });
 
@@ -33,9 +32,7 @@ export function InitHeatsForm({ id_phase }: { id_phase: PhaseId }) {
         formState: { errors, isSubmitSuccessful },
     } = formObject;
 
-    const queryClient = useQueryClient();
-
-    const { mutate: initHeats } = usePutApiPhaseIdInitHeats({
+    const { mutate: initHeats } = usePutApiPhaseIdRandomizeHeats({
         mutation: {
             onSuccess: () => {
                 queryClient.invalidateQueries({
@@ -153,6 +150,43 @@ export function InitHeatsForm({ id_phase }: { id_phase: PhaseId }) {
 
                 </form>
             </FormProvider>
+        </>
+    );
+}
+
+
+export function InitHeatsWithBibForm({ id_phase }: { id_phase: PhaseId }) {
+
+
+    const { mutate: initHeatsWithBibs } = usePostApiPhaseIdInitHeatsWithBibs({
+        mutation: {
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: getGetApiPhaseIdCouplesHeatsQueryKey(id_phase),
+                });
+                queryClient.invalidateQueries({
+                    queryKey: getGetApiPhaseIdSinglesHeatsQueryKey(id_phase),
+                });
+                queryClient.invalidateQueries({
+                    queryKey: getGetApiPhaseIdHeatsQueryKey(id_phase),
+                });
+                // load all_judges in server after merging change_api_loading
+                // all_judges.map((judge_id) => (queryClient.invalidateQueries({
+                //         queryKey: getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey(id_phase, judge_id),
+                //     })));
+            },
+            onError: (err) => {
+                console.error('Error creating phase:', err);
+                //setError(err);
+            }
+        }
+    });
+
+    return (
+        <>
+            <button type="button" onClick={() => initHeatsWithBibs({ id: id_phase, data: undefined })} >
+                Initialiser les Heats avec les dossards
+            </button>
         </>
     );
 }

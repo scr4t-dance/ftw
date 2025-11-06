@@ -6,9 +6,9 @@ import type {
     NextPhaseFormData,
 } from '@hookgen/model';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
-import { useQueryClient } from '@tanstack/react-query';
 import { Field } from '@routes/index/field';
 import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, usePutApiPhaseIdPromote } from '~/hookgen/heat/heat';
+import { queryClient } from '~/queryClient';
 
 export default function NextPhaseForm({ id_phase, treshold_callback }: { id_phase: PhaseId, treshold_callback?: (treshold:number)=>void }) {
 
@@ -22,8 +22,6 @@ export default function NextPhaseForm({ id_phase, treshold_callback }: { id_phas
         watch,
         formState: { errors, isSubmitSuccessful },
     } = formObject;
-
-    const queryClient = useQueryClient();
 
     const { mutate: promotePhase } = usePutApiPhaseIdPromote({
         mutation: {

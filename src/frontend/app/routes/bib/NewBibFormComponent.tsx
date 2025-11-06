@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 // import { useNavigate } from "react-router";
 import { useForm, type SubmitHandler, type UseFormReturn } from 'react-hook-form';
-import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
 import { usePutApiCompIdBib, getGetApiCompIdBibsQueryKey } from '@hookgen/bib/bib'
@@ -14,6 +13,7 @@ import {
 import { Field } from '@routes/index/field';
 import { type SingleBib, SingleTargetForm } from '@routes/bib/SingleTargetForm';
 import { type CoupleBib, CoupleTargetForm } from '@routes/bib/CoupleTargetForm';
+import { queryClient } from '~/queryClient';
 
 export function NewBibFormComponent({ id_competition,bibs_list }: { id_competition: CompetitionId, bibs_list:BibList }) {
 
@@ -39,7 +39,6 @@ export function NewBibFormComponent({ id_competition,bibs_list }: { id_competiti
     formState: { errors },
   } = formObject;
 
-  const queryClient = useQueryClient();
   // Using the Orval hook to handle the PUT request
   const { data: updatedDancerIdList, mutate: updateBib, isSuccess } = usePutApiCompIdBib({
     mutation: {

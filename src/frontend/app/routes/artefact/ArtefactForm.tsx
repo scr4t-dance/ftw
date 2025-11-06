@@ -7,11 +7,11 @@ import type {
 import { YanItem } from "@hookgen/model";
 import { useParams } from "react-router";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
-import { useQueryClient } from "@tanstack/react-query";
 import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey, useGetApiPhaseIdArtefactJudgeIdJudge, usePutApiPhaseIdArtefactJudgeIdJudge, } from '@hookgen/artefact/artefact';
 import { Controller, FormProvider, get, useFieldArray, useForm, useFormContext, type SubmitHandler } from 'react-hook-form';
 import { Field } from '@routes/index/field';
 import { DancerCell } from '@routes/bib/BibComponents';
+import { queryClient } from '~/queryClient';
 
 
 const yan_values: (string | undefined)[] = Object.values(YanItem);
@@ -454,8 +454,6 @@ export function ArtefactFormComponent({ artefactData }: { artefactData: HeatTarg
     htja.heat_target_judge.heat_number
   ));
   const unique_heat_number = [...new Set(heat_number_array)];
-
-  const queryClient = useQueryClient();
 
   const { mutate: mutateArtefacts } = usePutApiPhaseIdArtefactJudgeIdJudge({
     mutation: {

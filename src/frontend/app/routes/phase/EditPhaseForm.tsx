@@ -2,10 +2,8 @@ import type { Route } from './+types/EditPhaseForm';
 import React, { useEffect } from 'react';
 // import { useNavigate } from "react-router";
 
-import { useQueryClient } from '@tanstack/react-query';
-
 import {
-    getApiCompIdPhases, getApiPhaseId, getGetApiPhaseIdQueryKey,
+    getApiPhaseId, getGetApiPhaseIdQueryKey,
     useGetApiPhaseId, usePatchApiPhaseId
 } from '@hookgen/phase/phase';
 import type {
@@ -20,6 +18,7 @@ import { Field } from '@routes/index/field';
 import { RankingAlgorithmFormElement } from '@routes/phase/RankingAlgorithmFormElement';
 import { getApiEventId, getApiEventIdComps } from '@hookgen/event/event';
 import { getApiCompId } from '@hookgen/competition/competition';
+import { queryClient } from '~/queryClient';
 
 
 
@@ -45,8 +44,6 @@ export async function loader({ params }: Route.LoaderArgs) {
 
 
 export function EditPhaseForm({ phase_id, phase_data }: { phase_id: PhaseId, phase_data: Phase }) {
-
-    const queryClient = useQueryClient();
 
     const { mutate: updatePhase, isSuccess: isSuccessPatch } = usePatchApiPhaseId({
         mutation: {
