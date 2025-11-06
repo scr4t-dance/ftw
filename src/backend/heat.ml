@@ -176,7 +176,14 @@ and init_heats =
     ~to_yojson:Types.PhaseId.to_yojson
     (fun req st treshold_list ->
        let+ id = Utils.int_param req "id" in
-       Ftw.Heat.simple_init st ~phase:id treshold_list.min_number_of_targets treshold_list.max_number_of_targets;
+       (* Ftw.Heat.simple_init st ~phase:id treshold_list.min_number_of_targets treshold_list.max_number_of_targets; *)
+       let heats = Ftw.Heat.get ~st ~phase:id in
+       Ftw.Heat.init ~st ~phase:id
+         ~min_number_of_targets:treshold_list.min_number_of_targets
+         ~max_number_of_targets:treshold_list.max_number_of_targets
+         ~early_heat_range:treshold_list.early_heat_range ~early_heat_ids:treshold_list.early_heat_ids
+         ~late_heat_range:treshold_list.late_heat_range ~late_heat_ids:treshold_list.late_heat_ids
+         heats;
        Ok id
     )
 
