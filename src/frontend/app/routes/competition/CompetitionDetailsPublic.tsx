@@ -5,7 +5,7 @@ import { dehydrate, QueryClient } from "@tanstack/react-query";
 import { getGetApiCompIdBibsQueryOptions } from "~/hookgen/bib/bib";
 import { getGetApiCompIdQueryOptions } from "~/hookgen/competition/competition";
 import { getGetApiEventIdQueryOptions } from "~/hookgen/event/event";
-import CompetitionDetailsComponent from "@routes/competition/CompetitionComponents";
+import { CompetitionDetailsComponent } from "@routes/competition/CompetitionComponents";
 
 
 export async function loader({ params }: Route.LoaderArgs) {
