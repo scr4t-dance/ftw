@@ -74,3 +74,4 @@ val import :
 val ids_from_dancer_history : State.t -> Dancer.id -> id list
 (** Get the list of all competitions a dancer participated in. *)
 
+val update_competitors_number : st:State.t -> id:id -> n_leaders:id -> n_followers:id -> unit

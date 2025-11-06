@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { Link, useLocation } from "react-router";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 
 import { getGetApiCompIdQueryOptions, useGetApiCompId } from '@hookgen/competition/competition';
 import { useGetApiEventIdComps } from "@hookgen/event/event";
-import { type Competition, type CompetitionId, type CompetitionIdList, type EventId, type PhaseIdList } from "@hookgen/model";
+import { } from "@hookgen/model";
 import { BibListComponent, PublicBibList } from '../bib/BibComponents';
 import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
 import { NewBibFormComponent } from '../bib/NewBibFormComponent';
@@ -13,6 +13,15 @@ import { useGetApiCompIdPhases } from '~/hookgen/phase/phase';
 import { PhaseList } from '../phase/PhaseComponents';
 import { NewPhaseFormComponent } from '../phase/NewPhaseForm';
 import { useGetApiDancers } from '~/hookgen/dancer/dancer';
+import {
+  type Competition, type CompetitionId, type CompetitionIdList,
+  type PhaseIdList,
+  type DancerCompetitionResults, type DancerCompetitionResultsList, type Divisions, type EventId, type Promotion, type PromotionList
+} from "@hookgen/model";
+import { get_rang } from '../dancer/DancerCompetitionHistory';
+import { DancerCell } from '../bib/BibComponents';
+import { Badge } from '../dancer/DancerComponents';
+import { getGetApiCompIdPromotionsQueryKey, getGetApiCompIdResultsQueryKey, usePutApiCompIdPromotions } from '~/hookgen/results/results';
 
 export function CompetitionTable({ competition_id_list, competition_data_list }: { competition_id_list: CompetitionIdList, competition_data_list: Competition[] }) {
 
@@ -171,14 +180,13 @@ export function CompetitionNavigation({ url }: { url: string }) {
 
 }
 
-
-export default function CompetitionDetailsComponent({ id_competition, isAdmin }: { id_competition: CompetitionId, isAdmin: boolean }) {
+export function CompetitionDetailsComponent({ id_competition, isAdmin }: { id_competition: CompetitionId, isAdmin: boolean }) {
 
   const { data: competition, isLoading: isLoadingCompetition, isError: isErrorCompetition } = useGetApiCompId(id_competition)
   const { data: bibs_list, isLoading: isLoadingBibs, isError: isErrorBibs } = useGetApiCompIdBibs(id_competition);
 
   const { data: phase_list } = useGetApiCompIdPhases(id_competition);
-  const { data: dancer_list} = useGetApiDancers();
+  const { data: dancer_list } = useGetApiDancers();
 
   if (isLoadingCompetition) return (<div>Chargement de la competition</div>);
   if (isErrorCompetition) return (<div>Erreur chargement de la competition</div>);
@@ -186,7 +194,7 @@ export default function CompetitionDetailsComponent({ id_competition, isAdmin }:
   if (isLoadingBibs) return (<div>Chargement des dossards</div>);
   if (!bibs_list || isErrorBibs) return (<div>Erreur chargement des dossards</div>);
 
-  if(!dancer_list) return (<div>Chargement liste danseurs</div>)
+  if (!dancer_list) return (<div>Chargement liste danseurs</div>)
 
   //const url = `/events/${loaderData.id_event}/competitions/${loaderData.id_competition}`;
   const url = "";
@@ -219,6 +227,71 @@ export default function CompetitionDetailsComponent({ id_competition, isAdmin }:
         </>
       }
 
+    </>
+  );
+}
+
+export function CompetitionResults({ id_competition, results_data, promotions_data }: { id_competition: CompetitionId, results_data: DancerCompetitionResultsList, promotions_data: PromotionList }) {
+
+  const same_comp_dancer_role = (dcr: DancerCompetitionResults, p: Promotion) =>
+    dcr.competition === p.competition && dcr.dancer === p.dancer && dcr.role[0] === p.role[0];
+
+  const queryClient = useQueryClient();
+  const { mutate: updateCompetition, isError, error, isSuccess } = usePutApiCompIdPromotions({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: getGetApiCompIdPromotionsQueryKey(id_competition),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getGetApiCompIdResultsQueryKey(id_competition),
+        });
+      },
+      onError: (err) => {
+        console.error('Error updating competition:', err);
+      }
+    }
+  });
+
+  return (
+    <>
+
+      <button type="button" onClick={() => updateCompetition({ id: id_competition, data: undefined })}>Calculer les promotions</button>
+      {isError && <div className="error_message">⚠️ {error.message}</div>}
+      {isSuccess && <div>Promotions réussies</div>}
+      <h1>Resultats compétition</h1>
+      <table>
+        <tbody>
+          <tr>
+            <th>Dancer</th>
+            <th>Role</th>
+            <th>Rang</th>
+            <th>Points</th>
+            <th>Ancienne division</th>
+            <th>Promotion à ?</th>
+          </tr>
+          {results_data.results.sort((a, b) => b.points - a.points).map((dcr, index) => (
+            <tr key={index}>
+              <td>
+                <DancerCell id_dancer={dcr.dancer} />
+              </td>
+              <td>{dcr.role}</td>
+              <td>{get_rang(dcr.result)}</td>
+              <td>{dcr.points}</td>
+              <td>
+                {promotions_data.promotions?.find(p => same_comp_dancer_role(dcr, p)) &&
+                  <Badge role={dcr.role.toString()} divisions={promotions_data.promotions?.find(p => same_comp_dancer_role(dcr, p))?.current_divisions as Divisions} />
+                }
+              </td>
+              <td>
+                {promotions_data.promotions?.find(p => same_comp_dancer_role(dcr, p)) &&
+                  <Badge role={dcr.role.toString()} divisions={promotions_data.promotions?.find(p => same_comp_dancer_role(dcr, p))?.new_divisions as Divisions} />
+                }
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </>
   );
 }
