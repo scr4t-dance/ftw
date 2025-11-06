@@ -2,12 +2,12 @@ import React, { useEffect } from 'react';
 
 import type { CouplePanel, DancerId, DancerIdList, Panel, PhaseId, SinglePanel } from "@hookgen/model";
 import { Link } from "react-router";
-import { useQueryClient } from "@tanstack/react-query";
 import { Controller, useFieldArray, useFormContext, FormProvider, get, useForm, type SubmitHandler } from 'react-hook-form';
 
 import { Field } from '@routes/index/field';
 import { getGetApiPhaseIdJudgesQueryKey, useGetApiPhaseIdJudges, usePutApiPhaseIdJudges } from '@hookgen/judge/judge';
 import { useGetApiDancerId } from '~/hookgen/dancer/dancer';
+import { queryClient } from '~/queryClient';
 
 function sanitizePanel(data: Panel): SinglePanel | CouplePanel {
   if (data.panel_type === "single") {
@@ -135,8 +135,6 @@ export function JudgeListFormElement({ artefact_description_name }: Props) {
 
 
 export function JudgeForm({ id_phase, panel }: { id_phase: PhaseId, panel: Panel }) {
-
-  const queryClient = useQueryClient();
 
   const { mutate: mutateArtefacts } = usePutApiPhaseIdJudges({
     mutation: {

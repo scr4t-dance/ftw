@@ -400,9 +400,10 @@ export function HeatsList({ id_phase, panel_data, heats }: { id_phase: number, p
 
     return (
         <>
-            <div className='no-print'>
-                <InitHeatsForm id_phase={id_phase} />
-            </div>
+            <p className='no-print'>
+                <InitHeatsWithBibForm id_phase={id_phase_number} />
+                <RandomizeHeatsForm id_phase={id_phase_number} />
+            </p>
 
             {heats?.heats && heats?.heats.map((heat, index) => (
                 // heat 0 réservée pour calculs internes

@@ -6,15 +6,17 @@ import type {
     NextPhaseFormData,
 } from '@hookgen/model';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
-import { useQueryClient } from '@tanstack/react-query';
 import { Field } from '@routes/index/field';
 import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey,
-    getGetApiPhaseIdSinglesHeatsQueryKey, usePutApiPhaseIdPromoteAll } from '@hookgen/heat/heat';
+    getGetApiPhaseIdSinglesHeatsQueryKey } from '@hookgen/heat/heat';
 import { usePutApiPhaseIdPromote } from '@hookgen/ranking/ranking';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function NextPhaseForm({ id_phase, treshold_callback }: { id_phase: PhaseId, treshold_callback?: (treshold:number)=>void }) {
 
     //const navigate = useNavigate();
+
+    const queryClient = useQueryClient();
 
     const formObject = useForm<NextPhaseFormData>({defaultValues: {number_of_targets_to_promote:0}}
     );
@@ -25,8 +27,6 @@ export default function NextPhaseForm({ id_phase, treshold_callback }: { id_phas
         watch,
         formState: { errors, isSubmitSuccessful },
     } = formObject;
-
-    const queryClient = useQueryClient();
 
     const { mutate: promotePhase } = usePutApiPhaseIdPromote({
         mutation: {

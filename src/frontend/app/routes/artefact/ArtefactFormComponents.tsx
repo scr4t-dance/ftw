@@ -196,16 +196,16 @@ function ArtefactValidCount({ artefactData, artefactDataToSubmit, isDirty }: { a
 
     return (
       <div className='yan_table'>
-        <table>
-          <tbody>
-            <tr>
-              <th>Number of unique ranks</th>
-            </tr>
-            <tr>
-              <td>{ranking_artefact_count}</td>
-            </tr>
-          </tbody>
-        </table>
+      <table>
+        <tbody>
+          <tr>
+            <th>Number of unique ranks</th>
+          </tr>
+          <tr>
+            <td>{ranking_artefact_count}</td>
+          </tr>
+        </tbody>
+      </table>
       </div>
     );
 
@@ -231,33 +231,33 @@ function ArtefactValidCount({ artefactData, artefactDataToSubmit, isDirty }: { a
 
   return (
     <div className='yan_table'>
-      <table>
-        <tbody>
+    <table>
+      <tbody>
+        <tr>
+          <th>Criterion</th>
+          {artefact_description.artefact_data.map((criterion, index) => {
+            return (
+              <th key={`yan.${index}`}>
+                {criterion}
+              </th>
+            );
+          })}
+        </tr>
+        {Object.keys(YanItem).map((yan, index) => (
           <tr>
-            <th>Criterion</th>
-            {artefact_description.artefact_data.map((criterion, index) => {
-              return (
-                <th key={`yan.${index}`}>
-                  {criterion}
-                </th>
-              );
-            })}
-          </tr>
-          {Object.keys(YanItem).map((yan, index) => (
-            <tr>
-              <td>{yan}</td>
+            <td>{yan}</td>
               {yan_artefact_count[index].map((criterion_count, c_index) => (
-                <td>
-                  {criterion_count}
+              <td>
+                {criterion_count}
                   {(isDirty || yan_artefact_count_to_submit[index][c_index] !== criterion_count)
                     && `(-> ${yan_artefact_count_to_submit[index][c_index]})`
                   }
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
     </div >
   );
 
@@ -462,15 +462,15 @@ function YanArtefactFormTable({ artefactData, heat_number, artefactInput, dataBi
                       {(dataBibs.bibs.find((bib) => JSON.stringify(bib.target) === JSON.stringify(field.heat_target_judge.target)) as Bib).bib}
                     </p>
                     <p className="table_comp_role">(
-                      {field.heat_target_judge.target.target_type == "single" &&
-                        field.heat_target_judge.target.role}
-                      {field.heat_target_judge.target.target_type == "couple" &&
+                    {field.heat_target_judge.target.target_type == "single" &&
+                      field.heat_target_judge.target.role}
+                    {field.heat_target_judge.target.target_type == "couple" &&
                         "couple"})
-                    </p>
+                  </p>
                   </div>
-                  <p className="table_comp_dancer_name">
+                  <div className="table_comp_dancer_name">
                     {dancerArrayFromTarget(field.heat_target_judge.target).map((i) => (
-                      <p key={`bib.${index}`}>
+                      <p key={i}>
                         <DancerCell id_dancer={i} link={false} />
                       </p>
                     ))}
@@ -482,7 +482,7 @@ function YanArtefactFormTable({ artefactData, heat_number, artefactInput, dataBi
                         {...register(`artefacts.${index}.artefact.artefact_type`
                         )} />
                     </Field>
-                  </p>
+                  </div>
                 </td>
                 {field.heat_target_judge.description.artefact === "yan" &&
                   field.heat_target_judge.description.artefact_data.map((_, c_index) => {

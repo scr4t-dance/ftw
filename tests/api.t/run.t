@@ -106,6 +106,7 @@ Update a phase
   {"message":"Phase not found"}
 
 
+reset final phase for next tests
   $ curl -s -X PUT localhost:8081/api/phase \
   > -H "Content-Type: application/json" \
   > -d '{"competition":2,"round":["Finals"],"judge_artefact_descr":{"artefact":"ranking","artefact_data":null},"head_judge_artefact_descr":{"artefact":"ranking","artefact_data":null}, "ranking_algorithm":{"algorithm":"ranking", "algorithm_name":"RPSS"}}'
@@ -205,14 +206,17 @@ add panel with no head
   > -d '{"panel_type": "couple", "couples": {"dancers":[1,2]}, "head":null}'
   2
 
+  $ curl -s -X PUT localhost:8081/api/phase/2/judges \
+  > -H "Content-Type: application/json" \
+  > -d '{"panel_type": "couple", "couples": {"dancers":[1,2]},"head":null}'
+  2
+
 Heats management
 ----------------
 
 init heats with bib from competition
 
-  $ curl -s -X PUT localhost:8081/api/phase/1/init_heats \
-  > -H "Content-Type: application/json" \
-  > -d '{"min_number_of_targets":1, "max_number_of_targets":2}'
+  $ curl -s -X POST localhost:8081/api/phase/1/init_heats_with_bibs
   1
 
 get heats
@@ -236,6 +240,15 @@ move target to new heat
   $ curl -s localhost:8081/api/phase/1/heats
   {"heat_type":"single","heat_type":"single","heats":[{"followers":[],"leaders":[]},{"followers":[{"target_type":"single","target":4,"role":["Follower"]},{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":1,"role":["Leader"]}]},{"followers":[],"leaders":[]},{"followers":[],"leaders":[{"target_type":"single","target":3,"role":["Leader"]}]}]}
 
+randomize heats
+  $ curl -s -X PUT localhost:8081/api/phase/1/randomize_heats \
+  > -H "Content-Type: application/json" \
+  > -d '{"min_number_of_targets":1, "max_number_of_targets":1,"late_heat_range":1,"late_heat_ids":"3","early_heat_range":1,"early_heat_ids":""}'
+  1
+
+get randomized heats
+  $ curl -s localhost:8081/api/phase/1/heats
+  {"heat_type":"single","heat_type":"single","heats":[{"followers":[],"leaders":[]},{"followers":[{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":1,"role":["Leader"]}]},{"followers":[{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":3,"role":["Leader"]}]},{"followers":[],"leaders":[]}]}
 
 Artefacts
 ---------
@@ -340,6 +353,26 @@ get rankings
 
 promote (TODO)
 
+Next Phase management
+---------------------
+
+  $ curl -s -X PUT localhost:8081/api/phase/1/artefact/judge/2 \
+  > -H "Content-Type: application/json" \
+  > -d '{"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":2,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type": "yan","artefact_data": [["No"]]}}]}'
+  {"dancers":[2]}
+
+"promote" to next phase
+  $ curl -s -X PUT localhost:8081/api/phase/1/simple_promote \
+  > -H "Content-Type: application/json" \
+  > -d '{"number_of_targets_to_promote":1}'
+
+get final heats
+  $ curl -s localhost:8081/api/phase/2/singles_heats
+  {"heat_type":"single","heat_type":"single","heats":[{"followers":[],"leaders":[]}]}
+
+
+  $ curl -s localhost:8081/api/phase/2/heats
+  {"heat_type":"couple","heat_type":"couple","heats":[{"couples":[]}]}
 
 End & Cleanup
 -------------
