@@ -90,6 +90,17 @@ val ranking : st:State.t -> phase:Phase.id -> Id.t ranking
 (* TODO: review/remove these *)
 val get_id : State.t -> Phase.id -> int -> Id.t Target.any -> (Id.t option, string) result
 val simple_init : State.t -> phase:Phase.id -> int -> int -> unit
+val init : st:State.t ->
+  phase:target_id ->
+  min_number_of_targets:target_id ->
+  max_number_of_targets:target_id ->
+  early_heat_range:target_id ->
+  early_heat_ids:string ->
+  late_heat_range:target_id ->
+  late_heat_ids:string ->
+  ?tries:target_id ->
+  t ->
+  unit
 val simple_promote : State.t -> phase:Phase.id -> int -> unit
 
 val add_single :
@@ -105,5 +116,3 @@ val get_one : st:State.t -> target_id -> Id.t Target.any
 val get : st:State.t -> phase:Phase.id -> t
 val get_singles : st:State.t -> phase:Phase.id -> singles_heats
 val get_couples : st:State.t -> phase:Phase.id -> couples_heats
-
-
