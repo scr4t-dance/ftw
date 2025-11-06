@@ -10,6 +10,92 @@
     "version": "1.0.1"
   },
   "paths": {
+    "/api/dancer/{id}/results": {
+      "get": {
+        "tags": [ "results", "dancer" ],
+        "summary": "Get the list of competition results of a dancer",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried dancer",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/DancerId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DancerCompetitionResultsList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Dancer not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/comp/{id}/results": {
+      "get": {
+        "tags": [ "results", "competition" ],
+        "summary": "Get the list of phases of a Competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Competition",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DancerCompetitionResultsList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/phase/{id}/ranking": {
       "get": {
         "tags": [ "ranking", "artefact", "phase" ],
@@ -1923,6 +2009,70 @@
           "max_number_of_targets": { "type": "integer" }
         },
         "required": [ "min_number_of_targets", "max_number_of_targets" ]
+      },
+      "RankingResults": {
+        "type": "object",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "result_type": { "type": "string", "enum": [ "ranked" ] },
+              "ranked": { "type": "integer" }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "result_type": { "type": "string", "enum": [ "present" ] },
+              "present": { "type": "boolean", "enum": [ true ] }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "result_type": { "type": "string", "enum": [ "not_present" ] },
+              "present": { "type": "boolean", "enum": [ false ] }
+            }
+          }
+        ]
+      },
+      "DancerCompetitionResults": {
+        "type": "object",
+        "properties": {
+          "competition": { "$ref": "#/components/schemas/CompetitionId" },
+          "dancer": { "$ref": "#/components/schemas/DancerId" },
+          "role": { "$ref": "#/components/schemas/Role" },
+          "result": {
+            "type": "object",
+            "properties": {
+              "prelims": { "$ref": "#/components/schemas/RankingResults" },
+              "octofinals": { "$ref": "#/components/schemas/RankingResults" },
+              "quarterfinals": {
+                "$ref": "#/components/schemas/RankingResults"
+              },
+              "semifinals": { "$ref": "#/components/schemas/RankingResults" },
+              "finals": { "$ref": "#/components/schemas/RankingResults" }
+            },
+            "required": [
+              "prelims", "octofinals", "quarterfinals", "semifinals",
+              "finals"
+            ]
+          },
+          "points": { "type": "integer" }
+        },
+        "required": [ "competition", "dancer", "role", "result", "points" ]
+      },
+      "DancerCompetitionResultsList": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DancerCompetitionResults"
+            }
+          }
+        },
+        "required": [ "results" ]
       }
     }
   }
