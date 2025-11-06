@@ -196,7 +196,7 @@ init heats with bib from competition
 
 get heats
   $ curl -s localhost:8081/api/phase/1/heats
-  {"heat_type":"single","heat_type":"single","heats":[{"followers":[{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":1,"role":["Leader"]}]},{"followers":[],"leaders":[]}]}
+  {"heat_type":"single","heat_type":"single","heats":[{"followers":[],"leaders":[]},{"followers":[{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":1,"role":["Leader"]}]}]}
 
 Artefacts
 ---------
@@ -204,10 +204,10 @@ Artefacts
 Get empty artefacts
 
   $ curl -s localhost:8081/api/phase/1/artefact/judge/1
-  {"message":"artefact not found"}
+  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null}]}
 
   $ curl -s localhost:8081/api/phase/1/artefact/judge/2
-  {"message":"artefact not found"}
+  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":2,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null}]}
 
 set artefact
 
@@ -216,11 +216,11 @@ set artefact
 
   $ curl -s -X PUT localhost:8081/api/phase/1/artefact/judge/1 \
   > -H "Content-Type: application/json" \
-  > -d '{"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":0,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type": "yan","artefact_data": [["No"]]}}]}'
+  > -d '{"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type": "yan","artefact_data": [["No"]]}}]}'
   {"dancers":[1]}
 
   $ curl -s localhost:8081/api/phase/1/artefact/judge/1
-  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":0,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type":"yan","artefact_data":[["No"]]}}]}
+  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type":"yan","artefact_data":[["No"]]}}]}
 
 
 End & Cleanup
