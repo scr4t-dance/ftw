@@ -7,9 +7,9 @@ import { getGetApiDancersQueryKey, usePutApiDancer, usePatchApiDancerId, getGetA
 import { DivisionsItem, type Dancer, type DancerId, type Date } from '@hookgen/model';
 
 import { Link, useLocation } from 'react-router';
-import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { Controller, useForm, type SubmitHandler, type UseFormReturn } from 'react-hook-form';
 import { Field } from '@routes/index/field';
+import { queryClient } from '~/queryClient';
 
 export async function loader({ }: Route.LoaderArgs) {
 
@@ -20,7 +20,7 @@ export async function loader({ }: Route.LoaderArgs) {
     };
 }
 
-function putOrPatchApi({ queryClient, id_dancer, formObject }: { queryClient: QueryClient, id_dancer?: DancerId, formObject: UseFormReturn<Dancer, any, Dancer> }) {
+function putOrPatchApi({ id_dancer, formObject }: { id_dancer?: DancerId, formObject: UseFormReturn<Dancer, any, Dancer> }) {
 
     const { setError, reset } = formObject;
 
@@ -98,10 +98,9 @@ export function SaveDancerFormComponent({ dancer, id_dancer }: { dancer?: Dancer
         control,
     } = formObject;
 
-    const queryClient = useQueryClient();
     // Using the Orval hook to handle the PUT request
 
-    const { mutate: updateDancer, isSuccess, variables, data: dataDancer } = putOrPatchApi({ queryClient, id_dancer, formObject });
+    const { mutate: updateDancer, isSuccess, variables, data: dataDancer } = putOrPatchApi({ id_dancer, formObject });
 
     const onSubmit: SubmitHandler<Dancer> = (data) => {
         console.log(data);

@@ -2,7 +2,7 @@ import type { Route } from './+types/NewPhaseForm';
 import React, { useEffect, useState } from 'react';
 // import { useNavigate } from "react-router";
 
-import { usePutApiPhase, getGetApiCompIdPhasesQueryKey, useGetApiCompIdPhases, useGetApiPhaseId, getGetApiPhaseIdQueryOptions, getApiCompIdPhases, getApiPhaseId } from '@hookgen/phase/phase';
+import { usePutApiPhase, getGetApiCompIdPhasesQueryKey, useGetApiCompIdPhases, getGetApiPhaseIdQueryOptions, getApiCompIdPhases, getApiPhaseId } from '@hookgen/phase/phase';
 
 import type {
     Phase,
@@ -11,7 +11,7 @@ import type {
 } from '@hookgen/model';
 import { RoundItem } from "@hookgen/model";
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
-import { useQueries, useQueryClient } from '@tanstack/react-query';
+import { useQueries } from '@tanstack/react-query';
 import { Field } from '@routes/index/field';
 import { Link, useLocation } from 'react-router';
 import { useGetApiCompId } from '@hookgen/competition/competition';
@@ -97,9 +97,6 @@ function NewPhaseForm({ id_competition, competition_data, availableRounds }: New
         setError,
         formState: { errors },
     } = formObject;
-
-
-    const queryClient = useQueryClient();
 
     const { data: dataPhase, mutate: updatePhase, isSuccess } = usePutApiPhase({
         mutation: {

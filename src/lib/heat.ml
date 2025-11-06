@@ -383,7 +383,12 @@ let get_id st phase_id heat_number target =
   match heat_id_list with
   | [] -> Ok None
   | [h] -> Ok (Some h)
-  | _ -> Error "Error too many matches"
+  | _ ->
+    let s = begin match target with
+      | Any Single { target=t; _} -> string_of_int t
+      | _ -> ""
+    end in
+    Error ("Error for target '" ^ s ^ "' too many matches " ^ (String.concat "," @@ List.map string_of_int heat_id_list))
 
 let reset st phase =
   let open Sqlite3_utils.Ty in

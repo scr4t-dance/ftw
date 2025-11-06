@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link } from "react-router";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { useGetApiDancerId } from '@hookgen/dancer/dancer';
 import {
@@ -13,6 +12,7 @@ import { useGetApiCompIdBibs, useDeleteApiCompIdBib, getGetApiCompIdBibsQueryKey
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { Field } from "@routes/index/field";
 import { NewTargetBibFormComponent } from './NewBibFormComponent';
+import { queryClient } from '~/queryClient';
 
 const dancerLink = "dancers/"
 
@@ -182,8 +182,6 @@ function EditableBibDetails({ bib_object }: { bib_object: Bib }) {
         reset,
         setError,
     } = formObject;
-
-    const queryClient = useQueryClient();
 
     const { mutate: updateBib } = usePatchApiCompIdBib({
         mutation: {
