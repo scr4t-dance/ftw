@@ -149,7 +149,11 @@ function CompetitiveHistoryTable({ dancer_competition_results_list, competition_
                     {Array.from(dancer_competition_results_list_per_category.keys()).map((categoryItem) => (
                         <>
                             <tr>
-                                <th colSpan={4}>{categoryItem}</th>
+                                <th colSpan={3}>{categoryItem}</th>
+                                <th>
+                                    Total=
+                                    {dancer_competition_results_list_per_category.get(categoryItem)?.reduce((n, { points }) => n + points, 0)}
+                                </th>
                             </tr>
                             {dancer_competition_results_list_per_category.get(categoryItem)?.map((dcr, index) => (
 
