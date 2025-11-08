@@ -53,6 +53,87 @@
         }
       }
     },
+    "/api/comp/{id}/promotions": {
+      "get": {
+        "tags": [ "results", "competition" ],
+        "summary": "Get the list of promotions of a Competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Competition",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PromotionList" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [ "results", "competition", "dancer" ],
+        "summary": "Promote dancers",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Competition",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "requestBody": { "content": { "text/plain": { "schema": {} } } },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CompetitionId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/comp/{id}/results": {
       "get": {
         "tags": [ "results", "competition" ],
@@ -2073,6 +2154,31 @@
           }
         },
         "required": [ "results" ]
+      },
+      "Promotion": {
+        "type": "object",
+        "properties": {
+          "competition": { "$ref": "#/components/schemas/CompetitionId" },
+          "dancer": { "$ref": "#/components/schemas/DancerId" },
+          "role": { "$ref": "#/components/schemas/Role" },
+          "current_divisions": { "$ref": "#/components/schemas/Divisions" },
+          "new_divisions": { "$ref": "#/components/schemas/Divisions" },
+          "reason": { "type": "string" }
+        },
+        "required": [
+          "competition", "dancer", "role", "current_divisions",
+          "new_divisions", "reason"
+        ]
+      },
+      "PromotionList": {
+        "type": "object",
+        "properties": {
+          "promotions": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Promotion" }
+          }
+        },
+        "required": [ "promotions" ]
       }
     }
   }

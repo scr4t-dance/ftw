@@ -1804,3 +1804,53 @@ module DancerCompetitionResultsList = struct
       ]
       ~required:["results"]
 end
+
+module Promotion = struct
+
+  type t = {
+    competition : CompetitionId.t;
+    dancer : DancerId.t;
+    role : Role.t;
+    current_divisions : Divisions.t;
+    new_divisions : Divisions.t;
+    reason : string;
+  } [@@deriving yojson]
+
+
+  let ref, schema =
+    make_schema ()
+      ~name:"Promotion"
+      ~typ:object_
+      ~properties:[
+        "competition", ref CompetitionId.ref;
+        "dancer", ref DancerId.ref;
+        "role", ref Role.ref;
+        "current_divisions", ref Divisions.ref;
+        "new_divisions", ref Divisions.ref;
+        "reason", obj @@ S.make_schema()
+          ~typ:string;
+      ]
+      ~required:["competition"; "dancer"; "role"; "current_divisions"; "new_divisions"; "reason"]
+
+  let of_ftw (p:Ftw.Promotion.t) =
+    {competition=p.competition;dancer=p.dancer;role=p.role;
+    current_divisions=p.current_divisions; new_divisions=p.new_divisions;reason=Ftw.Promotion.reason_to_string p.reason;
+    }
+end
+
+module PromotionList = struct
+  type t = {
+    promotions : Promotion.t list;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"PromotionList"
+      ~typ:object_
+      ~properties:[
+        "promotions", obj @@ S.make_schema ()
+          ~typ:array
+          ~items:(ref Promotion.ref);
+      ]
+      ~required:["promotions"]
+end

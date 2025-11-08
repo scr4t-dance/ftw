@@ -223,6 +223,25 @@ set artefact
   {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":0,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type":"yan","artefact_data":[["No"]]}}]}
 
 
+Compute ranks
+-------------
+
+  $ curl -s localhost:8081/api/phase/1/ranking
+  {"message":"not implemented"}
+
+Promote
+-------
+
+  $ curl -s -X PUT localhost:8081/api/comp/2/promotions
+
+  $ curl -s localhost:8081/api/comp/2/promotions
+  {"promotions":[]}
+
+  $ curl -s localhost:8081/api/comp/2/results
+  {"results":[]}
+
+
+
 End & Cleanup
 -------------
 
