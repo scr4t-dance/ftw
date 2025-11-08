@@ -263,9 +263,6 @@ let compute ~st ~competition =
       fun p -> let heat = Heat.get ~st ~phase:(Phase.id p) in
         get_dancer_set heat
     ) phase_list |> List.split in
-  (* let leader_set = List.fold_left Id.Set.union Id.Set.empty leader_set_list in *)
-  (* let follower_set = List.fold_left Id.Set.union Id.Set.empty follower_set_list in *)
-  (* let leader_phase_map = Id.Set.fold (fun a b -> ) leader_set Id.Map.empty in *)
   let transpose_dancer_phase = List.fold_left2 (fun acc s p ->
       let add_to_list key m =
         let new_list = begin match Id.Map.find_opt key m with
@@ -305,6 +302,10 @@ let compute ~st ~competition =
     {| DELETE FROM results
     WHERE competition = ? |}
     competition;
+
+  let leader_set = List.fold_left Id.Set.union Id.Set.empty leader_set_list in
+  let follower_set = List.fold_left Id.Set.union Id.Set.empty follower_set_list in
+  Competition.update_competitors_number ~st ~id:competition ~n_leaders:(Id.Set.cardinal leader_set) ~n_followers:(Id.Set.cardinal follower_set);
   make_t ~st ~role:Role.Leader leader_map;
   make_t ~st ~role:Role.Follower follower_map;
   ()

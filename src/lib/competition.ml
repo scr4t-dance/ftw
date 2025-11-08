@@ -124,3 +124,14 @@ let ids_from_dancer_history st dancer_id =
     {| SELECT competition_id FROM bibs WHERE dancer_id = ? |}
     dancer_id
 
+let update_competitors_number ~st ~id:comp_id ~n_leaders ~n_followers =
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[ int; int; int; ]
+    {| UPDATE competitions
+        SET
+        num_leaders = ?,
+        num_followers = ?
+        WHERE id = ?
+        |}
+    n_leaders n_followers
+    comp_id
