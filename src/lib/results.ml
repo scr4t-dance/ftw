@@ -175,3 +175,136 @@ let all_points ~st ~dancer ~role ~div =
     (Role.to_int role)
     (Category.to_int (Competitive div))
 
+
+
+let all_points_before ~st ~dancer ~role ~div ~end_date =
+  let open Sqlite3_utils.Ty in
+  let conv = Conv.mk [nullable int] CCFun.id in
+  CCOption.get_or ~default:0 @@
+  State.query_one_where ~st ~conv ~p:[int; int; int;text]
+    {| SELECT SUM(results.points)
+       FROM results
+       JOIN competitions
+       ON results.competition=competitions.id
+       JOIN events
+       ON competitions.event = events.id
+       WHERE results.dancer = ?
+       AND results.role = ?
+       AND competitions.category = ?
+       AND events.end_date < ? |}
+    dancer
+    (Role.to_int role)
+    (Category.to_int (Competitive div))
+    (Date.to_string end_date)
+
+
+let update_finals ~st ~(dancer:Dancer.id) ~(role:Role.t) p_list =
+  begin match List.find_opt (fun p -> (Round.compare (Phase.round p) Round.Finals)== 0) p_list with
+    | Some p ->
+      let ranking = Heat.ranking ~st ~phase:(Phase.id p) in
+      let r = begin match ranking with
+        | Singles {leaders; follows} ->
+          let r = begin match role with
+            | Leader -> Ranking.Res.ranking leaders
+            | Follower -> Ranking.Res.ranking follows
+          end in r
+        | Couples {couples} -> Ranking.Res.ranking couples
+      end in
+      let n = Array.length r.ranks in
+      let rank_option_list = List.init n (fun i ->
+          let opt = Ranking.One.get r (Rank.of_index i) in
+          let target_opt = Option.map (fun (rank, tid) -> rank, Heat.get_one ~st tid) opt in
+          begin match target_opt with
+            | Some (rank, Target.Any Target.Single ({target;_})) when target == dancer -> Some rank
+            | Some (rank, Target.Any Target.Couple ({leader;_})) when leader == dancer -> Some rank
+            | Some (rank, Target.Any Target.Couple ({follower;_})) when follower == dancer -> Some rank
+            | _ -> None
+          end
+        ) in
+      let rank_option = List.find_opt Option.is_some rank_option_list |> Option.join in
+      begin match rank_option with
+        | Some rank -> Ranked rank
+        | None -> raise Not_found
+      end
+    | None -> Not_present
+  end
+
+let points ~st ~event ~comp ~role result =
+  match Competition.category comp with
+  | Non_competitive _ -> 0
+  | Competitive _ ->
+    let date = Event.start_date (Event.get st event) in
+    let n =
+      match (role : Role.t) with
+      | Leader -> Competition.n_leaders comp
+      | Follower -> Competition.n_follows comp
+    in
+    let placement = placement result in
+    Points.find ~date ~n ~placement
+
+
+let compute ~st ~competition =
+  let phase_list = Phase.find st competition in
+  let get_dancer_set (h:Heat.t) = let leader_list, follower_list = begin match h with
+      | Singles sh ->
+        let _, leader_list, follower_list = Heat.all_single_judgement_targets sh in
+        leader_list, follower_list
+      | Couples ch ->
+        let couple_targets = Heat.all_couple_judgement_targets ch in
+        let single_target_map = Id.Map.map (fun (Target.Couple { leader; follower; }) ->
+            (leader, follower)) couple_targets in
+        let leader_list, follower_list = Id.Map.bindings single_target_map |> List.map snd |> List.split in
+        leader_list, follower_list
+    end in
+    let leader_set = Id.Set.of_list leader_list in
+    let follower_set = Id.Set.of_list follower_list in
+    leader_set, follower_set in
+  let leader_set_list, follower_set_list = List.map (
+      fun p -> let heat = Heat.get ~st ~phase:(Phase.id p) in
+        get_dancer_set heat
+    ) phase_list |> List.split in
+  (* let leader_set = List.fold_left Id.Set.union Id.Set.empty leader_set_list in *)
+  (* let follower_set = List.fold_left Id.Set.union Id.Set.empty follower_set_list in *)
+  (* let leader_phase_map = Id.Set.fold (fun a b -> ) leader_set Id.Map.empty in *)
+  let transpose_dancer_phase = List.fold_left2 (fun acc s p ->
+      let add_to_list key m =
+        let new_list = begin match Id.Map.find_opt key m with
+          | None -> [p]
+          | Some l -> p :: l
+        end in
+        Id.Map.add key new_list m in
+      Id.Set.fold add_to_list s acc
+    ) Id.Map.empty in
+  let leader_map = transpose_dancer_phase leader_set_list phase_list in
+  let follower_map = transpose_dancer_phase follower_set_list phase_list in
+  let make_aux r p_list =
+    begin match List.exists (fun p -> (Round.compare (Phase.round p) r)== 0) p_list with
+      | true -> Present
+      | false -> Not_present
+    end in
+  let make_result p_list  =
+    { prelims=make_aux Round.Prelims p_list;
+      octofinals=make_aux Round.Octofinals p_list;
+      quarterfinals=make_aux Round.Quarterfinals p_list;
+      semifinals=make_aux Round.Semifinals p_list;
+      finals=make_aux Round.Finals p_list; }
+  in
+  let make_t ~st ~role dancer_map =
+    let updated_t = Id.Map.filter_map (fun dancer p_list ->
+        let r = make_result phase_list in
+        Some { r with finals=update_finals ~st ~dancer ~role p_list}
+      ) dancer_map |> Id.Map.bindings in
+    List.iter (fun (dancer, result) ->
+        let comp = Competition.get st competition in
+        let points = points ~st ~event:(Competition.event comp) ~comp ~role result in
+        add ~st ~competition ~dancer ~role ~result ~points
+      ) updated_t
+  in
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[int;]
+    {| DELETE FROM results
+    WHERE competition = ? |}
+    competition;
+  make_t ~st ~role:Role.Leader leader_map;
+  make_t ~st ~role:Role.Follower follower_map;
+  ()

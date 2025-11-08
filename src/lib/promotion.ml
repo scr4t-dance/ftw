@@ -29,6 +29,19 @@ let reason_to_string = function
   | Points_hard -> "Hard"
   | Points_auto -> "Auto"
 
+type t = {
+  competition:Competition.id;
+  dancer:Dancer.id;
+  role : Role.t;
+  current_divisions: Divisions.t;
+  new_divisions: Divisions.t;
+  reason: reason;
+}
+
+let current_divisions {current_divisions;_} = current_divisions
+
+let new_divisions {new_divisions;_} = new_divisions
+
 
 (* Promotion rules *)
 (* ************************************************************************* *)
@@ -140,37 +153,44 @@ let rules =
 
   ]
 
-let update_with_new_result st (result : Results.r) =
+let compute_promotion_from_divs st dancer_divs (result : Results.r) =
   (* Fetch/extract some info *)
+  Logs.debug ~src (fun k -> k "compute_promotion_from_divs dancer %d role %a comp %d" result.dancer Role.print_compact result.role result.competition);
   let competition = Competition.get st result.competition in
   let event = Event.get st (Competition.event competition) in
   let id = result.dancer in
   let dancer = Dancer.get ~st id in
-  let dancer_divs =
-    match result.role with
-    | Leader -> Dancer.as_leader dancer
-    | Follower -> Dancer.as_follower dancer
-  in
+  (* let dancer_divs =
+     match result.role with
+     | Leader -> Dancer.as_leader dancer
+     | Follower -> Dancer.as_follower dancer
+     in *)
   (* lazy computation of cumulative points total by division *)
   let points =
     let novice =
-      lazy (Results.all_points ~st ~dancer:id ~role:result.role ~div:Novice)
+      lazy (Results.all_points_before ~st ~dancer:id ~role:result.role ~div:Novice ~end_date:(Event.end_date event))
     in
     let inter =
-      lazy (Results.all_points ~st ~dancer:id ~role:result.role ~div:Intermediate)
+      lazy (Results.all_points_before ~st ~dancer:id ~role:result.role ~div:Intermediate ~end_date:(Event.end_date event))
     in
     let adv =
-      lazy (Results.all_points ~st ~dancer:id ~role:result.role ~div:Advanced)
+      lazy (Results.all_points_before ~st ~dancer:id ~role:result.role ~div:Advanced ~end_date:(Event.end_date event))
     in
     (fun div ->
        match (div : Division.t) with
-      | Novice -> Lazy.force novice
-      | Intermediate -> Lazy.force inter
-      | Advanced -> Lazy.force adv)
+       | Novice -> let novice_points = result.points + Lazy.force novice in
+         Logs.debug ~src (fun k -> k "Competition %d Dancer %d Role %a Novice points %d" result.competition id Role.print_compact result.role novice_points);
+         novice_points
+       | Intermediate -> let inter_points = result.points + Lazy.force inter in
+         Logs.debug ~src (fun k -> k "Competition %d Dancer %d Role %a Inter points %d" result.competition id Role.print_compact result.role  inter_points);
+         inter_points
+       | Advanced -> let adv_points = result.points + Lazy.force adv in
+         Logs.debug ~src (fun k -> k "Competition %d Dancer %d Role %a Adv points %d" result.competition id Role.print_compact result.role  adv_points);
+         adv_points)
   in
   (* Compute the new division according to the rules *)
-  let new_divs =
-    List.fold_left (fun divs (reason, (rule : rule)) ->
+  let new_divs, promotion_reason =
+    List.fold_left (fun (divs, _) (reason, (rule : rule)) ->
         let new_div : Divisions.t option =
           match rule (Competition.category competition) result points with
           | None -> None
@@ -182,7 +202,7 @@ let update_with_new_result st (result : Results.r) =
             else None
         in
         match new_div with
-        | None -> divs
+        | None -> divs, reason
         | Some new_divs ->
           Logs.debug ~src (fun k->
               k "Promotion (%s)\t%-15s-> %-15s : %a"
@@ -191,14 +211,44 @@ let update_with_new_result st (result : Results.r) =
                 (Divisions.to_string new_divs)
                 Dancer.print_compact dancer
             );
-          new_divs
-      ) dancer_divs (Date.Itm.find_exn rules (Event.start_date event))
+          new_divs, reason
+      ) (dancer_divs, Participation) (Date.Itm.find_exn rules (Event.start_date event))
   in
+  {
+    competition=result.competition;dancer=id;role=result.role;
+    current_divisions=dancer_divs;new_divisions=new_divs;
+    reason=promotion_reason
+  }
+
+let compute_promotion st (result : Results.r) =
+  let get_comp_date c =
+    let competition = Competition.get st c in
+    let event = Event.get st (Competition.event competition) in
+    Event.end_date event in
+  let date_competition = get_comp_date(result.competition) in
+  let competition_participation = Results.find ~st (`Dancer (result.dancer)) in
+  let previous_comps = List.filter (fun (r:Results.r) ->
+      (Role.equal r.role result.role) && (Date.compare (get_comp_date r.competition) date_competition < 0)
+    ) competition_participation in
+  let sorted_previous_comps = List.sort (fun (r1:Results.r) (r2:Results.r) -> Date.compare (get_comp_date r1.competition) (get_comp_date r2.competition)) previous_comps in
+  Logs.debug ~src (fun k -> k "Previous comps for dancer %d role %a : %s"
+                      result.dancer Role.print_compact result.role
+                      (String.concat "," (List.map (fun ({competition;_}: Results.r) -> string_of_int competition) sorted_previous_comps)));
+  let promotion_result = begin match sorted_previous_comps with
+    | [] -> compute_promotion_from_divs st Divisions.None result
+    | first_result :: xs ->
+      (* Logs.debug ~src (fun k -> k "First result for dancer %d role %a : %d %d" result.dancer Role.print_compact result.role first_result.competition first_result.points); *)
+      let first_promotion = compute_promotion_from_divs st Divisions.None first_result in
+      (* Logs.debug ~src (fun k -> k "First promotion for dancer %d role %a : %d %s" result.dancer Role.print_compact result.role first_promotion.competition (Divisions.to_string first_promotion.new_divisions)); *)
+      List.fold_left (fun p r -> compute_promotion_from_divs st (new_divisions p) r)
+        first_promotion (xs @ [result])
+  end in
+  promotion_result
+
+let update_with_new_result st t =
   (* Record the new divisions for the dancer.
      TODO: add a DB SQL table to store promotions. *)
-  if Divisions.equal dancer_divs new_divs then ()
+  if Divisions.equal t.current_divisions t.new_divisions then ()
   else begin
-    Dancer.update_divisions ~st ~dancer:id ~role:result.role ~divs:new_divs
+    Dancer.update_divisions ~st ~dancer:t.dancer ~role:t.role ~divs:t.new_divisions
   end
-
-

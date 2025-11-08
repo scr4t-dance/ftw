@@ -35,7 +35,7 @@ function getDivisionFromDancer(dancer: Dancer, role: Role) {
 }
 
 
-function get_rang(ranking_result: DancerCompetitionResultsResult) {
+export function get_rang(ranking_result: DancerCompetitionResultsResult) {
 
     if (ranking_result.finals.result_type === "ranked") return String(ranking_result.finals.ranked) + "ème";
     if (ranking_result.finals.result_type === "present") return "Finaliste";
