@@ -34,6 +34,35 @@ If the definition changes
   CREATE TABLE division_names (
           id INTEGER PRIMARY KEY,
           name TEXT UNIQUE);
+  CREATE TABLE divisions_names (
+          id INTEGER PRIMARY KEY,
+          name TEXT UNIQUE);
+  CREATE TABLE dancers (
+            id INTEGER PRIMARY KEY,
+            birthday TEXT,
+            last_name TEXT,
+            first_name TEXT,
+            email TEXT,
+            as_leader INTEGER REFERENCES divisions_names(id),
+            as_follower INTEGER REFERENCES divisions_names(id)
+          );
+  CREATE TABLE judging_names (
+          id INTEGER PRIMARY KEY,
+          name TEXT UNIQUE);
+  CREATE TABLE judges (
+            judge_id INTEGER REFERENCES dancers(id),
+            phase_id INTEGER REFERENCES phases(id),
+            judging INTEGER REFERENCES judging_names(id),
+  
+            PRIMARY KEY(judge_id, phase_id)
+          );
+  CREATE TABLE artefacts (
+            target_id INTEGER REFERENCES heats(id),
+            judge INTEGER REFERENCES dancers(id),
+            artefact INTEGER NOT NULL,
+            PRIMARY KEY(target_id,judge)
+            ON CONFLICT REPLACE
+          );
   CREATE TABLE competition_categories (
           id INTEGER PRIMARY KEY,
           name TEXT UNIQUE);
@@ -58,43 +87,6 @@ If the definition changes
             num_followers INTEGER,
             check_divs INTEGER
           );
-  CREATE TABLE divisions_names (
-          id INTEGER PRIMARY KEY,
-          name TEXT UNIQUE);
-  CREATE TABLE dancers (
-            id INTEGER PRIMARY KEY,
-            birthday TEXT,
-            last_name TEXT,
-            first_name TEXT,
-            email TEXT,
-            as_leader INTEGER REFERENCES divisions_names(id),
-            as_follower INTEGER REFERENCES divisions_names(id)
-          );
-  CREATE TABLE results (
-            competition INTEGER REFERENCES competitions(id),
-            dancer INTEGER REFERENCES dancers(id),
-            role INTEGER,
-            result INTEGER,
-            points INTEGER,
-            PRIMARY KEY (competition, dancer, role)
-          );
-  CREATE TABLE judging_names (
-          id INTEGER PRIMARY KEY,
-          name TEXT UNIQUE);
-  CREATE TABLE judges (
-            judge_id INTEGER REFERENCES dancers(id),
-            phase_id INTEGER REFERENCES phases(id),
-            judging INTEGER REFERENCES judging_names(id),
-  
-            PRIMARY KEY(judge_id, phase_id)
-          );
-  CREATE TABLE artefacts (
-            target_id INTEGER REFERENCES heats(id),
-            judge INTEGER REFERENCES dancers(id),
-            artefact INTEGER NOT NULL,
-            PRIMARY KEY(target_id,judge)
-            ON CONFLICT REPLACE
-          );
   CREATE TABLE bonus (
             target_id INTEGER REFERENCES heats(id), -- = target id of judgement
             bonus INTEGER NOT NULL,
@@ -115,6 +107,14 @@ If the definition changes
             heat_number INTEGER NOT NULL,
             leader_id INTEGER REFERENCES dancers(id),
             follower_id INTEGER REFERENCES dancers(id)
+          );
+  CREATE TABLE results (
+            competition INTEGER REFERENCES competitions(id),
+            dancer INTEGER REFERENCES dancers(id),
+            role INTEGER,
+            result INTEGER,
+            points INTEGER,
+            PRIMARY KEY (competition, dancer, role)
           );
   CREATE TABLE bibs (
             dancer_id INTEGER REFERENCES dancers(id),
