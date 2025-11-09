@@ -54,22 +54,22 @@ function NonCompetitiveHistoryTable({ dancer_competition_results_list, competiti
         <>
             <table>
                 <thead>
-                    <tr>
+                    <tr className="competition_table_header">
                         <th>Compétition</th>
                         <th>Date</th>
-                        <th></th>
-                        <th>Points</th>
+                        <th>Type</th>
+                        <th>Rang</th>
                     </tr>
                 </thead>
                 <tbody>
                     {Array.from(dancer_competition_results_list_per_category.keys()).map((categoryItem) => (
                         <>
-                            <tr>
+                            <tr className="competition_history_table_division_separator">
                                 <th colSpan={4}>{categoryItem}</th>
                             </tr>
                             {dancer_competition_results_list_per_category.get(categoryItem)?.map((dcr, index) => (
 
-                                <tr>
+                                <tr className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
                                     <NonCompetitiveHistoryRow dancer_competition_results={dcr} competition_data={competition_data_per_category.get(categoryItem)?.[index] as Competition} />
                                 </tr>
                             ))}
@@ -138,7 +138,7 @@ function CompetitiveHistoryTable({ dancer_competition_results_list, competition_
         <>
             <table>
                 <thead>
-                    <tr>
+                    <tr className="competition_table_header">
                         <th>Compétition</th>
                         <th>Date</th>
                         <th>Rang</th>
@@ -148,15 +148,18 @@ function CompetitiveHistoryTable({ dancer_competition_results_list, competition_
                 <tbody>
                     {Array.from(dancer_competition_results_list_per_category.keys()).map((categoryItem) => (
                         <>
-                            <tr>
+                            <tr className="competition_history_table_division_separator">
                                 <th colSpan={3}>{categoryItem}</th>
                                 <th>
-                                    Total=
                                     {dancer_competition_results_list_per_category.get(categoryItem)?.reduce((n, { points }) => n + points, 0)}
                                 </th>
                             </tr>
                             {dancer_competition_results_list_per_category.get(categoryItem)?.map((dcr, index) => (
-
+                                <tr className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+                                    <CompetitiveHistoryRow dancer_competition_results={dcr} competition_data={competition_data_per_category.get(categoryItem)?.[index] as Competition} />
+                                </tr>
+                            ))}
+                            {dancer_competition_results_list_per_category.get(categoryItem)?.map((dcr, index) => (
                                 <tr>
                                     <CompetitiveHistoryRow dancer_competition_results={dcr} competition_data={competition_data_per_category.get(categoryItem)?.[index] as Competition} />
                                 </tr>
@@ -204,9 +207,9 @@ function InnerCompetitionHistoryTable({ id_dancer, dancer_competition_results_li
     if (isError) return <div>{error.message}</div>;
 
     return (
-        <>
+        <div className="competition_history">
             {Array.from(competition_list_per_role.keys()).map((role) => (
-                <>
+                <div className="competition_history_role">
                     <h2>
                         {role}
                         <Badge role={role.toString()} divisions={getDivisionFromDancer(dataDancer as Dancer, [role])} />
@@ -215,10 +218,10 @@ function InnerCompetitionHistoryTable({ id_dancer, dancer_competition_results_li
                         dancer_competition_results_list={{ results: competition_list_per_role.get(role) } as DancerCompetitionResultsList}
                         competition_data={competition_data_per_role.get(role) as Competition[]}
                     />
-                </>
+                </div>
 
             ))}
-        </>
+        </div>
     );
 }
 
