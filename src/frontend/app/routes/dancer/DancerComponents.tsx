@@ -23,7 +23,7 @@ export function Badge({ role, divisions }: { role: string, divisions: Divisions 
     const badge_color = divisionColors[divisions[0]].slice(1);
 
     return (
-        <img alt={`${role}-${divisions}`} src={`https://img.shields.io/badge/${role}-${divisions}-${badge_color}`} />
+        <img className="role_badge" alt={`${role}-${divisions}`} src={`https://img.shields.io/badge/${role}-${divisions}-${badge_color}`} />
     );
 }
 
@@ -158,7 +158,7 @@ export function DancerPagePublicComponent({ dancer, id_dancer }: { dancer: Dance
             </p>
             <p>Division leader : <Badge role='Leader' divisions={dancer.as_leader} />
             </p>
-            <h1>List de compétitions: </h1>
+            <h1>Liste des compétitions</h1>
             <DancerCompetitionHistory />
 
         </>
