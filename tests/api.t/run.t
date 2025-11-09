@@ -105,6 +105,12 @@ Update a phase
   $ curl -s localhost:8081/api/phase/2
   {"message":"Phase not found"}
 
+
+  $ curl -s -X PUT localhost:8081/api/phase \
+  > -H "Content-Type: application/json" \
+  > -d '{"competition":2,"round":["Finals"],"judge_artefact_descr":{"artefact":"ranking","artefact_data":null},"head_judge_artefact_descr":{"artefact":"ranking","artefact_data":null}, "ranking_algorithm":{"algorithm":"ranking", "algorithm_name":"RPSS"}}'
+  2
+
 Dancer Management
 -----------------
 
@@ -158,13 +164,24 @@ create some bibs
   > -d '{"competition":2, "bib":101, "target":{"target_type":"single","target":1,"role":["Leader"]}}'
   {"dancers":[1]}
 
+
+  $ curl -s -X PUT localhost:8081/api/comp/2/bib \
+  > -H "Content-Type: application/json" \
+  > -d '{"competition":2, "bib":102, "target":{"target_type":"single","target":3,"role":["Leader"]}}'
+  {"dancers":[3]}
+
+  $ curl -s -X PUT localhost:8081/api/comp/2/bib \
+  > -H "Content-Type: application/json" \
+  > -d '{"competition":2, "bib":204, "target":{"target_type":"single","target":4,"role":["Follower"]}}'
+  {"dancers":[4]}
+
 get bibs
 
   $ curl -s localhost:8081/api/comp/2/bibs
-  {"bibs":[{"competition":2,"bib":101,"target":{"target_type":"single","target":1,"role":["Leader"]}},{"competition":2,"bib":201,"target":{"target_type":"single","target":2,"role":["Follower"]}}]}
+  {"bibs":[{"competition":2,"bib":101,"target":{"target_type":"single","target":1,"role":["Leader"]}},{"competition":2,"bib":102,"target":{"target_type":"single","target":3,"role":["Leader"]}},{"competition":2,"bib":201,"target":{"target_type":"single","target":2,"role":["Follower"]}},{"competition":2,"bib":204,"target":{"target_type":"single","target":4,"role":["Follower"]}}]}
 
   $ curl -s localhost:8081/api/comp/2/bibs
-  {"bibs":[{"competition":2,"bib":101,"target":{"target_type":"single","target":1,"role":["Leader"]}},{"competition":2,"bib":201,"target":{"target_type":"single","target":2,"role":["Follower"]}}]}
+  {"bibs":[{"competition":2,"bib":101,"target":{"target_type":"single","target":1,"role":["Leader"]}},{"competition":2,"bib":102,"target":{"target_type":"single","target":3,"role":["Leader"]}},{"competition":2,"bib":201,"target":{"target_type":"single","target":2,"role":["Follower"]}},{"competition":2,"bib":204,"target":{"target_type":"single","target":4,"role":["Follower"]}}]}
 
   $ curl -s localhost:8081/api/dancer/2/competition_history
   {"competitions":[2]}
@@ -177,12 +194,16 @@ add panel with no head
 
   $ curl -s -X PUT localhost:8081/api/phase/1/judges \
   > -H "Content-Type: application/json" \
-  > -d '{"panel_type": "single", "leaders": {"dancers":[1]}, followers : {"dancers":[2]}, "head":null}'
+  > -d '{"panel_type": "single", "leaders": {"dancers":[1]}, "followers" : {"dancers":[2]}, "head":null}'
   1
 
   $ curl -s localhost:8081/api/phase/1/judges
   {"panel_type":"single","panel_type":"single","leaders":{"dancers":[1]},"followers":{"dancers":[2]},"head":null}
 
+  $ curl -s -X PUT localhost:8081/api/phase/2/judges \
+  > -H "Content-Type: application/json" \
+  > -d '{"panel_type": "couple", "couples": {"dancers":[1,2]}, "head":null}'
+  2
 
 Heats management
 ----------------
@@ -196,7 +217,24 @@ init heats with bib from competition
 
 get heats
   $ curl -s localhost:8081/api/phase/1/heats
-  {"heat_type":"single","heat_type":"single","heats":[{"followers":[],"leaders":[]},{"followers":[{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":1,"role":["Leader"]}]}]}
+  {"heat_type":"single","heat_type":"single","heats":[{"followers":[],"leaders":[]},{"followers":[{"target_type":"single","target":4,"role":["Follower"]},{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":3,"role":["Leader"]},{"target_type":"single","target":1,"role":["Leader"]}]}]}
+
+move target to new heat
+  $ curl -s -X DELETE localhost:8081/api/phase/1/heat_target \
+  > -H "Content-Type: application/json" \
+  > -d '{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":3,"role":["Leader"]},"judge":0,"description":{"artefact":"yan","artefact_data":["overall"]}}'
+  1
+
+
+  $ curl -s -X PUT localhost:8081/api/phase/1/heat_target \
+  > -H "Content-Type: application/json" \
+  > -d '{"phase_id":1,"heat_number":3,"target":{"target_type":"single","target":3,"role":["Leader"]},"judge":0,"description":{"artefact":"yan","artefact_data":["overall"]}}'
+  5
+
+
+  $ curl -s localhost:8081/api/phase/1/heats
+  {"heat_type":"single","heat_type":"single","heats":[{"followers":[],"leaders":[]},{"followers":[{"target_type":"single","target":4,"role":["Follower"]},{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":1,"role":["Leader"]}]},{"followers":[],"leaders":[]},{"followers":[],"leaders":[{"target_type":"single","target":3,"role":["Leader"]}]}]}
+
 
 Artefacts
 ---------
@@ -204,10 +242,10 @@ Artefacts
 Get empty artefacts
 
   $ curl -s localhost:8081/api/phase/1/artefact/judge/1
-  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null}]}
+  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null},{"heat_target_judge":{"phase_id":1,"heat_number":3,"target":{"target_type":"single","target":3,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null}]}
 
   $ curl -s localhost:8081/api/phase/1/artefact/judge/2
-  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":2,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null}]}
+  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":4,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null},{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":2,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null}]}
 
 set artefact
 
@@ -216,11 +254,84 @@ set artefact
 
   $ curl -s -X PUT localhost:8081/api/phase/1/artefact/judge/1 \
   > -H "Content-Type: application/json" \
-  > -d '{"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type": "yan","artefact_data": [["No"]]}}]}'
-  {"dancers":[1]}
+  > -d '{"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type": "yan","artefact_data": [["No"]]}},{"heat_target_judge":{"phase_id":1,"heat_number":3,"target":{"target_type":"single","target":3,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type": "yan","artefact_data": [["Yes"]]}}]}'
+  {"dancers":[1,1]}
 
   $ curl -s localhost:8081/api/phase/1/artefact/judge/1
-  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type":"yan","artefact_data":[["No"]]}}]}
+  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type":"yan","artefact_data":[["No"]]}},{"heat_target_judge":{"phase_id":1,"heat_number":3,"target":{"target_type":"single","target":3,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type":"yan","artefact_data":[["Yes"]]}}]}
+
+
+Promote dancers to next phase
+-----------------------------
+
+add artefact for complete data
+  $ curl -s -X PUT localhost:8081/api/phase/1/artefact/judge/2 \
+  > -H "Content-Type: application/json" \
+  > -d '{"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":2,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type": "yan","artefact_data": [["Yes"]]}}]}'
+  {"dancers":[2]}
+
+  $ curl -s -X PUT localhost:8081/api/phase/1/artefact/judge/2 \
+  > -H "Content-Type: application/json" \
+  > -d '{"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":4,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type": "yan","artefact_data": [["Alt"]]}}]}'
+  {"dancers":[2]}
+
+
+  $ curl -s localhost:8081/api/phase/1/artefact/judge/2
+  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":4,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type":"yan","artefact_data":[["Alt"]]}},{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":2,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type":"yan","artefact_data":[["Yes"]]}}]}
+
+get rankings
+
+  $ curl -s localhost:8081/api/phase/1/ranking
+  {"target_type":"single","target_type":"single","leaders":{"ranks":[{"ranking_type":"yan","ranking_type":"yan","target":{"target_type":"single","target":3,"role":["Leader"]},"rank":1,"score":3.0},{"ranking_type":"yan","ranking_type":"yan","target":{"target_type":"single","target":1,"role":["Leader"]},"rank":2,"score":1.0}]},"followers":{"ranks":[{"ranking_type":"yan","ranking_type":"yan","target":{"target_type":"single","target":2,"role":["Follower"]},"rank":1,"score":3.0},{"ranking_type":"yan","ranking_type":"yan","target":{"target_type":"single","target":4,"role":["Follower"]},"rank":2,"score":2.0}]}}
+
+promote to next phase
+
+  $ curl -s -X PUT localhost:8081/api/phase/1/promote \
+  > -H "Content-Type: application/json" \
+  > -d '{"number_of_targets_to_promote":1}'
+  2
+
+  $ curl -s localhost:8081/api/phase/2/singles_heats
+  {"heat_type":"single","heat_type":"single","heats":[{"followers":[{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":3,"role":["Leader"]}]}]}
+
+add couple bibs to heat
+
+  $ curl -s -X PUT localhost:8081/api/comp/2/bib \
+  > -H "Content-Type: application/json" \
+  > -d '{"competition":2, "bib":102201, "target":{"target_type":"couple","leader":3,"follower":2}}'
+  {"dancers":[3,2]}
+
+
+  $ curl -s -X PUT localhost:8081/api/phase/2/heat_target \
+  > -H "Content-Type: application/json" \
+  > -d '{"phase_id":1,"heat_number":1,"target":{"target_type":"couple","leader":3,"follower":2},"judge":0,"description":{"artefact":"yan","artefact_data":["overall"]}}'
+  8
+
+  $ curl -s localhost:8081/api/phase/2/heats
+  {"heat_type":"couple","heat_type":"couple","heats":[{"couples":[]},{"couples":[{"target_type":"couple","leader":3,"follower":2}]}]}
+
+Promotion
+---------
+
+add finals artefacts
+
+  $ curl -s -X PUT localhost:8081/api/phase/2/artefact/judge/1 \
+  > -H "Content-Type: application/json" \
+  > -d '{"artefacts":[{"heat_target_judge":{"phase_id":2,"heat_number":1,"target":{"target_type":"couple","leader":3,"follower":2},"judge":1,"description":{"artefact":"ranking","artefact_data":null}},"artefact":{"artefact_type": "ranking","artefact_data": 1}}]}'
+  {"dancers":[1]}
+
+
+  $ curl -s -X PUT localhost:8081/api/phase/2/artefact/judge/2 \
+  > -H "Content-Type: application/json" \
+  > -d '{"artefacts":[{"heat_target_judge":{"phase_id":2,"heat_number":1,"target":{"target_type":"couple","leader":3,"follower":2},"judge":2,"description":{"artefact":"ranking","artefact_data":null}},"artefact":{"artefact_type": "ranking","artefact_data": 1}}]}'
+  {"dancers":[2]}
+
+get rankings
+
+  $ curl -s localhost:8081/api/phase/2/ranking
+  {"target_type":"couple","target_type":"couple","couples":{"ranks":[{"ranking_type":"rpss","ranking_type":"rpss","target":{"target_type":"couple","leader":3,"follower":2},"rank":1,"ranking_details":["--"]}]}}
+
+promote (TODO)
 
 
 End & Cleanup
