@@ -153,12 +153,7 @@ export function DancerPagePublicComponent({ dancer, id_dancer }: { dancer: Dance
 
     return (
         <>
-            <h1>{dancer.last_name}, {dancer.first_name}</h1>
-            <p>Division follower : <Badge role='Follower' divisions={dancer.as_follower} />
-            </p>
-            <p>Division leader : <Badge role='Leader' divisions={dancer.as_leader} />
-            </p>
-            <h1>Liste des compétitions</h1>
+            <h1 className="dancer_name">{dancer.first_name}, {dancer.last_name}</h1>
             <DancerCompetitionHistory />
 
         </>

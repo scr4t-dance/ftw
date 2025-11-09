@@ -243,6 +243,11 @@ table th {
 
 /* COMPETITION HISTORY */
 
+.dancer_name {
+    margin: 50px 0 0px 0;
+    padding-left: 10px;
+}
+
 .competition_history {
     display: flex;
     width: 100%;
@@ -252,6 +257,17 @@ table th {
     display: block;
     padding: 10px;
     width: 50%;
+}
+
+.competition_history_role h2 {
+    margin: 10px 0;
+    font-weight: 500;
+}
+
+.competition_history_role h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.6rem;
+    font-weight: 400;
 }
 
 .competition_table_header {
