@@ -69,7 +69,7 @@ function NonCompetitiveHistoryTable({ dancer_competition_results_list, competiti
                             </tr>
                             {dancer_competition_results_list_per_category.get(categoryItem)?.map((dcr, index) => (
 
-                                <tr className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
+                                <tr className={`${index % 2 === 0 ? 'odd-row' : 'even-row'}`}>
                                     <NonCompetitiveHistoryRow dancer_competition_results={dcr} competition_data={competition_data_per_category.get(categoryItem)?.[index] as Competition} />
                                 </tr>
                             ))}
@@ -155,12 +155,7 @@ function CompetitiveHistoryTable({ dancer_competition_results_list, competition_
                                 </th>
                             </tr>
                             {dancer_competition_results_list_per_category.get(categoryItem)?.map((dcr, index) => (
-                                <tr className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
-                                    <CompetitiveHistoryRow dancer_competition_results={dcr} competition_data={competition_data_per_category.get(categoryItem)?.[index] as Competition} />
-                                </tr>
-                            ))}
-                            {dancer_competition_results_list_per_category.get(categoryItem)?.map((dcr, index) => (
-                                <tr>
+                                <tr className={`${index % 2 === 0 ? 'odd-row' : 'even-row'}`}>
                                     <CompetitiveHistoryRow dancer_competition_results={dcr} competition_data={competition_data_per_category.get(categoryItem)?.[index] as Competition} />
                                 </tr>
                             ))}
@@ -185,12 +180,23 @@ function BareCompetitionHistoryTable({ dancer_competition_results_list, competit
     const dcr_noncompetitive = dancer_competition_results_list.results.filter((r, index) => !is_competitive(competition_data[index]))
     const comp_noncompetitive = competition_data.filter((r, index) => !is_competitive(competition_data[index]))
 
+    console.log("comp_competitive:", comp_competitive.length)
+    console.log("comp_noncompetitive:", comp_noncompetitive.length)
+
     return (
         <>
-            <h2>SCR4T</h2>
-            <CompetitiveHistoryTable dancer_competition_results_list={{ results: dcr_competitive }} competition_data={comp_competitive} />
-            <h2>Non-SCR4T</h2>
-            <NonCompetitiveHistoryTable dancer_competition_results_list={{ results: dcr_noncompetitive }} competition_data={comp_noncompetitive} />
+            {comp_competitive.length > 0 && (
+                <>
+                    <h3>SCR4T</h3>
+                    <CompetitiveHistoryTable dancer_competition_results_list={{ results: dcr_competitive }} competition_data={comp_competitive} />
+                </>
+            )}
+            {comp_noncompetitive.length > 0 && (
+                <>
+                    <h3>Non-SCR4T</h3>
+                    <NonCompetitiveHistoryTable dancer_competition_results_list={{ results: dcr_noncompetitive }} competition_data={comp_noncompetitive} />
+                </>
+            )}
         </>
     );
 }
