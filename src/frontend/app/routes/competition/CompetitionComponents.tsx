@@ -5,7 +5,12 @@ import { useQueries } from "@tanstack/react-query";
 
 import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
 import { useGetApiEventIdComps } from "@hookgen/event/event";
-import { type Competition, type CompetitionIdList, type EventId } from "@hookgen/model";
+import { type Competition, type CompetitionId, type CompetitionIdList, type DancerCompetitionResults, type DancerCompetitionResultsList, type Divisions, type EventId, type Promotion, type PromotionList } from "@hookgen/model";
+import { get_rang } from '../dancer/DancerCompetitionHistory';
+import { DancerCell } from '../bib/BibComponents';
+import { Badge } from '../dancer/DancerComponents';
+import { getGetApiCompIdPromotionsQueryKey, getGetApiCompIdResultsQueryKey, usePutApiCompIdPromotions } from '~/hookgen/results/results';
+import { queryClient } from '~/queryClient';
 
 export function CompetitionTable({ competition_id_list, competition_data_list }: { competition_id_list: CompetitionIdList, competition_data_list: Competition[] }) {
 
@@ -98,6 +103,99 @@ export function EventCompetitionListComponent({ id_event }: { id_event: EventId 
   return (
     <>
       <CompetitionTableComponent id_event={id_event} competition_id_list={competitionList as CompetitionIdList} />
+    </>
+  );
+}
+
+export function CompetitionNavigation({ url }: { url: string }) {
+
+  return (
+    <>
+      <p>
+        <Link to={`${url}phases`}>
+          Phases
+        </Link>
+      </p>
+      <p>
+        <Link to={`${url}bibs`}>
+          Bibs
+        </Link>
+      </p>
+      <p>
+        <Link to={`${url}phases/new`}>
+          Création Phase
+        </Link>
+      </p>
+      <p>
+        <Link to={`${url}promotions`}>
+          Résultats/Promotions
+        </Link>
+      </p>
+    </>
+  );
+
+}
+
+export function CompetitionResults({ id_competition, results_data, promotions_data }: { id_competition:CompetitionId, results_data: DancerCompetitionResultsList, promotions_data: PromotionList }) {
+
+  const same_comp_dancer_role = (dcr: DancerCompetitionResults, p: Promotion) =>
+    dcr.competition === p.competition && dcr.dancer === p.dancer && dcr.role[0] === p.role[0];
+
+  const { mutate: updateCompetition, isError, error, isSuccess } = usePutApiCompIdPromotions({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: getGetApiCompIdPromotionsQueryKey(id_competition),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getGetApiCompIdResultsQueryKey(id_competition),
+        });
+      },
+      onError: (err) => {
+        console.error('Error updating competition:', err);
+      }
+    }
+  });
+
+  return (
+    <>
+
+      <button type="button" onClick={() => updateCompetition({id:id_competition, data:undefined})}>Calculer les promotions</button>
+      {isError && <div className="error_message">⚠️ {error.message}</div>}
+      {isSuccess && <div>Promotions réussies</div>}
+      <h1>Resultats compétition</h1>
+      <table>
+        <tbody>
+          <tr>
+            <th>Dancer</th>
+            <th>Role</th>
+            <th>Rang</th>
+            <th>Points</th>
+            <th>Ancienne division</th>
+            <th>Promotion à ?</th>
+          </tr>
+          {results_data.results.sort((a, b) => b.points - a.points).map((dcr, index) => (
+            <tr key={index}>
+              <td>
+                <DancerCell id_dancer={dcr.dancer} />
+              </td>
+              <td>{dcr.role}</td>
+              <td>{get_rang(dcr.result)}</td>
+              <td>{dcr.points}</td>
+              <td>
+                {promotions_data.promotions?.find(p => same_comp_dancer_role(dcr, p)) &&
+                  <Badge role={dcr.role.toString()} divisions={promotions_data.promotions?.find(p => same_comp_dancer_role(dcr, p))?.current_divisions as Divisions} />
+                }
+              </td>
+              <td>
+                {promotions_data.promotions?.find(p => same_comp_dancer_role(dcr, p)) &&
+                  <Badge role={dcr.role.toString()} divisions={promotions_data.promotions?.find(p => same_comp_dancer_role(dcr, p))?.new_divisions as Divisions} />
+                }
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </>
   );
 }

@@ -19,9 +19,14 @@ import {
 import {
   getGetApiPhaseIdJudgesQueryKey, getGetApiPhaseIdJudgesQueryOptions,
   getApiPhaseIdJudges
-} from "./hookgen/judge/judge";
+} from "@hookgen/judge/judge";
 import { getApiPhaseIdHeats, getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdHeatsQueryOptions } from "./hookgen/heat/heat";
 import { getApiDancers, getGetApiDancersQueryKey, getGetApiDancersQueryOptions } from "./hookgen/dancer/dancer";
+import {
+  getApiCompIdPromotions, getApiCompIdResults,
+  getGetApiCompIdPromotionsQueryKey, getGetApiCompIdPromotionsQueryOptions,
+  getGetApiCompIdResultsQueryKey, getGetApiCompIdResultsQueryOptions
+} from "@hookgen/results/results";
 
 
 export const queryClient = new QueryClient({
@@ -275,5 +280,25 @@ export const dancerListLoader = createLoader({
   fetchServer: (_) => getApiDancers(),
   getQueryKey: (_) => getGetApiDancersQueryKey(),
   getQueryOptions: (_) => getGetApiDancersQueryOptions(),
+  queryClient,
+});
+
+export const resultsLoader = createLoader({
+  idKey: "id_competition",
+  dataKey: "results_data",
+  idParser: (param: string) => Number(param) as CompetitionId,
+  fetchServer: getApiCompIdResults,
+  getQueryKey: getGetApiCompIdResultsQueryKey,
+  getQueryOptions: getGetApiCompIdResultsQueryOptions,
+  queryClient,
+});
+
+export const promotionsLoader = createLoader({
+  idKey: "id_competition",
+  dataKey: "promotions_data",
+  idParser: (param: string) => Number(param) as CompetitionId,
+  fetchServer: getApiCompIdPromotions,
+  getQueryKey: getGetApiCompIdPromotionsQueryKey,
+  getQueryOptions: getGetApiCompIdPromotionsQueryOptions,
   queryClient,
 });

@@ -334,6 +334,28 @@ get rankings
 promote (TODO)
 
 
+Compute ranks
+-------------
+
+  $ curl -s localhost:8081/api/phase/2/ranking
+  {"target_type":"couple","target_type":"couple","couples":{"ranks":[{"ranking_type":"rpss","ranking_type":"rpss","target":{"target_type":"couple","leader":3,"follower":2},"rank":1,"ranking_details":["--"]}]}}
+
+Promote
+-------
+
+  $ curl -s localhost:8081/api/comp/2/results
+  {"results":[]}
+
+  $ curl -s -X PUT localhost:8081/api/comp/2/promotions
+
+  $ curl -s localhost:8081/api/comp/2/promotions
+  {"promotions":[{"competition":2,"dancer":1,"role":["Leader"],"current_divisions":["None"],"new_divisions":["Novice"],"reason":"Participation"},{"competition":2,"dancer":2,"role":["Follower"],"current_divisions":["None"],"new_divisions":["Intermediate"],"reason":"Participation"},{"competition":2,"dancer":3,"role":["Leader"],"current_divisions":["None"],"new_divisions":["Intermediate"],"reason":"Participation"},{"competition":2,"dancer":3,"role":["Follower"],"current_divisions":["None"],"new_divisions":["Novice"],"reason":"Participation"},{"competition":2,"dancer":4,"role":["Follower"],"current_divisions":["None"],"new_divisions":["Novice"],"reason":"Participation"}]}
+
+
+
+  $ curl -s localhost:8081/api/comp/2/results
+  {"results":[{"competition":2,"dancer":1,"role":["Leader"],"result":{"prelims":{"present":true,"result_type":"present"},"octofinals":{"present":false,"result_type":"not_present"},"quarterfinals":{"present":false,"result_type":"not_present"},"semifinals":{"present":false,"result_type":"not_present"},"finals":{"present":false,"result_type":"not_present"}},"points":0},{"competition":2,"dancer":2,"role":["Follower"],"result":{"prelims":{"present":true,"result_type":"present"},"octofinals":{"present":false,"result_type":"not_present"},"quarterfinals":{"present":false,"result_type":"not_present"},"semifinals":{"present":false,"result_type":"not_present"},"finals":{"ranked":1,"result_type":"ranked"}},"points":7},{"competition":2,"dancer":3,"role":["Leader"],"result":{"prelims":{"present":true,"result_type":"present"},"octofinals":{"present":false,"result_type":"not_present"},"quarterfinals":{"present":false,"result_type":"not_present"},"semifinals":{"present":false,"result_type":"not_present"},"finals":{"ranked":1,"result_type":"ranked"}},"points":7},{"competition":2,"dancer":3,"role":["Follower"],"result":{"prelims":{"present":true,"result_type":"present"},"octofinals":{"present":false,"result_type":"not_present"},"quarterfinals":{"present":false,"result_type":"not_present"},"semifinals":{"present":false,"result_type":"not_present"},"finals":{"present":false,"result_type":"not_present"}},"points":0},{"competition":2,"dancer":4,"role":["Follower"],"result":{"prelims":{"present":true,"result_type":"present"},"octofinals":{"present":false,"result_type":"not_present"},"quarterfinals":{"present":false,"result_type":"not_present"},"semifinals":{"present":false,"result_type":"not_present"},"finals":{"present":false,"result_type":"not_present"}},"points":0}]}
+
 End & Cleanup
 -------------
 
