@@ -72,7 +72,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'eval $(opam env) && cd ../.. && make run',
+    command: 'cd ../.. && eval $(opam env) && opam switch show && make run',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     gracefulShutdown: { signal: 'SIGTERM', timeout: 500 },
