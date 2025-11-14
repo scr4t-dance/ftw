@@ -1,16 +1,21 @@
 
 import React from 'react';
 import { Link, useLocation } from "react-router";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 
-import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
+import { getGetApiCompIdQueryOptions, useGetApiCompId } from '@hookgen/competition/competition';
 import { useGetApiEventIdComps } from "@hookgen/event/event";
-import { type Competition, type CompetitionId, type CompetitionIdList, type DancerCompetitionResults, type DancerCompetitionResultsList, type Divisions, type EventId, type Promotion, type PromotionList } from "@hookgen/model";
+import { type Competition, type CompetitionId, type CompetitionIdList, type DancerCompetitionResults, type DancerCompetitionResultsList, type Divisions, type EventId, type PhaseIdList, type Promotion, type PromotionList } from "@hookgen/model";
 import { get_rang } from '../dancer/DancerCompetitionHistory';
-import { DancerCell } from '../bib/BibComponents';
+import { BibListComponent, DancerCell, PublicBibList } from '../bib/BibComponents';
 import { Badge } from '../dancer/DancerComponents';
 import { getGetApiCompIdPromotionsQueryKey, getGetApiCompIdResultsQueryKey, usePutApiCompIdPromotions } from '~/hookgen/results/results';
-import { queryClient } from '~/queryClient';
+import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
+import { NewBibFormComponent } from '../bib/NewBibFormComponent';
+import { useGetApiCompIdPhases } from '~/hookgen/phase/phase';
+import { PhaseList } from '../phase/PhaseComponents';
+import { NewPhaseFormComponent } from '../phase/NewPhaseForm';
+import { useGetApiDancers } from '~/hookgen/dancer/dancer';
 
 export function CompetitionTable({ competition_id_list, competition_data_list }: { competition_id_list: CompetitionIdList, competition_data_list: Competition[] }) {
 
@@ -136,7 +141,9 @@ export function CompetitionNavigation({ url }: { url: string }) {
 
 }
 
-export function CompetitionResults({ id_competition, results_data, promotions_data }: { id_competition:CompetitionId, results_data: DancerCompetitionResultsList, promotions_data: PromotionList }) {
+export function CompetitionResults({ id_competition, results_data, promotions_data }: { id_competition: CompetitionId, results_data: DancerCompetitionResultsList, promotions_data: PromotionList }) {
+
+  const queryClient = useQueryClient();
 
   const same_comp_dancer_role = (dcr: DancerCompetitionResults, p: Promotion) =>
     dcr.competition === p.competition && dcr.dancer === p.dancer && dcr.role[0] === p.role[0];
@@ -160,7 +167,7 @@ export function CompetitionResults({ id_competition, results_data, promotions_da
   return (
     <>
 
-      <button type="button" onClick={() => updateCompetition({id:id_competition, data:undefined})}>Calculer les promotions</button>
+      <button type="button" onClick={() => updateCompetition({ id: id_competition, data: undefined })}>Calculer les promotions</button>
       {isError && <div className="error_message">⚠️ {error.message}</div>}
       {isSuccess && <div>Promotions réussies</div>}
       <h1>Resultats compétition</h1>
@@ -196,6 +203,58 @@ export function CompetitionResults({ id_competition, results_data, promotions_da
           ))}
         </tbody>
       </table>
+    </>
+  );
+}
+
+
+export default function CompetitionDetailsComponent({ id_competition, isAdmin }: { id_competition: CompetitionId, isAdmin: boolean }) {
+
+  const { data: competition, isLoading: isLoadingCompetition, isError: isErrorCompetition } = useGetApiCompId(id_competition)
+  const { data: bibs_list, isLoading: isLoadingBibs, isError: isErrorBibs } = useGetApiCompIdBibs(id_competition);
+
+  const { data: phase_list } = useGetApiCompIdPhases(id_competition);
+  const { data: dancer_list} = useGetApiDancers();
+
+  if (isLoadingCompetition) return (<div>Chargement de la competition</div>);
+  if (isErrorCompetition) return (<div>Erreur chargement de la competition</div>);
+
+  if (isLoadingBibs) return (<div>Chargement des dossards</div>);
+  if (!bibs_list || isErrorBibs) return (<div>Erreur chargement des dossards</div>);
+
+  if(!dancer_list) return (<div>Chargement liste danseurs</div>)
+
+  //const url = `/events/${loaderData.id_event}/competitions/${loaderData.id_competition}`;
+  const url = "";
+
+  return (
+    <>
+      <h1>Compétition {competition?.name}</h1>
+      <p>Type : {competition?.kind}</p>
+      <p>Catégorie : {competition?.category}</p>
+      {!isAdmin &&
+        <>
+
+          <h2>Dossards solo</h2>
+          <PublicBibList bib_list={bibs_list.bibs.filter((b) => b.target.target_type === "single")} />
+          <h2>Dossards couples</h2>
+          <PublicBibList bib_list={bibs_list.bibs.filter((b) => b.target.target_type === "couple")} />
+        </>
+      }
+
+      {isAdmin &&
+        <>
+          <h1>Compétition {competition?.name}</h1>
+          <CompetitionNavigation url={url} />
+          <p>Type : {competition?.kind}</p>
+          <p>Catégorie : {competition?.category}</p>
+          <PhaseList id_competition={id_competition} competition_data={competition as Competition} phase_list={phase_list as PhaseIdList} />
+          <NewPhaseFormComponent id_competition={id_competition} />
+          <BibListComponent id_competition={id_competition} />
+          <NewBibFormComponent id_competition={id_competition} bibs_list={bibs_list} dancer_list={dancer_list} />
+        </>
+      }
+
     </>
   );
 }

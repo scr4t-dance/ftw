@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router";
-import type { ArtefactDescription, Competition, CompetitionId, Phase, PhaseIdList } from "@hookgen/model";
+import type { ArtefactDescription, Competition, CompetitionId, Phase, PhaseId, PhaseIdList } from "@hookgen/model";
 import { useGetApiCompIdPhases, useGetApiPhaseId } from "@hookgen/phase/phase";
 import ArtefactDescriptionComponent from "@routes/phase/ArtefactDescription";
+import { useGetApiCompId } from "~/hookgen/competition/competition";
 
 
 
@@ -53,7 +54,7 @@ export function PhaseDetails({ id, competition_id, competition_data, index }: { 
     );
 }
 
-export function PhaseListComponent({ id_competition, competition_data, phase_list }: { id_competition: CompetitionId, competition_data: Competition, phase_list: PhaseIdList }) {
+export function PhaseList({ id_competition, competition_data, phase_list }: { id_competition: CompetitionId, competition_data: Competition, phase_list: PhaseIdList }) {
 
     return (
         <>
@@ -75,6 +76,28 @@ export function PhaseListComponent({ id_competition, competition_data, phase_lis
             </table>
         </>
     );
+}
+
+export function PhaseListComponent({ id_competition }: { id_competition: CompetitionId }) {
+
+    const { data: competition_data, isLoading, isError, error, isSuccess: isSuccessCompetition } = useGetApiCompId(
+        id_competition,
+    );
+
+    const { data: phase_list, isSuccess: isSuccessPhases } = useGetApiCompIdPhases(id_competition);
+
+    if (isLoading) return <div>Chargement des compétitions...</div>;
+    if (isError) return <div>Erreur: {error.message}</div>;
+
+    if (!isSuccessPhases) return (<div>Erreur chargement phases</div>)
+    if (!isSuccessCompetition) return <div>Erreur chargement des phases</div>;
+
+    return (<PhaseList
+        id_competition={id_competition}
+        competition_data={competition_data}
+        phase_list={phase_list as PhaseIdList}
+    />);
+
 }
 
 
@@ -150,4 +173,71 @@ export function PhasePage({ phase_data, competition_data }: { phase_data: Phase,
         </>
     );
 
+}
+
+export function PhasePageComponent({ id_phase, id_competition }: { id_phase: PhaseId, id_competition: CompetitionId }) {
+
+    const { data: phase_data, isSuccess: isSuccessPhase } = useGetApiPhaseId(id_phase)
+    const { data: competition_data, isSuccess: isSuccessComp } = useGetApiCompId(id_competition)
+
+    if (!isSuccessPhase) return <div>Chargement Phase</div>;
+    if (!isSuccessComp) return <div>Chargement Competition</div>;
+
+    return (<PhasePage phase_data={phase_data} competition_data={competition_data} />);
+}
+
+
+export function PhasePageNavigationComponent({ id_phase, id_competition }: { id_phase: PhaseId, id_competition: CompetitionId }) {
+
+    const { data: phase_data, isSuccess: isSuccessPhase } = useGetApiPhaseId(id_phase)
+    const { data: competition_data, isSuccess: isSuccessComp } = useGetApiCompId(id_competition)
+
+    if (!isSuccessPhase) return <div>Chargement Phase</div>;
+    if (!isSuccessComp) return <div>Chargement Competition</div>;
+
+    //const url = `/events/${loaderData.id_event}/competitions/${loaderData.id_competition}/phases/${loaderData.id_phase}`;
+    const url = '';
+
+    return (
+        <>
+            <h1>Phase {phase_data?.round} {competition_data?.name}</h1>
+            <ol>
+                <li>
+                    <Link to={`${url}edit_judges`}>
+                        Edit Phase Judges
+                    </Link>
+                </li>
+                <li>
+                    <Link to={`${url}judges`}>
+                        Phase Judges
+                    </Link>
+                </li>
+                <li>
+                    <Link to={`${url}pairings`}>
+                        Appairage
+                    </Link>
+                </li>
+                <li>
+                    <Link to={`${url}edit`}>
+                        Edit Phase
+                    </Link>
+                </li>
+                <li>
+                    <Link to={`${url}heats`}>
+                        Phase Heats
+                    </Link>
+                </li>
+                <li>
+                    <Link to={`${url}artefacts`}>
+                        Phase Artefacts
+                    </Link>
+                </li>
+                <li>
+                    <Link to={`${url}ranks`}>
+                        Phase Ranks
+                    </Link>
+                </li>
+            </ol>
+        </>
+    );
 }

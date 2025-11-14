@@ -7,14 +7,16 @@ import {
     type Bib,
     type HeatTargetJudge, RoleItem,
 } from "@hookgen/model";
-import type { BibList, CouplesHeat, HeatsArray, Panel, PhaseId, SinglesHeat, Target } from "@hookgen/model";
+import type { BibList, CompetitionId, CouplesHeat, HeatsArray, Panel, PhaseId, SinglesHeat, Target } from "@hookgen/model";
 import {
-    getGetApiPhaseIdHeatsQueryKey, useDeleteApiPhaseIdHeatTarget, usePutApiPhaseIdHeatTarget
+    getGetApiPhaseIdHeatsQueryKey, useDeleteApiPhaseIdHeatTarget, useGetApiPhaseIdHeats, usePutApiPhaseIdHeatTarget
 } from '~/hookgen/heat/heat';
 
 import { BareBibListComponent, dancerArrayFromTarget, DancerCell, get_bibs, } from '@routes/bib/BibComponents';
 import { Field } from "@routes/index/field";
 import { InitHeatsForm } from './InitHeatsForm';
+import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
+import { useGetApiPhaseIdJudges } from '~/hookgen/judge/judge';
 
 
 type HeatTargetRowReadOnlyProps = {
@@ -318,7 +320,7 @@ export function CoupleHeatTable({ heat, dataBibs, heat_number, id_phase }: Coupl
 }
 
 
-export function HeatsListComponent({ id_phase, panel_data, heats, dataBibs }: { id_phase: number, panel_data: Panel, heats: HeatsArray, dataBibs: BibList }) {
+export function HeatsList({ id_phase, panel_data, heats, dataBibs }: { id_phase: number, panel_data: Panel, heats: HeatsArray, dataBibs: BibList }) {
 
     const sameTargetTypeDataBibs = { bibs: dataBibs.bibs.filter((b) => b.target.target_type === panel_data.panel_type) };
 
@@ -386,6 +388,27 @@ export function HeatsListComponent({ id_phase, panel_data, heats, dataBibs }: { 
 
             <h3>Missing bibs</h3>
             <BareBibListComponent bib_list={missing_bibs.bibs} />
+        </>
+    );
+}
+
+
+export function HeatsListComponent({ id_phase, id_competition }: { id_phase: PhaseId, id_competition: CompetitionId }) {
+
+    const { data: heats, isSuccess: isSuccessHeats } = useGetApiPhaseIdHeats(id_phase);
+
+    const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(id_competition);
+
+    const { data: panel_data, isSuccess: isSuccessPanel } = useGetApiPhaseIdJudges(id_phase);
+
+    if (!isSuccessBibs) return <div>Chargement des bibs...</div>;
+    if (!isSuccessHeats) return <div>Chargement des heats...</div>;
+    if (!isSuccessPanel) return <div>Chargement de la phase...</div>;
+
+
+    return (
+        <>
+            <HeatsList id_phase={id_phase} panel_data={panel_data} heats={heats} dataBibs={dataBibs} />
         </>
     );
 }

@@ -279,7 +279,7 @@ export function BareBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
 }
 
 
-export function PublicBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
+export function PublicBibList({ bib_list }: { bib_list: Array<Bib> }) {
 
     return (
         <>
@@ -335,6 +335,28 @@ export function BibListComponent({ id_competition }: { id_competition: Competiti
             {bib_list &&
                 <>
                     <BareBibListComponent bib_list={bib_list.bibs} />
+                </>
+            }
+        </>
+    );
+}
+
+
+export function PublicBibListComponent({ id_competition }: { id_competition: CompetitionId }) {
+
+    console.log("BibListComponent", id_competition);
+    const { data, isLoading, error } = useGetApiCompIdBibs(id_competition);
+
+    const bib_list = data as BibList;
+
+    if (isLoading) return <div>Chargement des compétiteur-euses...</div>;
+    if (error) return <div>Erreur: {(error as any).message}</div>;
+
+    return (
+        <>
+            {bib_list &&
+                <>
+                    <PublicBibList bib_list={bib_list.bibs} />
                 </>
             }
         </>

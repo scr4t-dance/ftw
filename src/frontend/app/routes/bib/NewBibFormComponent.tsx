@@ -4,7 +4,7 @@ import { useForm, type SubmitHandler, type UseFormReturn, Controller } from 'rea
 import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
-import { usePutApiCompIdBib, getGetApiCompIdBibsQueryKey } from '@hookgen/bib/bib'
+import { usePutApiCompIdBib, getGetApiCompIdBibsQueryKey, useGetApiCompIdBibs } from '@hookgen/bib/bib'
 import {
   type CompetitionId,
   type Bib, type SingleTarget, type CoupleTarget,
@@ -18,6 +18,8 @@ import { Field } from '@routes/index/field';
 // components/SingleTargetForm.tsx
 import { dancerArrayFromTarget } from "@routes/bib/BibComponents";
 import { DancerComboBoxComponent } from "@routes/dancer/DancerComponents";
+import { useGetApiDancers } from '~/hookgen/dancer/dancer';
+import { useGetApiCompId } from '~/hookgen/competition/competition';
 
 export interface CoupleBib extends Omit<Bib, "target"> {
   target: CoupleTarget;
@@ -547,6 +549,27 @@ export function SelectNewBibFormComponent({ id_competition, bibs_list, dancer_li
         <button type="submit" >Inscrire un-e compétiteurice</button>
 
       </form >
+    </>
+  );
+}
+
+
+
+export function BibFormComponent({ id_competition }: { id_competition: CompetitionId }) {
+
+  const { data: competition_data, isSuccess: isSuccessCompetition } = useGetApiCompId(id_competition);
+  const { data: bibs_list, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(id_competition);
+  const { data: dancer_list, isSuccess: isSuccessDancers } = useGetApiDancers();
+
+  if (!isSuccessBibs) return (<div>Chargement des dossards</div>);
+  if (!isSuccessDancers) return (<div>Chargement danseurs et danseuses</div>);
+  if (!isSuccessCompetition) return (<div>Chargement compétition</div>);
+
+  return (
+    <>
+      <h1>Compétition {competition_data.name}</h1>
+      <h2>Ajouter une compétiteurice</h2>
+      <SelectNewBibFormComponent id_competition={id_competition} bibs_list={bibs_list} dancer_list={dancer_list} />
     </>
   );
 }

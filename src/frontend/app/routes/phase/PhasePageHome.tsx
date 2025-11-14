@@ -2,84 +2,37 @@ import type { Route } from './+types/PhasePageHome';
 
 import React from 'react';
 import { Link, Outlet } from "react-router";
-
-import { getApiCompId } from '@hookgen/competition/competition';
-import type { CompetitionId, EventId, PhaseId } from "@hookgen/model";
-import { getApiEventId, getApiEventIdComps } from "@hookgen/event/event";
-import { getApiCompIdPhases, getApiPhaseId } from "@hookgen/phase/phase";
+import { dehydrate, QueryClient } from '@tanstack/react-query';
+import { getGetApiEventIdQueryOptions } from '@hookgen/event/event';
+import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
+import { getGetApiPhaseIdQueryOptions } from '@hookgen/phase/phase';
+import type { CompetitionId, EventId, PhaseId } from '~/hookgen/model';
+import { PhasePageNavigationComponent } from './PhaseComponents';
 
 export async function loader({ params }: Route.LoaderArgs) {
 
-    let id_event = Number(params.id_event) as EventId;
-    const event_data = await getApiEventId(id_event);
-    const competition_list = await getApiEventIdComps(id_event);
+    const queryClient = new QueryClient();
+    const id_event = Number(params.id_event) as EventId;
     const id_competition = Number(params.id_competition) as CompetitionId;
-    const competition_data = await getApiCompId(id_competition);
-    const phase_list = await getApiCompIdPhases(id_competition);
     const id_phase = Number(params.id_phase) as PhaseId;
-    const phase_data = await getApiPhaseId(id_phase);
-    return {
-        id_event,
-        id_competition,
-        event_data,
-        competition_list,
-        competition_data,
-        phase_list,
-        id_phase,
-        phase_data,
-    };
+
+    await queryClient.prefetchQuery(getGetApiEventIdQueryOptions(id_event));
+    await queryClient.prefetchQuery(getGetApiCompIdQueryOptions(id_competition));
+    await queryClient.prefetchQuery(getGetApiPhaseIdQueryOptions(id_phase));
+
+    return { dehydratedState: dehydrate(queryClient) };
 }
 
 
-function PhasePageHome({
-    loaderData
-}: Route.ComponentProps) {
+function PhasePageHome({params}: Route.ComponentProps) {
 
-    //const url = `/events/${loaderData.id_event}/competitions/${loaderData.id_competition}/phases/${loaderData.id_phase}`;
-    const url = '';
-    const phase = loaderData.phase_data;
-    const competition = loaderData.competition_data;
+    const id_event = Number(params.id_event) as EventId;
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    const id_phase = Number(params.id_phase) as PhaseId;
 
     return (
         <>
-            <h1>Phase {phase?.round} {competition?.name}</h1>
-            <ol>
-                <li>
-                    <Link to={`${url}edit_judges`}>
-                        Edit Phase Judges
-                    </Link>
-                </li>
-                <li>
-                    <Link to={`${url}judges`}>
-                        Phase Judges
-                    </Link>
-                </li>
-                <li>
-                    <Link to={`${url}pairings`}>
-                        Appairage
-                    </Link>
-                </li>
-                <li>
-                    <Link to={`${url}edit`}>
-                        Edit Phase
-                    </Link>
-                </li>
-                <li>
-                    <Link to={`${url}heats`}>
-                        Phase Heats
-                    </Link>
-                </li>
-                <li>
-                    <Link to={`${url}artefacts`}>
-                        Phase Artefacts
-                    </Link>
-                </li>
-                <li>
-                    <Link to={`${url}ranks`}>
-                        Phase Ranks
-                    </Link>
-                </li>
-            </ol>
+            <PhasePageNavigationComponent id_phase={id_phase} id_competition={id_competition} />
             <Outlet />
 
         </>

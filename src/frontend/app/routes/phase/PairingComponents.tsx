@@ -7,7 +7,7 @@ import {
     RoleItem,
     type Bib,
 } from "@hookgen/model";
-import type { BibList, CompetitionId, CouplesHeatsArray, CoupleTarget, DancerId, HeatsArray, OldBibNewBib, Panel, PhaseId, SinglesHeat, SinglesHeatsArray, SingleTarget, Target } from "@hookgen/model";
+import { RoundItem, type BibList, type CompetitionId,  type DancerId, type HeatsArray, type OldBibNewBib, type Phase, type PhaseId, type PhaseIdList, type SinglesHeat, type SinglesHeatsArray, type SingleTarget, type Target } from "@hookgen/model";
 import {
     useGetApiPhaseIdCouplesHeats,
     useGetApiPhaseIdHeats,
@@ -16,8 +16,10 @@ import {
 
 import { BareBibListComponent, BibRowReadOnly, dancerArrayFromTarget, DancerCell, get_bibs, } from '@routes/bib/BibComponents';
 import { Field } from "@routes/index/field";
-import { getGetApiCompIdBibsQueryKey, useDeleteApiCompIdBib, usePatchApiCompIdBib, usePutApiCompIdBib } from '~/hookgen/bib/bib';
+import { getGetApiCompIdBibsQueryKey, useDeleteApiCompIdBib, useGetApiCompIdBibs, usePatchApiCompIdBib, usePutApiCompIdBib } from '~/hookgen/bib/bib';
 import { get_follower_from_bib, get_leader_from_bib, SelectCoupleTargetForm, SelectSingleTargetForm, type BibCoupleTargetForm, type BibSingleTargetForm } from '../bib/NewBibFormComponent';
+import { useGetApiPhaseIdJudges } from '~/hookgen/judge/judge';
+import { getGetApiPhaseIdQueryOptions, useGetApiCompIdPhases } from '~/hookgen/phase/phase';
 
 
 type BibPairingRowEditableProps = {
@@ -367,17 +369,21 @@ export function BibPairingListComponent({ bib_list, id_competition, otherTargetT
 }
 
 
-export function PairingComponent({ id_competition: id_competition, panel_data, id_phase, previous_id_phase, dataBibs }: { id_competition: CompetitionId, panel_data: Panel, id_phase: PhaseId, previous_id_phase: PhaseId, dataBibs: BibList }) {
+export function PairingComponent({ id_competition: id_competition, id_phase, previous_id_phase, }: { id_competition: CompetitionId, id_phase: PhaseId, previous_id_phase: PhaseId, }) {
 
 
     const [showPreviousPhaseBibs, toggleBibView] = useState(false);
     const { data: previousPhaseHeats, isSuccess } = useGetApiPhaseIdHeats(previous_id_phase);
     const { data: singlesHeats, isSuccess: isSuccessSingles } = useGetApiPhaseIdSinglesHeats(id_phase);
     const { data: couplesHeats, isSuccess: isSuccessCouples } = useGetApiPhaseIdCouplesHeats(id_phase);
+    const { data: panel_data, isSuccess: isSuccessPanel } = useGetApiPhaseIdJudges(id_phase);
+    const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(id_competition);
 
     if (!isSuccess) return <p>Loading heats...</p>;
     if (!isSuccessSingles) return <p>Loading singles heats...</p>;
     if (!isSuccessCouples) return <p>Loading couples heats...</p>;
+    if (!isSuccessPanel) return <p>Loading judges...</p>;
+    if (!isSuccessBibs) return <p>Loading dossards...</p>;
 
     const otherTargetTypeBibList = { bibs: dataBibs.bibs.filter((b) => b.target.target_type !== panel_data.panel_type) };
     const sameTargetTypeBibList = { bibs: dataBibs.bibs.filter((b) => b.target.target_type === panel_data.panel_type) };
@@ -435,4 +441,63 @@ export function PairingComponent({ id_competition: id_competition, panel_data, i
             <BareBibListComponent bib_list={unmatchedPreviousPhaseBibList.bibs} />
         </>
     );
+}
+
+const roundOrder: Record<RoundItem, number> = {
+    [RoundItem.Prelims]: 0,
+    [RoundItem.Octofinals]: 1,
+    [RoundItem.Quarterfinals]: 2,
+    [RoundItem.Semifinals]: 3,
+    [RoundItem.Finals]: 4
+}
+
+export function PreviousPhasePairingComponent({ id_competition, id_phase }: { id_competition: CompetitionId, id_phase: PhaseId }) {
+
+
+    const { data: phase_list, isSuccess: isSuccessHeats } = useGetApiCompIdPhases(id_competition);
+    const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(id_competition);
+
+    const phaseDataQueries = useQueries({
+        queries: (phase_list as PhaseIdList).phases.map((id_phase) => ({
+            ...getGetApiPhaseIdQueryOptions(id_phase),
+            enabled: !!phase_list
+        })),
+    });
+
+    const isPhasesLoading = phaseDataQueries.some((query) => query.isLoading);
+    const isPhasesError = phaseDataQueries.some((query) => query.isError);
+
+
+    if (isPhasesLoading) return <div>Loading judges details...</div>;
+    if (isPhasesError) return (
+        <div>
+            Error loading phases data
+            {
+                phaseDataQueries.map((query) => {
+                    return (<p>{query.error?.message}</p>);
+                })
+            }
+        </div>);
+    if (!isSuccessBibs) return <div>Chargement des bibs...</div>;
+    if (!isSuccessHeats) return <div>Chargement des heats...</div>;
+
+    const phase_data_list = phaseDataQueries.map((q) => q.data as Phase);
+    const previous_id_phase = phase_data_list
+        .map((p, index) => {
+            return { ...p, id_phase: phase_list.phases[index] };
+        })
+        .sort((a, b) => roundOrder[a.round[0]] - roundOrder[b.round[0]]).map((p) => p.id_phase).filter(
+            (_, index, arr) => index < arr.findIndex((id_p) => id_phase === id_p)
+        )
+        .at(-1);
+
+    return (
+        <>
+            <p>Current phase {id_phase}; all phases : {phase_list.phases.join(",")}</p>
+            <PairingComponent id_competition={id_competition}
+                id_phase={id_phase}
+                previous_id_phase={previous_id_phase ?? id_phase} />
+        </>
+    );
+
 }

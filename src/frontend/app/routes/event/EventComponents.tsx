@@ -6,6 +6,7 @@ import { Link, useLocation } from "react-router";
 import { type Event, type EventId, type EventIdList, type Date, type CompetitionIdList, type Competition } from "@hookgen/model";
 import PageTitle from '@routes/index/PageTitle';
 import { CompetitionTable, EventCompetitionListComponent } from '@routes/competition/CompetitionComponents';
+import { useGetApiEventId } from '~/hookgen/event/event';
 
 export type loaderProps = Promise<{
     event_list: EventIdList;
@@ -131,8 +132,12 @@ export function EventListComponent({ event_list, event_data }: { event_list: Eve
     );
 }
 
-export function EventDetailsComponent({ event, id_event }: { event: Event, id_event: EventId }) {
+export function EventDetailsComponent({ id_event }: { id_event: EventId }) {
 
+    const { data: event, isLoading, isError, error } = useGetApiEventId(id_event);
+
+    if (isLoading) return <p>Chargement Evenement</p>;
+    if (isError) return <p>Erreur: {error.message}</p>
     if (!event) return <p>Pas de données sur l’événement {id_event}.</p>;
 
     return (
@@ -147,9 +152,13 @@ export function EventDetailsComponent({ event, id_event }: { event: Event, id_ev
 
 }
 
-export function EventDetailsAdminComponent({ event, id_event, competition_id_list, competition_data_list }: { event: Event, id_event: EventId, competition_id_list: CompetitionIdList, competition_data_list: Competition[] }) {
+export function EventDetailsAdminComponent({ id_event }: {id_event: EventId }) {
+
+
+    const { data: event } = useGetApiEventId(id_event);
 
     if (!event) return <p>Pas de données sur l’événement {id_event}.</p>;
+
 
     const formatDate = (date: Date | undefined): string => {
         if (date?.year && date?.month && date?.day) {
@@ -161,11 +170,11 @@ export function EventDetailsAdminComponent({ event, id_event, competition_id_lis
     return (
         <>
             <h1>{event?.name}</h1>
-            <p>Date de début : {formatDate(event?.start_date)}</p>
-            <p>Date de fin : {formatDate(event?.end_date)}</p>
+            <p>Date de début : {formatDate(event.start_date)}</p>
+            <p>Date de fin : {formatDate(event.end_date)}</p>
             <Link to="competitions/new">Créer une competition</Link>
             <Link to="competitions">Liste des competitions</Link>
-            <CompetitionTable competition_id_list={competition_id_list} competition_data_list={competition_data_list} />
+            <EventCompetitionListComponent id_event={id_event} />
         </>
     );
 

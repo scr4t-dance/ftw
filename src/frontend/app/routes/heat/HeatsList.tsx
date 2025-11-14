@@ -1,79 +1,45 @@
 import type { Route } from './+types/HeatsList';
 import React from 'react';
 
-import {
-    useGetApiPhaseIdHeats,
-} from "@hookgen/heat/heat";
-import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
-import { HeatsListComponent } from './HeatComponents';
+import { HeatsListComponent } from '@routes/heat/HeatComponents';
 
 
-import {
-    combineClientLoader, combineServerLoader, bibsListLoader,
-    competitionLoader, eventLoader, heatListLoader, queryClient,
-    phaseLoader,
-    judgePanelLoader,
-} from '~/queryClient';
-import { useGetApiPhaseIdJudges } from '~/hookgen/judge/judge';
-
-
-const loader_array = [eventLoader, competitionLoader, bibsListLoader, phaseLoader, heatListLoader,judgePanelLoader];
-
+import { getGetApiPhaseIdJudgesQueryOptions } from '~/hookgen/judge/judge';
+import { dehydrate, QueryClient } from '@tanstack/react-query';
+import type { CompetitionId, EventId, PhaseId } from '~/hookgen/model';
+import { getGetApiEventIdQueryOptions } from '@hookgen/event/event';
+import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
+import { getGetApiPhaseIdQueryOptions } from '@hookgen/phase/phase';
+import { getGetApiPhaseIdHeatsQueryOptions } from "@hookgen/heat/heat";
+import { getGetApiCompIdBibsQueryOptions } from '@hookgen/bib/bib';
 
 export async function loader({ params }: Route.LoaderArgs) {
 
-    const combinedData = await combineServerLoader(loader_array, params);
+    const queryClient = new QueryClient();
+    const id_event = Number(params.id_event) as EventId;
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    const id_phase = Number(params.id_phase) as PhaseId;
 
-    return combinedData;
+    await queryClient.prefetchQuery(getGetApiEventIdQueryOptions(id_event));
+    await queryClient.prefetchQuery(getGetApiCompIdQueryOptions(id_competition));
+    await queryClient.prefetchQuery(getGetApiCompIdBibsQueryOptions(id_competition));
+
+    await queryClient.prefetchQuery(getGetApiPhaseIdQueryOptions(id_phase));
+    await queryClient.prefetchQuery(getGetApiPhaseIdHeatsQueryOptions(id_phase));
+    await queryClient.prefetchQuery(getGetApiPhaseIdJudgesQueryOptions(id_phase));
+
+    return { dehydratedState: dehydrate(queryClient) };
 }
 
-let isInitialRequest = true;
 
-export async function clientLoader({
-    params,
-    serverLoader,
-}: Route.ClientLoaderArgs) {
-
-    if (isInitialRequest) {
-        isInitialRequest = false;
-        const serverData = await serverLoader();
-
-        loader_array.forEach((l) => l.cache(queryClient, serverData));
-
-        return serverData;
-    }
-
-    const combinedData = await combineClientLoader(loader_array, params);
-    return combinedData;
-}
-clientLoader.hydrate = true;
+export default function HeatsList({ params }: Route.ComponentProps) {
 
 
-export default function HeatsList({ loaderData }: Route.ComponentProps) {
+    const id_event = Number(params.id_event) as EventId;
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    const id_phase = Number(params.id_phase) as PhaseId;
 
-    const { data: heats, isSuccess: isSuccessHeats } = useGetApiPhaseIdHeats(loaderData.id_phase, {
-        query: {
-            initialData: loaderData.heat_list
-        }
-    });
-
-    const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(loaderData.id_competition, {
-        query: {
-            initialData:loaderData.bibs_list
-        }
-    });
-
-    const { data: panel_data, isSuccess: isSuccessPanel } = useGetApiPhaseIdJudges(loaderData.id_phase, {
-        query: {
-            initialData:loaderData.panel_data
-        }
-    });
-
-    if (!isSuccessBibs) return <div>Chargement des bibs...</div>;
-    if (!isSuccessHeats) return <div>Chargement des heats...</div>;
-    if (!isSuccessPanel) return <div>Chargement de la phase...</div>;
-
-    return <HeatsListComponent id_phase={loaderData.id_phase} panel_data={panel_data} heats={heats} dataBibs={dataBibs} />
+    return <HeatsListComponent id_phase={id_phase} id_competition={id_competition} />
 
 }
 

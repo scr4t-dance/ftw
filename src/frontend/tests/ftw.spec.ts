@@ -45,8 +45,9 @@ test('create event', async ({ page }) => {
   await page.locator('input[name="password"]').press('Enter');
   await page.getByRole('button', { name: 'Login' }).click();
 
+  const admin_home_locator = page.getByRole('list').getByRole('link', { name: 'Admin' });
   // création compétiteurs
-  await page.locator('span').filter({ hasText: 'Admin /' }).getByRole('link').click();
+  await admin_home_locator.click();
   await page.getByRole('link', { name: 'Dancers' }).click();
   await page.getByRole('link', { name: 'Créer un-e nouvel-le compé' }).click();
   await page.locator('input[name="last_name"]').click();
@@ -95,7 +96,7 @@ test('create event', async ({ page }) => {
   await page.getByRole('button', { name: 'Nouveau' }).click();
 
   // création évent et compétition
-  await page.getByRole('link', { name: 'Admin' }).click();
+  await admin_home_locator.click();
   await page.getByRole('link', { name: 'Events' }).click();
   await page.getByRole('link', { name: 'Créer un nouvel événement' }).click();
   await page.locator('input[name="name"]').click();
@@ -142,7 +143,7 @@ test('create event', async ({ page }) => {
   await page.getByRole('button', { name: 'Inscrire un-e compétiteurice' }).click();
 
   // création prelims
-  await page.locator('span').filter({ hasText: 'Admin /' }).getByRole('link').click();
+  await admin_home_locator.click();
   await page.getByRole('link', { name: 'Events' }).click();
   await page.getByRole('link', { name: randomEventName }).click();
   await page.getByRole('link', { name: randomCompetitionName }).click();
@@ -158,7 +159,7 @@ test('create event', async ({ page }) => {
   await page.getByRole('link', { name: 'Accéder à la Phase' }).click();
 
   // création finales
-  await page.locator('span').filter({ hasText: 'Admin /' }).getByRole('link').click();
+  await admin_home_locator.click();
   await page.getByRole('link', { name: 'Events' }).click();
   await page.getByRole('link', { name: randomEventName }).click();
   await page.getByRole('link', { name: randomCompetitionName }).click();
@@ -190,7 +191,7 @@ test('create event', async ({ page }) => {
 
 
 
-  await page.locator('span').filter({ hasText: 'Admin /' }).getByRole('link').click();
+  await admin_home_locator.click();
   await page.getByRole('link', { name: 'Events' }).click();
   await page.getByRole('link', { name: randomEventName }).click();
   await page.getByRole('link', { name: randomCompetitionName }).click();
