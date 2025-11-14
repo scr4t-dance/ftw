@@ -2,12 +2,12 @@ import React, { useEffect } from 'react';
 
 import type { CouplePanel, DancerId, DancerIdList, Panel, PhaseId, SinglePanel } from "@hookgen/model";
 import { Link } from "react-router";
-import { useQueryClient } from "@tanstack/react-query";
 import { Controller, useFieldArray, useFormContext, FormProvider, get, useForm, type SubmitHandler } from 'react-hook-form';
 
 import { Field } from '@routes/index/field';
 import { getGetApiPhaseIdJudgesQueryKey, useGetApiPhaseIdJudges, usePutApiPhaseIdJudges } from '@hookgen/judge/judge';
 import { useGetApiDancerId } from '~/hookgen/dancer/dancer';
+import { useQueryClient } from '@tanstack/react-query';
 
 function sanitizePanel(data: Panel): SinglePanel | CouplePanel {
   if (data.panel_type === "single") {
@@ -307,18 +307,18 @@ export function JudgeList({ panel_data }: { panel_data: Panel }) {
 }
 
 
-export function JudgeListComponent({id_phase} : {id_phase: PhaseId}){
+export function JudgeListComponent({ id_phase }: { id_phase: PhaseId }) {
 
 
-    const {data: panel_data, isLoading, isSuccess} = useGetApiPhaseIdJudges(id_phase);
+  const { data: panel_data, isLoading, isSuccess } = useGetApiPhaseIdJudges(id_phase);
 
-    if(isLoading) return <div>Chargement panel de juge</div>
-    if(!isSuccess) return <div>Erreur chargement panel de juge</div>
+  if (isLoading) return <div>Chargement panel de juge</div>
+  if (!isSuccess) return <div>Erreur chargement panel de juge</div>
 
-    return (
-        <>
-            <JudgeList panel_data={panel_data} />
-        </>
-    );
+  return (
+    <>
+      <JudgeList panel_data={panel_data} />
+    </>
+  );
 
 }

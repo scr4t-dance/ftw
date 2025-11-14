@@ -150,7 +150,6 @@ export function ArtefactFormElement({ artefact_description_name }: Props) {
 }
 
 
-
 export function EditPhaseForm({ phase_id, phase_data }: { phase_id: PhaseId, phase_data: Phase }) {
 
     const queryClient = useQueryClient();

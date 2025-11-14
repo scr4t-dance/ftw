@@ -106,6 +106,7 @@ Update a phase
   {"message":"Phase not found"}
 
 
+reset final phase for next tests
   $ curl -s -X PUT localhost:8081/api/phase \
   > -H "Content-Type: application/json" \
   > -d '{"competition":2,"round":["Finals"],"judge_artefact_descr":{"artefact":"ranking","artefact_data":null},"head_judge_artefact_descr":{"artefact":"ranking","artefact_data":null}, "ranking_algorithm":{"algorithm":"ranking", "algorithm_name":"RPSS"}}'
@@ -164,7 +165,6 @@ create some bibs
   > -d '{"competition":2, "bib":101, "target":{"target_type":"single","target":1,"role":["Leader"]}}'
   {"dancers":[1]}
 
-
   $ curl -s -X PUT localhost:8081/api/comp/2/bib \
   > -H "Content-Type: application/json" \
   > -d '{"competition":2, "bib":102, "target":{"target_type":"single","target":3,"role":["Leader"]}}'
@@ -205,19 +205,18 @@ add panel with no head
   > -d '{"panel_type": "couple", "couples": {"dancers":[1,2]}, "head":null}'
   2
 
+
 Heats management
 ----------------
 
 init heats with bib from competition
 
-  $ curl -s -X PUT localhost:8081/api/phase/1/init_heats \
-  > -H "Content-Type: application/json" \
-  > -d '{"min_number_of_targets":1, "max_number_of_targets":2}'
+  $ curl -s -X POST localhost:8081/api/phase/1/init_heats_with_bibs
   1
 
 get heats
   $ curl -s localhost:8081/api/phase/1/heats
-  {"heat_type":"single","heat_type":"single","heats":[{"followers":[],"leaders":[]},{"followers":[{"target_type":"single","target":4,"role":["Follower"]},{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":3,"role":["Leader"]},{"target_type":"single","target":1,"role":["Leader"]}]}]}
+  {"heat_type":"single","heat_type":"single","heats":[{"followers":[{"target_type":"single","target":4,"role":["Follower"]},{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":3,"role":["Leader"]},{"target_type":"single","target":1,"role":["Leader"]}]}]}
 
 move target to new heat
   $ curl -s -X DELETE localhost:8081/api/phase/1/heat_target \
@@ -233,8 +232,17 @@ move target to new heat
 
 
   $ curl -s localhost:8081/api/phase/1/heats
-  {"heat_type":"single","heat_type":"single","heats":[{"followers":[],"leaders":[]},{"followers":[{"target_type":"single","target":4,"role":["Follower"]},{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":1,"role":["Leader"]}]},{"followers":[],"leaders":[]},{"followers":[],"leaders":[{"target_type":"single","target":3,"role":["Leader"]}]}]}
+  {"heat_type":"single","heat_type":"single","heats":[{"followers":[{"target_type":"single","target":4,"role":["Follower"]},{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":3,"role":["Leader"]},{"target_type":"single","target":1,"role":["Leader"]}]},{"followers":[],"leaders":[]},{"followers":[],"leaders":[]},{"followers":[],"leaders":[{"target_type":"single","target":3,"role":["Leader"]}]}]}
 
+randomize heats
+  $ curl -s -X PUT localhost:8081/api/phase/1/randomize_heats \
+  > -H "Content-Type: application/json" \
+  > -d '{"min_number_of_targets":1, "max_number_of_targets":1,"late_heat_range":1,"late_heat_ids":"3","early_heat_range":1,"early_heat_ids":""}'
+  1
+
+get randomized heats
+  $ curl -s localhost:8081/api/phase/1/heats
+  {"heat_type":"single","heat_type":"single","heats":[{"followers":[],"leaders":[]},{"followers":[{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":1,"role":["Leader"]}]},{"followers":[{"target_type":"single","target":4,"role":["Follower"]}],"leaders":[{"target_type":"single","target":3,"role":["Leader"]}]}]}
 
 Artefacts
 ---------
@@ -242,10 +250,10 @@ Artefacts
 Get empty artefacts
 
   $ curl -s localhost:8081/api/phase/1/artefact/judge/1
-  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null},{"heat_target_judge":{"phase_id":1,"heat_number":3,"target":{"target_type":"single","target":3,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null}]}
+  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null},{"heat_target_judge":{"phase_id":1,"heat_number":2,"target":{"target_type":"single","target":3,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null}]}
 
   $ curl -s localhost:8081/api/phase/1/artefact/judge/2
-  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":4,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null},{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":2,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null}]}
+  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":2,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null},{"heat_target_judge":{"phase_id":1,"heat_number":2,"target":{"target_type":"single","target":4,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null}]}
 
 set artefact
 
@@ -254,12 +262,32 @@ set artefact
 
   $ curl -s -X PUT localhost:8081/api/phase/1/artefact/judge/1 \
   > -H "Content-Type: application/json" \
-  > -d '{"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type": "yan","artefact_data": [["No"]]}},{"heat_target_judge":{"phase_id":1,"heat_number":3,"target":{"target_type":"single","target":3,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type": "yan","artefact_data": [["Yes"]]}}]}'
+  > -d '{"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type": "yan","artefact_data": [["No"]]}},{"heat_target_judge":{"phase_id":1,"heat_number":2,"target":{"target_type":"single","target":3,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type": "yan","artefact_data": [["Yes"]]}}]}'
   {"dancers":[1,1]}
 
   $ curl -s localhost:8081/api/phase/1/artefact/judge/1
-  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type":"yan","artefact_data":[["No"]]}},{"heat_target_judge":{"phase_id":1,"heat_number":3,"target":{"target_type":"single","target":3,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type":"yan","artefact_data":[["Yes"]]}}]}
+  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":1,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type":"yan","artefact_data":[["No"]]}},{"heat_target_judge":{"phase_id":1,"heat_number":2,"target":{"target_type":"single","target":3,"role":["Leader"]},"judge":1,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type":"yan","artefact_data":[["Yes"]]}}]}
 
+Next Phase management
+---------------------
+
+  $ curl -s -X PUT localhost:8081/api/phase/1/artefact/judge/2 \
+  > -H "Content-Type: application/json" \
+  > -d '{"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":2,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type": "yan","artefact_data": [["No"]]}}]}'
+  {"dancers":[2]}
+
+"promote" to next phase
+  $ curl -s -X PUT localhost:8081/api/phase/1/simple_promote \
+  > -H "Content-Type: application/json" \
+  > -d '{"number_of_targets_to_promote":1}'
+
+get final heats
+  $ curl -s localhost:8081/api/phase/2/singles_heats
+  {"heat_type":"single","heat_type":"single","heats":[]}
+
+
+  $ curl -s localhost:8081/api/phase/2/heats
+  {"heat_type":"couple","heat_type":"couple","heats":[]}
 
 Promote dancers to next phase
 -----------------------------
@@ -273,26 +301,26 @@ add artefact for complete data
   $ curl -s -X PUT localhost:8081/api/phase/1/artefact/judge/2 \
   > -H "Content-Type: application/json" \
   > -d '{"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":4,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type": "yan","artefact_data": [["Alt"]]}}]}'
-  {"dancers":[2]}
+  {"message":"Target not found in heat"}
 
 
   $ curl -s localhost:8081/api/phase/1/artefact/judge/2
-  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":4,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type":"yan","artefact_data":[["Alt"]]}},{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":2,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type":"yan","artefact_data":[["Yes"]]}}]}
+  {"artefacts":[{"heat_target_judge":{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":2,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":{"artefact_type":"yan","artefact_data":[["Yes"]]}},{"heat_target_judge":{"phase_id":1,"heat_number":2,"target":{"target_type":"single","target":4,"role":["Follower"]},"judge":2,"description":{"artefact":"yan","artefact_data":["overall"]}},"artefact":null}]}
 
 get rankings
 
   $ curl -s localhost:8081/api/phase/1/ranking
-  {"target_type":"single","target_type":"single","leaders":{"ranks":[{"ranking_type":"yan","ranking_type":"yan","target":{"target_type":"single","target":3,"role":["Leader"]},"rank":1,"score":3.0},{"ranking_type":"yan","ranking_type":"yan","target":{"target_type":"single","target":1,"role":["Leader"]},"rank":2,"score":1.0}]},"followers":{"ranks":[{"ranking_type":"yan","ranking_type":"yan","target":{"target_type":"single","target":2,"role":["Follower"]},"rank":1,"score":3.0},{"ranking_type":"yan","ranking_type":"yan","target":{"target_type":"single","target":4,"role":["Follower"]},"rank":2,"score":2.0}]}}
+  {"target_type":"single","target_type":"single","leaders":{"ranks":[{"ranking_type":"yan","ranking_type":"yan","target":{"target_type":"single","target":3,"role":["Leader"]},"rank":1,"score":3.0},{"ranking_type":"yan","ranking_type":"yan","target":{"target_type":"single","target":1,"role":["Leader"]},"rank":2,"score":1.0}]},"followers":{"ranks":[{"ranking_type":"yan","ranking_type":"yan","target":{"target_type":"single","target":2,"role":["Follower"]},"rank":1,"score":3.0},{"ranking_type":"yan","ranking_type":"yan","target":{"target_type":"single","target":4,"role":["Follower"]},"rank":2,"score":0.0}]}}
 
 promote to next phase
 
   $ curl -s -X PUT localhost:8081/api/phase/1/promote \
   > -H "Content-Type: application/json" \
   > -d '{"number_of_targets_to_promote":1}'
-  2
+  1
 
   $ curl -s localhost:8081/api/phase/2/singles_heats
-  {"heat_type":"single","heat_type":"single","heats":[{"followers":[{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":3,"role":["Leader"]}]}]}
+  {"heat_type":"single","heat_type":"single","heats":[{"followers":[],"leaders":[]},{"followers":[{"target_type":"single","target":4,"role":["Follower"]},{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":3,"role":["Leader"]},{"target_type":"single","target":1,"role":["Leader"]}]}]}
 
 add couple bibs to heat
 
@@ -305,7 +333,7 @@ add couple bibs to heat
   $ curl -s -X PUT localhost:8081/api/phase/2/heat_target \
   > -H "Content-Type: application/json" \
   > -d '{"phase_id":1,"heat_number":1,"target":{"target_type":"couple","leader":3,"follower":2},"judge":0,"description":{"artefact":"yan","artefact_data":["overall"]}}'
-  8
+  9
 
   $ curl -s localhost:8081/api/phase/2/heats
   {"heat_type":"couple","heat_type":"couple","heats":[{"couples":[]},{"couples":[{"target_type":"couple","leader":3,"follower":2}]}]}
@@ -347,14 +375,15 @@ Promote
   {"results":[]}
 
   $ curl -s -X PUT localhost:8081/api/comp/2/promotions
+  2
 
   $ curl -s localhost:8081/api/comp/2/promotions
-  {"promotions":[{"competition":2,"dancer":1,"role":["Leader"],"current_divisions":["None"],"new_divisions":["Novice"],"reason":"Participation"},{"competition":2,"dancer":2,"role":["Follower"],"current_divisions":["None"],"new_divisions":["Intermediate"],"reason":"Participation"},{"competition":2,"dancer":3,"role":["Leader"],"current_divisions":["None"],"new_divisions":["Intermediate"],"reason":"Participation"},{"competition":2,"dancer":3,"role":["Follower"],"current_divisions":["None"],"new_divisions":["Novice"],"reason":"Participation"},{"competition":2,"dancer":4,"role":["Follower"],"current_divisions":["None"],"new_divisions":["Novice"],"reason":"Participation"}]}
+  {"promotions":[{"competition":2,"dancer":1,"role":["Leader"],"current_divisions":["None"],"new_divisions":["Novice"],"reason":"Participation"},{"competition":2,"dancer":2,"role":["Leader"],"current_divisions":["None"],"new_divisions":["Novice"],"reason":"Participation"},{"competition":2,"dancer":2,"role":["Follower"],"current_divisions":["None"],"new_divisions":["Intermediate"],"reason":"Participation"},{"competition":2,"dancer":3,"role":["Leader"],"current_divisions":["None"],"new_divisions":["Intermediate"],"reason":"Participation"},{"competition":2,"dancer":3,"role":["Follower"],"current_divisions":["None"],"new_divisions":["Novice"],"reason":"Participation"},{"competition":2,"dancer":4,"role":["Follower"],"current_divisions":["None"],"new_divisions":["Novice"],"reason":"Participation"}]}
 
 
 
   $ curl -s localhost:8081/api/comp/2/results
-  {"results":[{"competition":2,"dancer":1,"role":["Leader"],"result":{"prelims":{"present":true,"result_type":"present"},"octofinals":{"present":false,"result_type":"not_present"},"quarterfinals":{"present":false,"result_type":"not_present"},"semifinals":{"present":false,"result_type":"not_present"},"finals":{"present":false,"result_type":"not_present"}},"points":0},{"competition":2,"dancer":2,"role":["Follower"],"result":{"prelims":{"present":true,"result_type":"present"},"octofinals":{"present":false,"result_type":"not_present"},"quarterfinals":{"present":false,"result_type":"not_present"},"semifinals":{"present":false,"result_type":"not_present"},"finals":{"ranked":1,"result_type":"ranked"}},"points":7},{"competition":2,"dancer":3,"role":["Leader"],"result":{"prelims":{"present":true,"result_type":"present"},"octofinals":{"present":false,"result_type":"not_present"},"quarterfinals":{"present":false,"result_type":"not_present"},"semifinals":{"present":false,"result_type":"not_present"},"finals":{"ranked":1,"result_type":"ranked"}},"points":7},{"competition":2,"dancer":3,"role":["Follower"],"result":{"prelims":{"present":true,"result_type":"present"},"octofinals":{"present":false,"result_type":"not_present"},"quarterfinals":{"present":false,"result_type":"not_present"},"semifinals":{"present":false,"result_type":"not_present"},"finals":{"present":false,"result_type":"not_present"}},"points":0},{"competition":2,"dancer":4,"role":["Follower"],"result":{"prelims":{"present":true,"result_type":"present"},"octofinals":{"present":false,"result_type":"not_present"},"quarterfinals":{"present":false,"result_type":"not_present"},"semifinals":{"present":false,"result_type":"not_present"},"finals":{"present":false,"result_type":"not_present"}},"points":0}]}
+  {"results":[{"competition":2,"dancer":1,"role":["Leader"],"result":{"prelims":{"present":true,"result_type":"present"},"octofinals":{"present":false,"result_type":"not_present"},"quarterfinals":{"present":false,"result_type":"not_present"},"semifinals":{"present":false,"result_type":"not_present"},"finals":{"present":false,"result_type":"not_present"}},"points":0},{"competition":2,"dancer":2,"role":["Leader"],"result":{"prelims":{"present":true,"result_type":"present"},"octofinals":{"present":false,"result_type":"not_present"},"quarterfinals":{"present":false,"result_type":"not_present"},"semifinals":{"present":false,"result_type":"not_present"},"finals":{"present":false,"result_type":"not_present"}},"points":0},{"competition":2,"dancer":2,"role":["Follower"],"result":{"prelims":{"present":true,"result_type":"present"},"octofinals":{"present":false,"result_type":"not_present"},"quarterfinals":{"present":false,"result_type":"not_present"},"semifinals":{"present":false,"result_type":"not_present"},"finals":{"ranked":1,"result_type":"ranked"}},"points":7},{"competition":2,"dancer":3,"role":["Leader"],"result":{"prelims":{"present":true,"result_type":"present"},"octofinals":{"present":false,"result_type":"not_present"},"quarterfinals":{"present":false,"result_type":"not_present"},"semifinals":{"present":false,"result_type":"not_present"},"finals":{"ranked":1,"result_type":"ranked"}},"points":7},{"competition":2,"dancer":3,"role":["Follower"],"result":{"prelims":{"present":true,"result_type":"present"},"octofinals":{"present":false,"result_type":"not_present"},"quarterfinals":{"present":false,"result_type":"not_present"},"semifinals":{"present":false,"result_type":"not_present"},"finals":{"present":false,"result_type":"not_present"}},"points":0},{"competition":2,"dancer":4,"role":["Follower"],"result":{"prelims":{"present":true,"result_type":"present"},"octofinals":{"present":false,"result_type":"not_present"},"quarterfinals":{"present":false,"result_type":"not_present"},"semifinals":{"present":false,"result_type":"not_present"},"finals":{"present":false,"result_type":"not_present"}},"points":0}]}
 
 End & Cleanup
 -------------

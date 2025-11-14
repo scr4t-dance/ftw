@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link } from "react-router";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { useGetApiDancerId } from '@hookgen/dancer/dancer';
 import {
@@ -16,6 +15,7 @@ import {
 } from "@hookgen/bib/bib";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { Field } from "@routes/index/field";
+import { useQueryClient } from '@tanstack/react-query';
 
 const dancerLink = "dancers/"
 
@@ -178,6 +178,7 @@ function BibRowEditable({ formObject, onUpdate, onCancel }: BibRowEditableProps)
 
 function EditableBibDetails({ bib_object, index }: { bib_object: Bib, index: number }) {
 
+    const queryClient = useQueryClient();
 
     const [isEditing, setIsEditing] = useState(false);
 
@@ -190,8 +191,6 @@ function EditableBibDetails({ bib_object, index }: { bib_object: Bib, index: num
         reset,
         setError,
     } = formObject;
-
-    const queryClient = useQueryClient();
 
     const { mutate: updateBib } = usePatchApiCompIdBib({
         mutation: {

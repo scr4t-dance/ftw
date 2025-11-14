@@ -318,6 +318,7 @@ export function NewBibFormComponent({ id_competition, bibs_list, dancer_list }: 
   } = formObject;
 
   const queryClient = useQueryClient();
+  // Using the Orval hook to handle the PUT request
   const { data: updatedDancerIdList, mutate: updateBib, isSuccess } = usePutApiCompIdBib({
     mutation: {
       onSuccess: () => {

@@ -14,9 +14,9 @@ import {
 
 import { BareBibListComponent, dancerArrayFromTarget, DancerCell, get_bibs, } from '@routes/bib/BibComponents';
 import { Field } from "@routes/index/field";
-import { InitHeatsForm } from './InitHeatsForm';
 import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
 import { useGetApiPhaseIdJudges } from '~/hookgen/judge/judge';
+import { InitHeatsWithBibForm, RandomizeHeatsForm } from './InitHeatsForm';
 
 
 type HeatTargetRowReadOnlyProps = {
@@ -344,8 +344,10 @@ export function HeatsList({ id_phase, panel_data, heats, dataBibs }: { id_phase:
 
     return (
         <>
-            <InitHeatsForm id_phase={id_phase} />
-
+            <p>
+                <InitHeatsWithBibForm id_phase={id_phase} />
+                <RandomizeHeatsForm id_phase={id_phase} />
+            </p>
 
             {heats?.heats && heats?.heats.map((heat, index) => (
                 // heat 0 réservée pour calculs internes

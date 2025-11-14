@@ -45,6 +45,7 @@ export async function loader({ params }: Route.LoaderArgs) {
 
 function NewPhaseForm({ id_competition, competition_data, availableRounds }: NewPhaseFormProps) {
 
+    const queryClient = useQueryClient();
     const location = useLocation();
     const url_new = location.pathname.includes("new") ? "../" : "";
     const url_phase = location.pathname.includes("phase") ? "" : "phases/";
@@ -67,9 +68,6 @@ function NewPhaseForm({ id_competition, competition_data, availableRounds }: New
         setError,
         formState: { errors },
     } = formObject;
-
-
-    const queryClient = useQueryClient();
 
     const { data: dataPhase, mutate: updatePhase, isSuccess } = usePutApiPhase({
         mutation: {

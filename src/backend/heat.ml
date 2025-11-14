@@ -75,7 +75,7 @@ let rec routes router =
       "404", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Phase not found";
     ]
-  |> Router.put "/api/phase/:id/init_heats" init_heats
+  |> Router.put "/api/phase/:id/randomize_heats" randomize_heats
     ~tags:["heat"; "phase"]
     ~summary:"Randomly place dancers of the phase in heats"
     ~request_body:(
@@ -106,7 +106,29 @@ let rec routes router =
       "404", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Phase not found";
     ]
-  |> Router.put "/api/phase/:id/promote_all" promote
+  |> Router.post "/api/phase/:id/init_heats_with_bibs" init_heats_with_bibs
+    ~tags:["heat"; "phase"]
+    ~summary:"Take all bibs from heats and add them to Heat 0"
+    ~parameters:[
+      Types.obj @@ Spec.make_parameter_object ()
+        ~name:"id" ~in_:Path
+        ~description:"Id of the queried Phase"
+        ~required:true
+        ~schema:Types.(ref PhaseId.ref)
+    ]
+    ~responses:[
+      "200", Types.obj @@ Spec.make_response_object ()
+        ~description:"Successful operation"
+        ~content:[
+          Spec.json,
+          Spec.make_media_type_object () ~schema:(Types.(ref PhaseId.ref));
+        ];
+      "400", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Invalid input";
+      "404", Types.obj @@ Spec.make_error_response_object ()
+        ~description:"Phase not found";
+    ]
+  |> Router.put "/api/phase/:id/promote" promote
     ~tags:["heat"; "phase"]
     ~summary:"Promote dancers to next round"
     ~request_body:(
@@ -232,13 +254,40 @@ and get_heats =
        Ok heatArray
     )
 
-and init_heats =
+and randomize_heats =
   Api.put
     ~of_yojson:Types.InitHeatsFormData.of_yojson
     ~to_yojson:Types.PhaseId.to_yojson
     (fun req st treshold_list ->
        let+ id = Utils.int_param req "id" in
-       Ftw.Heat.simple_init st ~phase:id treshold_list.min_number_of_targets treshold_list.max_number_of_targets;
+       (* Ftw.Heat.simple_init st ~phase:id treshold_list.min_number_of_targets treshold_list.max_number_of_targets; *)
+       let heats = Ftw.Heat.get ~st ~phase:id in
+       Ftw.Heat.init ~st ~phase:id
+         ~min_number_of_targets:treshold_list.min_number_of_targets
+         ~max_number_of_targets:treshold_list.max_number_of_targets
+         ~early_heat_range:treshold_list.early_heat_range ~early_heat_ids:treshold_list.early_heat_ids
+         ~late_heat_range:treshold_list.late_heat_range ~late_heat_ids:treshold_list.late_heat_ids
+         heats;
+       Ok id
+    )
+
+and init_heats_with_bibs =
+  Api.get
+    ~to_yojson:Types.PhaseId.to_yojson
+    (fun req st ->
+       let+ id = Utils.int_param req "id" in
+       let panel = Ftw.Judge.get ~st ~phase:id in
+       let phase = Ftw.Phase.get st id in
+       let bibs = Ftw.Bib.get_all ~st ~competition:(Ftw.Phase.competition phase) in
+       let targets = List.map snd bibs in
+       List.iter (fun t ->
+           begin match panel, t with
+             | Singles _, Ftw.Target.Any Ftw.Target.Single {role;target;} ->
+               let _ = Ftw.Heat.add_single ~st ~phase:id ~heat:0 ~role:role target in ()
+             | Couples _,  Ftw.Target.Any Ftw.Target.Couple {leader;follower;} ->
+               let _ = Ftw.Heat.add_couple ~st ~phase:id ~heat:0 ~leader ~follower in ()
+             | _, _ -> ()
+           end) targets;
        Ok id
     )
 
