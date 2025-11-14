@@ -63,7 +63,7 @@ function ArtefactRow({ htja_array }: { htja_array: HeatTargetJudgeArtefactArray 
                 ))}
             </td>
             {htja_array.artefacts.map((htja, index) => (
-                <td className={index===0 ? "inner-vertical-line" : ""}>
+                <td className={index === 0 ? "inner-vertical-line" : ""}>
                     <ArtefactCell htja={htja} />
                 </td>
             ))}
@@ -149,18 +149,18 @@ export function ArtefactTableArrayComponent({ phase_id, judges, head_judge, heat
                         );
                     })}
                 </tr>
-                {target_artefacts && target_artefacts.map((htja_array, index) => {
-                    return (
-                        <> {htja_array.artefacts &&
+                {target_artefacts && target_artefacts.map((htja_array, index) => (
+                    <>
+                        {htja_array.artefacts && htja_array.artefacts[0] &&
 
                             <tr key={`${htja_array.artefacts[0].heat_target_judge.heat_number}-${htja_array.artefacts[0].heat_target_judge.target}`}
                                 className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
                                 <ArtefactRow htja_array={htja_array} />
                             </tr>
                         }
-                        </>
-                    );
-                })}
+                    </>
+                )
+                )}
             </tbody>
         </table>
     );

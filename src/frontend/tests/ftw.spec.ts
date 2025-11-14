@@ -169,7 +169,7 @@ test('create event', async ({ page }) => {
   await page.waitForTimeout(1000);
   //const selector = page.locator('select[name="round.0"] > option');
   //console.log(await selector.allInnerTexts());
-  await page.locator('select[name="round.0"]').selectOption('Prelims');
+  await page.locator('select[name="round.0"]').selectOption('Finals');
   //await expect(page.locator('select[name="round.0"]')).toHaveValue('Prelims');
   await page.getByRole('button', { name: 'Créer la phase' }).click();
   await page.getByRole('link', { name: 'Accéder à la Phase' }).click();
@@ -187,7 +187,6 @@ test('create event', async ({ page }) => {
   // TODO: check new judges are still visible
   await page.getByRole('link', { name: 'Phase Judges', exact: true }).click();
   await page.getByRole('link', { name: 'dancer1' }).click();
-  await page.goto('http://localhost:3000/admin/events/2/competitions/1/phases/1/judges');
 
 
 
