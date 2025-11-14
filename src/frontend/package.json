@@ -18,7 +18,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7",
-    "react-router": "^7.9.3"
+    "react-router": "^7.9.3",
+    "use-dehydrated-state": "^0.1.0"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.1.0",

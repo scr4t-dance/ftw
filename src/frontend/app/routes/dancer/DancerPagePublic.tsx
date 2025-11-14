@@ -2,29 +2,26 @@ import type { Route } from './+types/DancerPagePublic';
 import React from 'react';
 
 import { type DancerId } from "@hookgen/model";
-import { getApiDancerId } from '@hookgen/dancer/dancer';
+import { getGetApiDancerIdQueryOptions } from '@hookgen/dancer/dancer';
 import { DancerPagePublicComponent } from '@routes/dancer/DancerComponents';
-
+import { dehydrate, QueryClient } from '@tanstack/react-query';
 
 export async function loader({ params }: Route.LoaderArgs) {
 
-    const { id_dancer: id_dancer_string } = params;
-    const id_dancer = Number(id_dancer_string) as DancerId;
+    const id_dancer = Number(params.id_dancer) as DancerId;
 
-    const dancer = await getApiDancerId(id_dancer);
-    return {
-        id_dancer,
-        dancer,
-    };
+    const queryClient = new QueryClient();
+
+    queryClient.prefetchQuery(getGetApiDancerIdQueryOptions(id_dancer));
+
+    return { dehydratedState: dehydrate(queryClient) };
 }
 
-function DancerPagePublic({loaderData}:Route.ComponentProps) {
+function DancerPagePublic({params}:Route.ComponentProps) {
 
-
-    const {id_dancer, dancer} = loaderData;
-
+    const id_dancer = Number(params.id_dancer) as DancerId;
     return (
-        <DancerPagePublicComponent dancer={dancer} id_dancer={id_dancer} />
+        <DancerPagePublicComponent id_dancer={id_dancer} />
     );
 }
 

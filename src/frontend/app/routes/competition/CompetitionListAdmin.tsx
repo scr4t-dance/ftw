@@ -2,60 +2,37 @@ import type { Route } from "./+types/CompetitionListAdmin"
 
 import React from 'react';
 
-import { CompetitionTableComponent } from "@routes/competition/CompetitionComponents";
+import { EventCompetitionListComponent } from "@routes/competition/CompetitionComponents";
 
-import {
-    combineClientLoader, combineServerLoader, competitionListLoader, eventLoader,
-    queryClient,
-} from '~/queryClient';
-import { useGetApiEventIdComps } from "~/hookgen/event/event";
-import type { CompetitionIdList } from "~/hookgen/model";
-
-
-
-const loader_array = [eventLoader, competitionListLoader];
+import { getGetApiEventIdCompsQueryOptions } from "~/hookgen/event/event";
+import type { EventId } from "~/hookgen/model";
+import { dehydrate, QueryClient } from "@tanstack/react-query";
+import { getGetApiCompIdQueryOptions } from "~/hookgen/competition/competition";
 
 export async function loader({ params }: Route.LoaderArgs) {
 
-    const combinedData = await combineServerLoader(loader_array, params);
-    return combinedData;
+    const queryClient = new QueryClient();
+
+    const id_event = Number(params.id_event) as EventId;
+    const competition_list = await queryClient.fetchQuery(getGetApiEventIdCompsQueryOptions(id_event))
+    await Promise.all(
+        competition_list.competitions.map((id_competition) =>
+            queryClient.prefetchQuery(getGetApiCompIdQueryOptions(id_competition)))
+    );
+
+    return { dehydratedState: dehydrate(queryClient) };
 }
 
-let isInitialRequest = true;
-
-export async function clientLoader({
-    params,
-    serverLoader,
-}: Route.ClientLoaderArgs) {
-
-    if (isInitialRequest) {
-        isInitialRequest = false;
-        const serverData = await serverLoader();
-
-        loader_array.forEach((l) => l.cache(queryClient, serverData));
-
-        return serverData;
-    }
-
-    const combinedData = await combineClientLoader(loader_array, params);
-    return combinedData;
-}
-clientLoader.hydrate = true;
 
 export default function CompetitionList({
-    params,
-    loaderData
+    params
 }: Route.ComponentProps) {
 
-    const {data: competition_list} = useGetApiEventIdComps(loaderData.id_event, {
-        query:{
-            initialData:loaderData.competition_list
-        }
-    });
+    const id_event = Number(params.id_event) as EventId;
 
     return (
         <>
-            <CompetitionTableComponent id_event={loaderData.id_event} competition_id_list={competition_list as CompetitionIdList} />
+            <EventCompetitionListComponent id_event={id_event} />
         </>
     );
 }

@@ -2,7 +2,7 @@ import React from 'react';
 
 import type { ArtefactDescription } from "@hookgen/model";
 
-function ArtefactDescriptionComponent({ artefact_description }: { artefact_description: ArtefactDescription }) {
+export default function ArtefactDescriptionComponent({ artefact_description }: { artefact_description: ArtefactDescription }) {
 
 
     return (
@@ -20,6 +20,3 @@ function ArtefactDescriptionComponent({ artefact_description }: { artefact_descr
         </>
       );
 }
-
-
-export default ArtefactDescriptionComponent;
