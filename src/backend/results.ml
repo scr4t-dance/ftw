@@ -72,7 +72,7 @@ let rec routes router =
         ~description:"Successful operation"
         ~content:[
           Spec.json,
-          Spec.make_media_type_object () ~schema:(Types.(ref CompetitionId.ref));
+          Spec.make_media_type_object () ~schema:(Types.(ref DancerIdList.ref));
         ];
       "400", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Invalid input";
@@ -130,14 +130,15 @@ and get_competition_promotions =
 
 and add_promotions =
   Api.get
-    ~to_yojson:Types.CompetitionId.to_yojson
+    ~to_yojson:Types.DancerIdList.to_yojson
     (fun req st ->
        let+ id = Utils.int_param req "id" in
        Ftw.Results.compute ~st ~competition:id;
        let ftw_comp = Ftw.Results.find ~st (`Competition id) in
        let ftw_promotions = List.map (Ftw.Promotion.compute_promotion st) ftw_comp in
        List.iter (Ftw.Promotion.update_with_new_result st) ftw_promotions;
-       Ok id
+       let t = Types.DancerIdList.{dancers=List.map (fun p -> Ftw.Promotion.dancer p) ftw_promotions} in
+       Ok t
     )
 
 and get_dancer_results =

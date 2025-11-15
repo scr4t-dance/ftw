@@ -15,7 +15,7 @@ import { NewBibFormComponent } from '../bib/NewBibFormComponent';
 import { useGetApiCompIdPhases } from '~/hookgen/phase/phase';
 import { PhaseList } from '../phase/PhaseComponents';
 import { NewPhaseFormComponent } from '../phase/NewPhaseForm';
-import { useGetApiDancers } from '~/hookgen/dancer/dancer';
+import { getGetApiDancerIdQueryKey, useGetApiDancers } from '~/hookgen/dancer/dancer';
 
 export function CompetitionTable({ competition_id_list, competition_data_list }: { competition_id_list: CompetitionIdList, competition_data_list: Competition[] }) {
 
@@ -150,13 +150,18 @@ export function CompetitionResults({ id_competition, results_data, promotions_da
 
   const { mutate: updateCompetition, isError, error, isSuccess } = usePutApiCompIdPromotions({
     mutation: {
-      onSuccess: () => {
+      onSuccess: (updatedDancers) => {
         queryClient.invalidateQueries({
           queryKey: getGetApiCompIdPromotionsQueryKey(id_competition),
         });
         queryClient.invalidateQueries({
           queryKey: getGetApiCompIdResultsQueryKey(id_competition),
         });
+        updatedDancers.dancers.forEach(d =>
+          queryClient.invalidateQueries({
+            queryKey: getGetApiDancerIdQueryKey(d),
+          })
+        )
       },
       onError: (err) => {
         console.error('Error updating competition:', err);
@@ -214,7 +219,7 @@ export default function CompetitionDetailsComponent({ id_competition, isAdmin }:
   const { data: bibs_list, isLoading: isLoadingBibs, isError: isErrorBibs } = useGetApiCompIdBibs(id_competition);
 
   const { data: phase_list } = useGetApiCompIdPhases(id_competition);
-  const { data: dancer_list} = useGetApiDancers();
+  const { data: dancer_list } = useGetApiDancers();
 
   if (isLoadingCompetition) return (<div>Chargement de la competition</div>);
   if (isErrorCompetition) return (<div>Erreur chargement de la competition</div>);
@@ -222,7 +227,7 @@ export default function CompetitionDetailsComponent({ id_competition, isAdmin }:
   if (isLoadingBibs) return (<div>Chargement des dossards</div>);
   if (!bibs_list || isErrorBibs) return (<div>Erreur chargement des dossards</div>);
 
-  if(!dancer_list) return (<div>Chargement liste danseurs</div>)
+  if (!dancer_list) return (<div>Chargement liste danseurs</div>)
 
   //const url = `/events/${loaderData.id_event}/competitions/${loaderData.id_competition}`;
   const url = "";

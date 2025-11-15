@@ -12,6 +12,7 @@ import { Controller, FormProvider, get, useFieldArray, useForm, useFormContext, 
 import { Field } from '@routes/index/field';
 import { dancerArrayFromTarget, DancerCell } from '@routes/bib/BibComponents';
 import { useQueryClient } from '@tanstack/react-query';
+import { getGetApiPhaseIdRankingQueryKey } from '~/hookgen/ranking/ranking';
 
 
 const yan_values: (string | undefined)[] = Object.values(YanItem);
@@ -159,7 +160,7 @@ function ArtefactValidCount({ artefactData }: { artefactData: HeatTargetJudgeArt
 
   if (artefact_description.artefact === "ranking") {
     const ranking_artefact_count = [...new Set(
-      validArtefacts.artefacts.map((htja) => (htja.artefact?.artefact_data))
+      validArtefacts.artefacts.filter(htja => htja.artefact?.artefact_data).map((htja) => (htja.artefact?.artefact_data))
     )].length;
 
     return (
@@ -457,6 +458,9 @@ export function ArtefactFormComponent({ artefactData }: { artefactData: HeatTarg
       onSuccess: (_, { data }) => {
         queryClient.invalidateQueries({
           queryKey: getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey(phase_id, judge_id),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getGetApiPhaseIdRankingQueryKey(phase_id),
         });
         console.log("resetting with data", data);
         reset(data);

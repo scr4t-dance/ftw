@@ -24,6 +24,8 @@ type t = {
   reason : reason;
 }
 
+val dancer : t -> Dancer.id
+
 val current_divisions : t -> Divisions.t
 
 val new_divisions : t -> Divisions.t

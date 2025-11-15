@@ -1,5 +1,5 @@
 import React from 'react';
-import { useGetApiDancers, getGetApiDancerIdQueryOptions } from '@hookgen/dancer/dancer';
+import { useGetApiDancers, getGetApiDancerIdQueryOptions, useGetApiDancerId } from '@hookgen/dancer/dancer';
 
 import { DivisionsItem, type Dancer, type DancerId, type DancerIdList, type Divisions } from "@hookgen/model";
 import { Link, useLocation } from "react-router";
@@ -137,11 +137,18 @@ export function DancerListComponent() {
 }
 
 
-export function DancerPageComponent({ dancer, id_dancer }: { dancer: Dancer, id_dancer: DancerId }) {
+export function DancerPageComponent({ id_dancer }: { id_dancer: DancerId }) {
+
+
+    const { data: dancer, isLoading, isError, error, isSuccess} = useGetApiDancerId(id_dancer);
+
+    if (isLoading) return <div>Chargement des compétiteur-euses...</div>;
+    if (isError) return <div>Erreur: {error.message}</div>;
+    if (!isSuccess) return <div>Erreur Chargement</div>;
 
     return (
         <>
-            <DancerPagePublicComponent dancer={dancer} id_dancer={id_dancer} />
+            <DancerPagePublicComponent id_dancer={id_dancer} />
             <p>Birthday: "Hidden"</p>
             <p>Email : "Hidden"</p>
             <h1>Mise à jour données</h1>
@@ -151,13 +158,18 @@ export function DancerPageComponent({ dancer, id_dancer }: { dancer: Dancer, id_
     );
 }
 
-export function DancerPagePublicComponent({ dancer, id_dancer }: { dancer: Dancer, id_dancer: DancerId }) {
+export function DancerPagePublicComponent({ id_dancer }: { id_dancer: DancerId }) {
+
+    const { data: dancer, isLoading, isError, error, isSuccess} = useGetApiDancerId(id_dancer);
+
+    if (isLoading) return <div>Chargement des compétiteur-euses...</div>;
+    if (isError) return <div>Erreur: {error.message}</div>;
+    if (!isSuccess) return <div>Erreur Chargement</div>;
 
     return (
         <>
             <h1 className="dancer_name">{dancer.first_name}, {dancer.last_name}</h1>
             <DancerCompetitionHistory />
-
         </>
     );
 }

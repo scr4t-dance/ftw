@@ -438,6 +438,9 @@ module IdPairs = struct
     match Id.compare x0 x1 with
       0 -> Id.compare y0 y1
     | c -> c
+
+
+  let show_id_pairs (a,b) = "(" ^ (String.concat "," (List.map string_of_int [a;b])) ^ ")"
 end
 
 module PairsSet = Set.Make(IdPairs)
@@ -482,10 +485,13 @@ let add_pools_single ~st ~phase leader_pools follow_pools =
 
 let regen_pools_aux_couples ~min ~max couples_heats =
   let couples_set = Array.fold_left (fun acc couples_heat ->
+      Logs.debug ~src (fun k -> k "regen_pools_aux_couples: Couple Heat list length is %d" (List.length couples_heat.couples));
       List.fold_left (fun htid_set (s:couple) -> PairsSet.add (s.follower, s.leader) htid_set)
         acc couples_heat.couples) PairsSet.empty couples_heats in
   let n_couples = PairsSet.cardinal couples_set in
+  Logs.debug ~src (fun k -> k "regen_pools_aux_couples: Couple set cardinal is %d" n_couples);
   let couples = Misc.Randomizer.apply (Misc.Randomizer.subst n_couples) (PairsSet.elements couples_set |> Array.of_list) in
+  Logs.debug ~src (fun k -> k "regen_pools_aux_couples: Couples are %s" (String.concat "," (Array.map IdPairs.show_id_pairs couples |> Array.to_list)));
   let couple_pools = Misc.Split.split_array ~min ~max couples in
   couple_pools
 
@@ -493,7 +499,7 @@ let add_pools_couples ~st ~phase couple_pools =
   let add_couple_heat i leader follower =
     let _ = add_couple ~st ~phase ~heat:(i + 1) ~leader ~follower in ()
   in
-  let add_heat i heat = Array.iter (fun (leader, follower) -> add_couple_heat i leader follower) heat in
+  let add_heat i heat = Array.iter (fun (follower, leader) -> add_couple_heat i leader follower) heat in
   Array.iteri add_heat couple_pools;
   ()
 
@@ -524,7 +530,7 @@ let regen_pools ~st ~phase ?(tries=100) ?(early=(0, [])) ?(late=(0, [])) ~min ~m
   let rec aux n =
     if n <= 0 then failwith "could not generate new pools"
     else begin
-      Logs.info (fun k->k "Generating new pool");
+      Logs.info (fun k->k "Generating new pool with %d tries left" tries);
       begin match t with
         | Singles {singles_heats;} ->
           let leader_pools, follower_pools = regen_pools_aux_singles ~min ~max singles_heats in
@@ -543,6 +549,9 @@ let regen_pools ~st ~phase ?(tries=100) ?(early=(0, [])) ?(late=(0, [])) ~min ~m
                         && check_early early follower_pools && check_late late follower_pools in
           if is_okay then
             let _ = reset st phase in
+            Logs.info (fun k->
+                let show_heat h = Array.map IdPairs.show_id_pairs h |> Array.to_list |> String.concat ";" in
+                k "Heats : %s" (String.concat "|" (List.map show_heat (Array.to_list couples_pools))));
             add_pools_couples ~st ~phase couples_pools
           else begin
             aux (n - 1)

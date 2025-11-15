@@ -458,7 +458,7 @@ export function PreviousPhasePairingComponent({ id_competition, id_phase }: { id
     const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(id_competition);
 
     const phaseDataQueries = useQueries({
-        queries: (phase_list as PhaseIdList).phases.map((id_phase) => ({
+        queries: (phase_list ?? {phases:[]}).phases.map((id_phase) => ({
             ...getGetApiPhaseIdQueryOptions(id_phase),
             enabled: !!phase_list
         })),

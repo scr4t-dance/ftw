@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { faker } from '@faker-js/faker';
-import { DivisionItem, DivisionsItem, type Dancer } from '~/hookgen/model';
+import { DivisionItem, DivisionsItem, type Dancer, type DancerId } from '~/hookgen/model';
 
 test('has title', async ({ page }) => {
   await page.goto('/');
@@ -9,7 +9,7 @@ test('has title', async ({ page }) => {
   await expect(page).toHaveTitle(/SCR4T/);
 });
 
-function create_dancer(as_leader:DivisionsItem, as_follower:DivisionsItem){
+function create_dancer(as_leader: DivisionsItem, as_follower: DivisionsItem) {
   const first_name = faker.string.alpha(10);
   const last_name = faker.string.alpha(10);
 
@@ -18,12 +18,14 @@ function create_dancer(as_leader:DivisionsItem, as_follower:DivisionsItem){
     last_name: last_name,
     as_leader: [as_leader],
     as_follower: [as_follower],
-    birthday: {year:2025, month:10, day:4},
+    birthday: { year: 2025, month: 10, day: 4 },
     email: `${first_name}.${last_name}@scrat.fr`,
   } satisfies Dancer;
 }
 
 test('create event', async ({ page }) => {
+
+  test.slow();
 
   const randomEventName = faker.string.alpha(10);
   const randomCompetitionName = faker.string.alpha(10);
@@ -61,6 +63,9 @@ test('create event', async ({ page }) => {
   await page.locator('select[name="as_leader.0"]').selectOption(dancer_array[0].as_leader[0]);
   await page.locator('select[name="as_follower.0"]').selectOption(dancer_array[0].as_follower[0]);
   await page.getByRole('button', { name: 'Nouveau' }).click();
+  const dancer_0_link = await page.getByRole('link', { name: 'Accéder à la page de la' }).getAttribute("href");
+  const dancer_0_id = Number(dancer_0_link?.match(/\d+/)?.[0]) as DancerId;
+
   await page.locator('input[name="last_name"]').click();
   await page.locator('input[name="last_name"]').fill(dancer_array[1].last_name);
   await page.locator('input[name="last_name"]').press('Tab');
@@ -72,6 +77,9 @@ test('create event', async ({ page }) => {
   await page.locator('select[name="as_leader.0"]').selectOption(dancer_array[1].as_leader[0]);
   await page.locator('select[name="as_follower.0"]').selectOption(dancer_array[1].as_follower[0]);
   await page.getByRole('button', { name: 'Nouveau' }).click();
+  const dancer_1_link = await page.getByRole('link', { name: 'Accéder à la page de la' }).getAttribute("href");
+  const dancer_1_id = Number(dancer_1_link?.match(/\d+/)?.[0]) as DancerId;
+
   await page.locator('input[name="last_name"]').click();
   await page.locator('input[name="last_name"]').fill(dancer_array[2].last_name);
   await page.locator('input[name="last_name"]').press('Tab');
@@ -83,6 +91,9 @@ test('create event', async ({ page }) => {
   await page.locator('select[name="as_leader.0"]').selectOption(dancer_array[2].as_leader[0]);
   await page.locator('select[name="as_follower.0"]').selectOption(dancer_array[2].as_follower[0]);
   await page.getByRole('button', { name: 'Nouveau' }).click();
+  const dancer_2_link = await page.getByRole('link', { name: 'Accéder à la page de la' }).getAttribute("href");
+  const dancer_2_id = Number(dancer_2_link?.match(/\d+/)?.[0]) as DancerId;
+
   await page.locator('input[name="last_name"]').click();
   await page.locator('input[name="last_name"]').fill(dancer_array[3].last_name);
   await page.locator('input[name="last_name"]').press('Tab');
@@ -94,6 +105,8 @@ test('create event', async ({ page }) => {
   await page.locator('select[name="as_leader.0"]').selectOption(dancer_array[3].as_leader[0]);
   await page.locator('select[name="as_follower.0"]').selectOption(dancer_array[3].as_follower[0]);
   await page.getByRole('button', { name: 'Nouveau' }).click();
+  const dancer_3_link = await page.getByRole('link', { name: 'Accéder à la page de la' }).getAttribute("href");
+  const dancer_3_id = Number(dancer_3_link?.match(/\d+/)?.[0]) as DancerId;
 
   // création évent et compétition
   await admin_home_locator.click();
@@ -119,26 +132,26 @@ test('create event', async ({ page }) => {
   await page.locator('input[name="bib"]').click();
   await page.locator('input[name="bib"]').fill('101');
   await page.locator('input[name="target.target"]').click();
-  await page.locator('input[name="target.target"]').fill('1');
+  await page.locator('input[name="target.target"]').fill(String(dancer_0_id));
   await page.getByRole('listbox').selectOption('Follower');
   await page.getByRole('button', { name: 'Inscrire un-e compétiteurice' }).click();
   await page.getByText('✅ Bib ajoutée avec succès.').click();
   await page.locator('input[name="bib"]').click();
   await page.locator('input[name="bib"]').fill('102');
   await page.locator('input[name="target.target"]').click();
-  await page.locator('input[name="target.target"]').fill('2');
+  await page.locator('input[name="target.target"]').fill(String(dancer_1_id));
   await page.getByRole('listbox').selectOption('Leader');
   await page.getByRole('button', { name: 'Inscrire un-e compétiteurice' }).click();
   await page.locator('input[name="bib"]').click();
   await page.locator('input[name="bib"]').fill('103');
   await page.locator('input[name="target.target"]').click();
-  await page.locator('input[name="target.target"]').fill('3');
+  await page.locator('input[name="target.target"]').fill(String(dancer_2_id));
   await page.getByRole('listbox').selectOption('Follower');
   await page.getByRole('button', { name: 'Inscrire un-e compétiteurice' }).click();
   await page.locator('input[name="bib"]').click();
   await page.locator('input[name="bib"]').fill('104');
   await page.locator('input[name="target.target"]').click();
-  await page.locator('input[name="target.target"]').fill('4');
+  await page.locator('input[name="target.target"]').fill(String(dancer_3_id));
   await page.getByRole('listbox').selectOption('Leader');
   await page.getByRole('button', { name: 'Inscrire un-e compétiteurice' }).click();
 
@@ -158,6 +171,20 @@ test('create event', async ({ page }) => {
   await page.getByRole('button', { name: 'Créer la phase' }).click();
   await page.getByRole('link', { name: 'Accéder à la Phase' }).click();
 
+  // add judges to prelims
+  await page.getByRole('link', { name: 'Edit Phase Judges' }).click();
+  await page.getByRole('button', { name: 'append' }).first().click();
+  await page.getByRole('cell', { name: 'Delete' }).getByRole('spinbutton').click();
+  await page.getByRole('cell', { name: 'Delete' }).getByRole('spinbutton').fill(String(dancer_0_id));
+  await page.getByRole('table').filter({ hasText: 'DancerIDPrénomNomappend' }).getByRole('button').click();
+  await page.getByRole('spinbutton').nth(2).click();
+  await page.getByRole('spinbutton').nth(2).fill(String(dancer_1_id));
+  await page.getByRole('button', { name: 'Mettre à jour les juges' }).click();
+  // TODO: check new judges are still visible
+  await page.getByRole('link', { name: 'Phase Judges', exact: true }).click();
+  await expect(page.getByRole('link', { name: dancer_array[0].first_name })).toHaveCount(1);
+  await expect(page.getByRole('link', { name: dancer_array[1].first_name })).toHaveCount(1);
+
   // création finales
   await admin_home_locator.click();
   await page.getByRole('link', { name: 'Events' }).click();
@@ -174,19 +201,20 @@ test('create event', async ({ page }) => {
   await page.getByRole('button', { name: 'Créer la phase' }).click();
   await page.getByRole('link', { name: 'Accéder à la Phase' }).click();
 
-
+  // add judges to finals
   await page.getByRole('link', { name: 'Edit Phase Judges' }).click();
-  await page.getByRole('button', { name: 'append' }).first().click();
-  await page.getByRole('cell', { name: 'Delete' }).getByRole('spinbutton').click();
-  await page.getByRole('cell', { name: 'Delete' }).getByRole('spinbutton').fill('1');
-  await page.getByRole('table').filter({ hasText: 'DancerIDPrénomNomappend' }).getByRole('button').click();
-  await page.getByRole('spinbutton').nth(2).click();
-  await page.getByRole('spinbutton').nth(2).fill('2');
+  await page.getByRole('combobox').selectOption('couple');
+  await page.getByRole('button', { name: 'append' }).click();
+  await page.getByRole('button', { name: 'append' }).click();
+  await page.getByRole('row').nth(1).getByRole('spinbutton').click();
+  await page.getByRole('row').nth(1).getByRole('spinbutton').fill(String(dancer_0_id));
+  await page.getByRole('row').nth(2).getByRole('spinbutton').click();
+  await page.getByRole('row').nth(2).getByRole('spinbutton').fill(String(dancer_1_id));
   await page.getByRole('button', { name: 'Mettre à jour les juges' }).click();
-  await page.getByRole('button', { name: 'Réinitialiser' }).click();
   // TODO: check new judges are still visible
   await page.getByRole('link', { name: 'Phase Judges', exact: true }).click();
-  await page.getByRole('link', { name: 'dancer1' }).click();
+  await expect(page.getByRole('link', { name: dancer_array[0].first_name })).toHaveCount(1);
+  await expect(page.getByRole('link', { name: dancer_array[1].first_name })).toHaveCount(1);
 
 
 
@@ -199,6 +227,8 @@ test('create event', async ({ page }) => {
   // cofngiuration heats
   await page.getByRole('link', { name: `Prelims ${randomCompetitionName}` }).click();
   await page.getByRole('link', { name: 'Phase Heats' }).click();
+  await page.getByRole('button', { name: 'Insérer les dossards dans la Heat 0' }).click();
+  await page.getByText('✅ Dossards insérés dans la Heat 0 !').click();
   await page.locator('input[name="min_number_of_targets"]').click();
   await page.locator('input[name="min_number_of_targets"]').fill('2');
   await page.locator('input[name="max_number_of_targets"]').click();
@@ -207,52 +237,95 @@ test('create event', async ({ page }) => {
   await page.getByText('✅ Dancers has been added').click();
 
   // remplissage artefacts
+  function get_name(dancer: Dancer) {
+    return `${dancer.first_name} ${dancer.last_name}`;
+  }
   await page.getByRole('link', { name: 'Phase Artefacts' }).click();
-  await page.getByRole('row', { name: `${dancer_array[2].first_name} ${dancer_array[2].last_name}` }).getByRole('spinbutton').click();
-  await page.getByRole('row', { name: `${dancer_array[2].first_name} ${dancer_array[2].last_name}` }).getByRole('spinbutton').fill('3');
-  await page.getByRole('row', { name: `${dancer_array[0].first_name} ${dancer_array[0].last_name}` }).getByRole('spinbutton').click();
-  await page.getByRole('row', { name: `${dancer_array[0].first_name} ${dancer_array[0].last_name}` }).getByRole('spinbutton').fill('1');
+  await page.getByRole('table').first()
+    .getByRole('row').first()
+    .getByRole('link', { name: dancer_array[0].first_name })
+    .click();
+  await page.getByRole('row', { name: dancer_array[2].first_name }).getByRole('spinbutton').click();
+  await page.getByRole('row', { name: dancer_array[2].first_name }).getByRole('spinbutton').fill('3');
+  await page.getByRole('row', { name: dancer_array[0].first_name }).getByRole('spinbutton').click();
+  await page.getByRole('row', { name: dancer_array[0].first_name }).getByRole('spinbutton').fill('1');
   await page.getByRole('button', { name: 'Mettre à jour les artefacts' }).click();
   await page.getByRole('button', { name: 'Réinitialiser' }).click();
   // todo check artefacts
   await page.getByRole('link', { name: 'Phase Artefacts' }).click();
-  await page.getByRole('row', { name: `${dancer_array[1].first_name} ${dancer_array[1].last_name}` }).getByRole('link').click();
-  await page.getByRole('row', { name: `${dancer_array[3].first_name} ${dancer_array[3].last_name}` }).getByRole('spinbutton').click();
-  await page.getByRole('row', { name: `${dancer_array[3].first_name} ${dancer_array[3].last_name}` }).getByRole('spinbutton').fill('2');
-  await page.getByRole('row', { name: `${dancer_array[1].first_name} ${dancer_array[1].last_name}` }).getByRole('spinbutton').click();
-  await page.getByRole('row', { name: `${dancer_array[1].first_name} ${dancer_array[1].last_name}` }).getByRole('spinbutton').fill('3');
+  await page.getByRole('table').nth(1)
+    .getByRole('row').first()
+    .getByRole('link', { name: dancer_array[1].first_name })
+    .click();
+  await page.getByRole('row', { name: dancer_array[3].first_name }).getByRole('spinbutton').click();
+  await page.getByRole('row', { name: dancer_array[3].first_name }).getByRole('spinbutton').fill('2');
+  await page.getByRole('row', { name: dancer_array[1].first_name }).getByRole('spinbutton').click();
+  await page.getByRole('row', { name: dancer_array[1].first_name }).getByRole('spinbutton').fill('3');
   await page.getByRole('button', { name: 'Mettre à jour les artefacts' }).click();
 
   // ranks
   await page.getByRole('link', { name: 'Phase Ranks' }).click();
-  await page.getByRole('spinbutton').click();
+  await expect(page.getByText('Nombre de Target à passer à la phase suivante')).toBeVisible();
   await page.getByRole('spinbutton').fill('1');
-
-  // configuration juges finales
   await page.getByRole('button', { name: 'Passer à la phase suivante' }).click();
-  await page.getByRole('link', { name: 'Edit Phase Judges' }).click();
-  await page.getByRole('combobox').selectOption('couple');
-  await page.getByRole('button', { name: 'append' }).click();
-  await page.getByRole('cell', { name: 'append' }).click();
-  await page.getByRole('cell', { name: 'Delete' }).getByRole('spinbutton').click();
-  await page.getByRole('cell', { name: 'Delete' }).getByRole('spinbutton').fill('1');
-  await page.getByRole('button', { name: 'append' }).click();
-  await page.getByRole('spinbutton').nth(2).click();
-  await page.getByRole('row', { name: `Delete ${dancer_array[1].first_name} ${dancer_array[1].last_name}` }).getByRole('spinbutton').fill('2');
-  await page.getByRole('button', { name: 'Mettre à jour les juges' }).click();
-  await page.getByRole('button', { name: 'Réinitialiser' }).click();
-  await page.getByRole('link', { name: 'Phase Judges', exact: true }).click();
-  await page.getByText('dancer2dancer2').click();
+  await expect(page.getByText("✅ 1 dancers has been transfered")).toHaveText("✅ 1 dancers has been transfered to next phase")
+
+  await admin_home_locator.click();
+  await page.getByRole('link', { name: 'Events' }).click();
+  await page.getByRole('link', { name: randomEventName }).click();
+  await page.getByRole('link', { name: randomCompetitionName }).click();
+  await page.getByRole('link', { name: 'Finals' }).click();
 
   await page.getByRole('link', { name: 'Edit Phase', exact: true }).click();
   await page.locator('select[name="judge_artefact_descr.artefact"]').selectOption('ranking');
   await page.locator('select[name="head_judge_artefact_descr.artefact"]').selectOption('ranking');
   await page.locator('select[name="ranking_algorithm.algorithm"]').selectOption('ranking');
   await page.getByRole('button', { name: 'Mettre à jour la phase' }).click();
-  await page.getByText('✅ Phase "Finals" avec').click();
+  await expect(page.getByText('✅ Phase "Finals" avec')).toContainText("mis à jour avec succès.");
 
   await page.getByRole('link', { name: 'Phase Heats' }).click();
   await page.getByRole('link', { name: 'Appairage' }).click();
-  await page.getByRole('button', { name: 'Toggle View Previous Phase' }).click();
+
+  await page.locator('[id="downshift-«r0»-toggle-button"]').click();
+  await page.getByRole('listbox', { name: 'Follower' }).getByText(dancer_array[2].first_name).click();
+  await page.locator('[id="downshift-«r1»-toggle-button"]').click();
+  await page.getByRole('listbox', { name: 'Leader' }).getByText(dancer_array[1].first_name).click();
+  await page.getByRole('spinbutton').click();
+  await page.getByRole('spinbutton').fill('103102');
+  await page.getByRole('button', { name: 'Add new' }).click();
+  await page.locator('[id="downshift-«r0»-toggle-button"]').click();
+
+  await page.getByRole('link', { name: 'Phase Heats' }).click();
+  await page.getByRole('button', { name: 'Insérer les dossards dans la Heat 0' }).click();
+  await page.locator('input[name="min_number_of_targets"]').click();
+  await page.locator('input[name="min_number_of_targets"]').fill('1');
+  await page.locator('input[name="max_number_of_targets"]').click();
+  await page.locator('input[name="max_number_of_targets"]').fill('2');
+  await page.getByRole('button', { name: 'Initialiser les Heats' }).click();
+
+  await page.getByRole('link', { name: 'Phase Ranks' }).click();
+  await page.getByRole('row').nth(1).getByRole('link', { name: dancer_array[0].first_name }).click();
+  await expect(page.getByText('Number of unique ranks')).toBeVisible();
+  await page.getByRole('spinbutton').click();
+  await page.getByRole('spinbutton').fill('1');
+  await page.getByRole('button', { name: 'Mettre à jour les artefacts' }).click();
+  await expect(page.getByRole('table').first()).toHaveText('Number of unique ranks1');
+  await page.getByRole('link', { name: 'Phase Ranks' }).click();
+  await page.getByRole('row').nth(1).getByRole('link', { name: dancer_array[1].first_name }).click();
+  await expect(page.getByText('Number of unique ranks')).toBeVisible();
+  await page.getByRole('spinbutton').click();
+  await page.getByRole('spinbutton').fill('1');
+  await page.getByRole('button', { name: 'Mettre à jour les artefacts' }).click();
+  await expect(page.getByRole('table').first()).toHaveText('Number of unique ranks1');
+  await page.getByRole('link', { name: 'Phase Ranks' }).click();
+
+  await page.getByRole('link', { name: 'Competition', exact: true }).click();
+  await page.getByRole('link', { name: 'Résultats/Promotions' }).click();
+  await page.getByRole('button', { name: 'Calculer les promotions' }).click();
+  await expect(page.getByRole('cell', { name: '1ème' })).toHaveCount(2);
+  await expect(page.getByRole('cell', { name: dancer_array[0].first_name })).toHaveCount(1);
+  await expect(page.getByRole('cell', { name: dancer_array[1].first_name })).toHaveCount(1);
+  await expect(page.getByRole('cell', { name: dancer_array[2].first_name })).toHaveCount(1);
+  await expect(page.getByRole('cell', { name: dancer_array[3].first_name })).toHaveCount(1);
 
 });

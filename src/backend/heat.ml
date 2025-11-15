@@ -128,7 +128,7 @@ let rec routes router =
       "404", Types.obj @@ Spec.make_error_response_object ()
         ~description:"Phase not found";
     ]
-  |> Router.put "/api/phase/:id/promote" promote
+  |> Router.put "/api/phase/:id/promote_all" promote_all
     ~tags:["heat"; "phase"]
     ~summary:"Promote dancers to next round"
     ~request_body:(
@@ -291,7 +291,7 @@ and init_heats_with_bibs =
        Ok id
     )
 
-and promote =
+and promote_all =
   Api.put
     ~of_yojson:Types.NextPhaseFormData.of_yojson
     ~to_yojson:Types.PhaseId.to_yojson

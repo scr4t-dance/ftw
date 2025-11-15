@@ -230,9 +230,8 @@ let update_finals ~st ~(dancer:Dancer.id) ~(role:Role.t) p_list =
   end
 
 let points ~st ~event ~comp ~role result =
-  match Competition.category comp with
-  | Non_competitive _ -> 0
-  | Competitive _ ->
+  match Competition.category comp, Competition.kind comp with
+  | Competitive _, Jack_and_Jill ->
     let date = Event.start_date (Event.get st event) in
     let n =
       match (role : Role.t) with
@@ -241,14 +240,21 @@ let points ~st ~event ~comp ~role result =
     in
     let placement = placement result in
     Points.find ~date ~n ~placement
+  | _, _ -> 0
 
 
 let compute ~st ~competition =
   let phase_list = Phase.find st competition in
   let get_dancer_set (h:Heat.t) = let leader_list, follower_list = begin match h with
       | Singles sh ->
-        let _, leader_list, follower_list = Heat.all_single_judgement_targets sh in
-        leader_list, follower_list
+        let target_map, _, _ = Heat.all_single_judgement_targets sh in
+        let filter_role ~role (Target.Single {target;role=r;}) = begin match Role.compare role r with
+          | 0 -> Some target
+          | _ -> None
+        end in
+        let leader_target_map = Id.Map.filter_map (fun _ -> filter_role ~role:Role.Leader) target_map in
+        let follower_target_map = Id.Map.filter_map (fun _ -> filter_role ~role:Role.Follower) target_map in
+        Id.Map.bindings leader_target_map |> List.map snd, Id.Map.bindings follower_target_map |> List.map snd
       | Couples ch ->
         let couple_targets = Heat.all_couple_judgement_targets ch in
         let single_target_map = Id.Map.map (fun (Target.Couple { leader; follower; }) ->

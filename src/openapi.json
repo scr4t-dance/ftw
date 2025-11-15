@@ -111,7 +111,7 @@
             "description": "Successful operation",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/CompetitionId" }
+                "schema": { "$ref": "#/components/schemas/DancerIdList" }
               }
             }
           },
@@ -680,6 +680,56 @@
           "content": {
             "application/json": {
               "schema": { "$ref": "#/components/schemas/HeatTargetJudge" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/promote_all": {
+      "put": {
+        "tags": [ "heat", "phase" ],
+        "summary": "Promote dancers to next round",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Treshold for next phase",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/NextPhaseFormData" }
             }
           },
           "required": true

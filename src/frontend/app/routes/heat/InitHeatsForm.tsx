@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 // import { useNavigate } from "react-router";
 
 import type {
@@ -162,6 +162,7 @@ export function RandomizeHeatsForm({ id_phase }: { id_phase: PhaseId }) {
 
 export function InitHeatsWithBibForm({ id_phase }: { id_phase: PhaseId }) {
 
+    const [hasInitializedBibs, initializeBibs] = useState(false);
 
     const queryClient = useQueryClient();
 
@@ -181,6 +182,7 @@ export function InitHeatsWithBibForm({ id_phase }: { id_phase: PhaseId }) {
                 // all_judges.map((judge_id) => (queryClient.invalidateQueries({
                 //         queryKey: getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey(id_phase, judge_id),
                 //     })));
+                initializeBibs(true);
             },
             onError: (err) => {
                 console.error('Error creating phase:', err);
@@ -191,8 +193,11 @@ export function InitHeatsWithBibForm({ id_phase }: { id_phase: PhaseId }) {
 
     return (
         <>
+            {hasInitializedBibs &&
+                <p>✅ Dossards insérés dans la Heat 0 !</p>
+            }
             <button type="button" onClick={() => initHeatsWithBibs({ id: id_phase, data: undefined })} >
-                Initialiser les Heats avec les dossards
+                Insérer les dossards dans la Heat 0
             </button>
         </>
     );

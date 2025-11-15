@@ -38,6 +38,7 @@ type t = {
   reason: reason;
 }
 
+let dancer {dancer;_} = dancer
 let current_divisions {current_divisions;_} = current_divisions
 
 let new_divisions {new_divisions;_} = new_divisions

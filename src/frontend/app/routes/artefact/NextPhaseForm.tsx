@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 // import { useNavigate } from "react-router";
 
 import type {
@@ -7,29 +7,33 @@ import type {
 } from '@hookgen/model';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { Field } from '@routes/index/field';
-import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey,
-    getGetApiPhaseIdSinglesHeatsQueryKey } from '@hookgen/heat/heat';
+import {
+    getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey,
+    getGetApiPhaseIdSinglesHeatsQueryKey
+} from '@hookgen/heat/heat';
 import { usePutApiPhaseIdPromote } from '@hookgen/ranking/ranking';
 import { useQueryClient } from '@tanstack/react-query';
 
-export default function NextPhaseForm({ id_phase, treshold_callback }: { id_phase: PhaseId, treshold_callback?: (treshold:number)=>void }) {
+export default function NextPhaseForm({ id_phase, treshold_callback }: { id_phase: PhaseId, treshold_callback?: (treshold: number) => void }) {
 
     //const navigate = useNavigate();
     const queryClient = useQueryClient();
 
-    const formObject = useForm<NextPhaseFormData>({defaultValues: {number_of_targets_to_promote:0}}
+    const formObject = useForm<NextPhaseFormData>({ defaultValues: { number_of_targets_to_promote: 0 } }
     );
+
+    const [hasPromotedText, setPromotedText] = useState("");
 
     const {
         register,
         handleSubmit,
         watch,
-        formState: { errors, isSubmitSuccessful },
+        formState: { errors },
     } = formObject;
 
     const { mutate: promotePhase } = usePutApiPhaseIdPromote({
         mutation: {
-            onSuccess: (nextPhase) => {
+            onSuccess: (nextPhase, data) => {
                 queryClient.invalidateQueries({
                     queryKey: getGetApiPhaseIdCouplesHeatsQueryKey(nextPhase),
                 });
@@ -39,6 +43,7 @@ export default function NextPhaseForm({ id_phase, treshold_callback }: { id_phas
                 queryClient.invalidateQueries({
                     queryKey: getGetApiPhaseIdHeatsQueryKey(nextPhase),
                 });
+                setPromotedText(`✅ ${data.data.number_of_targets_to_promote} dancers has been transfered to next phase`);
             },
             onError: (err) => {
                 console.error('Error creating phase:', err);
@@ -60,9 +65,11 @@ export default function NextPhaseForm({ id_phase, treshold_callback }: { id_phas
         <>
             <FormProvider {...formObject}>
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    {isSubmitSuccessful &&
+                    <label>Passage à la phase suivante</label>
+
+                    {hasPromotedText &&
                         <div className="success_message">
-                            ✅ Dancers has been transfered to next phase
+                            {hasPromotedText}
                         </div>
                     }
 
@@ -71,11 +78,11 @@ export default function NextPhaseForm({ id_phase, treshold_callback }: { id_phas
                         error={errors.number_of_targets_to_promote?.message}
                     >
                         <input type='number'
-                        {...register("number_of_targets_to_promote", {
-                            required: "Should be a number",
-                            min: 0,
-                            valueAsNumber: true,
-                        })} />
+                            {...register("number_of_targets_to_promote", {
+                                required: "Should be a number",
+                                min: 0,
+                                valueAsNumber: true,
+                            })} />
                     </Field>
 
                     {errors.root?.formValidation &&

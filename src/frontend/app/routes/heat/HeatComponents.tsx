@@ -9,7 +9,8 @@ import {
 } from "@hookgen/model";
 import type { BibList, CompetitionId, CouplesHeat, HeatsArray, Panel, PhaseId, SinglesHeat, Target } from "@hookgen/model";
 import {
-    getGetApiPhaseIdHeatsQueryKey, useDeleteApiPhaseIdHeatTarget, useGetApiPhaseIdHeats, usePutApiPhaseIdHeatTarget
+    getGetApiPhaseIdCouplesHeatsQueryKey,
+    getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, useDeleteApiPhaseIdHeatTarget, useGetApiPhaseIdHeats, usePutApiPhaseIdHeatTarget
 } from '~/hookgen/heat/heat';
 
 import { BareBibListComponent, dancerArrayFromTarget, DancerCell, get_bibs, } from '@routes/bib/BibComponents';
@@ -71,6 +72,12 @@ function EditableHeatTarget({ heatTargetJudge, bib, index }: { heatTargetJudge: 
         mutation: {
             onSuccess: (id_phase) => {
                 queryClient.invalidateQueries({
+                    queryKey: getGetApiPhaseIdCouplesHeatsQueryKey(id_phase),
+                });
+                queryClient.invalidateQueries({
+                    queryKey: getGetApiPhaseIdSinglesHeatsQueryKey(id_phase),
+                });
+                queryClient.invalidateQueries({
                     queryKey: getGetApiPhaseIdHeatsQueryKey(id_phase),
                 });
             },
@@ -113,6 +120,12 @@ function NewHeatTarget({ defaultHeatTargetJudge, missingBibList }: { defaultHeat
     const { mutate: addTargetToHeat, isError, error } = usePutApiPhaseIdHeatTarget({
         mutation: {
             onSuccess: (id_phase) => {
+                queryClient.invalidateQueries({
+                    queryKey: getGetApiPhaseIdCouplesHeatsQueryKey(id_phase),
+                });
+                queryClient.invalidateQueries({
+                    queryKey: getGetApiPhaseIdSinglesHeatsQueryKey(id_phase),
+                });
                 queryClient.invalidateQueries({
                     queryKey: getGetApiPhaseIdHeatsQueryKey(id_phase),
                 });
@@ -352,7 +365,7 @@ export function HeatsList({ id_phase, panel_data, heats, dataBibs }: { id_phase:
             {heats?.heats && heats?.heats.map((heat, index) => (
                 // heat 0 réservée pour calculs internes
                 // TODO : afficher warning si heat 0 non vide et Heat 1, ..., n non vides
-                index === 0 ? <></> :
+                index === -1 ? <></> :
                     <>
                         <h1>Heat {index}</h1>
                         {heats.heat_type === "couple" &&

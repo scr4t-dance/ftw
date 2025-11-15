@@ -2,23 +2,29 @@ import type { Route } from './+types/NewDancerForm';
 import React, { useState } from 'react';
 // import { useNavigate } from "react-router";
 
-import { getGetApiDancersQueryKey, usePutApiDancer, usePatchApiDancerId, getGetApiDancerIdQueryKey, getApiDancers } from '@hookgen/dancer/dancer';
+import { getGetApiDancersQueryKey, usePutApiDancer, usePatchApiDancerId, getGetApiDancerIdQueryKey, getApiDancers, getGetApiDancersQueryOptions, getGetApiDancerIdQueryOptions } from '@hookgen/dancer/dancer';
 
 import { DivisionsItem, type Dancer, type DancerId, type Date } from '@hookgen/model';
 
 import { Link, useLocation } from 'react-router';
 import { Controller, useForm, type SubmitHandler, type UseFormReturn } from 'react-hook-form';
 import { Field } from '@routes/index/field';
-import { useQueryClient } from '@tanstack/react-query';
+import { dehydrate, QueryClient, useQueryClient } from '@tanstack/react-query';
+
 
 export async function loader({ }: Route.LoaderArgs) {
 
-    const dancer_list = await getApiDancers();
+    const queryClient = new QueryClient();
 
-    return {
-        dancer_list
-    };
+    const dancer_list = await queryClient.fetchQuery(getGetApiDancersQueryOptions());
+    await Promise.all(
+        dancer_list.dancers.map((id_dancer) => queryClient.prefetchQuery(getGetApiDancerIdQueryOptions(id_dancer)))
+    );
+
+
+    return { dehydratedState: dehydrate(queryClient) };
 }
+
 
 function putOrPatchApi({ id_dancer, formObject }: { id_dancer?: DancerId, formObject: UseFormReturn<Dancer, any, Dancer> }) {
 
