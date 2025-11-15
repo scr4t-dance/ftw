@@ -201,7 +201,7 @@ export function PhasePageNavigationComponent({ id_phase, id_competition }: { id_
     return (
         <>
             <h1>Phase {phase_data?.round} {competition_data?.name}</h1>
-            <ol>
+            <ol className="no-print">
                 <li>
                     <Link to={`${url}edit_judges`}>
                         Edit Phase Judges

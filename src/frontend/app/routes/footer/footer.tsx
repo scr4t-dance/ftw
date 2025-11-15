@@ -10,7 +10,7 @@ export default function Footer({ userId }: { userId: string | null }) {
     const disable_admin = import.meta.env.VITE_DISABLE_ADMIN === "true";
 
     return (
-        <footer>
+        <footer className="no-print">
             {!disable_admin && userId &&
                 <div className="footer_buttons">
                     <div className="footer_button"><Link to="/admin">Admin</Link></div>
@@ -20,7 +20,6 @@ export default function Footer({ userId }: { userId: string | null }) {
             {!disable_admin && !userId &&
                 <div className="footer_button"><Link to={"/login?" + params.toString()}>Se connecter</Link></div>
             }
-
             <span>© 2025 SCR4T</span>
         </footer>
     );

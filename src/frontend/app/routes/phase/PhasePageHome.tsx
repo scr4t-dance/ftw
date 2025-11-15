@@ -34,7 +34,6 @@ function PhasePageHome({params}: Route.ComponentProps) {
         <>
             <PhasePageNavigationComponent id_phase={id_phase} id_competition={id_competition} />
             <Outlet />
-
         </>
     );
 }

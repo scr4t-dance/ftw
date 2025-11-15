@@ -285,21 +285,23 @@ export function SingleHeatTable({ heat, dataBibs, heat_number, id_phase }: Singl
 
     return (
         <>
-            <div>
-                <h3>Followers</h3>
-                <BibHeatListComponent bib_list={followers.bibs}
-                    heat_number={heat_number} missingBibList={notInHeatFollowerBibs}
-                    id_phase={id_phase}
-                    defaultTarget={{ target_type: "single", role: ["Follower"] } as Target}
-                />
-            </div>
-            <div>
-                <h3>Leaders</h3>
-                <BibHeatListComponent bib_list={leaders.bibs}
-                    heat_number={heat_number} missingBibList={notInHeatLeaderBibs}
-                    id_phase={id_phase}
-                    defaultTarget={{ target_type: "single", role: ["Leader"] } as Target}
-                />
+            <div className='bib-table-container'>
+                <div className='bib-table-column'>
+                    <h3>Followers</h3>
+                    <BibHeatListComponent bib_list={followers.bibs}
+                        heat_number={heat_number} missingBibList={notInHeatFollowerBibs}
+                        id_phase={id_phase}
+                        defaultTarget={{ target_type: "single", role: ["Follower"] } as Target}
+                    />
+                </div>
+                <div className='bib-table-column'>
+                    <h3>Leaders</h3>
+                    <BibHeatListComponent bib_list={leaders.bibs}
+                        heat_number={heat_number} missingBibList={notInHeatLeaderBibs}
+                        id_phase={id_phase}
+                        defaultTarget={{ target_type: "single", role: ["Leader"] } as Target}
+                    />
+                </div>
             </div>
         </>);
 }
@@ -323,12 +325,16 @@ export function CoupleHeatTable({ heat, dataBibs, heat_number, id_phase }: Coupl
 
     return (
         <>
-            <h3>Couples</h3>
-            <BibHeatListComponent bib_list={couples.bibs}
-                heat_number={heat_number} missingBibList={missingBibList}
-                id_phase={id_phase}
-                defaultTarget={{ target_type: "couple" } as Target}
-            />
+            <div className='bib-table-container'>
+                <div className='bib-table-column'>
+                    <h3>Couples</h3>
+                    <BibHeatListComponent bib_list={couples.bibs}
+                        heat_number={heat_number} missingBibList={missingBibList}
+                        id_phase={id_phase}
+                        defaultTarget={{ target_type: "couple" } as Target}
+                    />
+                </div>
+            </div>
         </>);
 }
 
@@ -357,7 +363,7 @@ export function HeatsList({ id_phase, panel_data, heats, dataBibs }: { id_phase:
 
     return (
         <>
-            <p>
+            <p className='no-print'>
                 <InitHeatsWithBibForm id_phase={id_phase} />
                 <RandomizeHeatsForm id_phase={id_phase} />
             </p>
@@ -385,24 +391,26 @@ export function HeatsList({ id_phase, panel_data, heats, dataBibs }: { id_phase:
                     </>
             ))}
 
-            <h1>New Heat {heats?.heats.length}</h1>
-            {heats.heat_type === "couple" &&
-                <CoupleHeatTable heat={{ couples: [] } as CouplesHeat}
-                    dataBibs={sameTargetTypeDataBibs}
-                    id_phase={id_phase}
-                    heat_number={heats?.heats.length}
-                />
-            }
-            {heats.heat_type === "single" &&
-                <SingleHeatTable heat={{ leaders: [], followers: [] } as SinglesHeat}
-                    dataBibs={sameTargetTypeDataBibs}
-                    id_phase={id_phase}
-                    heat_number={heats?.heats.length}
-                />
-            }
+            <div className='no-print'>
+                <h1>New Heat {heats?.heats.length}</h1>
+                {heats.heat_type === "couple" &&
+                    <CoupleHeatTable heat={{ couples: [] } as CouplesHeat}
+                        dataBibs={sameTargetTypeDataBibs}
+                        id_phase={id_phase}
+                        heat_number={heats?.heats.length}
+                    />
+                }
+                {heats.heat_type === "single" &&
+                    <SingleHeatTable heat={{ leaders: [], followers: [] } as SinglesHeat}
+                        dataBibs={sameTargetTypeDataBibs}
+                        id_phase={id_phase}
+                        heat_number={heats?.heats.length}
+                    />
+                }
 
-            <h3>Missing bibs</h3>
-            <BareBibListComponent bib_list={missing_bibs.bibs} />
+                <h3>Missing bibs</h3>
+                <BareBibListComponent bib_list={missing_bibs.bibs} />
+            </div>
         </>
     );
 }
