@@ -5,6 +5,7 @@ import { Link } from "react-router";
 import { useGetApiDancerId } from '@hookgen/dancer/dancer';
 import {
     type Bib, type BibList, type Competition, type CompetitionId, type CompetitionIdList, type CoupleTarget, type DancerId,
+    type EventId,
     type OldBibNewBib,
     RoleItem, type SingleTarget, type Target
 } from "@hookgen/model";
@@ -12,11 +13,14 @@ import {
 import {
     useGetApiCompIdBibs, useDeleteApiCompIdBib,
     getGetApiCompIdBibsQueryKey, usePatchApiCompIdBib,
+    getGetApiCompIdBibsQueryOptions,
 } from "@hookgen/bib/bib";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { Field } from "@routes/index/field";
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { NewTargetBibFormComponent } from './NewBibFormComponent';
+import { useGetApiEventIdComps } from '~/hookgen/event/event';
+import { getGetApiCompIdQueryOptions } from '~/hookgen/competition/competition';
 
 const dancerLink = "dancers/"
 
@@ -222,7 +226,7 @@ function EditableBibDetails({ bib_object }: { bib_object: Bib }) {
     });
 
     const handleUpdate = handleSubmit((data) => {
-        updateBib({ id: bib_object.competition, data:{old_bib: bib_object, new_bib:data} as OldBibNewBib });
+        updateBib({ id: bib_object.competition, data: { old_bib: bib_object, new_bib: data } as OldBibNewBib });
     });
 
     const handleCancel = () => {
@@ -368,13 +372,13 @@ export function PublicBibListComponent({ id_competition }: { id_competition: Com
         </>
     );
 }
-type BibListEventAdminComponentProps = {
+type BibListEventAdminProps = {
     competition_list: CompetitionIdList,
     competition_data_list: Competition[],
     bibs_list_array: BibList[]
 }
 
-export function BibListEventAdminComponent({ competition_list, competition_data_list, bibs_list_array }: BibListEventAdminComponentProps) {
+export function BibListEventAdmin({ competition_list, competition_data_list, bibs_list_array }: BibListEventAdminProps) {
 
     const dancer_list = [...new Set(bibs_list_array.flatMap((bibs_list) => (
         bibs_list.bibs.flatMap((bib) => dancerArrayFromTarget(bib.target)))
@@ -390,6 +394,13 @@ export function BibListEventAdminComponent({ competition_list, competition_data_
         [...new Set(target_dups.map((x) => JSON.stringify(x)))].map((x) => JSON.parse(x) as Target
         ));
 
+
+    const bib_key = dancer_list.map((id_dancer) => (
+        bibs_list_array.flatMap((bib_list) => (
+            bib_list.bibs.filter((bib) => dancerArrayFromTarget(bib.target).includes(id_dancer))
+        ).map((bib) => bib.target))
+    ));
+
     return (
         <>
             <h1>Liste Compétiteur-ices</h1>
@@ -403,32 +414,40 @@ export function BibListEventAdminComponent({ competition_list, competition_data_
                             </th>
                         ))}
                     </tr>
-                    {dancer_list.map((id_dancer, t_index) => (
-                        target_list[t_index].map((target) => (
-                            <tr>
-                                <td>
-                                    <DancerCell id_dancer={id_dancer} />
-                                </td>
+                    {dancer_list.map((id_dancer, d_index) => (
+                        target_list[d_index].map((target, t_index) => {
+                            const bibs = competition_list.competitions.map((_, index) =>
+                                bibs_list_array[index].bibs.find((bib) => (
+                                    JSON.stringify(bib.target) === JSON.stringify(target)
+                                )));
 
-                                {competition_list.competitions.map((id_competition, index) => {
-                                    // target has unique bib per competition
-                                    const bib_object = bibs_list_array[index].bibs.find((bib) => (
-                                        JSON.stringify(bib.target) === JSON.stringify(target)
-                                    ));
+                            const bib_key = [id_dancer, dancerArrayFromTarget(target).join("-")].concat(
+                                bibs.filter(b => b).map(b => b as Bib).map(
+                                    b => [String(b.competition), String(b.bib)].join("_")
+                                )).join("|");
 
-                                    if (bib_object === undefined) {
-                                        const target = bibs_list_array.flatMap((bl) => bl.bibs.map((b) => b.target)).find((t) => dancerArrayFromTarget(t).includes(id_dancer)) as Target;
-                                        return (
-                                            <td colSpan={5}>
-                                                <NewTargetBibFormComponent id_competition={id_competition} bibs_list={bibs_list_array[index]} target={target} />
-                                            </td>
-                                        );
-                                    }
+                            return (
+                                <tr key={bib_key}>
+                                    <td>
+                                        <DancerCell id_dancer={id_dancer} />
+                                    </td>
 
-                                    return <EditableBibDetails bib_object={bib_object} />
-                                })}
-                            </tr>
-                        ))
+                                    {competition_list.competitions.map((id_competition, index) => {
+
+
+                                        if (bibs[index] === undefined) {
+                                            return (
+                                                <td colSpan={5}>
+                                                    <NewTargetBibFormComponent id_competition={id_competition} bibs_list={bibs_list_array[index]} target={target} />
+                                                </td>
+                                            );
+                                        }
+
+                                        return <EditableBibDetails bib_object={bibs[index]} />
+                                    })}
+                                </tr>
+                            );
+                        })
                     ))}
                     <tr>
 
@@ -441,6 +460,67 @@ export function BibListEventAdminComponent({ competition_list, competition_data_
                     </tr>
                 </tbody>
             </table>
+        </>
+    );
+}
+
+
+export function BibListEventAdminComponent({ id_event }: { id_event: EventId }) {
+
+    const { data: competition_list, isSuccess } = useGetApiEventIdComps(id_event);
+
+    const competitionDetailsQueries = useQueries({
+        queries: (competition_list ?? { competitions: [] }).competitions.map((competitionId) => ({
+            ...getGetApiCompIdQueryOptions(competitionId),
+            enabled: !!competition_list,
+        })),
+    });
+
+    const competitionBibsQueries = useQueries({
+        queries: (competition_list ?? { competitions: [] }).competitions.map((competitionId) => ({
+            ...getGetApiCompIdBibsQueryOptions(competitionId),
+            enabled: !!competition_list,
+        })),
+    });
+
+
+    const isDetailsLoading = competitionDetailsQueries.some((query) => query.isLoading);
+    const isDetailsError = competitionDetailsQueries.some((query) => query.isError);
+    const isBibsLoading = competitionBibsQueries.some((query) => query.isLoading);
+    const isBibsError = competitionBibsQueries.some((query) => query.isError);
+
+
+    if (!isSuccess) return <div>Loading competition details...</div>;
+    if (isDetailsLoading) return <div>Loading competition details...</div>;
+    if (isDetailsError) return (
+        <div>
+            Error loading competition details
+            {
+                competitionDetailsQueries.map((query) => {
+                    return (<p>{query.error?.message}</p>);
+                })
+            }
+        </div>);
+
+
+    if (isBibsLoading) return <div>Loading competition details...</div>;
+    if (isBibsError) return (
+        <div>
+            Error loading competition details
+            {
+                competitionBibsQueries.map((query) => {
+                    return (<p>{query.error?.message}</p>);
+                })
+            }
+        </div>);
+
+    const competition_data_list = competitionDetailsQueries.map(q => q.data as Competition);
+
+    const bibs_list_array = competitionBibsQueries.map((q) => q.data ?? { bibs: [] });
+
+    return (
+        <>
+            <BibListEventAdmin competition_list={competition_list as CompetitionIdList} competition_data_list={competition_data_list} bibs_list_array={bibs_list_array} />
         </>
     );
 }

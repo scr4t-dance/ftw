@@ -3,15 +3,13 @@ import type { Route } from './+types/BibListEventAdmin';
 import React from 'react';
 
 import {
-    type Competition,
-    type CompetitionIdList,
     type EventId,
 } from "@hookgen/model";
 import { BibListEventAdminComponent } from '@routes/bib/BibComponents';
 import { getGetApiCompIdBibsQueryOptions, } from '@hookgen/bib/bib';
-import { dehydrate, QueryClient, useQueries } from '@tanstack/react-query';
+import { dehydrate, QueryClient } from '@tanstack/react-query';
 import { getGetApiCompIdQueryOptions } from '~/hookgen/competition/competition';
-import { getGetApiEventIdCompsQueryOptions, getGetApiEventIdQueryOptions, useGetApiEventIdComps } from '~/hookgen/event/event';
+import { getGetApiEventIdCompsQueryOptions, getGetApiEventIdQueryOptions } from '~/hookgen/event/event';
 
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -31,65 +29,13 @@ export async function loader({ params }: Route.LoaderArgs) {
 }
 
 
-function BibListEventAdmin({ params }: Route.ComponentProps) {
+export default function BibListEventAdminRoute({ params }: Route.ComponentProps) {
 
     const id_event = Number(params.id_event) as EventId;
-    const { data: competition_list, isSuccess } = useGetApiEventIdComps(id_event);
-
-    const competitionDetailsQueries = useQueries({
-        queries: (competition_list ?? { competitions: [] }).competitions.map((competitionId) => ({
-            ...getGetApiCompIdQueryOptions(competitionId),
-            enabled: !!competition_list,
-        })),
-    });
-
-    const competitionBibsQueries = useQueries({
-        queries: (competition_list ?? { competitions: [] }).competitions.map((competitionId) => ({
-            ...getGetApiCompIdBibsQueryOptions(competitionId),
-            enabled: !!competition_list,
-        })),
-    });
-
-
-    const isDetailsLoading = competitionDetailsQueries.some((query) => query.isLoading);
-    const isDetailsError = competitionDetailsQueries.some((query) => query.isError);
-    const isBibsLoading = competitionBibsQueries.some((query) => query.isLoading);
-    const isBibsError = competitionBibsQueries.some((query) => query.isError);
-
-
-    if (!isSuccess) return <div>Loading competition details...</div>;
-    if (isDetailsLoading) return <div>Loading competition details...</div>;
-    if (isDetailsError) return (
-        <div>
-            Error loading competition details
-            {
-                competitionDetailsQueries.map((query) => {
-                    return (<p>{query.error?.message}</p>);
-                })
-            }
-        </div>);
-
-
-    if (isBibsLoading) return <div>Loading competition details...</div>;
-    if (isBibsError) return (
-        <div>
-            Error loading competition details
-            {
-                competitionBibsQueries.map((query) => {
-                    return (<p>{query.error?.message}</p>);
-                })
-            }
-        </div>);
-
-    const competition_data_list = competitionDetailsQueries.map(q => q.data as Competition);
-
-    const bibs_list_array = competitionBibsQueries.map((q) => q.data ?? { bibs: [] });
 
     return (
         <>
-            <BibListEventAdminComponent competition_list={competition_list as CompetitionIdList} competition_data_list={competition_data_list} bibs_list_array={bibs_list_array} />
+            <BibListEventAdminComponent id_event={id_event} />
         </>
     );
 }
-
-export default BibListEventAdmin;

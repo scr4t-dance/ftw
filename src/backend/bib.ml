@@ -160,17 +160,14 @@ and update_bib =
   Api.put
     ~of_yojson:Types.OldBibNewBib.of_yojson
     ~to_yojson:Types.DancerIdList.to_yojson
-    (fun _req _st (_bib : Types.OldBibNewBib.t) ->
-       Error (Error.generic "broken, needs to be fixed")
-         (*
-        let+ id = Utils.int_param req "id" in
-        match bib.old_bib.competition with
-        | comp_id when comp_id = id ->
-          Ftw.Bib.update ~st ~competition:id ~old_bib:bib.old_bib.bib ~new_bib:bib.new_bib.bib;
-          let dancer_list : Types.DancerIdList.t = {dancers=Types.Target.dancers bib.new_bib.target} in
-          Ok dancer_list
-        | _ -> Error (Error.generic "Competition id do not match payload")
-        *)
+    (fun req st (data : Types.OldBibNewBib.t) ->
+     let+ id = Utils.int_param req "id" in
+     match data.old_bib.competition with
+     | comp_id when comp_id = id ->
+       Ftw.Bib.update ~st ~competition:id ~old_bib:data.old_bib.bib ~new_bib:data.new_bib.bib;
+       let dancer_list : Types.DancerIdList.t = {dancers=Types.Target.dancers data.new_bib.target} in
+       Ok dancer_list
+     | _ -> Error (Error.generic "Competition id do not match payload")
     )
 
 and delete_bib =
