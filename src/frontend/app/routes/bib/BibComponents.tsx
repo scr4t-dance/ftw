@@ -64,11 +64,13 @@ export function dancerArrayFromTarget(t: Target): DancerId[] {
 }
 
 
-export function DancerCell({ id_dancer }: { id_dancer: DancerId }) {
+export function DancerCell({ id_dancer, link }: { id_dancer: DancerId, link?: boolean }) {
 
     const { data: dancer } = useGetApiDancerId(id_dancer);
 
     if (!dancer) return "Loading dancer..."
+
+    if (link ?? true) return (<p>{dancer.last_name} {dancer.first_name}</p>);
 
     return (
         <p>

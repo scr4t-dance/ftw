@@ -8,7 +8,8 @@ import {
 } from "react-router";
 
 import {
-  HydrationBoundary, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+  HydrationBoundary, QueryClient, QueryClientProvider
+} from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 import type { Route } from "./+types/root";
@@ -59,7 +60,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
   const userId = session.get("userId");
-  return { userId};
+  return { userId };
 }
 
 export default function App({ loaderData }: Route.ComponentProps) {
@@ -83,10 +84,9 @@ export default function App({ loaderData }: Route.ComponentProps) {
     <QueryClientProvider client={queryClient}>
 
       <HydrationBoundary state={dehydratedState}>
-
-        <Header userId={userId ?? null} />
+        <Header />
         <Outlet />
-        <Footer />
+        <Footer userId={userId ?? null} />
         <ReactQueryDevtools initialIsOpen={false} />
       </HydrationBoundary>
     </QueryClientProvider>
