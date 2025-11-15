@@ -183,7 +183,9 @@ export function ArtefactListComponent({ id_phase, heat_list, dataBibs, judgePane
 
     return (
         <>
-            <button type='button' onClick={() => setHeatView(!isHeatView)}>Change heat view</button>
+            <div className='no-print'>
+                <button type='button' onClick={() => setHeatView(!isHeatView)}>Change heat view</button>
+            </div>
             {judgePanel.panel_type === "single" && !isHeatView && heat_list && heat_list.heats &&
                 <>
                     <h1>Followers</h1>

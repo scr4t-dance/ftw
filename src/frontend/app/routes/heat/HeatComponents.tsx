@@ -48,7 +48,7 @@ function HeatTargetRowReadOnly({ heatTarget, bib, onDelete }: HeatTargetRowReadO
                 ))
                 }
             </td>
-            <td>
+            <td className="no-print">
                 <button type="button" onClick={() => onDelete()}>
                     Delete
                 </button>
@@ -150,7 +150,7 @@ function NewHeatTarget({ defaultHeatTargetJudge, missingBibList }: { defaultHeat
     const targetType = watch("target.target_type");
 
     return (
-        <tr>
+        <tr className="no-print">
             <td>
                 {targetType}
             </td>
@@ -243,7 +243,7 @@ export function BibHeatListComponent({ bib_list, id_phase, heat_number, missingB
                         <th>Bib</th>
                         <th>Rôle</th>
                         <th>Target</th>
-                        <th>Action</th>
+                        <th className="no-print">Action</th>
                     </tr>
 
                     {bib_list.map((bibObject, index) => (
@@ -373,21 +373,23 @@ export function HeatsList({ id_phase, panel_data, heats, dataBibs }: { id_phase:
                 // TODO : afficher warning si heat 0 non vide et Heat 1, ..., n non vides
                 index === -1 ? <></> :
                     <>
-                        <h1>Heat {index}</h1>
-                        {heats.heat_type === "couple" &&
-                            <CoupleHeatTable heat={heat as CouplesHeat}
-                                dataBibs={sameTargetTypeDataBibs}
-                                id_phase={id_phase}
-                                heat_number={index}
-                            />
-                        }
-                        {heats.heat_type === "single" &&
-                            <SingleHeatTable heat={heat as SinglesHeat}
-                                dataBibs={sameTargetTypeDataBibs}
-                                id_phase={id_phase}
-                                heat_number={index}
-                            />
-                        }
+                        <div className={index === 0 ? 'no-print' : ''}>
+                            <h1>Heat {index}</h1>
+                            {heats.heat_type === "couple" &&
+                                <CoupleHeatTable heat={heat as CouplesHeat}
+                                    dataBibs={sameTargetTypeDataBibs}
+                                    id_phase={id_phase}
+                                    heat_number={index}
+                                />
+                            }
+                            {heats.heat_type === "single" &&
+                                <SingleHeatTable heat={heat as SinglesHeat}
+                                    dataBibs={sameTargetTypeDataBibs}
+                                    id_phase={id_phase}
+                                    heat_number={index}
+                                />
+                            }
+                        </div>
                     </>
             ))}
 

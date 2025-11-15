@@ -19,7 +19,7 @@ export default function EventsHomeAdmin({
       <div className="header-breadcrumbs">
         <Breadcrumbs />
       </div>
-      <h1>Mode Admin</h1>
+      <h1 className="no-print">Mode Admin</h1>
       <Outlet />
     </>
   );

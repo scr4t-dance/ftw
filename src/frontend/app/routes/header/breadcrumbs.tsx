@@ -17,7 +17,7 @@ export default function Breadcrumbs() {
 
     return (
         <>
-            <nav className="breadcrumbs">
+            <nav className="breadcrumbs no-print">
                 {crumbs.map((c, i) => (
                     <span key={c.id}>
                         <Link to={c.pathname}>{c.crumb}</Link>
