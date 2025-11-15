@@ -2,7 +2,7 @@
 import React from 'react';
 
 import type { Route } from './+types/NewBibForm';
-import { BibFormComponent, SelectNewBibFormComponent } from '@routes/bib/NewBibFormComponent';
+import { BibFormComponent } from '@routes/bib/NewBibFormComponent';
 import { getGetApiDancersQueryOptions, useGetApiDancers } from '~/hookgen/dancer/dancer';
 
 import {

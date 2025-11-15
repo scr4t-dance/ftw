@@ -1,10 +1,9 @@
 import type { Route } from "./+types/EventDetailsAdmin"
 
 import React from 'react';
-import { Link } from "react-router";
 
 import { EventDetailsAdminComponent } from "@routes/event/EventComponents";
-import { getApiCompId, getGetApiCompIdQueryOptions } from "~/hookgen/competition/competition";
+import { getGetApiCompIdQueryOptions } from "~/hookgen/competition/competition";
 import type { EventId } from "~/hookgen/model";
 import { dehydrate, QueryClient } from "@tanstack/react-query";
 import { getGetApiEventIdCompsQueryOptions } from "~/hookgen/event/event";

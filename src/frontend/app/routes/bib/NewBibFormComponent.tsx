@@ -12,6 +12,7 @@ import {
   type BibList,
   type DancerIdList,
   type DancerId,
+  type Target,
 } from '@hookgen/model';
 import { Field } from '@routes/index/field';
 
@@ -414,26 +415,22 @@ export function NewBibFormComponent({ id_competition, bibs_list, dancer_list }: 
   );
 }
 
-export function SelectNewBibFormComponent({ id_competition, bibs_list, dancer_list }: { id_competition: CompetitionId, bibs_list: BibList, dancer_list: DancerIdList }) {
+
+export function NewTargetBibFormComponent({ id_competition,bibs_list, target }: { id_competition: CompetitionId, bibs_list:BibList, target: Target }) {
 
   const url = "/admin/dancers/"
-
-  const default_single_target: SingleTarget = { target_type: "single", target: 1, role: [RoleItem.Follower] };
-  const default_couple_target: CoupleTarget = { target_type: "couple", follower: 1, leader: 2 };
 
   const formObject = useForm<Bib>({
     defaultValues: {
       competition: id_competition,
       bib: 100,
-      target: default_single_target,
+      target: target,
     }
   });
 
   const {
     register,
     handleSubmit,
-    watch,
-    reset,
     setError,
     formState: { errors },
   } = formObject;
@@ -453,34 +450,9 @@ export function SelectNewBibFormComponent({ id_competition, bibs_list, dancer_li
     }
   });
 
-  const targetType = watch("target.target_type");
-
   const onSubmit: SubmitHandler<Bib> = (data) => {
     updateBib({ id: id_competition, data: data });
   };
-
-  useEffect(() => {
-    // Reset the entire 'target' field when 'target.target_type' changes
-    reset((prevValues: Bib) => ({
-      ...prevValues,
-      target: (targetType === "single" ? default_single_target : default_couple_target)
-    }));
-  }, [targetType, reset]);
-
-  const follower_select_bibs_list = dancer_list.dancers.map(
-    (b) => get_follower_from_bib({
-      competition: id_competition,
-      bib: 100,
-      target: { target_type: "single", role: [RoleItem.Follower], target: b }
-    }, (_) => "")
-  ).filter((v) => v != null);
-  const leader_select_bibs_list = dancer_list.dancers.map(
-    (b) => get_leader_from_bib({
-      competition: id_competition,
-      bib: 100,
-      target: { target_type: "single", role: [RoleItem.Leader], target: b }
-    }, (_) => "")
-  ).filter((v) => v != null);
 
   return (
     <>
@@ -518,28 +490,6 @@ export function SelectNewBibFormComponent({ id_competition, bibs_list, dancer_li
           />
         </Field>
 
-
-        <Field label="Target type" error={errors.target?.target_type?.message}>
-          <select {...register("target.target_type")}>
-            <option value="single">Single</option>
-            <option value="couple">Couple</option>
-          </select>
-        </Field>
-
-        {targetType === "single" && (
-          <SelectSingleTargetForm
-            formObject={formObject as BibSingleTargetForm}
-            follower_id_list={follower_select_bibs_list}
-            leader_id_list={leader_select_bibs_list} />
-        )}
-
-        {targetType === "couple" && (
-          <SelectCoupleTargetForm
-            formObject={formObject as BibCoupleTargetForm}
-            follower_id_list={follower_select_bibs_list}
-            leader_id_list={leader_select_bibs_list} />
-        )}
-
         {errors.root?.formValidation &&
           <div className="error_message">⚠️ {errors.root.formValidation.message}</div>
         }
@@ -548,6 +498,7 @@ export function SelectNewBibFormComponent({ id_competition, bibs_list, dancer_li
           <div className="error_message">⚠️ {errors.root.serverError.message}</div>
         }
         <button type="submit" >Inscrire un-e compétiteurice</button>
+        <input type="hidden" {...register("target", { value: target })} />
 
       </form >
     </>
@@ -570,7 +521,7 @@ export function BibFormComponent({ id_competition }: { id_competition: Competiti
     <>
       <h1>Compétition {competition_data.name}</h1>
       <h2>Ajouter une compétiteurice</h2>
-      <SelectNewBibFormComponent id_competition={id_competition} bibs_list={bibs_list} dancer_list={dancer_list} />
+      <NewBibFormComponent id_competition={id_competition} bibs_list={bibs_list} dancer_list={dancer_list} />
     </>
   );
 }

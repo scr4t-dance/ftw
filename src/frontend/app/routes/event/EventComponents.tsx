@@ -8,9 +8,6 @@ import PageTitle from '@routes/index/PageTitle';
 import { CompetitionTable, EventCompetitionListComponent } from '@routes/competition/CompetitionComponents';
 import { useGetApiEventId } from '~/hookgen/event/event';
 
-export type loaderProps = Promise<{
-    event_list: EventIdList;
-}>
 
 
 // TEMPORAIRE

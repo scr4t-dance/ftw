@@ -40,6 +40,9 @@ const admin_routes = disable_admin ? [] : [
             ]),
           ]),
         ]),
+        route("bibs", "routes/bib/BibEventHomeAdmin.tsx", [
+          index("routes/bib/BibListEventAdmin.tsx"),
+        ]),
       ]),
     ]),
     route("dancers", "routes/dancer/DancerHome.tsx", [
