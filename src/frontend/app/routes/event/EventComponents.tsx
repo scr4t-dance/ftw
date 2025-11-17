@@ -7,9 +7,6 @@ import { type Event, type EventId, type EventIdList, type Date, type Competition
 import PageTitle from '@routes/index/PageTitle';
 import { CompetitionTable, EventCompetitionListComponent } from '@routes/competition/CompetitionComponents';
 
-export type loaderProps = Promise<{
-    event_list: EventIdList;
-}>
 
 
 // TEMPORAIRE
@@ -165,6 +162,7 @@ export function EventDetailsAdminComponent({ event, id_event, competition_id_lis
             <p>Date de fin : {formatDate(event?.end_date)}</p>
             <Link to="competitions/new">Créer une competition</Link>
             <Link to="competitions">Liste des competitions</Link>
+            <Link to="bibs">Liste des dossards</Link>
             <CompetitionTable competition_id_list={competition_id_list} competition_data_list={competition_data_list} />
         </>
     );

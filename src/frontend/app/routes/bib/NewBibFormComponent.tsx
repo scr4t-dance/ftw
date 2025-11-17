@@ -10,6 +10,7 @@ import {
   type Bib, type SingleTarget, type CoupleTarget,
   RoleItem,
   type BibList,
+  type Target,
 } from '@hookgen/model';
 import { Field } from '@routes/index/field';
 import { type SingleBib, SingleTargetForm } from '@routes/bib/SingleTargetForm';
@@ -123,6 +124,94 @@ export function NewBibFormComponent({ id_competition,bibs_list }: { id_competiti
         )}
 
         <button type="submit" >Inscrire un-e compétiteurice</button>
+
+      </form >
+    </>
+  );
+}
+
+
+export function NewTargetBibFormComponent({ id_competition,bibs_list, target }: { id_competition: CompetitionId, bibs_list:BibList, target: Target }) {
+
+  const url = "/admin/dancers/"
+
+  const formObject = useForm<Bib>({
+    defaultValues: {
+      competition: id_competition,
+      bib: 100,
+      target: target,
+    }
+  });
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = formObject;
+
+  const queryClient = useQueryClient();
+
+  const { data: updatedDancerIdList, mutate: updateBib, isSuccess } = usePutApiCompIdBib({
+    mutation: {
+      onSuccess: () => {
+        console.log("NewBibForm cache", queryClient.getQueryCache().getAll().map(q => q.queryKey));
+        queryClient.invalidateQueries({
+          queryKey: getGetApiCompIdBibsQueryKey(id_competition),
+        });
+      },
+      onError: (err) => {
+        console.error('Error updating competition:', err);
+        setError("root.serverError", { message: 'Erreur lors de l’ajout de la compétition.' });
+      }
+    }
+  });
+
+  const onSubmit: SubmitHandler<Bib> = (data) => {
+    updateBib({ id: id_competition, data: data });
+  };
+
+
+  return (
+    <>
+      <form onSubmit={handleSubmit(onSubmit)} >
+        {isSuccess &&
+          <div className="success_message">
+            <p>
+              ✅ Bib ajoutée avec succès.
+            </p>
+            {updatedDancerIdList.dancers.map((id_d) => (
+              <p>
+                Mise à jour
+                <Link to={`${url}${id_d}`}>Compétiteurice</Link>
+              </p>
+            ))}
+          </div>
+        }
+
+        <input type="hidden" {...register("competition", { value: id_competition })} />
+
+        <Field label="Dossard" error={errors.bib?.message}>
+          <input type="number" {...register("bib", {
+            valueAsNumber: true,
+            required: true,
+            min: {
+              value: 0,
+              message: "Le numéro de dossard doit être un entier positif.",
+            },
+            validate: {
+              checkUniqueness: (bib) => {
+                return !bibs_list.bibs.map((b) => b.bib).includes(bib) || `Bib ${bib} is already taken`
+              },
+            }
+          })}
+          />
+        </Field>
+
+
+        <input type="hidden" {...register("target", { value: target })} />
+
+        <button type="submit" >Add bib</button>
 
       </form >
     </>

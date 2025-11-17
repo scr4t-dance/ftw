@@ -5,7 +5,11 @@ import { Link } from "react-router";
 
 import { EventDetailsAdminComponent } from "@routes/event/EventComponents";
 import { combineClientLoader, combineServerLoader, competitionListLoader, eventLoader, queryClient } from "~/queryClient";
-import { getApiCompId } from "~/hookgen/competition/competition";
+import { getApiCompId, getGetApiCompIdQueryKey, getGetApiCompIdQueryOptions } from "~/hookgen/competition/competition";
+import { useGetApiEventIdComps } from "~/hookgen/event/event";
+import { useQueries } from "@tanstack/react-query";
+import type { Competition, CompetitionIdList } from "~/hookgen/model";
+import { getGetApiCompIdBibsQueryKey } from "~/hookgen/bib/bib";
 
 
 const loader_array = [eventLoader, competitionListLoader,];
@@ -36,6 +40,10 @@ export async function clientLoader({
         const serverData = await serverLoader();
 
         loader_array.forEach((l) => l.cache(queryClient, serverData));
+        (serverData.competition_list as CompetitionIdList).competitions.forEach((id_competition, index) => (
+            queryClient.setQueryData(getGetApiCompIdQueryKey(id_competition), serverData.competition_data_list[index])
+        ));
+
 
         return serverData;
     }
@@ -59,10 +67,24 @@ export default function EventDetailsAdmin({
     const id_event = loaderData.id_event;
     const event = loaderData.event_data;
 
+    const { data: competition_list } = useGetApiEventIdComps(id_event, {
+        query: {
+            initialData: loaderData.competition_list
+        }
+    });
+
+    const competitionDetailsQueries = useQueries({
+        queries: competition_list.competitions.map((id_competition) => (
+            getGetApiCompIdQueryOptions(id_competition)
+        ))
+    });
+
+    const competition_data_list = competitionDetailsQueries.map((q) => q.data as Competition);
+
     return <EventDetailsAdminComponent
         event={event} id_event={id_event}
-        competition_id_list={loaderData.competition_list}
-        competition_data_list={loaderData.competition_data_list}
+        competition_id_list={competition_list}
+        competition_data_list={competition_data_list}
     />
 
 }
