@@ -24,12 +24,16 @@ function SingleHeatTable({ heat, dataBibs }: { heat: SinglesHeat, dataBibs: BibL
     const get_bibs = (dancer_list: DancerId[]) => dataBibs?.bibs.filter(b => iter_target_dancers(b.target).map(dancer => dancer_list?.includes(dancer)).includes(true));
 
     return (
-        <>
-            <p>Followers</p>
-            <BareBibListComponent bib_list={get_bibs(followers)} ></BareBibListComponent>
-            <p>Leaders</p>
-            <BareBibListComponent bib_list={get_bibs(leaders)} ></BareBibListComponent>
-        </>);
+        <div className='bib-table-container'>
+            <div className='bib-table-column'>
+                <p>Followers</p>
+                <BareBibListComponent bib_list={get_bibs(followers)} ></BareBibListComponent>
+            </div>
+            <div className='bib-table-column'>
+                <p>Leaders</p>
+                <BareBibListComponent bib_list={get_bibs(leaders)} ></BareBibListComponent>
+            </div>
+        </div>);
 }
 
 
@@ -83,7 +87,7 @@ export default function HeatsList() {
 
     return (
         <>
-            <p>
+            <p className='no-print'>
                 <InitHeatsForm id_phase={id_phase_number} />
             </p>
 
@@ -108,5 +112,5 @@ export default function HeatsList() {
 }
 
 export const handle = {
-  breadcrumb: () => "Heats"
+    breadcrumb: () => "Heats"
 };

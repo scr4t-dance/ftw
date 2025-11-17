@@ -42,44 +42,45 @@ function PhasePageHome({
 
     return (
         <>
-            <h1>Phase {phase?.round} {competition?.name}</h1>
-            <p>
-                <Link to={`${url}edit`}>
-                    Edit Phase
-                </Link>
-            </p>
-            <p>
-                <Link to={`${url}heats`}>
-                    Poules
-                </Link>
-            </p>
-            <p>
-                <Link to={`${url}artefacts`}>
-                    Scoring pour juges
-                </Link>
-            </p>
-            <p>
-                <Link to={`${url}artefacts/?for=scorer`}>
-                    Espace Scoreur
-                </Link>
-            </p>
-            <p>
-                <Link to={`${url}ranks`}>
-                    Classement
-                </Link>
-            </p>
-            <p>
-                <Link to={`${url}judges`}>
-                    Phase Judges
-                </Link>
-            </p>
-            <p>
-                <Link to={`${url}edit_judges`}>
-                    Edit Phase Judges
-                </Link>
-            </p>
+            <div className="no-print">
+                <h1>Phase {phase?.round} {competition?.name}</h1>
+                <p>
+                    <Link to={`${url}edit`}>
+                        Edit Phase
+                    </Link>
+                </p>
+                <p>
+                    <Link to={`${url}heats`}>
+                        Poules
+                    </Link>
+                </p>
+                <p>
+                    <Link to={`${url}artefacts`}>
+                        Scoring pour juges
+                    </Link>
+                </p>
+                <p>
+                    <Link to={`${url}artefacts/?for=scorer`}>
+                        Espace Scoreur
+                    </Link>
+                </p>
+                <p>
+                    <Link to={`${url}ranks`}>
+                        Classement
+                    </Link>
+                </p>
+                <p>
+                    <Link to={`${url}judges`}>
+                        Phase Judges
+                    </Link>
+                </p>
+                <p>
+                    <Link to={`${url}edit_judges`}>
+                        Edit Phase Judges
+                    </Link>
+                </p>
+            </div>
             <Outlet />
-
         </>
     );
 }
@@ -87,5 +88,5 @@ function PhasePageHome({
 export default PhasePageHome;
 
 export const handle = {
-  breadcrumb: () => "Phase"
+    breadcrumb: () => "Phase"
 };

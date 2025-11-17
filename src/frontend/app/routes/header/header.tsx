@@ -4,7 +4,7 @@ import logo from "~/assets/logo.png";
 
 export default function Header() {
     return (
-        <header>
+        <header className="no-print">
             <div className="logo">
                 <Link to="/">
                     <img src={logo} alt="Logo" />
