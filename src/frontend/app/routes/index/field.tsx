@@ -21,3 +21,17 @@ export const Field: React.FC<FieldProps> = ({ label, htmlFor, error, children })
     </div>
   );
 };
+
+
+export const RadioField: React.FC<FieldProps> = ({ error, children }) => {
+  return (
+    <div className="yan_radio">
+      {children}
+      {error && (
+        <div role="alert" className="error_message">
+          {error}
+        </div>
+      )}
+    </div>
+  );
+};

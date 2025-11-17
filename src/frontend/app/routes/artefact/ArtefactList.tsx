@@ -4,7 +4,7 @@ import type {
     Bib, CompetitionId, DancerId, DancerIdList, HeatTargetJudgeArtefact,
     HeatTargetJudgeArtefactArray, PhaseId, Target
 } from "@hookgen/model";
-import { Link, useParams } from "react-router";
+import { Link, useParams, useSearchParams } from "react-router";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
 import { useGetApiPhaseIdHeats, } from "~/hookgen/heat/heat";
 import { useQueries } from "@tanstack/react-query";
@@ -71,7 +71,16 @@ function matchHeatBib(htja: HeatTargetJudgeArtefact, bib: Bib, heat_number: numb
         && (htja.heat_target_judge.heat_number === heat_number));
 }
 
-export function ArtefactListComponent({ phase_id, judges, head_judge, heat_number, bib_list }: { phase_id: PhaseId, judges: DancerIdList, head_judge: DancerId | undefined, heat_number: number | undefined, bib_list: Array<Bib> }) {
+type ArtefactListComponentProps = {
+    phase_id: PhaseId,
+    judges: DancerIdList,
+    head_judge: DancerId | undefined,
+    heat_number: number | undefined,
+    bib_list: Array<Bib>
+    artefactLinkString: "scorer" | "judge"
+}
+
+export function ArtefactListComponent({ phase_id, judges, head_judge, heat_number, bib_list, artefactLinkString }: ArtefactListComponentProps) {
 
     const all_judges: DancerId[] = judges.dancers.concat(head_judge ? [head_judge] : []);
 
@@ -147,7 +156,7 @@ export function ArtefactListComponent({ phase_id, judges, head_judge, heat_numbe
                         return (
                             <th>
                                 {index === judges.dancers.length && "Head "}
-                                <Link to={`judge/${judgeId}`}>
+                                <Link to={`${artefactLinkString}/${judgeId}`}>
                                     {judgeData.first_name + " " + judgeData.last_name}
                                 </Link>
                             </th>
@@ -174,6 +183,8 @@ export function ArtefactListComponent({ phase_id, judges, head_judge, heat_numbe
 
 export default function ArtefactList() {
 
+    let [searchParams, setSearchParams] = useSearchParams({ for: "judge" })
+
     let { id_phase } = useParams();
     let id_phase_number = Number(id_phase) as PhaseId;
     const { data: phaseData, isLoading } = useGetApiPhaseId(id_phase_number);
@@ -186,6 +197,10 @@ export default function ArtefactList() {
 
     const { data: judgePanel, isSuccess: isSuccessJudges } = useGetApiPhaseIdJudges(id_phase_number);
 
+    const artefactLinkString = searchParams.get("for");
+    if (artefactLinkString !== "scorer" && artefactLinkString !== "judge") return (<div>
+        Il est attendu d'avoir "?for=judge" ou "?for=scorer" en fin d'URL.
+    </div>);
     if (isLoading) return <div>Chargement...</div>;
     if (!phaseData) return null;
     if (!isSuccessBibs) return <div>Chargement des bibs...</div>;
@@ -213,6 +228,7 @@ export default function ArtefactList() {
                         head_judge={judgePanel.head}
                         heat_number={undefined}
                         bib_list={get_bibs((targets.followers ?? []).flatMap(u => iter_target_dancers(u)))}
+                        artefactLinkString={artefactLinkString}
                     />
                     <h1>Leaders</h1>
                     <ArtefactListComponent
@@ -221,6 +237,7 @@ export default function ArtefactList() {
                         head_judge={judgePanel.head}
                         heat_number={undefined}
                         bib_list={get_bibs((targets.leaders ?? []).flatMap(u => iter_target_dancers(u)))}
+                        artefactLinkString={artefactLinkString}
                     />
                 </>
             }
@@ -235,6 +252,7 @@ export default function ArtefactList() {
                             head_judge={judgePanel.head}
                             heat_number={heat_minus_one}
                             bib_list={get_bibs(v.followers.flatMap(u => iter_target_dancers(u)))}
+                            artefactLinkString={artefactLinkString}
                         />
                         <h2>Leaders</h2>
                         <ArtefactListComponent
@@ -243,6 +261,7 @@ export default function ArtefactList() {
                             head_judge={judgePanel.head}
                             heat_number={heat_minus_one}
                             bib_list={get_bibs(v.leaders.flatMap(u => iter_target_dancers(u)))}
+                            artefactLinkString={artefactLinkString}
                         />
                     </>
                 ))}
@@ -256,6 +275,7 @@ export default function ArtefactList() {
                         head_judge={judgePanel.head}
                         heat_number={undefined}
                         bib_list={get_bibs((targets.couples ?? []).flatMap(u => iter_target_dancers(u)))}
+                        artefactLinkString={artefactLinkString}
                     />
                 </>
             }
@@ -270,6 +290,7 @@ export default function ArtefactList() {
                             head_judge={judgePanel.head}
                             heat_number={heat_minus_one}
                             bib_list={get_bibs(v.couples.flatMap(u => iter_target_dancers(u)))}
+                            artefactLinkString={artefactLinkString}
                         />
                     </>
                 ))}

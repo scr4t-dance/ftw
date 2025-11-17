@@ -29,7 +29,8 @@ const admin_routes = disable_admin ? [] : [
                 route("heats", "routes/heat/HeatsList.tsx"),
                 route("artefacts", "routes/artefact/ArtefactHome.tsx", [
                   index("routes/artefact/ArtefactList.tsx"),
-                  route("judge/:id_judge", "routes/artefact/ArtefactForm.tsx"),
+                  route("scorer/:id_judge", "routes/artefact/ArtefactForm.tsx"),
+                  route("judge/:id_judge", "routes/artefact/ArtefactFormJudge.tsx"),
                 ]),
                 route("judges", "routes/judge/JudgeList.tsx"),
                 route("edit_judges", "routes/judge/JudgeForm.tsx"),
