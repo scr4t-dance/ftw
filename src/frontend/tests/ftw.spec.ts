@@ -39,7 +39,7 @@ test('create event', async ({ page }) => {
 
   await page.goto('http://localhost:3000/');
 
-  await page.getByRole('link', { name: 'LogIn' }).click();
+  await page.getByRole('link', { name: 'Se connecter' }).click();
   await page.locator('input[name="email"]').click();
   await page.locator('input[name="email"]').fill('test');
   await page.locator('input[name="email"]').press('Tab');
@@ -47,7 +47,7 @@ test('create event', async ({ page }) => {
   await page.locator('input[name="password"]').press('Enter');
   await page.getByRole('button', { name: 'Login' }).click();
 
-  const admin_home_locator = page.getByRole('list').getByRole('link', { name: 'Admin' });
+  const admin_home_locator = page.getByRole('contentinfo').getByRole('link', { name: 'Admin' });
   // création compétiteurs
   await admin_home_locator.click();
   await page.getByRole('link', { name: 'Dancers' }).click();
@@ -225,7 +225,6 @@ test('create event', async ({ page }) => {
   await page.getByRole('link', { name: `Prelims ${randomCompetitionName}` }).click();
 
   // cofngiuration heats
-  await page.getByRole('link', { name: `Prelims ${randomCompetitionName}` }).click();
   await page.getByRole('link', { name: 'Phase Heats' }).click();
   await page.getByRole('button', { name: 'Insérer les dossards dans la Heat 0' }).click();
   await page.getByText('✅ Dossards insérés dans la Heat 0 !').click();
