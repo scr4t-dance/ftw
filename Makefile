@@ -12,6 +12,11 @@ FRONTEND_DEPS=\
 	src/hookgen/package-lock.json \
 	src/frontend/package.json \
 	src/frontend/package-lock.json \
+	src/frontend/.env.production \
+	src/frontend/.env.development \
+	src/frontend/react-router.config.ts \
+	src/frontend/vite.config.ts \
+	src/frontend/tsconfig.json \
 	src/frontend/public/* \
 	$(shell find src/frontend/app/ -type f)
 
@@ -31,6 +36,7 @@ build: backend
 configure:
 	opam install . --deps-only --with-test --with-doc
 	cd src/frontend && npm install
+	cd src/frontend && npx playwright install chromium firefox webkit
 	cd src/hookgen && npm install
 
 src/frontend/app/hookgen/hookgen.sentinel hookgen: src/openapi.json
@@ -83,9 +89,6 @@ run: backend
 
 dev: backend
 	./bin/deploy_frontend_dev.sh
-
-manual_test: backend
-	./bin/deploy_manual_test.sh
 
 top:
 	dune utop

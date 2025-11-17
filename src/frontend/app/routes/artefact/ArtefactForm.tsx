@@ -11,7 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey, useGetApiPhaseIdArtefactJudgeIdJudge, usePutApiPhaseIdArtefactJudgeIdJudge, } from '@hookgen/artefact/artefact';
 import { Controller, FormProvider, get, useFieldArray, useForm, useFormContext, type SubmitHandler } from 'react-hook-form';
 import { Field } from '@routes/index/field';
-import { DancerCell } from '@routes/bib/BibList';
+import { DancerCell } from '@routes/bib/BibComponents';
 
 
 const yan_values: (string | undefined)[] = Object.values(YanItem);
@@ -502,7 +502,7 @@ export function ArtefactFormComponent({ artefactData }: { artefactData: HeatTarg
     <FormProvider {...formObject}>
       <ArtefactValidCount artefactData={artefactData} />
       <button type='button' onClick={() => setHeatView(!isHeatView)}>Change heat view</button>
-      <button type='button' onClick={() => setArtefactInput(!artefactInput)}>{artefactInput ? "Order by rank" : "Order by bib"}</button>
+      <button type='button' onClick={() => setArtefactInput(!artefactInput)}>{artefactInput ? "Change form to dropdowns" : "Change form to numbers"}</button>
       <form onSubmit={handleSubmit(onSubmit)} >
         {artefact_description.artefact === "yan" && isHeatView && unique_heat_number && unique_heat_number.map((heat_number) => (
           <>
@@ -587,3 +587,7 @@ export default function ArtefactForm() {
     </>
   );
 }
+
+export const handle = {
+  breadcrumb: () => "Artefact"
+};

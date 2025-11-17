@@ -1,42 +1,32 @@
+import type { Route } from './+types/DancerPage';
 import React from 'react';
-import { useParams } from "react-router";
 
 import { type DancerId } from "@hookgen/model";
-import { useGetApiDancerId } from '@hookgen/dancer/dancer';
-import { SaveDancerFormComponent } from '@routes/dancer/NewDancerForm'
-import DancerCompetitionHistory from "@routes/dancer/DancerCompetitionHistory";
+import { getApiDancerId } from '@hookgen/dancer/dancer';
+import { DancerPageComponent } from '@routes/dancer/DancerComponents';
 
+export async function loader({ params }: Route.LoaderArgs) {
 
-function DancerPage() {
+    const { id_dancer: id_dancer_string } = params;
+    const id_dancer = Number(id_dancer_string) as DancerId;
 
-    let { id_dancer } = useParams();
-    let id_dancer_number = Number(id_dancer) as DancerId;
+    const dancer = await getApiDancerId(id_dancer);
+    return {
+        id_dancer,
+        dancer,
+    };
+}
 
-    const { data, isLoading, isError, error } = useGetApiDancerId(id_dancer_number);
+function DancerPage({loaderData}: Route.ComponentProps) {
 
-
-    if (isLoading) return <div>Chargement...</div>;
-    if (!data) return null;
-
-    const dancer = data;
-
-    if (isLoading) return <div>Chargement des informations de la danseureuse...</div>;
-    if (isError) return <div>Erreur: {(error as any).message}</div>;
-
+    const {id_dancer, dancer} = loaderData;
     return (
-        <>
-            <h1>{dancer?.last_name + " " + dancer.first_name}</h1>
-            <p>Division follower : {dancer?.as_follower}</p>
-            <p>Division leader : {dancer?.as_leader}</p>
-            <p>Birthday: "Hidden"</p>
-            <p>Email : "Hidden"</p>
-            <h1>List de compétitions: </h1>
-            <DancerCompetitionHistory></DancerCompetitionHistory>
-            <h1>Mise à jour données</h1>
-            <SaveDancerFormComponent id_dancer={id_dancer_number} dancer={dancer} />
-
-        </>
+        <DancerPageComponent dancer={dancer} id_dancer={id_dancer} />
     );
 }
 
 export default DancerPage;
+
+export const handle = {
+  breadcrumb: () => "Dancer"
+};

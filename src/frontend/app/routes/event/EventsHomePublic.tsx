@@ -1,16 +1,9 @@
-import "~/styles/ContentStyle.css";
+import type { Route } from "./+types/EventsHomePublic";
 
-import Header from "@routes/header/header";
-import Footer from "@routes/footer/footer";
 import { Outlet } from "react-router";
-import type { Route } from "./+types/EventsHome";
 import { getApiEvents } from "@hookgen/event/event";
 import type { EventIdList } from "@hookgen/model";
-import Breadcrumbs from "@routes/header/breadcrumbs";
-
-type loaderProps = Promise<{
-    event_list: EventIdList;
-}>
+import type { loaderProps } from "@routes/event/EventComponents";
 
 export async function loader({ params }: Route.LoaderArgs) : loaderProps {
 
@@ -27,12 +20,9 @@ export default function EventsHome({
 
     return (
         <>
-            <Header />
-            <Breadcrumbs />
             <div className="content-container">
                 <Outlet />
             </div>
-            <Footer />
         </>
     );
 }
