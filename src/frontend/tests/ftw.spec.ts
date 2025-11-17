@@ -15,7 +15,7 @@ test('create event', async ({ page }) => {
 
   await page.goto('http://localhost:3000/');
 
-  await page.getByRole('link', { name: 'LogIn' }).click();
+  await page.getByRole('link', { name: 'Se connecter' }).click();
   await page.locator('input[name="email"]').click();
   await page.locator('input[name="email"]').fill('test');
   await page.locator('input[name="email"]').press('Tab');
