@@ -50,17 +50,22 @@ function PhasePageHome({
             </p>
             <p>
                 <Link to={`${url}heats`}>
-                    Phase Heats
+                    Poules
                 </Link>
             </p>
             <p>
                 <Link to={`${url}artefacts`}>
-                    Phase Artefacts
+                    Scoring pour juges
+                </Link>
+            </p>
+            <p>
+                <Link to={`${url}artefacts/?for=scorer`}>
+                    Espace Scoreur
                 </Link>
             </p>
             <p>
                 <Link to={`${url}ranks`}>
-                    Phase Ranks
+                    Classement
                 </Link>
             </p>
             <p>

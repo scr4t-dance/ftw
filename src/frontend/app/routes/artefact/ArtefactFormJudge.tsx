@@ -1,11 +1,11 @@
 import React from 'react';
 
-import type { Route } from './+types/ArtefactForm';
+import type { Route } from './+types/ArtefactFormJudge';
 import type { CompetitionId, DancerId, PhaseId } from '~/hookgen/model';
-import { ArtefactFormRoute } from '@routes/artefact/ArtefactFormComponents';
 import { dehydrate, QueryClient } from '@tanstack/react-query';
 import { getGetApiCompIdBibsQueryOptions } from '~/hookgen/bib/bib';
 import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryOptions } from '~/hookgen/artefact/artefact';
+import { ArtefactFormJudgeRoute } from '@routes/artefact/ArtefactFormComponents';
 
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -29,8 +29,9 @@ export default function ArtefactForm({ params }: Route.ComponentProps) {
 
   return (
     <>
-      <ArtefactFormRoute
-        id_phase={id_phase} id_judge={id_judge} id_competition={id_competition}
+      <ArtefactFormJudgeRoute
+        id_phase={id_phase} id_judge={id_judge}
+        id_competition={id_competition}
       />
     </>
   );
