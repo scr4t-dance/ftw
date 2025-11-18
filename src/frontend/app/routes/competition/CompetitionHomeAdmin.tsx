@@ -1,4 +1,4 @@
-import type { Route } from "./+types/CompetitionHome"
+import type { Route } from "./+types/CompetitionHomeAdmin"
 
 import React from 'react';
 import { Outlet } from "react-router";
