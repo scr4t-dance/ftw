@@ -408,7 +408,6 @@ class ftw_1 st = object(self)
   (* ============ *)
 
   val mutable bibs = Id.Map.empty
-  val mutable finals_bibs = Id.Map.empty
 
   method find_id ~bib =
     try
@@ -568,7 +567,7 @@ class ftw_1 st = object(self)
   method import_singles_artefacts ~event ~phase t =
     let judge_artefact_descr = Phase.judge_artefact_descr phase in
     let head_artefact_descr = Phase.head_judge_artefact_descr phase in
-    let phase_id = Phase.id phase in
+    let phase = Phase.id phase in
     let split = function
       | _rank :: bib :: _name :: _total :: scores ->
         let id : Id.t = self#find_id ~bib:(int_of_string bib) in
@@ -591,10 +590,10 @@ class ftw_1 st = object(self)
     in
     (* Set judges *)
     let panel = make_singles_panel leader_judges follow_judges in
-    Judge.set ~st ~phase:phase_id panel;
+    Judge.set ~st ~phase:phase panel;
     (* add notes *)
     let add_heat_and_artefact ~role (dancer_id, (artefacts, bonus)) =
-      let target = Heat.add_single ~st ~phase:phase_id ~heat:1 ~role dancer_id in
+      let target = Heat.add_single ~st ~phase:phase ~heat:1 ~role dancer_id in
       List.iter (fun (judge, artefact) ->
           Artefact.set ~st ~judge ~target artefact
         ) artefacts;
@@ -611,17 +610,11 @@ class ftw_1 st = object(self)
   method import_couples_artefacts ~event ~phase t =
     let judge_artefact_descr = Phase.judge_artefact_descr phase in
     let head_artefact_descr = Phase.head_judge_artefact_descr phase in
-    let phase_id = Phase.id phase in
+    let phase = Phase.id phase in
     let split = function
       | leader :: follower :: ranks ->
-        let leader_bib = extract_bib' leader in
-        let follower_bib = extract_bib' follower in
-        let leader_id = self#find_id ~bib:leader_bib in
-        let follow_id = self#find_id ~bib:follower_bib in
-        finals_bibs <- Id.Map.add
-            (int_of_string @@ string_of_int leader_bib ^ string_of_int follower_bib)
-            (Target.Couple {leader=leader_id;follower=follow_id})
-            finals_bibs;
+        let leader_id = self#find_id ~bib:(extract_bib' leader) in
+        let follow_id = self#find_id ~bib:(extract_bib' follower) in
         Some ((leader_id, follow_id), ranks)
       | _ -> None
     in
@@ -633,15 +626,11 @@ class ftw_1 st = object(self)
       ) ["artefacts"]
     in
     let panel = make_couples_panel judges in
-    let add_bib_couple bib couple_target =
-      Bib.add ~st ~competition:(Phase.competition phase)
-        ~target:(Target.Any couple_target) ~bib
-    in
-    Judge.set ~st ~phase:phase_id panel;
-    Id.Map.iter add_bib_couple finals_bibs;
+    Judge.set ~st ~phase panel;
+    Judge.set ~st ~phase panel;
     (* add notes *)
     let add_heat_and_artefact ((leader, follower), (artefacts, bonus)) =
-      let target = Heat.add_couple ~st ~phase:phase_id ~heat:1 ~leader ~follower in
+      let target = Heat.add_couple ~st ~phase ~heat:1 ~leader ~follower in
       List.iter (fun (judge, artefact) ->
           Artefact.set ~st ~judge ~target artefact
         ) artefacts;
