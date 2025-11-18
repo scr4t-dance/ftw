@@ -590,10 +590,10 @@ class ftw_1 st = object(self)
     in
     (* Set judges *)
     let panel = make_singles_panel leader_judges follow_judges in
-    Judge.set ~st ~phase:phase panel;
+    Judge.set ~st ~phase panel;
     (* add notes *)
     let add_heat_and_artefact ~role (dancer_id, (artefacts, bonus)) =
-      let target = Heat.add_single ~st ~phase:phase ~heat:1 ~role dancer_id in
+      let target = Heat.add_single ~st ~phase ~heat:1 ~role dancer_id in
       List.iter (fun (judge, artefact) ->
           Artefact.set ~st ~judge ~target artefact
         ) artefacts;
