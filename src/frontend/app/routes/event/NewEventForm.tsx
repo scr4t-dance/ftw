@@ -1,12 +1,12 @@
 import type { Route } from './+types/NewEventForm';
 // import { useNavigate } from "react-router";
 import { Controller, useForm } from 'react-hook-form';
-import { useQueryClient } from '@tanstack/react-query';
 
 import { getApiEvents, getGetApiEventsQueryKey, usePutApiEvent } from '@hookgen/event/event';
 import type { Event, Date } from '@hookgen/model';
 import { Link, useLocation } from 'react-router';
 import { Field } from '@routes/index/field';
+import { queryClient } from '~/queryClient';
 
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -23,10 +23,6 @@ export function NewEventForm() {
 
     const location = useLocation();
     const url = location.pathname.includes("new") ? "../" : "";
-
-    const queryClient = useQueryClient();
-
-    // const navigate = useNavigate();
 
     const {
         register,

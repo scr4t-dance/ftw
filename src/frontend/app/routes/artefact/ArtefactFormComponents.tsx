@@ -200,16 +200,16 @@ function ArtefactValidCount({ artefactData, artefactDataToSubmit, isDirty }: { a
 
     return (
       <div className='yan_table'>
-        <table>
-          <tbody>
-            <tr>
-              <th>Number of unique ranks</th>
-            </tr>
-            <tr>
-              <td>{ranking_artefact_count}</td>
-            </tr>
-          </tbody>
-        </table>
+      <table>
+        <tbody>
+          <tr>
+            <th>Number of unique ranks</th>
+          </tr>
+          <tr>
+            <td>{ranking_artefact_count}</td>
+          </tr>
+        </tbody>
+      </table>
       </div>
     );
 
@@ -235,33 +235,33 @@ function ArtefactValidCount({ artefactData, artefactDataToSubmit, isDirty }: { a
 
   return (
     <div className='yan_table'>
-      <table>
-        <tbody>
+    <table>
+      <tbody>
+        <tr>
+          <th>Criterion</th>
+          {artefact_description.artefact_data.map((criterion, index) => {
+            return (
+              <th key={`yan.${index}`}>
+                {criterion}
+              </th>
+            );
+          })}
+        </tr>
+        {Object.keys(YanItem).map((yan, index) => (
           <tr>
-            <th>Criterion</th>
-            {artefact_description.artefact_data.map((criterion, index) => {
-              return (
-                <th key={`yan.${index}`}>
-                  {criterion}
-                </th>
-              );
-            })}
-          </tr>
-          {Object.keys(YanItem).map((yan, index) => (
-            <tr>
-              <td>{yan}</td>
+            <td>{yan}</td>
               {yan_artefact_count[index].map((criterion_count, c_index) => (
-                <td>
-                  {criterion_count}
+              <td>
+                {criterion_count}
                   {(isDirty || yan_artefact_count_to_submit[index][c_index] !== criterion_count)
                     && `(-> ${yan_artefact_count_to_submit[index][c_index]})`
                   }
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
     </div >
   );
 
@@ -294,8 +294,6 @@ function RankingArtefactFormTable({ artefactData, heat_number, artefactInput, da
 
   const sortedDefaultFields = React.useMemo(() => {
     if (!defaultValues?.artefacts) return fields.map((f, i) => ({ field: f, originalIndex: i }));
-
-    //console.log("defualt ", defaultValues.artefacts?.[0]?.artefact);
 
     return [...fields]
       .map((field, index) => {
@@ -466,24 +464,24 @@ function YanArtefactFormTable({ artefactData, heat_number, artefactInput, dataBi
                       {(dataBibs.bibs.find((bib) => JSON.stringify(bib.target) === JSON.stringify(field.heat_target_judge.target)) as Bib).bib}
                     </p>
                     <p className="table_comp_role">(
-                      {field.heat_target_judge.target.target_type == "single" &&
-                        field.heat_target_judge.target.role}
-                      {field.heat_target_judge.target.target_type == "couple" &&
+                    {field.heat_target_judge.target.target_type == "single" &&
+                      field.heat_target_judge.target.role}
+                    {field.heat_target_judge.target.target_type == "couple" &&
                         "couple"})
-                    </p>
+                  </p>
                   </div>
                   <p className="table_comp_dancer_name">
-                    {iter_target_dancers(field.heat_target_judge.target).map((i) => (
-                      <DancerCell key={`bib.${index}`} id_dancer={i} />
-                    ))}
-                    <Field
-                      error={get(errors, `artefacts.${index}.artefact.artefact_type.message`)}
-                    >
-                      <input
-                        type='hidden'
-                        {...register(`artefacts.${index}.artefact.artefact_type`
-                        )} />
-                    </Field>
+                  {iter_target_dancers(field.heat_target_judge.target).map((i) => (
+                    <DancerCell key={`bib.${index}`} id_dancer={i} />
+                  ))}
+                  <Field
+                    error={get(errors, `artefacts.${index}.artefact.artefact_type.message`)}
+                  >
+                    <input
+                      type='hidden'
+                      {...register(`artefacts.${index}.artefact.artefact_type`
+                      )} />
+                  </Field>
                   </p>
                 </td>
                 {field.heat_target_judge.description.artefact === "yan" &&
