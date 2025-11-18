@@ -7,17 +7,19 @@ import {
   ScrollRestoration,
 } from "react-router";
 
-import { QueryClientProvider } from '@tanstack/react-query';
+import {
+  HydrationBoundary, QueryClient, QueryClientProvider
+} from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 import type { Route } from "./+types/root";
 import "./styles/ContentStyle.css"
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Header from "@routes/header/header";
 import Footer from "@routes/footer/footer";
 
 import { getSession } from "~/sessions.server";
-import { queryClient } from "~/queryClient";
+import { useDehydratedState } from "~/dehydrated";
 
 
 export const links: Route.LinksFunction = () => [
@@ -64,14 +66,28 @@ export async function loader({ request }: Route.LoaderArgs) {
 export default function App({ loaderData }: Route.ComponentProps) {
 
   const userId = loaderData.userId;
+  const [queryClient] = React.useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 1000 * 60 * 5,
+          },
+        },
+      }),
+  );
+
+
+  const dehydratedState = useDehydratedState();
 
   return (
     <QueryClientProvider client={queryClient}>
-
-      <Header />
-      <Outlet />
-      <Footer userId={userId ?? null} />
-      <ReactQueryDevtools initialIsOpen={false} />
+      <HydrationBoundary state={dehydratedState}>
+        <Header />
+        <Outlet />
+        <Footer userId={userId ?? null} />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </HydrationBoundary>
     </QueryClientProvider>
   );
 

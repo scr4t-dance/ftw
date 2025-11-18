@@ -2,75 +2,45 @@ import type { Route } from './+types/NewPhaseForm';
 import React, { useEffect, useState } from 'react';
 // import { useNavigate } from "react-router";
 
-import { usePutApiPhase, getGetApiCompIdPhasesQueryKey, useGetApiCompIdPhases, useGetApiPhaseId, getGetApiPhaseIdQueryOptions, getApiCompIdPhases, getApiPhaseId } from '@hookgen/phase/phase';
+import { usePutApiPhase, getGetApiCompIdPhasesQueryKey, useGetApiCompIdPhases, getGetApiPhaseIdQueryOptions, getApiCompIdPhases, getApiPhaseId } from '@hookgen/phase/phase';
 
 import type {
     Phase,
     CompetitionId,
     Competition,
+    EventId,
+    Event,
 } from '@hookgen/model';
 import { RoundItem } from "@hookgen/model";
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
-import { useQueries, useQueryClient } from '@tanstack/react-query';
+import { dehydrate, QueryClient, useQueries, useQueryClient } from '@tanstack/react-query';
 import { Field } from '@routes/index/field';
 import { Link, useLocation } from 'react-router';
 import { useGetApiCompId } from '@hookgen/competition/competition';
 
+import { getGetApiEventIdCompsQueryOptions, useGetApiEventId } from '@hookgen/event/event';
+import { getGetApiEventIdQueryOptions } from '@hookgen/event/event';
+import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
 
 type NewPhaseFormProps = {
     id_competition: CompetitionId,
     competition_data: Competition,
     availableRounds: RoundItem[]
 };
-import {
-    combineClientLoader, combineServerLoader, competitionListLoader,
-    competitionLoader, eventLoader, phaseListLoader, queryClient,
-} from '~/queryClient';
-
-
-
-
-const loader_array = [eventLoader, competitionLoader, competitionListLoader, phaseListLoader];
-
 
 export async function loader({ params }: Route.LoaderArgs) {
 
-    const combinedData = await combineServerLoader(loader_array, params);
-    const phase_data_list = await Promise.all(
-        combinedData.phase_list.phases.map((id_phase) => getApiPhaseId(id_phase))
-    );
-    return {
-        ...combinedData,
-        phase_data_list,
-    };
+    const queryClient = new QueryClient();
+    const id_event = Number(params.id_event) as EventId;
+    const id_competition = Number(params.id_competition) as CompetitionId;
+
+    await queryClient.prefetchQuery(getGetApiEventIdQueryOptions(id_event));
+    await queryClient.prefetchQuery(getGetApiEventIdCompsQueryOptions(id_event));
+    await queryClient.prefetchQuery(getGetApiCompIdQueryOptions(id_competition));
+
+    return { dehydratedState: dehydrate(queryClient) };
 }
 
-let isInitialRequest = true;
-
-export async function clientLoader({
-    params,
-    serverLoader,
-}: Route.ClientLoaderArgs) {
-
-    if (isInitialRequest) {
-        isInitialRequest = false;
-        const serverData = await serverLoader();
-
-        loader_array.forEach((l) => l.cache(queryClient, serverData));
-
-        return serverData;
-    }
-
-    const combinedData = await combineClientLoader(loader_array, params);
-    const phase_data_list = await Promise.all(
-        combinedData.phase_list.phases.map((id_phase) => getApiPhaseId(id_phase))
-    );
-    return {
-        ...combinedData,
-        phase_data_list,
-    };
-}
-clientLoader.hydrate = true;
 
 
 function NewPhaseForm({ id_competition, competition_data, availableRounds }: NewPhaseFormProps) {
@@ -162,7 +132,12 @@ function NewPhaseForm({ id_competition, competition_data, availableRounds }: New
 
 export function NewPhaseFormComponent({ id_competition }: { id_competition: CompetitionId }) {
 
-    const { data: competition_data, isSuccess } = useGetApiCompId(id_competition);
+    const { data: competition_data, isSuccess: isSuccessCompetition } = useGetApiCompId(id_competition);
+
+
+    const { data: event_data, isSuccess: isSuccessEvent } = useGetApiEventId((competition_data as Competition).event, {
+        query:{enabled: !!competition_data}
+    });
     const { data: dataPhasesList } = useGetApiCompIdPhases(id_competition);
     const phase_list = dataPhasesList?.phases;
 
@@ -185,36 +160,33 @@ export function NewPhaseFormComponent({ id_competition }: { id_competition: Comp
 
     const availableRounds = Object.values(RoundItem).filter(r => !usedRounds.includes(r));
 
-    if (!isSuccess) return <div>Chargement...</div>;
+    if (!isSuccessCompetition) return <div>Chargement...</div>;
+    if (!isSuccessEvent) return <div>Chargement...</div>;
 
     return (
-        <NewPhaseForm
-            id_competition={id_competition}
-            competition_data={competition_data}
-            availableRounds={availableRounds} />
+        <>
+            <h1>Evénement {event_data.name} / Competition {competition_data.name}</h1>
+            <NewPhaseForm
+                id_competition={id_competition}
+                competition_data={competition_data}
+                availableRounds={availableRounds} />
+
+        </>
     )
 
 }
 
 
 export default function NewPhaseFormRoute({
-    loaderData
+    params
 }: Route.ComponentProps) {
 
-    const usedRounds = loaderData.phase_data_list
-        .map(q => q.round)
-        .filter(Boolean)
-        .flat();
-
-    const availableRounds = Object.values(RoundItem).filter(r => !usedRounds.includes(r));
+    const id_event = Number(params.id_event) as EventId;
+    const id_competition = Number(params.id_competition) as CompetitionId;
 
     return (
         <>
-            <h1>Evénement {loaderData.event_data.name} / Competition {loaderData.competition_data.name}</h1>
-            <NewPhaseForm
-                id_competition={loaderData.id_competition}
-                competition_data={loaderData.competition_data}
-                availableRounds={availableRounds} />
+            <NewPhaseFormComponent id_competition={id_competition} />
         </>
     );
 }

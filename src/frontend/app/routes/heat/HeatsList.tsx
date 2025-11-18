@@ -1,114 +1,46 @@
+import type { Route } from './+types/HeatsList';
 import React from 'react';
 
-import type { BibList, CompetitionId, CouplesHeat, DancerId, PhaseId, SinglesHeat, Target } from "@hookgen/model";
-import { useParams } from "react-router";
-import { useGetApiPhaseId } from "@hookgen/phase/phase";
-import {
-    getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey,
-    useGetApiPhaseIdHeats, usePutApiPhaseIdInitHeats,
-} from "@hookgen/heat/heat";
-import { useQueryClient } from "@tanstack/react-query";
-import { BareBibListComponent } from '@routes/bib/BibComponents';
-import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
-import { InitHeatsForm } from '@routes/heat/InitHeatsForm';
-
-const iter_target_dancers = (t: Target) => t.target_type === "single"
-    ? [t.target]
-    : [t.follower, t.leader];
-
-function SingleHeatTable({ heat, dataBibs }: { heat: SinglesHeat, dataBibs: BibList }) {
+import { HeatsListComponent } from '@routes/heat/HeatComponents';
 
 
-    const followers: DancerId[] = heat.followers.flatMap(u => iter_target_dancers(u));
-    const leaders: DancerId[] = heat.leaders.flatMap(u => iter_target_dancers(u));
-    const get_bibs = (dancer_list: DancerId[]) => dataBibs?.bibs.filter(b => iter_target_dancers(b.target).map(dancer => dancer_list?.includes(dancer)).includes(true));
+import { getGetApiPhaseIdJudgesQueryOptions } from '~/hookgen/judge/judge';
+import { dehydrate, QueryClient } from '@tanstack/react-query';
+import type { CompetitionId, EventId, PhaseId } from '~/hookgen/model';
+import { getGetApiEventIdQueryOptions } from '@hookgen/event/event';
+import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
+import { getGetApiPhaseIdQueryOptions } from '@hookgen/phase/phase';
+import { getGetApiPhaseIdHeatsQueryOptions } from "@hookgen/heat/heat";
+import { getGetApiCompIdBibsQueryOptions } from '@hookgen/bib/bib';
 
-    return (
-        <div className='bib-table-container'>
-            <div className='bib-table-column'>
-                <p>Followers</p>
-                <BareBibListComponent bib_list={get_bibs(followers)} ></BareBibListComponent>
-            </div>
-            <div className='bib-table-column'>
-                <p>Leaders</p>
-                <BareBibListComponent bib_list={get_bibs(leaders)} ></BareBibListComponent>
-            </div>
-        </div>);
+export async function loader({ params }: Route.LoaderArgs) {
+
+    const queryClient = new QueryClient();
+    const id_event = Number(params.id_event) as EventId;
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    const id_phase = Number(params.id_phase) as PhaseId;
+
+    await queryClient.prefetchQuery(getGetApiEventIdQueryOptions(id_event));
+    await queryClient.prefetchQuery(getGetApiCompIdQueryOptions(id_competition));
+    await queryClient.prefetchQuery(getGetApiCompIdBibsQueryOptions(id_competition));
+
+    await queryClient.prefetchQuery(getGetApiPhaseIdQueryOptions(id_phase));
+    await queryClient.prefetchQuery(getGetApiPhaseIdHeatsQueryOptions(id_phase));
+    await queryClient.prefetchQuery(getGetApiPhaseIdJudgesQueryOptions(id_phase));
+
+    return { dehydratedState: dehydrate(queryClient) };
 }
 
 
-function CoupleHeatTable({ heat, dataBibs }: { heat: CouplesHeat, dataBibs: BibList }) {
+export default function HeatsList({ params }: Route.ComponentProps) {
 
 
-    const get_bibs = (dancer_list: DancerId[]) => dataBibs?.bibs.filter(b => iter_target_dancers(b.target).map(dancer => dancer_list?.includes(dancer)).includes(true));
+    const id_event = Number(params.id_event) as EventId;
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    const id_phase = Number(params.id_phase) as PhaseId;
 
-    return (
-        <>
-            <p>Couples</p>
-            <BareBibListComponent bib_list={get_bibs(heat.couples.flatMap(u => iter_target_dancers(u)))} ></BareBibListComponent>
-        </>);
-}
+    return <HeatsListComponent id_phase={id_phase} id_competition={id_competition} />
 
-export default function HeatsList() {
-
-    let { id_phase } = useParams();
-    let id_phase_number = Number(id_phase) as PhaseId;
-    const { data: phaseData, isLoading } = useGetApiPhaseId(id_phase_number);
-
-    const queryClient = useQueryClient();
-
-    const { mutate } = usePutApiPhaseIdInitHeats({
-        mutation: {
-            onSuccess: () => {
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiPhaseIdCouplesHeatsQueryKey(id_phase_number),
-                });
-                queryClient.invalidateQueries({
-                    queryKey: getGetApiPhaseIdSinglesHeatsQueryKey(id_phase_number),
-                });
-            },
-            onError: (err) => {
-                console.error('Error creating phase:', err);
-            }
-        }
-    });
-
-
-    const { data: heats, isSuccess: isSuccessHeats } = useGetApiPhaseIdHeats(id_phase_number);
-
-    const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(phaseData?.competition as CompetitionId);
-
-    if (isLoading) return <div>Chargement...</div>;
-    if (!phaseData) return null;
-    if (!isSuccessBibs) return <div>Chargement des bibs...</div>;
-    if (!isSuccessHeats) return <div>Chargement des heats...</div>;
-
-    console.log("heat_type ", heats.heat_type);
-
-    return (
-        <>
-            <p className='no-print'>
-                <InitHeatsForm id_phase={id_phase_number} />
-            </p>
-
-            {heats?.heats && heats?.heats.map((heat, index) => (
-                <>
-                    <h1>Heat {index}</h1>
-                    {heats.heat_type === "couple" &&
-                        <CoupleHeatTable heat={heat as CouplesHeat}
-                            dataBibs={dataBibs}
-                        />
-                    }
-                    {heats.heat_type === "single" &&
-                        <SingleHeatTable heat={heat as SinglesHeat}
-                            dataBibs={dataBibs}
-                        />
-                    }
-                </>
-            ))}
-
-        </>
-    );
 }
 
 export const handle = {

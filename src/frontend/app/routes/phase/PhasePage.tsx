@@ -1,51 +1,37 @@
 import type { Route } from './+types/PhasePage';
 import React from 'react';
 
-import {
-    combineClientLoader, combineServerLoader, competitionListLoader,
-    competitionLoader, eventLoader, phaseLoader, queryClient,
-} from '~/queryClient';
-import { PhasePage } from '@routes/phase/PhaseComponents';
 
+import { PhasePage, PhasePageComponent } from '@routes/phase/PhaseComponents';
 
-
-
-const loader_array = [eventLoader, competitionLoader, competitionListLoader, phaseLoader];
-
+import { dehydrate, QueryClient } from '@tanstack/react-query';
+import { getGetApiEventIdQueryOptions } from '@hookgen/event/event';
+import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
+import { getGetApiPhaseIdQueryOptions } from '@hookgen/phase/phase';
+import type { CompetitionId, EventId, PhaseId } from '~/hookgen/model';
 
 export async function loader({ params }: Route.LoaderArgs) {
 
-    const combinedData = await combineServerLoader(loader_array, params);
+    const queryClient = new QueryClient();
+    const id_event = Number(params.id_event) as EventId;
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    const id_phase = Number(params.id_phase) as PhaseId;
 
-    return combinedData;
+    await queryClient.prefetchQuery(getGetApiEventIdQueryOptions(id_event));
+    await queryClient.prefetchQuery(getGetApiCompIdQueryOptions(id_competition));
+
+    await queryClient.prefetchQuery(getGetApiPhaseIdQueryOptions(id_phase));
+
+    return { dehydratedState: dehydrate(queryClient) };
 }
 
-let isInitialRequest = true;
-
-export async function clientLoader({
-    params,
-    serverLoader,
-}: Route.ClientLoaderArgs) {
-
-    if (isInitialRequest) {
-        isInitialRequest = false;
-        const serverData = await serverLoader();
-
-        loader_array.forEach((l) => l.cache(queryClient, serverData));
-
-        return serverData;
-    }
-
-    const combinedData = await combineClientLoader(loader_array, params);
-    return combinedData;
-}
-clientLoader.hydrate = true;
 
 
 
-export default function PhasePageRoute({
-    loaderData
-}: Route.ComponentProps) {
+export default function PhasePageRoute({params}: Route.ComponentProps) {
 
-    return (<PhasePage phase_data={loaderData.phase_data} competition_data={loaderData.competition_data} />);
+    const id_event = Number(params.id_event) as EventId;
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    const id_phase = Number(params.id_phase) as PhaseId;
+    return (<PhasePageComponent id_phase={id_phase} id_competition={id_competition} />);
 }

@@ -9,7 +9,6 @@ import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { Field } from '@routes/index/field';
 import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, usePutApiPhaseIdInitHeats, usePutApiPhaseIdPromote } from '~/hookgen/heat/heat';
-import { getGetApiPhaseIdArtefactGetQueryKey, getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey } from '~/hookgen/artefact/artefact';
 
 export function InitHeatsForm({ id_phase }: { id_phase: PhaseId }) {
 

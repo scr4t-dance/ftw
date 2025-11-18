@@ -1,70 +1,43 @@
 import type { Route } from './+types/JudgeForm';
-import React, { useEffect } from 'react';
 
-import type { Panel, PhaseId, } from "@hookgen/model";
+import type { PhaseId, CompetitionId, EventId } from "@hookgen/model";
 import { useParams } from "react-router";
-import { useGetApiPhaseIdJudges, } from '@hookgen/judge/judge';
+import { getGetApiPhaseIdJudgesQueryOptions } from '@hookgen/judge/judge';
 import { JudgeFormComponent } from '@routes/judge/JudgeComponents';
-import {
-    combineClientLoader, combineServerLoader, competitionListLoader, competitionLoader,
-    eventLoader, queryClient, phaseLoader, judgePanelLoader,
-} from '~/queryClient';
 
-
-const loader_array = [eventLoader, competitionLoader, competitionListLoader,phaseLoader, judgePanelLoader];
-
+import { dehydrate, QueryClient } from '@tanstack/react-query';
+import { getGetApiEventIdQueryOptions } from '@hookgen/event/event';
+import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
+import { getGetApiPhaseIdQueryOptions } from '@hookgen/phase/phase';
+import { getGetApiPhaseIdHeatsQueryOptions } from '@hookgen/heat/heat';
 
 export async function loader({ params }: Route.LoaderArgs) {
 
-    const combinedData = await combineServerLoader(loader_array, params);
+    const queryClient = new QueryClient();
+    const id_event = Number(params.id_event) as EventId;
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    const id_phase = Number(params.id_phase) as PhaseId;
 
-    return combinedData;
+    await queryClient.prefetchQuery(getGetApiEventIdQueryOptions(id_event));
+    await queryClient.prefetchQuery(getGetApiCompIdQueryOptions(id_competition));
+
+    await queryClient.prefetchQuery(getGetApiPhaseIdQueryOptions(id_phase));
+    await queryClient.prefetchQuery(getGetApiPhaseIdHeatsQueryOptions(id_phase));
+    await queryClient.prefetchQuery(getGetApiPhaseIdJudgesQueryOptions(id_phase));
+
+    return { dehydratedState: dehydrate(queryClient) };
 }
 
-let isInitialRequest = true;
 
-export async function clientLoader({
-    params,
-    serverLoader,
-}: Route.ClientLoaderArgs) {
+export default function JudgeForm({params}: Route.ComponentProps) {
 
-    if (isInitialRequest) {
-        isInitialRequest = false;
-        const serverData = await serverLoader();
-
-        loader_array.forEach((l) => l.cache(queryClient, serverData));
-
-        return serverData;
-    }
-
-    const combinedData = await combineClientLoader(loader_array, params);
-    return combinedData;
-}
-clientLoader.hydrate = true;
-
-
-
-export default function JudgeForm({loaderData}: Route.ComponentProps) {
-
-    const id_phase = loaderData.id_phase;
-
-    const { data, isLoading, } = useGetApiPhaseIdJudges(id_phase, {
-        query: {
-            initialData: loaderData.panel_data
-        }
-    });
-
-
-    if (isLoading) return <div>Chargement...</div>;
-
-    const judgePanel: Panel = data ?? { panel_type: "couple", couples: { dancers: [] } };
+    const id_event = Number(params.id_event) as EventId;
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    const id_phase = Number(params.id_phase) as PhaseId;
 
     return (
         <>
-            <JudgeFormComponent
-                id_phase={id_phase}
-                panel={judgePanel}
-            />
+            <JudgeFormComponent id_phase={id_phase} />
         </>
     );
 }

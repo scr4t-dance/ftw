@@ -1,30 +1,32 @@
 import type { Route } from './+types/DancerListPublic';
 
-import React from 'react';
-import { BareDancerListComponent } from '@routes/dancer/DancerComponents';
-import { Link } from 'react-router';
-import { getApiDancerId, getApiDancers } from '@hookgen/dancer/dancer';
+import { Link } from "react-router";
+import { DancerListComponent } from '@routes/dancer/DancerComponents';
+import { getGetApiDancerIdQueryOptions, getGetApiDancersQueryOptions } from '~/hookgen/dancer/dancer';
+import { dehydrate, QueryClient } from '@tanstack/react-query';
+
 
 
 export async function loader({ }: Route.LoaderArgs) {
 
-    const dancer_list = await getApiDancers();
-    const dancer_data = await Promise.all(
-        dancer_list.dancers.map((id_dancer) => getApiDancerId(id_dancer))
+    const queryClient = new QueryClient();
+
+    const dancer_list = await queryClient.fetchQuery(getGetApiDancersQueryOptions());
+    await Promise.all(
+        dancer_list.dancers.map((id_dancer) => queryClient.prefetchQuery(getGetApiDancerIdQueryOptions(id_dancer)))
     );
-    return {
-        dancer_list,
-        dancer_data,
-    };
+
+
+    return { dehydratedState: dehydrate(queryClient) };
 }
 
-function DancerListPublic({ loaderData }: Route.ComponentProps) {
+function DancerList({ }: Route.ComponentProps) {
 
-    const {dancer_list, dancer_data} = loaderData;
     return (
         <>
-            <BareDancerListComponent dancer_list={dancer_list} dancer_data={dancer_data} />
+            <DancerListComponent />
         </>
     );
 }
-export default DancerListPublic;
+
+export default DancerList;

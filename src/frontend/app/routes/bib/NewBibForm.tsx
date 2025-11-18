@@ -2,64 +2,43 @@
 import React from 'react';
 
 import type { Route } from './+types/NewBibForm';
-import { NewBibFormComponent } from '@routes/bib/NewBibFormComponent';
-import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
-import { bibsListLoader, combineClientLoader, combineServerLoader, competitionLoader, eventLoader, queryClient, type LoaderOutput, type WithEntityData } from '~/queryClient';
+import { BibFormComponent } from '@routes/bib/NewBibFormComponent';
+import { getGetApiDancersQueryOptions } from '~/hookgen/dancer/dancer';
 
-
-
-
-const loader_array = [eventLoader, competitionLoader, bibsListLoader];
-
+import {
+    type BibList, type CompetitionId, type EventId,
+} from "@hookgen/model";
+import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
+import { getGetApiEventIdQueryOptions } from '@hookgen/event/event';
+import { getGetApiCompIdBibsQueryOptions, useGetApiCompIdBibs } from '@hookgen/bib/bib';
+import { dehydrate, QueryClient } from '@tanstack/react-query';
 
 export async function loader({ params }: Route.LoaderArgs) {
 
-    const combinedData = await combineServerLoader(loader_array, params);
-    return combinedData;
+    const queryClient = new QueryClient();
+    const id_event = Number(params.id_event) as EventId;
+    await queryClient.prefetchQuery(getGetApiEventIdQueryOptions(id_event));
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    await queryClient.prefetchQuery(getGetApiCompIdQueryOptions(id_competition));
+    await queryClient.prefetchQuery(getGetApiCompIdBibsQueryOptions(id_competition));
+    await queryClient.prefetchQuery(getGetApiDancersQueryOptions());
+
+    return { dehydratedState: dehydrate(queryClient) };
 }
 
-let isInitialRequest = true;
 
-export async function clientLoader({
-    params,
-    serverLoader,
-}: Route.ClientLoaderArgs) {
-
-    if (isInitialRequest) {
-        isInitialRequest = false;
-        const serverData = await serverLoader();
-
-        loader_array.forEach((l) => l.cache(queryClient, serverData));
-
-        return serverData;
-    }
-
-    const combinedData = await combineClientLoader(loader_array, params);
-    return combinedData;
-}
-clientLoader.hydrate = true;
+export default function BibHomePublic({ params }: Route.ComponentProps) {
 
 
-function BibHomePublic({ loaderData }: Route.ComponentProps) {
-
-    const { data: bibs_list } = useGetApiCompIdBibs(loaderData.id_competition, {
-            query: {
-                initialData: loaderData.bibs_list,
-            }
-        }
-    );
+    const id_competition = Number(params.id_competition) as CompetitionId;
 
     return (
         <>
-            <h1>Compétition {loaderData.competition_data.name}</h1>
-            <h2>Ajouter une compétiteurice</h2>
-            <NewBibFormComponent id_competition={loaderData.id_competition} bibs_list={bibs_list} />
+            <BibFormComponent id_competition={id_competition} />
         </>
     );
 }
 
-export default BibHomePublic;
-
 export const handle = {
-  breadcrumb: () => "New"
+    breadcrumb: () => "New"
 };

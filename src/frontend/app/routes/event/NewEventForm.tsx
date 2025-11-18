@@ -3,21 +3,10 @@ import type { Route } from './+types/NewEventForm';
 import { Controller, useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { getApiEvents, getGetApiEventsQueryKey, usePutApiEvent } from '@hookgen/event/event';
+import { getGetApiEventsQueryKey, usePutApiEvent } from '@hookgen/event/event';
 import type { Event, Date } from '@hookgen/model';
 import { Link, useLocation } from 'react-router';
 import { Field } from '@routes/index/field';
-
-
-export async function loader({ params }: Route.LoaderArgs) {
-
-    const event_list = await getApiEvents();
-    return {
-        event_list,
-    };
-}
-
-
 
 export function NewEventForm() {
 
@@ -169,9 +158,7 @@ export function NewEventForm() {
     );
 }
 
-export default function NewEventFormRoute({
-    loaderData
-}: Route.ComponentProps){
+export default function NewEventFormRoute({}: Route.ComponentProps){
 
     return <NewEventForm />;
 }

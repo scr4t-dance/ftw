@@ -1,62 +1,38 @@
 import type { Route } from "./+types/PhaseList";
 import React from 'react';
 
-import {
-    combineClientLoader, combineServerLoader, competitionListLoader,
-    competitionLoader, eventLoader, phaseListLoader, queryClient,
-} from '~/queryClient';
 import { PhaseListComponent } from "@routes/phase/PhaseComponents";
-import { useGetApiCompIdPhases } from "~/hookgen/phase/phase";
+import { getGetApiCompIdPhasesQueryOptions, useGetApiCompIdPhases } from "~/hookgen/phase/phase";
 
-
-
-const loader_array = [eventLoader, competitionLoader, competitionListLoader, phaseListLoader];
-
+import { getGetApiEventIdCompsQueryOptions, getGetApiEventIdQueryOptions } from '@hookgen/event/event';
+import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
+import { dehydrate, QueryClient } from "@tanstack/react-query";
+import type { CompetitionId, EventId, PhaseId } from "~/hookgen/model";
 
 export async function loader({ params }: Route.LoaderArgs) {
 
-    const combinedData = await combineServerLoader(loader_array, params);
+    const queryClient = new QueryClient();
+    const id_event = Number(params.id_event) as EventId;
+    const id_competition = Number(params.id_competition) as CompetitionId;
 
-    return combinedData;
+    await queryClient.prefetchQuery(getGetApiEventIdQueryOptions(id_event));
+    await queryClient.prefetchQuery(getGetApiEventIdCompsQueryOptions(id_event));
+    await queryClient.prefetchQuery(getGetApiCompIdQueryOptions(id_competition));
+    await queryClient.prefetchQuery(getGetApiCompIdPhasesQueryOptions(id_competition));
+
+    return { dehydratedState: dehydrate(queryClient) };
 }
 
-let isInitialRequest = true;
 
-export async function clientLoader({
-    params,
-    serverLoader,
-}: Route.ClientLoaderArgs) {
+export default function PhaseList({ params }: Route.ComponentProps) {
 
-    if (isInitialRequest) {
-        isInitialRequest = false;
-        const serverData = await serverLoader();
+    const id_event = Number(params.id_event) as EventId;
+    const id_competition = Number(params.id_competition) as CompetitionId;
 
-        loader_array.forEach((l) => l.cache(queryClient, serverData));
-
-        return serverData;
-    }
-
-    const combinedData = await combineClientLoader(loader_array, params);
-    return combinedData;
-}
-clientLoader.hydrate = true;
-
-
-
-function PhaseList({ loaderData }: Route.ComponentProps) {
-
-    const {data: phase_list} = useGetApiCompIdPhases(loaderData.id_competition, {
-        query:{
-            initialData: loaderData.phase_list,
-        }
-    });
+    const { data: phase_list } = useGetApiCompIdPhases(id_competition);
 
     return (<PhaseListComponent
-        id_competition={loaderData.id_competition}
-        competition_data={loaderData.competition_data}
-        phase_list={phase_list}
-         />);
+        id_competition={id_competition}
+    />);
 
 }
-
-export default PhaseList;

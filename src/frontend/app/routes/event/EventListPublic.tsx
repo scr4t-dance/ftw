@@ -1,32 +1,39 @@
 import type { Route } from "./+types/EventListPublic";
 
 import React from 'react';
-import {type EventIdList, type Event } from "@hookgen/model";
+import { type EventIdList, type Event } from "@hookgen/model";
 
-import { getApiEventId, getApiEvents } from "~/hookgen/event/event";
+import { getGetApiEventIdQueryOptions, getGetApiEventsQueryOptions, useGetApiEvents } from "~/hookgen/event/event";
 import { EventListComponent } from "./EventComponents";
-
+import { dehydrate, QueryClient, useQueries } from "@tanstack/react-query";
 
 export async function loader({ }: Route.LoaderArgs) {
-    const event_list = await getApiEvents();
-    const event_data = await Promise.all(
-        event_list.events.map((id_event) => getApiEventId(id_event))
+
+    const queryClient = new QueryClient();
+
+    const event_list = await queryClient.fetchQuery(getGetApiEventsQueryOptions());
+
+    await Promise.all(
+        event_list.events.map((id_event) => queryClient.prefetchQuery(getGetApiEventIdQueryOptions(id_event)))
     );
 
-    return {
-        event_list,
-        event_data,
-    };
+    return { dehydratedState: dehydrate(queryClient) };
 }
 
 
-export default function EventList({
-    loaderData,
-}: Route.ComponentProps) {
+export default function EventList({}: Route.ComponentProps) {
 
-    const event_list: EventIdList = loaderData.event_list;
-    const event_data: Event[] = loaderData.event_data;
+    const { data: event_list } = useGetApiEvents();
 
-    return <EventListComponent event_list={event_list} event_data={event_data} />
+    const eventDataQueries = useQueries({
+        queries: (event_list as EventIdList).events.map((id_event) => ({
+            ...getGetApiEventIdQueryOptions(id_event),
+            enabled: !!event_list?.events,
+        }))
+    });
+
+    const event_data = eventDataQueries.map(q => q.data as Event);
+
+    return <EventListComponent event_list={event_list as EventIdList} event_data={event_data} />
 
 }

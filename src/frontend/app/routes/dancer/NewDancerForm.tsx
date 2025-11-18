@@ -2,25 +2,33 @@ import type { Route } from './+types/NewDancerForm';
 import React, { useState } from 'react';
 // import { useNavigate } from "react-router";
 
-import { getGetApiDancersQueryKey, usePutApiDancer, usePatchApiDancerId, getGetApiDancerIdQueryKey, getApiDancers } from '@hookgen/dancer/dancer';
+import { getGetApiDancersQueryKey, usePutApiDancer, usePatchApiDancerId, getGetApiDancerIdQueryKey, getApiDancers, getGetApiDancersQueryOptions, getGetApiDancerIdQueryOptions } from '@hookgen/dancer/dancer';
 
 import { DivisionsItem, type Dancer, type DancerId, type Date } from '@hookgen/model';
 
 import { Link, useLocation } from 'react-router';
-import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { Controller, useForm, type SubmitHandler, type UseFormReturn } from 'react-hook-form';
 import { Field } from '@routes/index/field';
+import { dehydrate, QueryClient, useQueryClient } from '@tanstack/react-query';
+
 
 export async function loader({ }: Route.LoaderArgs) {
 
-    const dancer_list = await getApiDancers();
+    const queryClient = new QueryClient();
 
-    return {
-        dancer_list
-    };
+    const dancer_list = await queryClient.fetchQuery(getGetApiDancersQueryOptions());
+    await Promise.all(
+        dancer_list.dancers.map((id_dancer) => queryClient.prefetchQuery(getGetApiDancerIdQueryOptions(id_dancer)))
+    );
+
+
+    return { dehydratedState: dehydrate(queryClient) };
 }
 
-function putOrPatchApi({ queryClient, id_dancer, formObject }: { queryClient: QueryClient, id_dancer?: DancerId, formObject: UseFormReturn<Dancer, any, Dancer> }) {
+
+function putOrPatchApi({ id_dancer, formObject }: { id_dancer?: DancerId, formObject: UseFormReturn<Dancer, any, Dancer> }) {
+
+    const queryClient = useQueryClient();
 
     const { setError, reset } = formObject;
 
@@ -98,10 +106,9 @@ export function SaveDancerFormComponent({ dancer, id_dancer }: { dancer?: Dancer
         control,
     } = formObject;
 
-    const queryClient = useQueryClient();
     // Using the Orval hook to handle the PUT request
 
-    const { mutate: updateDancer, isSuccess, variables, data: dataDancer } = putOrPatchApi({ queryClient, id_dancer, formObject });
+    const { mutate: updateDancer, isSuccess, variables, data: dataDancer } = putOrPatchApi({ id_dancer, formObject });
 
     const onSubmit: SubmitHandler<Dancer> = (data) => {
         console.log(data);

@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Controller, useFieldArray, useFormContext, FormProvider, get, useForm, type SubmitHandler } from 'react-hook-form';
 
 import { Field } from '@routes/index/field';
-import { getGetApiPhaseIdJudgesQueryKey, usePutApiPhaseIdJudges } from '@hookgen/judge/judge';
+import { getGetApiPhaseIdJudgesQueryKey, useGetApiPhaseIdJudges, usePutApiPhaseIdJudges } from '@hookgen/judge/judge';
 import { useGetApiDancerId } from '~/hookgen/dancer/dancer';
 
 function sanitizePanel(data: Panel): SinglePanel | CouplePanel {
@@ -134,7 +134,7 @@ export function JudgeListFormElement({ artefact_description_name }: Props) {
 }
 
 
-export function JudgeFormComponent({ id_phase, panel }: { id_phase: PhaseId, panel: Panel }) {
+export function JudgeForm({ id_phase, panel }: { id_phase: PhaseId, panel: Panel }) {
 
   const queryClient = useQueryClient();
 
@@ -242,48 +242,83 @@ export function JudgeFormComponent({ id_phase, panel }: { id_phase: PhaseId, pan
   );
 }
 
-export function JudgeListComponent({ panel_data }: { panel_data: Panel }) {
+export function JudgeFormComponent({ id_phase }: { id_phase: PhaseId }) {
 
+  const { data, isLoading, } = useGetApiPhaseIdJudges(id_phase);
+
+  if (isLoading) return <div>Chargement...</div>;
+
+  const judgePanel: Panel = data ?? { panel_type: "couple", couples: { dancers: [] } };
+
+  return (
+    <>
+      <JudgeForm
+        id_phase={id_phase}
+        panel={judgePanel}
+      />
+    </>
+  );
+}
+
+export function JudgeList({ panel_data }: { panel_data: Panel }) {
+
+
+  return (
+    <>
+      <h1>Head judge</h1>
+      {panel_data.head && (
+        <DancerCell id_dancer={panel_data.head} />
+      )}
+      {panel_data && panel_data.panel_type === "single" && (
+        <>
+          <p>Followers</p>
+          <ul>
+            {panel_data.followers && panel_data.followers.dancers.map((judge) => (
+              <li>
+                <DancerCell id_dancer={judge} />
+              </li>
+            ))}
+          </ul>
+          <p>Leaders</p>
+          <ul>
+            {panel_data.leaders && panel_data.leaders.dancers.map((judge) => (
+              <li>
+                <DancerCell id_dancer={judge} />
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {panel_data && panel_data.panel_type === "couple" && (
+        <>
+          <p>Couples</p>
+          <ul>
+            {panel_data.couples && panel_data.couples.dancers.map((judge) => (
+              <li>
+                <DancerCell id_dancer={judge} />
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </>
+  );
+}
+
+
+export function JudgeListComponent({id_phase} : {id_phase: PhaseId}){
+
+
+    const {data: panel_data, isLoading, isSuccess} = useGetApiPhaseIdJudges(id_phase);
+
+    if(isLoading) return <div>Chargement panel de juge</div>
+    if(!isSuccess) return <div>Erreur chargement panel de juge</div>
 
     return (
         <>
-            <h1>Head judge</h1>
-            {panel_data.head && (
-                <DancerCell id_dancer={panel_data.head} />
-            )}
-            {panel_data && panel_data.panel_type === "single" && (
-                <>
-                    <p>Followers</p>
-                    <ul>
-                        {panel_data.followers && panel_data.followers.dancers.map((judge) => (
-                            <li>
-                                <DancerCell id_dancer={judge} />
-                            </li>
-                        ))}
-                    </ul>
-                    <p>Leaders</p>
-                    <ul>
-                        {panel_data.leaders && panel_data.leaders.dancers.map((judge) => (
-                            <li>
-                                <DancerCell id_dancer={judge} />
-                            </li>
-                        ))}
-                    </ul>
-                </>
-            )}
-
-            {panel_data && panel_data.panel_type === "couple" && (
-                <>
-                    <p>Couples</p>
-                    <ul>
-                        {panel_data.couples && panel_data.couples.dancers.map((judge) => (
-                            <li>
-                                <DancerCell id_dancer={judge} />
-                            </li>
-                        ))}
-                    </ul>
-                </>
-            )}
+            <JudgeList panel_data={panel_data} />
         </>
     );
+
 }
