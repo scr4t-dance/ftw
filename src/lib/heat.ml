@@ -342,7 +342,7 @@ let get ~st ~phase =
 
 (* Convert heats between singles and couples *)
 
-let convert_singles_heat_to_couples_heat ~st ~phase heat_number =
+let convert_singles_heat_to_couples_heat ~st ~phase ~heat_number =
   let singles_heats = get_singles ~st ~phase in
   match heat_number > Array.length singles_heats.singles_heats with
   | true -> let h = singles_heats.singles_heats.(heat_number) in
@@ -352,7 +352,7 @@ let convert_singles_heat_to_couples_heat ~st ~phase heat_number =
         add_couple ~st ~phase ~heat:heat_number ~leader:leader.dancer ~follower:follower.dancer) h.leaders h.followers
   | false -> assert false
 
-let convert_couples_heat_to_singles_heat ~st ~phase heat_number =
+let convert_couples_heat_to_singles_heat ~st ~phase ~heat_number =
   let couples_heats = get_couples ~st ~phase in
   match heat_number > Array.length couples_heats.couples_heats with
   | true -> let h = couples_heats.couples_heats.(heat_number) in
@@ -364,7 +364,7 @@ let convert_couples_heat_to_singles_heat ~st ~phase heat_number =
       ) h.couples |> List.concat
   | false -> assert false
 
-let mix_couples ~st ~phase heat_number new_couples_list =
+let mix_couples ~st ~phase ~heat_number new_couples_list =
   let couples_heats = get_couples ~st ~phase in
   let h = couples_heats.couples_heats.(heat_number) in
   let old_leaders, old_followers = List.map (fun (c:couple) -> (c.leader, c.follower)) h.couples |> List.split in
