@@ -118,14 +118,14 @@ val get : st:State.t -> phase:Phase.id -> t
 val get_singles : st:State.t -> phase:Phase.id -> singles_heats
 val get_couples : st:State.t -> phase:Phase.id -> couples_heats
 
-val convert_singles_heat_to_couples_heat : st:State.t -> phase:target_id -> heat_number:target_id -> target_id list
-val convert_couples_heat_to_singles_heat : st:State.t -> phase:target_id -> heat_number:target_id -> target_id list
+val convert_singles_heat_to_couples_heat : st:State.t -> phase:target_id -> heat_number:target_id -> unit
+val convert_couples_heat_to_singles_heat : st:State.t -> phase:target_id -> heat_number:target_id -> unit
 val mix_couples :
   st:State.t ->
   phase:target_id ->
   heat_number:target_id ->
   (Target.couple, target_id) Target.t list ->
-  target_id list
+  unit
 
 
 

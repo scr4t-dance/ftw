@@ -595,6 +595,158 @@
         }
       }
     },
+    "/api/phase/{id}/mix_couples": {
+      "put": {
+        "tags": [ "heat", "phase" ],
+        "summary": "reorder leaders and followers of couples into new couples",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "New couples pairs",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HeatCoupleTargetList"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/convert_to_couple": {
+      "put": {
+        "tags": [ "heat", "phase" ],
+        "summary": "Convert heat to couple targets",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Heat number",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/HeatNumber" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/convert_to_single": {
+      "put": {
+        "tags": [ "heat", "phase" ],
+        "summary": "Convert heat to single targets",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Heat number",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/HeatNumber" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/phase/{id}/init_heats": {
       "put": {
         "tags": [ "heat", "phase" ],
@@ -2090,6 +2242,22 @@
           "max_number_of_targets": { "type": "integer" }
         },
         "required": [ "min_number_of_targets", "max_number_of_targets" ]
+      },
+      "HeatNumber": {
+        "type": "object",
+        "properties": { "heat_number": { "type": "integer" } },
+        "required": [ "heat_number" ]
+      },
+      "HeatCoupleTargetList": {
+        "type": "object",
+        "properties": {
+          "couples": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Target" }
+          },
+          "heat_number": { "type": "integer" }
+        },
+        "required": [ "couples", "heat_number" ]
       }
     }
   }

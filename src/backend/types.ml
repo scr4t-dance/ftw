@@ -1929,3 +1929,43 @@ module InitHeatsFormData = struct
       ]
       ~required:["min_number_of_targets"; "max_number_of_targets"]
 end
+
+module HeatNumber = struct
+
+  type t = {
+    heat_number: int;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatNumber"
+      ~typ:object_
+      ~properties:[
+        "heat_number", obj @@ S.make_schema()
+          ~typ:int
+      ]
+      ~required:["heat_number"]
+
+end
+
+module HeatCoupleTargetList = struct
+
+  type t = {
+    couples: Target.t list;
+    heat_number: int;
+  } [@@deriving yojson]
+
+  let ref, schema =
+    make_schema ()
+      ~name:"HeatCoupleTargetList"
+      ~typ:object_
+      ~properties:[
+        "couples", obj @@ S.make_schema()
+          ~typ:array
+          ~items:(ref Target.ref);
+        "heat_number", obj @@ S.make_schema()
+          ~typ:int
+      ]
+      ~required:["couples"; "heat_number"]
+
+end

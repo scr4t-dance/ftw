@@ -344,25 +344,31 @@ let get ~st ~phase =
 
 let convert_singles_heat_to_couples_heat ~st ~phase ~heat_number =
   let singles_heats = get_singles ~st ~phase in
-  match heat_number > Array.length singles_heats.singles_heats with
+  match heat_number < Array.length singles_heats.singles_heats with
   | true -> let h = singles_heats.singles_heats.(heat_number) in
-    List.map2 (fun (leader:single) (follower:single) ->
+    List.iter2 (fun (leader:single) (follower:single) ->
         delete_one ~st leader.target_id;
         delete_one ~st follower.target_id;
-        add_couple ~st ~phase ~heat:heat_number ~leader:leader.dancer ~follower:follower.dancer) h.leaders h.followers
-  | false -> assert false
+        let _target_id = add_couple ~st ~phase ~heat:heat_number ~leader:leader.dancer ~follower:follower.dancer in
+        ()
+      ) h.leaders h.followers
+  | false ->
+    Logs.err ~src (fun k -> k "Expected heat number below %d, got %d" (Array.length singles_heats.singles_heats) heat_number);
+    failwith "Expected heat_number to high"
 
 let convert_couples_heat_to_singles_heat ~st ~phase ~heat_number =
   let couples_heats = get_couples ~st ~phase in
-  match heat_number > Array.length couples_heats.couples_heats with
+  match heat_number < Array.length couples_heats.couples_heats with
   | true -> let h = couples_heats.couples_heats.(heat_number) in
-    List.map (fun (couple:couple) ->
+    List.iter (fun (couple:couple) ->
         delete_one ~st couple.target_id;
-        let leader_target_id = add_single ~st ~phase ~heat:heat_number ~role:Role.Leader couple.leader in
-        let follower_target_id = add_single ~st ~phase ~heat:heat_number ~role:Role.Follower couple.follower in
-        [leader_target_id; follower_target_id]
-      ) h.couples |> List.concat
-  | false -> assert false
+        let _leader_target_id = add_single ~st ~phase ~heat:heat_number ~role:Role.Leader couple.leader in
+        let _follower_target_id = add_single ~st ~phase ~heat:heat_number ~role:Role.Follower couple.follower in
+        ()
+      ) h.couples
+  | false ->
+    Logs.err ~src (fun k -> k "Expected heat number below %d, got %d" (Array.length couples_heats.couples_heats) heat_number);
+    failwith "Expected heat_number to high"
 
 let mix_couples ~st ~phase ~heat_number new_couples_list =
   let couples_heats = get_couples ~st ~phase in
@@ -372,10 +378,10 @@ let mix_couples ~st ~phase ~heat_number new_couples_list =
   let has_same_leaders = Id.Set.equal (Id.Set.of_list old_leaders) (Id.Set.of_list new_leaders) in
   let has_same_followers = Id.Set.equal (Id.Set.of_list old_followers) (Id.Set.of_list new_followers) in
   match has_same_leaders, has_same_followers with
-  | true, true -> List.map2 (
+  | true, true -> List.iter2 (
       fun (c:couple) (Target.Couple {leader;follower}) ->
         delete_one ~st c.target_id;
-        add_couple ~st ~phase ~heat:heat_number ~leader ~follower
+        let _ = add_couple ~st ~phase ~heat:heat_number ~leader ~follower in ()
     ) h.couples new_couples_list
   | _ -> assert false
 

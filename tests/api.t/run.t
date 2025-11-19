@@ -288,24 +288,19 @@ promote to next phase
 
   $ curl -s -X PUT localhost:8081/api/phase/1/promote \
   > -H "Content-Type: application/json" \
-  > -d '{"number_of_targets_to_promote":1}'
+  > -d '{"number_of_targets_to_promote":2}'
   2
 
   $ curl -s localhost:8081/api/phase/2/singles_heats
   {"heat_type":"single","heat_type":"single","heats":[{"followers":[{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":3,"role":["Leader"]}]}]}
 
-add couple bibs to heat
-
-  $ curl -s -X PUT localhost:8081/api/comp/2/bib \
+  $ curl -s -X PUT localhost:8081/api/phase/2/convert_to_couple \
   > -H "Content-Type: application/json" \
-  > -d '{"competition":2, "bib":102201, "target":{"target_type":"couple","leader":3,"follower":2}}'
-  {"dancers":[3,2]}
-
-
-  $ curl -s -X PUT localhost:8081/api/phase/2/heat_target \
-  > -H "Content-Type: application/json" \
-  > -d '{"phase_id":1,"heat_number":1,"target":{"target_type":"couple","leader":3,"follower":2},"judge":0,"description":{"artefact":"yan","artefact_data":["overall"]}}'
+  > -d '{"heat_number":0}'
   8
+
+  $ curl -s localhost:8081/api/phase/2/heats
+  {"heat_type":"single","heat_type":"single","heats":[{"followers":[{"target_type":"single","target":2,"role":["Follower"]}],"leaders":[{"target_type":"single","target":3,"role":["Leader"]}]}]}
 
   $ curl -s localhost:8081/api/phase/2/heats
   {"heat_type":"couple","heat_type":"couple","heats":[{"couples":[]},{"couples":[{"target_type":"couple","leader":3,"follower":2}]}]}

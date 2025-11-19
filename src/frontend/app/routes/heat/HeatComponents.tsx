@@ -9,7 +9,7 @@ import {
 } from "@hookgen/model";
 import type { BibList, CouplesHeat, HeatsArray, Panel, PhaseId, SinglesHeat, Target } from "@hookgen/model";
 import {
-    getGetApiPhaseIdHeatsQueryKey, useDeleteApiPhaseIdHeatTarget, usePutApiPhaseIdHeatTarget
+    getGetApiPhaseIdHeatsQueryKey, useDeleteApiPhaseIdHeatTarget, usePutApiPhaseIdConvertToCouple, usePutApiPhaseIdConvertToSingle, usePutApiPhaseIdHeatTarget
 } from '~/hookgen/heat/heat';
 
 import { BareBibListComponent, dancerArrayFromTarget, DancerCell, get_bibs, } from '@routes/bib/BibComponents';
@@ -219,8 +219,45 @@ export function BibHeatListComponent({ bib_list, id_phase, heat_number, missingB
         }
     } as HeatTargetJudge;
 
+
+    const queryClient = useQueryClient();
+
+    const { mutate: convertToSingle } = usePutApiPhaseIdConvertToSingle({
+        mutation: {
+            onSuccess: (id_phase) => {
+                queryClient.invalidateQueries({
+                    queryKey: getGetApiPhaseIdHeatsQueryKey(id_phase),
+                });
+            },
+            onError: (err) => {
+                console.error('Error updating competition:', err);
+            }
+        }
+    });
+    const { mutate: convertToCouple } = usePutApiPhaseIdConvertToCouple({
+        mutation: {
+            onSuccess: (id_phase) => {
+                queryClient.invalidateQueries({
+                    queryKey: getGetApiPhaseIdHeatsQueryKey(id_phase),
+                });
+            },
+            onError: (err) => {
+                console.error('Error updating competition:', err);
+            }
+        }
+    });
+
+
     return (
         <>
+            <button type="button" className='btn'
+            onClick={() => convertToSingle({ id: id_phase, data: { heat_number: heat_number } })}>
+                Convertir en poules de compétiteurices solo
+            </button>
+            <button type="button" className='btn'
+            onClick={() => convertToCouple({ id: id_phase, data: { heat_number: heat_number } })}>
+                Convertir en poules de coupétiteurices duo
+            </button>
             <table>
                 <tbody>
                     <tr>
@@ -349,7 +386,7 @@ export function HeatsListComponent({ id_phase, panel_data, heats, dataBibs }: { 
             {heats?.heats && heats?.heats.map((heat, index) => (
                 // heat 0 réservée pour calculs internes
                 // TODO : afficher warning si heat 0 non vide et Heat 1, ..., n non vides
-                index === 0 ? <></> :
+                index === -1 ? <></> :
                     <>
                         <h1>Heat {index}</h1>
                         {heats.heat_type === "couple" &&
