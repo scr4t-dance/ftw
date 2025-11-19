@@ -627,7 +627,6 @@ class ftw_1 st = object(self)
     in
     let panel = make_couples_panel judges in
     Judge.set ~st ~phase panel;
-    Judge.set ~st ~phase panel;
     (* add notes *)
     let add_heat_and_artefact ((leader, follower), (artefacts, bonus)) =
       let target = Heat.add_couple ~st ~phase ~heat:1 ~leader ~follower in

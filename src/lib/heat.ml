@@ -148,6 +148,10 @@ let get_one ~st tid =
   State.query_one_where ~st ~conv ~p:[int]
     {| SELECT * FROM heats WHERE id = ? |} tid
 
+let delete_one ~st tid =
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[int]
+    {| DELETE FROM heats WHERE id = ? |} tid
 
 (* Setters *)
 let add_single ~st ~phase ~heat ~role dancer_id =
@@ -163,12 +167,12 @@ let add_single ~st ~phase ~heat ~role dancer_id =
   | Leader ->
     State.query_one_where ~st ~conv:Id.conv ~p:[int; int; int]
       {| SELECT id FROM heats WHERE phase_id = ? AND heat_number = ?
-                              AND leader_id = ? AND follower_id ISNULL |}
+                              AND leader_id = ? AND follower_id IS NULL |}
       phase heat dancer_id
   | Follower ->
     State.query_one_where ~st ~conv:Id.conv ~p:[int; int; int]
       {| SELECT id FROM heats WHERE phase_id = ? AND heat_number = ?
-                              AND leader_id ISNULL AND follower_id = ? |}
+                              AND leader_id IS NULL AND follower_id = ? |}
       phase heat dancer_id
 
 let add_couple ~st ~phase ~heat ~leader ~follower =
@@ -336,6 +340,44 @@ let get ~st ~phase =
     let couples_heats = get_couples ~st ~phase in
     Couples couples_heats
 
+(* Convert heats between singles and couples *)
+
+let convert_singles_heat_to_couples_heat ~st ~phase heat_number =
+  let singles_heats = get_singles ~st ~phase in
+  match heat_number > Array.length singles_heats.singles_heats with
+  | true -> let h = singles_heats.singles_heats.(heat_number) in
+    List.map2 (fun (leader:single) (follower:single) ->
+        delete_one ~st leader.target_id;
+        delete_one ~st follower.target_id;
+        add_couple ~st ~phase ~heat:heat_number ~leader:leader.dancer ~follower:follower.dancer) h.leaders h.followers
+  | false -> assert false
+
+let convert_couples_heat_to_singles_heat ~st ~phase heat_number =
+  let couples_heats = get_couples ~st ~phase in
+  match heat_number > Array.length couples_heats.couples_heats with
+  | true -> let h = couples_heats.couples_heats.(heat_number) in
+    List.map (fun (couple:couple) ->
+        delete_one ~st couple.target_id;
+        let leader_target_id = add_single ~st ~phase ~heat:heat_number ~role:Role.Leader couple.leader in
+        let follower_target_id = add_single ~st ~phase ~heat:heat_number ~role:Role.Follower couple.follower in
+        [leader_target_id; follower_target_id]
+      ) h.couples |> List.concat
+  | false -> assert false
+
+let mix_couples ~st ~phase heat_number new_couples_list =
+  let couples_heats = get_couples ~st ~phase in
+  let h = couples_heats.couples_heats.(heat_number) in
+  let old_leaders, old_followers = List.map (fun (c:couple) -> (c.leader, c.follower)) h.couples |> List.split in
+  let new_leaders, new_followers = List.map (fun (Target.Couple {leader;follower}) -> (leader, follower)) new_couples_list |> List.split in
+  let has_same_leaders = Id.Set.equal (Id.Set.of_list old_leaders) (Id.Set.of_list new_leaders) in
+  let has_same_followers = Id.Set.equal (Id.Set.of_list old_followers) (Id.Set.of_list new_followers) in
+  match has_same_leaders, has_same_followers with
+  | true, true -> List.map2 (
+      fun (c:couple) (Target.Couple {leader;follower}) ->
+        delete_one ~st c.target_id;
+        add_couple ~st ~phase ~heat:heat_number ~leader ~follower
+    ) h.couples new_couples_list
+  | _ -> assert false
 
 
 (* New code below: to review *)
