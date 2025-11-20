@@ -20,6 +20,8 @@ import {
   getGetApiPhaseIdJudgesQueryKey, getGetApiPhaseIdJudgesQueryOptions,
   getApiPhaseIdJudges
 } from "./hookgen/judge/judge";
+import { getApiPhaseIdHeats, getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdHeatsQueryOptions } from "./hookgen/heat/heat";
+import { getApiDancers, getGetApiDancersQueryKey, getGetApiDancersQueryOptions } from "./hookgen/dancer/dancer";
 
 
 export const queryClient = new QueryClient({
@@ -252,5 +254,26 @@ export const judgePanelLoader = createLoader({
   fetchServer: getApiPhaseIdJudges,
   getQueryKey: getGetApiPhaseIdJudgesQueryKey,
   getQueryOptions: getGetApiPhaseIdJudgesQueryOptions,
+  queryClient,
+});
+
+export const heatListLoader = createLoader({
+  idKey: "id_phase",
+  dataKey: "heat_list",
+  idParser: (param: string) => Number(param) as PhaseId,
+  fetchServer: getApiPhaseIdHeats,
+  getQueryKey: getGetApiPhaseIdHeatsQueryKey,
+  getQueryOptions: getGetApiPhaseIdHeatsQueryOptions,
+  queryClient,
+});
+
+
+export const dancerListLoader = createLoader({
+  idKey: "id_event",
+  dataKey: "dancer_list",
+  idParser: (param: string) => Number(param) as EventId,
+  fetchServer: (_) => getApiDancers(),
+  getQueryKey: (_) => getGetApiDancersQueryKey(),
+  getQueryOptions: (_) => getGetApiDancersQueryOptions(),
   queryClient,
 });

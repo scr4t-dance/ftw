@@ -8,13 +8,16 @@ import type {
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { Field } from '@routes/index/field';
-import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, usePutApiPhaseIdPromote } from '~/hookgen/heat/heat';
+import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey,
+    getGetApiPhaseIdSinglesHeatsQueryKey, usePutApiPhaseIdPromoteAll } from '@hookgen/heat/heat';
+import { usePutApiPhaseIdPromote } from '@hookgen/ranking/ranking';
 
 export default function NextPhaseForm({ id_phase, treshold_callback }: { id_phase: PhaseId, treshold_callback?: (treshold:number)=>void }) {
 
     //const navigate = useNavigate();
 
-    const formObject = useForm<NextPhaseFormData>();
+    const formObject = useForm<NextPhaseFormData>({defaultValues: {number_of_targets_to_promote:0}}
+    );
 
     const {
         register,
@@ -71,6 +74,7 @@ export default function NextPhaseForm({ id_phase, treshold_callback }: { id_phas
                         <input type='number'
                         {...register("number_of_targets_to_promote", {
                             required: "Should be a number",
+                            min: 0,
                             valueAsNumber: true,
                         })} />
                     </Field>

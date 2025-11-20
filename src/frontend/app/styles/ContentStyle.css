@@ -195,6 +195,10 @@ ul li {
     width: 50%;
     max-width: 1000px;
 }
+.bib-table-column table {
+    table-layout: fixed;
+}
+
 
 /*=========================================+
 |                  BUTTONS                 |
@@ -301,6 +305,17 @@ table th {
     padding: 0.6rem 0.3rem;
 }
 
+.inner-vertical-line {
+    border-left: solid 1px;
+}
+
+.rank_table tbody tr {
+    text-align: center;
+}
+
+.ranking_treshold {
+    border-bottom: solid 3px;
+}
 
 /*=========================================+
 |                   FORMS                  |

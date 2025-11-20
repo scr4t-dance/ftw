@@ -114,7 +114,8 @@ let parse l =
       failwith "mismatched judging for phase"
   in
   let rec aux l = function
-    | [] -> failwith "not enough judging for phase"
+    (* defaults to single when nothing is provided *)
+    | [] -> singles { leaders = []; followers = []; head = None; } []
     | (_, (Judging.Leaders | Judging.Followers)) :: _ ->
       singles { leaders = []; followers = []; head = None; } l
     | (_, Judging.Couples) :: _ ->

@@ -376,6 +376,7 @@ and get_artefact_heat =
     (fun req st ->
        let+ id = Utils.int_param req "id" in
        let+ id_judge = Utils.int_param req "id_judge" in
+       Logs.debug ~src (fun m -> m "Query artefact phase %d judge %d" id id_judge);
        let phase = Ftw.Phase.get st id in
        let panel = Ftw.Judge.get ~st ~phase:id in
        let target_list_list, judge_head =
@@ -408,7 +409,7 @@ and get_artefact_heat =
        let build_htj_target (htj: Types.HeatTargetJudge.t) = Ftw.Heat.get_id st id htj.heat_number (Types.Target.to_ftw htj.target) in
        let get_art heat_target =
          try Ok (Some (Ftw.Artefact.get ~st ~judge:id_judge ~target:heat_target ~descr:artefact_descr))
-         with Not_found -> Error "artefact not found"
+         with Not_found -> Ok None
        in
        let build_htja htj art = Types.HeatTargetJudgeArtefact.{heat_target_judge=htj; artefact=Option.map Types.Artefact.of_ftw art;} in
        let make_htja heat_number target =
@@ -426,6 +427,11 @@ and get_artefact_heat =
        let htja_result_list = List.flatten htja_list_list in
        let htja_list_result = List.fold_left (fun acc htja_result -> Result.bind acc (fun acc_list -> Result.map (fun htja -> acc_list @ [htja]) htja_result)) (Ok []) htja_result_list in
        let htja_array_result = Result.map (fun htja_list -> Types.HeatTargetJudgeArtefactArray.{artefacts=htja_list}) htja_list_result in
+       Logs.debug ~src (fun m -> m "Artefact extraction '%s'" (begin match htja_array_result with
+           | Ok _ -> "Ok"
+           | Error e -> "Error " ^ e
+         end
+         ));
        Result.map_error (fun e -> Error.generic e) htja_array_result
     )
 

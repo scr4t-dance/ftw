@@ -42,44 +42,49 @@ function PhasePageHome({
 
     return (
         <>
-            <div className="no-print">
-                <h1>Phase {phase?.round} {competition?.name}</h1>
-                <p>
-                    <Link to={`${url}edit`}>
-                        Edit Phase
+            <h1>Phase {phase?.round} {competition?.name}</h1>
+            <ol className="no-print">
+                <li>
+                    <Link to={`${url}edit_judges`}>
+                        Modifier les Juges
                     </Link>
-                </p>
-                <p>
+                </li>
+                <li>
+                    <Link to={`${url}judges`}>
+                        Juges
+                    </Link>
+                </li>
+                <li>
+                    <Link to={`${url}pairings`}>
+                        Appairage
+                    </Link>
+                </li>
+                <li>
+                    <Link to={`${url}edit`}>
+                        Modifier les paramètres de la Phase
+                    </Link>
+                </li>
+                <li>
                     <Link to={`${url}heats`}>
                         Poules
                     </Link>
-                </p>
-                <p>
+                </li>
+                <li>
                     <Link to={`${url}artefacts`}>
                         Scoring pour juges
                     </Link>
-                </p>
-                <p>
+                </li>
+                <li>
                     <Link to={`${url}artefacts/?for=scorer`}>
                         Espace Scoreur
                     </Link>
-                </p>
-                <p>
+                </li>
+                <li>
                     <Link to={`${url}ranks`}>
                         Classement
                     </Link>
-                </p>
-                <p>
-                    <Link to={`${url}judges`}>
-                        Phase Judges
-                    </Link>
-                </p>
-                <p>
-                    <Link to={`${url}edit_judges`}>
-                        Edit Phase Judges
-                    </Link>
-                </p>
-            </div>
+                </li>
+            </ol>
             <Outlet />
         </>
     );

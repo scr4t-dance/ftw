@@ -149,7 +149,7 @@ let () =
   State.add_init ~name:"artefact" (fun st ->
       State.exec ~st {|
         CREATE TABLE IF NOT EXISTS artefacts (
-          target_id INTEGER REFERENCES heats(id),
+          target_id INTEGER REFERENCES heats(id) ON DELETE CASCADE,
           judge INTEGER REFERENCES dancers(id),
           artefact INTEGER NOT NULL,
           PRIMARY KEY(target_id,judge)
