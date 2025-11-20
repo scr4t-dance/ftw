@@ -19,12 +19,36 @@ import { NewTargetBibFormComponent } from '@routes/bib/NewBibFormComponent';
 
 const dancerLink = "dancers/"
 
-export function get_bibs(dataBibs: BibList, target_list: Target[]): BibList {
-    const bibs_list = target_list.map(
-        (t) => dataBibs?.bibs.find(b => JSON.stringify(b.target) === JSON.stringify(t))
-    ).filter((b) => b !== undefined);
 
-    return { bibs: bibs_list };
+function to_single_targets(target: Target) {
+
+    return target.target_type === "couple" ?
+        [
+            { target_type: "single", target: target.leader, role: ["Leader"] } satisfies Target,
+            { target_type: "single", target: target.follower, role: ["Follower"] } satisfies Target,
+        ] : [target]
+        ;
+}
+
+export function get_bibs(dataBibs: BibList, target_list: Target[]): Bib[][] {
+    const bibs_list = target_list.map(
+        (t) => dataBibs.bibs.find(b => JSON.stringify(b.target) === JSON.stringify(t))
+    );
+
+    const single_bibs = dataBibs.bibs.flatMap(b => to_single_targets(b.target).map(t => ({ bib: b.bib, competition: b.competition, target: t } as Bib)));
+
+    const imputed_bib_list = target_list.map((tt, index) => bibs_list[index] ? [bibs_list[index]] :
+        tt.target_type === "couple" ? (
+            to_single_targets(tt).map(t =>
+                dataBibs.bibs.find(b => JSON.stringify(b.target) === JSON.stringify(t)
+                )
+            )
+        ) : (
+            [single_bibs.find(b => JSON.stringify(b.target) === JSON.stringify(tt))]
+        )
+    );
+
+    return imputed_bib_list.map(b_list => (b_list.filter(b => !!b)));
 }
 
 function convert_target(target: Target | undefined) {
@@ -70,14 +94,14 @@ export function DancerCell({ id_dancer, link }: { id_dancer: DancerId, link?: bo
 
     if (!dancer) return "Loading dancer..."
 
-    if (link ?? true) return (<p>{dancer.last_name} {dancer.first_name}</p>);
+    if (link ?? true) return (<>{dancer.last_name} {dancer.first_name}</>);
 
     return (
-        <p>
+        <>
             <Link to={`/${dancerLink}${id_dancer}`}>
                 {dancer.last_name} {dancer.first_name}
             </Link>
-        </p>
+        </>
     )
 }
 
@@ -105,7 +129,9 @@ export function BibRowReadOnly({ bib_object, onEdit, onDelete }: BibRowReadOnlyP
             }</td>
             <td>
                 {dancer_list && dancer_list.map((i) => (
-                    <DancerCell id_dancer={i} />
+                    <p key={i}>
+                        <DancerCell id_dancer={i} />
+                    </p>
                 ))
                 }
             </td>
@@ -222,7 +248,7 @@ function EditableBibDetails({ bib_object }: { bib_object: Bib }) {
     });
 
     const handleUpdate = handleSubmit((data) => {
-        updateBib({ id: bib_object.competition, data:{old_bib: bib_object, new_bib:data} as OldBibNewBib });
+        updateBib({ id: bib_object.competition, data: { old_bib: bib_object, new_bib: data } as OldBibNewBib });
     });
 
     const handleCancel = () => {
@@ -314,7 +340,9 @@ export function PublicBibListComponent({ bib_list }: { bib_list: Array<Bib> }) {
                             }</td>
                             <td>
                                 {dancerArrayFromTarget(bib_object.target).map((i) => (
-                                    <DancerCell id_dancer={i} />
+                                    <p key={i}>
+                                        <DancerCell id_dancer={i} />
+                                    </p>
                                 ))
                                 }
                             </td>

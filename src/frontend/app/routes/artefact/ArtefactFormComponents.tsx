@@ -378,7 +378,9 @@ function RankingArtefactFormTable({ artefactData, heat_number, artefactInput, da
                       "couple"}
                   </p>
                   {dancerArrayFromTarget(field.heat_target_judge.target).map((i) => (
-                    <DancerCell key={`bib.${index}`} id_dancer={i} link={false} />
+                    <p key={`bib.${index}`}>
+                      <DancerCell id_dancer={i} link={false} />
+                    </p>
                   ))}
                   <Field
                     error={get(errors, `artefacts.${index}.artefact.artefact_type.message`)}
@@ -468,7 +470,9 @@ function YanArtefactFormTable({ artefactData, heat_number, artefactInput, dataBi
                   </div>
                   <p className="table_comp_dancer_name">
                     {dancerArrayFromTarget(field.heat_target_judge.target).map((i) => (
-                      <DancerCell key={`bib.${index}`} id_dancer={i} />
+                      <p key={`bib.${index}`}>
+                        <DancerCell id_dancer={i} link={false} />
+                      </p>
                     ))}
                     <Field
                       error={get(errors, `artefacts.${index}.artefact.artefact_type.message`)}

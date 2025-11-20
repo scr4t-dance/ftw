@@ -84,7 +84,9 @@ function RankRow({ target_rank, all_judges, htjaArray }: { target_rank: TargetRa
             }
             <td>
                 {dancer_list && dancer_list.map((i) => (
-                    <DancerCell id_dancer={i} />
+                    <p key={i}>
+                        <DancerCell id_dancer={i} />
+                    </p>
                 ))}
             </td>
             {artefactArray.map((htja, index) => {
@@ -243,7 +245,7 @@ function OneRankListTable({ phase_id, judges, head_judge, oneRanking, treshold }
                     return (
                         <tr key={index}
                             className={cx(`${index % 2 === 0 ? 'even-row' : 'odd-row'}`,
-                                target_rank.rank===treshold ? "ranking_treshold" : ""
+                                target_rank.rank === treshold ? "ranking_treshold" : ""
                             )}
                         >
                             <RankRow

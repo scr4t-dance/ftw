@@ -122,7 +122,7 @@ let () =
       State.exec ~st {|
         CREATE TABLE IF NOT EXISTS heats (
           id INTEGER PRIMARY KEY,
-          phase_id INTEGER REFERENCES phases(id),
+          phase_id INTEGER NOT NULL REFERENCES phases(id),
           heat_number INTEGER NOT NULL,
           leader_id INTEGER REFERENCES dancers(id),
           follower_id INTEGER REFERENCES dancers(id)
@@ -616,34 +616,45 @@ let add_target st ~(phase_id:Id.t) heat_number (target:target_id Target.any) =
   | Any Trouple _ -> Error "add_target for Trouple not implemented"
 
 let delete_target st ~(phase_id:Id.t) heat_number (target:target_id Target.any) =
+  let tid = get_id st phase_id 0 target in
+  begin match tid with
+    | Ok Some th -> delete_one ~st th
+    | _ -> ()
+  end;
   let open Sqlite3_utils.Ty in
   begin match target with
     | Any Couple {leader;follower;} ->
       State.insert ~st ~ty:[int;int;int;int]
-        {| DELETE FROM heats
-       WHERE 0=0
-       AND phase_id = ?
-       AND heat_number = ?
-       AND leader_id = ?
-       AND follower_id = ? |}
+        {|
+        UPDATE heats
+        SET heat_number = 0
+        WHERE 0=0
+        AND phase_id = ?
+        AND heat_number = ?
+        AND leader_id = ?
+        AND follower_id = ? |}
         phase_id heat_number leader follower
     | Any Single { target=t; role=Role.Leader } ->
       State.insert ~st ~ty:[int;int;int]
-        {| DELETE FROM heats
-       WHERE 0=0
-       AND phase_id = ?
-       AND heat_number = ?
-       AND leader_id = ?
-       AND follower_id is NULL |}
+        {|
+          UPDATE heats
+          SET heat_number = 0
+          WHERE 0=0
+          AND phase_id = ?
+          AND heat_number = ?
+          AND leader_id = ?
+          AND follower_id is NULL |}
         phase_id heat_number t
     | Any Single { target=t; role=Role.Follower } ->
       State.insert ~st ~ty:[int;int;int]
-        {| DELETE FROM heats
-       WHERE 0=0
-       AND phase_id = ?
-       AND heat_number = ?
-       AND leader_id is NULL
-       AND follower_id = ? |}
+        {|
+          UPDATE heats
+          SET heat_number = 0
+          WHERE 0=0
+          AND phase_id = ?
+          AND heat_number = ?
+          AND leader_id is NULL
+          AND follower_id = ? |}
         phase_id heat_number t
     | Any Trouple _ ->
       failwith "not implemented"

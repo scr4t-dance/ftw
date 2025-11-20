@@ -59,11 +59,13 @@ function ArtefactRow({ htja_array }: { htja_array: HeatTargetJudgeArtefactArray 
         <>
             <td>
                 {dancer_list && dancer_list.map((i) => (
-                    <DancerCell id_dancer={i} />
+                    <p>
+                        <DancerCell id_dancer={i} />
+                    </p>
                 ))}
             </td>
             {htja_array.artefacts.map((htja, index) => (
-                <td className={index===0 ? "inner-vertical-line" : ""}>
+                <td className={index === 0 ? "inner-vertical-line" : ""}>
                     <ArtefactCell htja={htja} />
                 </td>
             ))}

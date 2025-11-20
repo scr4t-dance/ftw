@@ -195,6 +195,10 @@ ul li {
     width: 50%;
     max-width: 1000px;
 }
+.bib-table-column table {
+    table-layout: fixed;
+}
+
 
 /*=========================================+
 |                  BUTTONS                 |
