@@ -1,48 +1,39 @@
 
 import React from 'react';
-import { Link } from "react-router";
 import {
     type BibList, type CompetitionId, type EventId,
 } from "@hookgen/model";
 
-import { getApiCompIdBibs } from "@hookgen/bib/bib";
+import { getGetApiCompIdBibsQueryOptions } from "@hookgen/bib/bib";
 
 import type { Route } from './+types/BibListPublic';
-import { getApiCompId } from '@hookgen/competition/competition';
-import { getApiEventId } from '@hookgen/event/event';
-import { BareBibListComponent } from '@routes/bib/BibComponents';
-
-
-const dancerLink = "dancers/"
-
+import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
+import { getGetApiEventIdQueryOptions } from '@hookgen/event/event';
+import { PublicBibListComponent } from '@routes/bib/BibComponents';
+import { dehydrate, QueryClient } from '@tanstack/react-query';
 
 export async function loader({ params }: Route.LoaderArgs) {
 
+    const queryClient = new QueryClient();
     const id_event = Number(params.id_event) as EventId;
-    const event_data = getApiEventId(id_event);
-    const id_competition =  Number(params.id_competition) as CompetitionId;
-    const competition_data = getApiCompId(id_competition);
-    const bibs_list = await getApiCompIdBibs(id_competition);
-    return {
-        id_event,
-        event_data,
-        id_competition,
-        competition_data,
-        bibs_list,
-    };
+    await queryClient.prefetchQuery(getGetApiEventIdQueryOptions(id_event));
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    await queryClient.prefetchQuery(getGetApiCompIdQueryOptions(id_competition));
+    await queryClient.prefetchQuery(getGetApiCompIdBibsQueryOptions(id_competition));
+
+    return { dehydratedState: dehydrate(queryClient) };
 }
 
 
 function BibList({
-    loaderData
+    params
 }: Route.ComponentProps) {
+
+    const id_competition = Number(params.id_competition) as CompetitionId;
 
     return (
         <>
-            <Link to={`/${dancerLink}new`}>
-                Créer un-e nouvel-le compétiteur-euse
-            </Link>
-            <BareBibListComponent bib_list={loaderData.bibs_list.bibs} />
+            <PublicBibListComponent id_competition={id_competition} />
         </>
     );
 }

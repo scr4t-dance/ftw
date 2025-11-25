@@ -1,59 +1,32 @@
 import type { Route } from "./+types/CompetitionDetailsPublic"
 
-import type { BibList, Competition, } from "@hookgen/model";
-import { BareBibListComponent } from "@routes/bib/BibComponents";
-import { useGetApiCompIdBibs } from "~/hookgen/bib/bib";
-import { bibsListLoader, combineClientLoader, combineServerLoader, competitionLoader, eventLoader, queryClient } from "~/queryClient";
-
-const loader_array = [eventLoader, competitionLoader, bibsListLoader];
+import type { CompetitionId, EventId, } from "@hookgen/model";
+import { dehydrate, QueryClient } from "@tanstack/react-query";
+import { getGetApiCompIdBibsQueryOptions } from "~/hookgen/bib/bib";
+import { getGetApiCompIdQueryOptions } from "~/hookgen/competition/competition";
+import { getGetApiEventIdQueryOptions } from "~/hookgen/event/event";
+import CompetitionDetailsComponent from "@routes/competition/CompetitionComponents";
 
 
 export async function loader({ params }: Route.LoaderArgs) {
 
-    const combinedData = await combineServerLoader(loader_array, params);
-    return combinedData;
+    const queryClient = new QueryClient();
+    const id_event = Number(params.id_event) as EventId;
+    await queryClient.prefetchQuery(getGetApiEventIdQueryOptions(id_event));
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    await queryClient.prefetchQuery(getGetApiCompIdQueryOptions(id_competition));
+    await queryClient.prefetchQuery(getGetApiCompIdBibsQueryOptions(id_competition));
+
+    return { dehydratedState: dehydrate(queryClient) };
 }
 
-let isInitialRequest = true;
 
-export async function clientLoader({
+export default function CompetitionDetailsRoute({
     params,
-    serverLoader,
-}: Route.ClientLoaderArgs) {
-
-    if (isInitialRequest) {
-        isInitialRequest = false;
-        const serverData = await serverLoader();
-
-        loader_array.forEach((l) => l.cache(queryClient, serverData));
-
-        return serverData;
-    }
-
-    const combinedData = await combineClientLoader(loader_array, params);
-    return combinedData;
-}
-clientLoader.hydrate = true;
-
-export default function CompetitionDetails({
-    params,
-    loaderData,
 }: Route.ComponentProps) {
 
-    const competition = loaderData.competition_data as Competition;
+    const id_event = Number(params.id_event) as EventId;
+    const id_competition = Number(params.id_competition) as CompetitionId;
 
-    const { data: bibs_list } = useGetApiCompIdBibs(loaderData.id_competition, {
-        query: {
-            initialData: loaderData.bibs_list,
-        }
-    });
-
-    return (
-        <>
-            <h1>Compétition {competition?.name}</h1>
-            <p>Type : {competition?.kind}</p>
-            <p>Catégorie : {competition?.category}</p>
-            <BareBibListComponent bib_list={bibs_list.bibs} />
-        </>
-    );
+    return (<CompetitionDetailsComponent id_competition={id_competition} isAdmin={false} />)
 }
