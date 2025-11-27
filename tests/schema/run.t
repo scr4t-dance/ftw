@@ -119,7 +119,7 @@ If the definition changes
           );
   CREATE TABLE heats (
             id INTEGER PRIMARY KEY,
-            phase_id INTEGER REFERENCES phases(id),
+            phase_id INTEGER NOT NULL REFERENCES phases(id),
             heat_number INTEGER NOT NULL,
             leader_id INTEGER REFERENCES dancers(id),
             follower_id INTEGER REFERENCES dancers(id)

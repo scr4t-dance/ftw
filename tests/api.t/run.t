@@ -221,11 +221,10 @@ get heats
 
 move target to new heat
 
-# delete already called inside PUT heat_target
-#  $ curl -s -X DELETE localhost:8081/api/phase/1/heat_target \
-#  > -H "Content-Type: application/json" \
-#  > -d '{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":3,"role":["Leader"]},"judge":0,"description":{"artefact":"yan","artefact_data":["overall"]}}'
-#  1
+  $ curl -s -X DELETE localhost:8081/api/phase/1/heat_target \
+  > -H "Content-Type: application/json" \
+  > -d '{"phase_id":1,"heat_number":1,"target":{"target_type":"single","target":3,"role":["Leader"]},"judge":0,"description":{"artefact":"yan","artefact_data":["overall"]}}'
+  1
 
 
   $ curl -s -X PUT localhost:8081/api/phase/1/heat_target \
