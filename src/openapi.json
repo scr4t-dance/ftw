@@ -747,7 +747,49 @@
         }
       }
     },
-    "/api/phase/{id}/init_heats": {
+    "/api/phase/{id}/init_heats_with_bibs": {
+      "post": {
+        "tags": [ "heat", "phase" ],
+        "summary": "Take all bibs from heats and add them to Heat 0",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": { "content": { "text/plain": { "schema": {} } } },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/randomize_heats": {
       "put": {
         "tags": [ "heat", "phase" ],
         "summary": "Randomly place dancers of the phase in heats",
@@ -2239,9 +2281,17 @@
         "type": "object",
         "properties": {
           "min_number_of_targets": { "type": "integer" },
-          "max_number_of_targets": { "type": "integer" }
+          "max_number_of_targets": { "type": "integer" },
+          "late_heat_range": { "type": "integer" },
+          "late_heat_ids": { "type": "string" },
+          "early_heat_range": { "type": "integer" },
+          "early_heat_ids": { "type": "string" }
         },
-        "required": [ "min_number_of_targets", "max_number_of_targets" ]
+        "required": [
+          "min_number_of_targets", "max_number_of_targets",
+          "late_heat_range", "late_heat_ids", "early_heat_range",
+          "early_heat_ids"
+        ]
       },
       "HeatNumber": {
         "type": "object",

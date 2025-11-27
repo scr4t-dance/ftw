@@ -436,16 +436,24 @@ let get_id st phase_id heat_number target =
         k "Error too many matches for target %a : %s"
           (Target.print Id.print) target (String.concat ", " (List.map string_of_int tid_list)));
     *)
-    Error "Error too many matches"
+    let s = begin match target with
+      | Any Single { target=t; _} -> string_of_int t
+      | _ -> ""
+    end in
+    Error ("Error for target '" ^ s ^ "' too many matches " ^ (String.concat "," @@ List.map string_of_int heat_id_list))
 
-let simple_init st ~(phase:Id.t) (_min_number_of_targets:int) (_max_number_of_targets:int) =
+let reset st phase =
   let open Sqlite3_utils.Ty in
   State.insert ~st ~ty:[int]
     {| DELETE FROM heats
         WHERE 0=0
         AND phase_id = ?
         |}
-    phase;
+    phase
+
+let simple_init st ~(phase:Id.t) (_min_number_of_targets:int) (_max_number_of_targets:int) =
+  reset st phase;
+  let open Sqlite3_utils.Ty in
   State.insert ~st ~ty:[int;]
     {| insert into heats (phase_id, heat_number, leader_id, follower_id)
           select phases.id as phase_id
@@ -477,6 +485,137 @@ let clear ~st ~phase =
         AND phase_id = ?
         |}
     phase
+module IdPairs = struct
+  type t = Dancer.id * Dancer.id
+  let compare (x0,y0) (x1,y1) =
+    match Id.compare x0 x1 with
+      0 -> Id.compare y0 y1
+    | c -> c
+end
+
+module PairsSet = Set.Make(IdPairs)
+
+let regen_pools_aux_singles ~min ~max singles_heats =
+  let leaders_set = Array.fold_left (fun acc singles_heat ->
+      List.fold_left (fun htid_set (s:single) -> Id.Set.add s.dancer htid_set)
+        acc singles_heat.leaders) Id.Set.empty singles_heats in
+  let followers_set = Array.fold_left (fun acc singles_heat ->
+      List.fold_left (fun htid_set (s:single) -> Id.Set.add s.dancer htid_set)
+        acc singles_heat.followers) Id.Set.empty singles_heats in
+  let n_leaders = Id.Set.cardinal leaders_set in
+  let n_followers = Id.Set.cardinal followers_set in
+  let leaders = Misc.Randomizer.apply (Misc.Randomizer.subst n_leaders) (Id.Set.elements leaders_set |> Array.of_list) in
+  let followers = Misc.Randomizer.apply (Misc.Randomizer.subst n_followers) (Id.Set.elements followers_set |> Array.of_list) in
+  let leaders, followers =
+    if n_leaders < n_followers then begin
+      let m = n_followers - n_leaders in
+      let a = Array.sub leaders 0 m in
+      Array.append leaders a, followers
+    end else if n_leaders > n_followers then begin
+      let m = n_leaders - n_followers in
+      let a = Array.sub followers 0 m in
+      leaders, Array.append followers a
+    end else begin
+      assert (n_leaders = n_followers);
+      leaders, followers
+    end
+  in
+  let leader_pools = Misc.Split.split_array ~min ~max leaders in
+  let follow_pools = Misc.Split.split_array ~min ~max followers in
+  leader_pools, follow_pools
+
+let add_pools_single ~st ~phase leader_pools follow_pools =
+  let add_dancer_heat role i dancer =
+    let _ = add_single ~st ~phase ~heat:(i + 1) ~role dancer in ()
+  in
+  let add_heat role i heat = Array.iter (add_dancer_heat role i) heat in
+  Array.iteri (add_heat Role.Leader) leader_pools;
+  Array.iteri (add_heat Role.Follower) follow_pools;
+  ()
+
+let regen_pools_aux_couples ~min ~max couples_heats =
+  let couples_set = Array.fold_left (fun acc couples_heat ->
+      List.fold_left (fun htid_set (s:couple) -> PairsSet.add (s.follower, s.leader) htid_set)
+        acc couples_heat.couples) PairsSet.empty couples_heats in
+  let n_couples = PairsSet.cardinal couples_set in
+  let couples = Misc.Randomizer.apply (Misc.Randomizer.subst n_couples) (PairsSet.elements couples_set |> Array.of_list) in
+  let couple_pools = Misc.Split.split_array ~min ~max couples in
+  couple_pools
+
+let add_pools_couples ~st ~phase couple_pools =
+  let add_couple_heat i leader follower =
+    let _ = add_couple ~st ~phase ~heat:(i + 1) ~leader ~follower in ()
+  in
+  let add_heat i heat = Array.iter (fun (leader, follower) -> add_couple_heat i leader follower) heat in
+  Array.iteri add_heat couple_pools;
+  ()
+
+let split_pools_couple couple_pools =
+  let leader_pools = Array.map (Array.map fst) couple_pools in
+  let follower_pools = Array.map (Array.map snd) couple_pools in
+  leader_pools, follower_pools
+
+let check_not_in_rounds rounds dancer_list pools =
+  let s = Id.Set.of_list dancer_list in
+  List.for_all (fun i ->
+      let p = pools.(i) in
+      let x = Id.Set.inter s (Array.to_list p |> Id.Set.of_list) in
+      Id.Set.is_empty x
+    ) rounds
+
+let check_early (early_n, dancer_list) pools =
+  let n = Array.length pools in
+  let rounds = CCList.range_by ~step:1 (n - early_n) (n - 1) in
+  check_not_in_rounds rounds dancer_list pools
+
+let check_late (late_n, dancer_list) pools =
+  let n = Array.length pools in
+  let rounds = CCList.range_by ~step:1 0 (n - 1 - late_n) in
+  check_not_in_rounds rounds dancer_list pools
+
+let regen_pools ~st ~phase ?(tries=100) ?(early=(0, [])) ?(late=(0, [])) ~min ~max t =
+  let rec aux n =
+    if n <= 0 then failwith "could not generate new pools"
+    else begin
+      Logs.info (fun k->k "Generating new pool");
+      begin match t with
+        | Singles {singles_heats;} ->
+          let leader_pools, follower_pools = regen_pools_aux_singles ~min ~max singles_heats in
+          let is_okay = check_early early leader_pools && check_late late leader_pools
+                        && check_early early follower_pools && check_late late follower_pools in
+          if is_okay then
+            let _ = reset st phase in
+            add_pools_single ~st ~phase leader_pools follower_pools
+          else begin
+            aux (n - 1)
+          end
+        | Couples {couples_heats;} ->
+          let couples_pools = regen_pools_aux_couples ~min ~max couples_heats in
+          let leader_pools, follower_pools = split_pools_couple couples_pools in
+          let is_okay = check_early early leader_pools && check_late late leader_pools
+                        && check_early early follower_pools && check_late late follower_pools in
+          if is_okay then
+            let _ = reset st phase in
+            add_pools_couples ~st ~phase couples_pools
+          else begin
+            aux (n - 1)
+          end
+      end
+    end
+  in
+  aux tries
+
+let init ~st ~phase ~min_number_of_targets ~max_number_of_targets
+    ~early_heat_range ~early_heat_ids ~late_heat_range ~late_heat_ids =
+  let split_dancer_list = function
+    | "" -> []
+    | s ->
+      List.map int_of_string
+        (CCString.split_on_char ',' s)in
+  regen_pools ~st ~phase ~early:(early_heat_range, split_dancer_list early_heat_ids)
+    ~late:(late_heat_range, split_dancer_list late_heat_ids)
+    ~min:min_number_of_targets ~max:max_number_of_targets
+
 
 let simple_promote ~st ~(phase:Id.t) (_max_number_of_targets_to_pass:int) =
   let new_phase = Option.get @@ Phase.find_next_round ~st phase in

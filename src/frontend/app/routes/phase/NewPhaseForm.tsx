@@ -68,9 +68,7 @@ function NewPhaseForm({ id_competition, competition_data, availableRounds }: New
         formState: { errors },
     } = formObject;
 
-
     const queryClient = useQueryClient();
-
     const { data: dataPhase, mutate: updatePhase, isSuccess } = usePutApiPhase({
         mutation: {
             onSuccess: () => {

@@ -249,5 +249,5 @@ export function EditPhaseFormComponent({ id_phase }: { id_phase: PhaseId }) {
     if (isLoadingGet) return <div>Loading Phase {id_phase} data</div>;
     if (!isSuccess) return <div>Error loading Phase {id_phase} data</div>;
 
-    return <EditPhaseForm phase_id={id_phase} phase_data={phase_data} />
+    return (<EditPhaseForm phase_id={id_phase} phase_data={phase_data} />);
 }

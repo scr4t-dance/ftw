@@ -103,6 +103,17 @@ val simple_init : State.t -> phase:Phase.id -> int -> int -> unit
 val clear : st:State.t -> phase:Id.t -> unit
 (** Clear the heats for the given phase *)
 val simple_promote : st:State.t -> phase:Phase.id -> int -> unit
+val init : st:State.t ->
+  phase:target_id ->
+  min_number_of_targets:target_id ->
+  max_number_of_targets:target_id ->
+  early_heat_range:target_id ->
+  early_heat_ids:string ->
+  late_heat_range:target_id ->
+  late_heat_ids:string ->
+  ?tries:target_id ->
+  t ->
+  unit
 
 val add_single :
   st:State.t -> phase:Phase.id ->

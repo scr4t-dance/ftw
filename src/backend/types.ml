@@ -1915,6 +1915,10 @@ module InitHeatsFormData = struct
   type t = {
     min_number_of_targets: int;
     max_number_of_targets: int;
+    late_heat_range: int;
+    late_heat_ids: string;
+    early_heat_range: int;
+    early_heat_ids: string;
   } [@@deriving yojson]
 
   let ref, schema =
@@ -1926,8 +1930,21 @@ module InitHeatsFormData = struct
           ~typ:int;
         "max_number_of_targets", obj @@ S.make_schema()
           ~typ:int;
+        "late_heat_range", obj @@ S.make_schema()
+          ~typ:int;
+        "late_heat_ids", obj @@ S.make_schema()
+          ~typ:string;
+        "early_heat_range", obj @@ S.make_schema()
+          ~typ:int;
+        "early_heat_ids", obj @@ S.make_schema()
+          ~typ:string;
       ]
-      ~required:["min_number_of_targets"; "max_number_of_targets"]
+      ~required:["min_number_of_targets";
+                 "max_number_of_targets";
+                 "late_heat_range";
+                 "late_heat_ids";
+                 "early_heat_range";
+                 "early_heat_ids";]
 end
 
 module HeatNumber = struct

@@ -1,13 +1,13 @@
 import type { Route } from './+types/NewCompetitionForm';
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { useQueryClient } from '@tanstack/react-query';
 import { Link, useLocation } from 'react-router';
 
 import { getGetApiEventIdCompsQueryKey, getApiEventId, getApiEventIdComps } from '@hookgen/event/event';
 import { usePutApiComp } from '@hookgen/competition/competition';
 import { KindItem, CategoryItem, type Competition, type EventId } from '@hookgen/model';
 import { Field } from '@routes/index/field';
+import { useQueryClient } from '@tanstack/react-query';
 
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -27,8 +27,6 @@ export function NewCompetitionForm({ id_event }: { id_event: EventId }) {
     const location = useLocation();
     const url = location.pathname.includes("new") ? "../" : "";
 
-    const queryClient = useQueryClient();
-
     const {
         register,
         handleSubmit,
@@ -45,10 +43,10 @@ export function NewCompetitionForm({ id_event }: { id_event: EventId }) {
         }
     });
 
+    const queryClient = useQueryClient();
     const { data: dataCompetition, mutate: updateCompetition, isError, error, isSuccess } = usePutApiComp({
         mutation: {
             onSuccess: (data) => {
-                console.log("NewCompetitionForm cache", queryClient.getQueryCache().getAll().map(q => q.queryKey));
                 queryClient.invalidateQueries({
                     queryKey: getGetApiEventIdCompsQueryKey(id_event),
                 });

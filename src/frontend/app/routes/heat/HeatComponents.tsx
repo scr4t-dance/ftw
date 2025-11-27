@@ -13,11 +13,10 @@ import {
     getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, useDeleteApiPhaseIdHeatTarget, useGetApiPhaseIdCouplesHeats, useGetApiPhaseIdHeats, useGetApiPhaseIdSinglesHeats, usePutApiPhaseIdConvertToCouple, usePutApiPhaseIdConvertToSingle, usePutApiPhaseIdHeatTarget
 } from '~/hookgen/heat/heat';
 
-import { BareBibListComponent, dancerArrayFromTarget, DancerCell, get_bibs, } from '@routes/bib/BibComponents';
+import { dancerArrayFromTarget, DancerCell, get_bibs, } from '@routes/bib/BibComponents';
 import { Field } from "@routes/index/field";
 
-import { InitHeatsForm } from './InitHeatsForm';
-import { useGetApiCompId } from '~/hookgen/competition/competition';
+import { InitHeatsWithBibForm, RandomizeHeatsForm } from './InitHeatsForm';
 import { useGetApiPhaseId } from '~/hookgen/phase/phase';
 import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
 import { useGetApiPhaseIdJudges } from '~/hookgen/judge/judge';
@@ -400,9 +399,10 @@ export function HeatsList({ id_phase, panel_data, heats }: { id_phase: number, p
 
     return (
         <>
-            <div className='no-print'>
-                <InitHeatsForm id_phase={id_phase} />
-            </div>
+            <p className='no-print'>
+                <InitHeatsWithBibForm id_phase={id_phase} />
+                <RandomizeHeatsForm id_phase={id_phase} />
+            </p>
 
             {heats?.heats && heats?.heats.map((heat, index) => (
                 // heat 0 réservée pour calculs internes

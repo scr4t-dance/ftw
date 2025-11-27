@@ -83,7 +83,7 @@ module Json : sig
   val parse_exn :
     of_yojson:(Yojson.Safe.t -> ('a, string) result) ->
     string -> 'a
-  (** Wrapper around a [of_yojson] value to parse from a string (exn version). *)
+    (** Wrapper around a [of_yojson] value to parse from a string (exn version). *)
 
 end
 
@@ -100,4 +100,38 @@ module Toml : sig
     string -> ('a -> Otoml.t) -> 'a option ->
     (string * Otoml.t) list -> (string * Otoml.t) list
 
+end
+
+
+module Split : sig
+  val split_aux : min:int -> max:int -> int -> int -> int list
+  val split : min:int -> max:int -> int -> int list
+
+  val split_array_aux :
+    'a array list ->
+    'a array ->
+    int ->
+    int list ->
+    'a array list
+
+  val split_array :
+    min:int -> max:int -> 'a array -> 'a array array
+end
+
+
+module Randomizer : sig
+  val factor : int
+  val swap : 'a array -> int -> int -> unit
+
+  type subst = int array
+
+  val pp : Format.formatter -> int array -> unit
+  val id : int -> int array
+  val inverse : int array -> int array
+  val apply : int array -> 'a array -> 'a array
+  val randomize_in_place : 'a array -> unit
+  val subst : ?check:(int array -> bool) -> int -> int array
+  val not_id : int array -> bool
+  val all_different : 'a array -> 'a array -> bool
+  val no_fixpoint : int array -> bool
 end
