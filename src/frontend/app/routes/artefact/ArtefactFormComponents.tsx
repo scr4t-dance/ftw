@@ -517,7 +517,7 @@ function generateArtefactFormObject(artefactData: HeatTargetJudgeArtefactArray) 
 
   const queryClient = useQueryClient();
 
-  const { mutate: mutateArtefacts } = usePutApiPhaseIdArtefactJudgeIdJudge({
+  const { mutate: mutateArtefacts, isSuccess} = usePutApiPhaseIdArtefactJudgeIdJudge({
     mutation: {
       onSuccess: (_, { data }) => {
         queryClient.invalidateQueries({
@@ -559,7 +559,7 @@ function generateArtefactFormObject(artefactData: HeatTargetJudgeArtefactArray) 
 
   const handleSubmitCallback = handleSubmit(onSubmit);
 
-  return { formObject, handleSubmitCallback }
+  return { formObject, handleSubmitCallback, isSuccess }
 }
 
 type ArtefactFormComponentProps = {
@@ -580,7 +580,7 @@ export function ArtefactFormScorer({ artefactData, dataBibs }: ArtefactFormCompo
   const artefact_description = artefactData.artefacts[0].heat_target_judge.description;
   const validatedArtefacts = validate_artefacts({ htjaArray: artefactData, artefact_description: artefact_description });
 
-  const { formObject, handleSubmitCallback } = generateArtefactFormObject(validatedArtefacts);
+  const { formObject, handleSubmitCallback, isSuccess } = generateArtefactFormObject(validatedArtefacts);
 
   const {
     watch,
@@ -663,6 +663,12 @@ export function ArtefactFormScorer({ artefactData, dataBibs }: ArtefactFormCompo
           onClick={() => reset(artefactData)}>
           Réinitialiser
         </button>
+
+        {isSuccess &&
+          <div className="success_message">
+            ✅ Notes mis à jour avec succès.
+          </div>
+        }
 
       </form>
     </FormProvider >

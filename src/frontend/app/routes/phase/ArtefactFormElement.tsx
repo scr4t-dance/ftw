@@ -230,11 +230,13 @@ export function EditPhaseForm({ phase_id, phase_data }: { phase_id: PhaseId, pha
                     <button type="button" disabled={formObject.formState.isSubmitting} onClick={() => reset(phase_data)}>
                         Réinitialiser
                     </button>
+
                     {isSuccessPatch &&
                         <div className="success_message">
                             ✅ Phase "{round}" avec identifiant "{phase_id}" mis à jour avec succès.
                         </div>
                     }
+
                 </form>
             </FormProvider>
         </>
