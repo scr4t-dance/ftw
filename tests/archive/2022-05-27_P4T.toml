@@ -9,7 +9,7 @@ start_date = 2022-05-27
 end_date = 2022-05-29
 
 [event.comps.jj_inter]
-name = ""
+name = "JnJ Inter"
 kind = "Jack_and_Jill"
 category = "Intermediate"
 check_divs = false
@@ -97,7 +97,7 @@ Rank	#	Dancer	Score	TK	M	TW	TK	M	TW	TK	M	TW	TK	M	TW
 """
 
 [event.comps.jj_initie]
-name = ""
+name = "JnJ Initié"
 kind = "Jack_and_Jill"
 category = "Novice"
 leaders = 31
