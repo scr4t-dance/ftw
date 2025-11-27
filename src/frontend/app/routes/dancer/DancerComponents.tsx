@@ -290,6 +290,7 @@ export function DancerComboBox({ bibNameList, selectedItem, onChangeItem, label,
             </ul>
 
             <button
+                type='button'
                 onClick={() => {
                     reset()
                 }}
