@@ -243,7 +243,7 @@ move target to new heat
 randomize heats
   $ curl -s -X PUT localhost:8081/api/phase/1/randomize_heats \
   > -H "Content-Type: application/json" \
-  > -d '{"min_number_of_targets":1, "max_number_of_targets":1,"late_heat_range":1,"late_heat_ids":"3","early_heat_range":1,"early_heat_ids":""}'
+  > -d '{"min_number_of_targets":1, "max_number_of_targets":1,"late_heat_range":1,"late_heat_ids":"3","early_heat_range":1,"early_heat_ids":"2"}'
   1
 
 get randomized heats
