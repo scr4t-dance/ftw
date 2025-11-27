@@ -7,7 +7,7 @@ import type {
 } from '@hookgen/model';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { Field } from '@routes/index/field';
-import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, usePutApiPhaseIdInitHeats } from '@hookgen/heat/heat';
+import { getGetApiPhaseIdCouplesHeatsQueryKey, getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, usePostApiPhaseIdInitHeatsWithBibs, usePutApiPhaseIdRandomizeHeats } from '@hookgen/heat/heat';
 import { useQueryClient } from '@tanstack/react-query';
 
 export function RandomizeHeatsForm({ id_phase }: { id_phase: PhaseId }) {
@@ -158,7 +158,7 @@ export function RandomizeHeatsForm({ id_phase }: { id_phase: PhaseId }) {
 
 export function InitHeatsWithBibForm({ id_phase }: { id_phase: PhaseId }) {
 
-
+    const queryClient = useQueryClient();
     const { mutate: initHeatsWithBibs } = usePostApiPhaseIdInitHeatsWithBibs({
         mutation: {
             onSuccess: () => {

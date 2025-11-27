@@ -15,7 +15,7 @@ import {
 
 import { dancerArrayFromTarget, DancerCell, get_bibs, } from '@routes/bib/BibComponents';
 import { Field } from "@routes/index/field";
-import { InitHeatsForm } from '@routes/heat/InitHeatsForm';
+import { InitHeatsWithBibForm } from '@routes/heat/InitHeatsForm';
 import { useGetApiPhaseId } from '~/hookgen/phase/phase';
 import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
 import { HeatTargetRowReadOnly } from '@routes/heat/HeatComponents';
@@ -343,7 +343,7 @@ export function PairingListComponent({ id_phase }: { id_phase: number, panel_dat
     return (
         <>
             <div className='no-print'>
-                <InitHeatsForm id_phase={id_phase} />
+                <InitHeatsWithBibForm id_phase={id_phase} />
             </div>
 
             {combinedHeats.map((targetArray, index) => (

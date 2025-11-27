@@ -6,7 +6,7 @@ import { getGetApiEventsQueryKey, usePutApiEvent } from '@hookgen/event/event';
 import type { Event, Date } from '@hookgen/model';
 import { Link, useLocation } from 'react-router';
 import { Field } from '@routes/index/field';
-import { queryClient } from '~/queryClient';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function NewEventForm() {
 
@@ -42,10 +42,10 @@ export function NewEventForm() {
         return '';
     };
 
+    const queryClient = useQueryClient();
     const { data: dataEvent, mutate: updateEvent, isSuccess } = usePutApiEvent({
         mutation: {
             onSuccess: (data) => {
-                console.log("NewEventForm cache", queryClient.getQueryCache().getAll().map(q => q.queryKey));
                 queryClient.invalidateQueries({
                     queryKey: getGetApiEventsQueryKey(),
                 });
