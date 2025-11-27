@@ -4,25 +4,14 @@ import React from 'react';
 import {
     useGetApiPhaseIdHeats,
 } from "@hookgen/heat/heat";
-import { useGetApiCompIdBibs } from '@hookgen/bib/bib';
+import { getGetApiCompIdBibsQueryOptions, useGetApiCompIdBibs } from '@hookgen/bib/bib';
 import { PairingListComponent } from '~/routes/phase/PairingComponents';
-
-
-import {
-    combineClientLoader, combineServerLoader, bibsListLoader,
-    competitionLoader, eventLoader, heatListLoader, queryClient,
-    phaseLoader,
-    judgePanelLoader,
-    phaseListLoader,
-} from '~/queryClient';
-import { useGetApiPhaseIdJudges } from '~/hookgen/judge/judge';
-import { useQueries } from '@tanstack/react-query';
-import { getGetApiPhaseIdQueryOptions } from '~/hookgen/phase/phase';
-import { RoundItem, type Phase } from '~/hookgen/model';
-
-
-const loader_array = [eventLoader, competitionLoader, phaseListLoader,
-    bibsListLoader, phaseLoader, heatListLoader, judgePanelLoader];
+import { getGetApiPhaseIdJudgesQueryOptions, useGetApiPhaseIdJudges } from '~/hookgen/judge/judge';
+import { dehydrate, QueryClient, useQueries } from '@tanstack/react-query';
+import { getGetApiCompIdPhasesQueryOptions, getGetApiPhaseIdQueryOptions, useGetApiCompIdPhases } from '~/hookgen/phase/phase';
+import { RoundItem, type CompetitionId, type EventId, type Phase, type PhaseId, type PhaseIdList } from '~/hookgen/model';
+import { getGetApiEventIdQueryOptions } from '~/hookgen/event/event';
+import { getGetApiCompIdQueryOptions } from '~/hookgen/competition/competition';
 
 const roundOrder: Record<RoundItem, number> = {
     [RoundItem.Prelims]: 0,
@@ -33,59 +22,38 @@ const roundOrder: Record<RoundItem, number> = {
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
+    const queryClient = new QueryClient();
+    const id_event = Number(params.id_event) as EventId;
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    const id_phase = Number(params.id_phase) as PhaseId;
 
-    const combinedData = await combineServerLoader(loader_array, params);
+    await queryClient.prefetchQuery(getGetApiEventIdQueryOptions(id_event));
+    await queryClient.prefetchQuery(getGetApiCompIdQueryOptions(id_competition));
+    await queryClient.prefetchQuery(getGetApiCompIdBibsQueryOptions(id_competition));
+    await queryClient.prefetchQuery(getGetApiCompIdPhasesQueryOptions(id_competition));
 
-    return combinedData;
+    await queryClient.prefetchQuery(getGetApiPhaseIdQueryOptions(id_phase));
+    await queryClient.prefetchQuery(getGetApiPhaseIdJudgesQueryOptions(id_phase));
+
+    return { dehydratedState: dehydrate(queryClient) };
 }
 
-let isInitialRequest = true;
+export default function HeatsList({ params }: Route.ComponentProps) {
 
-export async function clientLoader({
-    params,
-    serverLoader,
-}: Route.ClientLoaderArgs) {
+    const id_event = Number(params.id_event) as EventId;
+    const id_competition = Number(params.id_competition) as CompetitionId;
+    const id_phase = Number(params.id_phase) as PhaseId;
 
-    if (isInitialRequest) {
-        isInitialRequest = false;
-        const serverData = await serverLoader();
+    const { data: heats, isSuccess: isSuccessHeats } = useGetApiPhaseIdHeats(id_phase);
+    const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(id_competition);
+    const { data: phase_list, isSuccess: isSuccessPhaseList } = useGetApiCompIdPhases(id_competition);
+    const { data: panel_data, isSuccess: isSuccessPanel } = useGetApiPhaseIdJudges(id_phase);
 
-        loader_array.forEach((l) => l.cache(queryClient, serverData));
-
-        return serverData;
-    }
-
-    const combinedData = await combineClientLoader(loader_array, params);
-    return combinedData;
-}
-clientLoader.hydrate = true;
-
-
-export default function HeatsList({ loaderData }: Route.ComponentProps) {
-
-    const { data: heats, isSuccess: isSuccessHeats } = useGetApiPhaseIdHeats(loaderData.id_phase, {
-        query: {
-            initialData: loaderData.heat_list
-        }
-    });
-
-    const { data: dataBibs, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(loaderData.id_competition, {
-        query: {
-            initialData: loaderData.bibs_list
-        }
-    });
-
-    const { data: panel_data, isSuccess: isSuccessPanel } = useGetApiPhaseIdJudges(loaderData.id_phase, {
-        query: {
-            initialData: loaderData.panel_data
-        }
-    });
-
-    const phase_list = loaderData.phase_list;
 
     const phaseDataQueries = useQueries({
-        queries: phase_list.phases.map((id_phase) => ({
+        queries: (phase_list as PhaseIdList).phases.map((id_phase) => ({
             ...getGetApiPhaseIdQueryOptions(id_phase),
+            enabled: isSuccessPhaseList
         })),
     });
 
@@ -110,18 +78,18 @@ export default function HeatsList({ loaderData }: Route.ComponentProps) {
     const phase_data_list = phaseDataQueries.map((q) => q.data as Phase);
     const previous_id_phase = phase_data_list
         .map((p, index) => {
-            return { ...p, id_phase: phase_list.phases[index] };
+            return { ...p, id_phase: (phase_list as PhaseIdList).phases[index] };
         })
         .sort((a, b) => roundOrder[a.round[0]] - roundOrder[b.round[0]]).map((p) => p.id_phase).filter(
-            (_, index, arr) => index < arr.findIndex((id_p) => loaderData.id_phase === id_p)
+            (_, index, arr) => index < arr.findIndex((id_p) => id_phase === id_p)
         )
         .at(-1);
 
     return (
         <>
-            <p>Current phase {loaderData.id_phase}; all phases : {phase_list.phases.join(",")}</p>
+            <p>Current phase {id_phase}; all phases : {(phase_list as PhaseIdList).phases.join(",")}</p>
             <PairingListComponent panel_data={panel_data}
-                id_phase={loaderData.id_phase}
+                id_phase={id_phase}
                 heats={heats}
                 dataBibs={dataBibs} />
         </>

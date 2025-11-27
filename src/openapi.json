@@ -2022,7 +2022,7 @@
             "items": { "$ref": "#/components/schemas/SinglesHeat" }
           }
         },
-        "required": [ "heats" ]
+        "required": [ "heat_type", "heats" ]
       },
       "CouplesHeat": {
         "type": "object",
@@ -2043,7 +2043,7 @@
             "items": { "$ref": "#/components/schemas/CouplesHeat" }
           }
         },
-        "required": [ "heats" ]
+        "required": [ "heat_type", "heats" ]
       },
       "HeatsArray": {
         "type": "object",

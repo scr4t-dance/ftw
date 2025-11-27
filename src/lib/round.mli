@@ -47,6 +47,9 @@ val print : Format.formatter -> t -> unit
 val equal : t -> t -> bool
 (** Equality function *)
 
+val next : t -> t option
+(** Get next round *)
+
 val compare : t -> t -> int
 (** Comparison function. *)
 

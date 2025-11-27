@@ -48,7 +48,7 @@ module One = struct
     { ranks = Array.make n None; }
 
   let get { ranks; } r =
-    Logs.debug ~src (fun k->k "get: rank size %d, rank %d" (Array.length ranks) (Rank.rank r));
+    (* Logs.debug ~src (fun k->k "get: rank size %d, rank %d" (Array.length ranks) (Rank.rank r)); *)
     let i = Rank.to_index r in
     match ranks.(i) with
     | None -> Option.None

@@ -10,7 +10,7 @@ type t =
   | Quarterfinals
   | Semifinals
   | Finals
-  [@@deriving ord]
+[@@deriving ord]
 
 (* Serialization *)
 (* ************************************************************************* *)
@@ -49,7 +49,8 @@ let conv = Conv.mk p of_int
 let () =
   State.add_init_descr_table ()
     ~table_name:"round_names" ~to_int
-    ~to_descr:to_string ~values:[
+    ~to_descr:to_string
+    ~values:[
       Prelims; Finals;
       Semifinals;
       Quarterfinals;
@@ -63,6 +64,13 @@ let print fmt t =
   Format.fprintf fmt "%s" (to_string t)
 
 let equal k k' = compare k k' = 0
+
+let next = function
+  | Prelims -> Some Octofinals
+  | Octofinals -> Some Quarterfinals
+  | Quarterfinals -> Some Semifinals
+  | Semifinals -> Some Finals
+  | Finals -> None
 
 module Aux = struct
   type nonrec t = t

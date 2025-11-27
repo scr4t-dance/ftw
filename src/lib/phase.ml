@@ -86,13 +86,16 @@ let find_round st competition_id r =
 let find_next_round ~st phase =
   let phase_data = get st phase in
   let competition_id = competition phase_data in
-  let phase_list = List.sort
-      (fun k k' -> Round.compare (round k) (round k'))
-      (find st competition_id) in
-  let order_phase_list = List.filter
-      (fun k -> 1 = Round.compare (round k) (round phase_data))
-      phase_list in
-  List.hd order_phase_list
+  let round = round phase_data in
+  let rec aux r =
+    begin match r with
+      | None -> None
+      | Some rr -> begin match find_round st competition_id rr with
+          | Some p -> Some p
+          | None -> aux (Round.next rr)
+        end
+    end in
+  aux (Round.next round)
 
 let create
     ~st competition_id round

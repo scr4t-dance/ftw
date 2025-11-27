@@ -430,10 +430,12 @@ let get_id st phase_id heat_number target =
   match heat_id_list with
   | [] -> Ok None
   | [h] -> Ok (Some h)
-  | tid_list ->
-    Logs.err ~src:State.src (fun k->
+  | _tid_list ->
+    (*
+      Logs.err ~src:State.src (fun k->
         k "Error too many matches for target %a : %s"
           (Target.print Id.print) target (String.concat ", " (List.map string_of_int tid_list)));
+    *)
     Error "Error too many matches"
 
 let simple_init st ~(phase:Id.t) (_min_number_of_targets:int) (_max_number_of_targets:int) =
@@ -477,7 +479,7 @@ let clear ~st ~phase =
     phase
 
 let simple_promote ~st ~(phase:Id.t) (_max_number_of_targets_to_pass:int) =
-  let new_phase = Phase.find_next_round ~st phase in
+  let new_phase = Option.get @@ Phase.find_next_round ~st phase in
   Logs.err ~src (fun k->k "next phase %a" Round.print (Phase.round new_phase));
   let open Sqlite3_utils.Ty in
   State.insert ~st ~ty:[int]
@@ -615,48 +617,28 @@ let add_target st ~(phase_id:Id.t) heat_number (target:target_id Target.any) =
   | Any Couple {leader; follower} -> Ok (add_couple ~st ~phase:phase_id ~heat:heat_number ~leader ~follower)
   | Any Trouple _ -> Error "add_target for Trouple not implemented"
 
+let set_heat_number ~st ~heat_number tid =
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[int;int]
+    {|
+      UPDATE heats
+      SET heat_number = ?
+      WHERE 0=0
+      AND id = ? |}
+    heat_number tid
+
 let delete_target st ~(phase_id:Id.t) heat_number (target:target_id Target.any) =
-  let tid = get_id st phase_id 0 target in
+  let tid = get_id st phase_id heat_number target in
   begin match tid with
     | Ok Some th -> delete_one ~st th
     | _ -> ()
   end;
-  let open Sqlite3_utils.Ty in
-  begin match target with
-    | Any Couple {leader;follower;} ->
-      State.insert ~st ~ty:[int;int;int;int]
-        {|
-        UPDATE heats
-        SET heat_number = 0
-        WHERE 0=0
-        AND phase_id = ?
-        AND heat_number = ?
-        AND leader_id = ?
-        AND follower_id = ? |}
-        phase_id heat_number leader follower
-    | Any Single { target=t; role=Role.Leader } ->
-      State.insert ~st ~ty:[int;int;int]
-        {|
-          UPDATE heats
-          SET heat_number = 0
-          WHERE 0=0
-          AND phase_id = ?
-          AND heat_number = ?
-          AND leader_id = ?
-          AND follower_id is NULL |}
-        phase_id heat_number t
-    | Any Single { target=t; role=Role.Follower } ->
-      State.insert ~st ~ty:[int;int;int]
-        {|
-          UPDATE heats
-          SET heat_number = 0
-          WHERE 0=0
-          AND phase_id = ?
-          AND heat_number = ?
-          AND leader_id is NULL
-          AND follower_id = ? |}
-        phase_id heat_number t
-    | Any Trouple _ ->
-      failwith "not implemented"
+  Ok phase_id
+
+let stage_target st ~(phase_id:Id.t) heat_number (target:target_id Target.any) =
+  let tid = get_id st phase_id heat_number target in
+  begin match tid with
+    | Ok Some th -> set_heat_number ~st ~heat_number:0 th;
+    | _ -> ()
   end;
   Ok phase_id

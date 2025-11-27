@@ -103,9 +103,9 @@ and promote =
        let+ id = Utils.int_param req "id" in
        (*let panel = Ftw.Judge.get ~st ~phase:id in*)
        let r = Ftw.Heat.ranking ~st ~phase:id in
-       let new_phase = Ftw.Phase.find_next_round ~st id in
+       let new_phase = Option.get @@ Ftw.Phase.find_next_round ~st id in
        let new_phase_id = Ftw.Phase.id new_phase in
-       Logs.debug ~src (fun k -> k "New phase id %d" new_phase_id);
+       Logs.debug ~src (fun k -> k "Currend phase id %d, New phase id %d" id new_phase_id);
        Ftw.Heat.clear ~st ~phase:new_phase_id;
        let ftw_target_r = Ftw.Heat.map_ranking ~targets:(Ftw.Heat.get_one ~st)
            ~judges:(fun tid -> Ftw.Target.Any (Ftw.Target.Single {target=tid;role=Ftw.Role.Follower})) r in

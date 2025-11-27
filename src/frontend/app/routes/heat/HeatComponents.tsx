@@ -104,7 +104,13 @@ function EditableHeatTarget({ heatTargetJudge, bibs }: { heatTargetJudge: HeatTa
     );
 }
 
-function NewHeatTarget({ defaultHeatTargetJudge, otherTargets, bibs }: { defaultHeatTargetJudge: HeatTargetJudge, otherTargets: Target[], bibs: BibList }) {
+type NewHeatTargetProps = {
+    id_phase: PhaseId,
+    defaultHeatTargetJudge: HeatTargetJudge,
+    otherTargets: Target[],
+    bibs: BibList
+}
+function NewHeatTarget({ id_phase, defaultHeatTargetJudge, otherTargets, bibs }: NewHeatTargetProps) {
 
     const formObject = useForm<HeatTargetJudge>({
         defaultValues: defaultHeatTargetJudge
@@ -123,7 +129,7 @@ function NewHeatTarget({ defaultHeatTargetJudge, otherTargets, bibs }: { default
 
     const { mutate: addTargetToHeat, isError, error } = usePutApiPhaseIdHeatTarget({
         mutation: {
-            onSuccess: (id_phase) => {
+            onSuccess: () => {
                 queryClient.invalidateQueries({
                     queryKey: getGetApiPhaseIdHeatsQueryKey(id_phase),
                 });
@@ -283,6 +289,7 @@ export function BibHeatListComponent({ targets, id_phase, heat_number, otherTarg
                         </tr>
                     ))}
                     <NewHeatTarget
+                        id_phase={id_phase}
                         bibs={bibs}
                         defaultHeatTargetJudge={defaultHeatTarget}
                         otherTargets={otherTargets} />
@@ -365,7 +372,7 @@ export function CoupleHeatTable({ heat, phaseTargets, otherTargets, heat_number,
 
 export function concatHeatsTargets(heats: HeatsArray) {
 
-    if (!heats?.heats) return [];
+    if (!heats.heats) return [];
     if (heats.heat_type === 'couple') return heats.heats.flatMap((h) => h.couples);
 
     return heats.heat_type === "single" ? heats.heats.flatMap((h) => (
@@ -382,14 +389,14 @@ export function HeatsList({ id_phase, panel_data, heats }: { id_phase: number, p
     if (!isSuccessCouplesHeats) return <>Chargement des poules</>;
 
     const dataHeats: Target[] = concatHeatsTargets(singlesHeats).concat(concatHeatsTargets(couplesHeats));
-    const filteredHeats = { heats: heats.heats.slice(1) } as HeatsArray;
+    const filteredHeats = { heats: heats.heats.slice(1), heat_type: heats.heat_type } as HeatsArray;
     const currentHeats = concatHeatsTargets(filteredHeats);
 
     const missingHeatsTargets = dataHeats.filter(t => (
         !currentHeats.find(tt => JSON.stringify(t) === JSON.stringify(tt))
     ));
 
-    console.log("missingHeatsTargets", missingHeatsTargets, "currentHeats", currentHeats);
+    //console.log("missingHeatsTargets", missingHeatsTargets, "currentHeats", currentHeats, "heats", heats, "filteredHeats", filteredHeats);
 
     return (
         <>

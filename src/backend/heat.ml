@@ -389,6 +389,7 @@ and add_target =
     ~to_yojson:Types.PhaseId.to_yojson
     (fun req st htj ->
        let+ id = Utils.int_param req "id" in
+       let _ = Ftw.Heat.delete_target st ~phase_id:id 0 (Types.Target.to_ftw htj.target) in
        let r = Ftw.Heat.add_target st ~phase_id:id htj.heat_number (Types.Target.to_ftw htj.target) in
        Result.map_error Error.generic r
     )

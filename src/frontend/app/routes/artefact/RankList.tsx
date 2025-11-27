@@ -188,7 +188,10 @@ function OneRankListTable({ phase_id, judges, head_judge, oneRanking, treshold }
     //console.log("htjaData", htjaData);
     const target_artefacts = transposeJudgeTargetArtefacts(bibTargets, htjaData);
 
+    if(oneRanking.ranks.length === 0) return (<>Undefined ranks</>);
+
     const first_target_rank = oneRanking.ranks[0];
+    console.log("first_target_rank", first_target_rank, "oneRanking", oneRanking, !oneRanking.ranks);
 
     return (
         <table className="large-table rank_table">

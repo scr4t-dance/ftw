@@ -1064,7 +1064,7 @@ module SinglesHeatsArray = struct
           ~typ:array
           ~items:(ref SinglesHeat.ref);
       ]
-      ~required:["heats"]
+      ~required:["heat_type"; "heats"]
 
   let of_ftw (c:Ftw.Heat.singles_heats) = match c with
     | {singles_heats;_} -> {heat_type="single";heats=Array.map SinglesHeat.of_ftw singles_heats}
@@ -1117,7 +1117,7 @@ module CouplesHeatsArray = struct
           ~typ:array
           ~items:(ref CouplesHeat.ref);
       ]
-      ~required:["heats"]
+      ~required:["heat_type"; "heats"]
 
   let of_ftw (c:Ftw.Heat.couples_heats) = match c with
     | {couples_heats;_} -> {heat_type="couple";heats=Array.map CouplesHeat.of_ftw couples_heats}

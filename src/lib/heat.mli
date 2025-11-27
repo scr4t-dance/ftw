@@ -140,3 +140,9 @@ val delete_target: State.t ->
   int ->
   target_id Target.any ->
   (Id.t, string) result
+
+val stage_target: State.t ->
+  phase_id:target_id ->
+  target_id ->
+  target_id Target.any ->
+  (target_id, 'a) result

@@ -55,7 +55,7 @@ val find_ids : State.t -> Competition.id -> id list
 val find_round : State.t -> Competition.id -> Round.t -> t option
 (** Try and find the given round for the competition. *)
 
-val find_next_round : st:State.t -> id -> t
+val find_next_round : st:State.t -> id -> t option
 (** Get next phase *)
 
 val create :
