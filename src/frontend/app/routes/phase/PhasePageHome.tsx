@@ -1,7 +1,7 @@
 import type { Route } from './+types/PhasePageHome';
 
 import React from 'react';
-import { Link, Outlet } from "react-router";
+import { Outlet } from "react-router";
 import { dehydrate, QueryClient } from '@tanstack/react-query';
 import { getGetApiEventIdQueryOptions } from '@hookgen/event/event';
 import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';

@@ -10,17 +10,17 @@ import {
   type Bib, type SingleTarget, type CoupleTarget,
   RoleItem,
   type BibList,
+  type Target,
   type DancerIdList,
   type DancerId,
-  type Target,
 } from '@hookgen/model';
 import { Field } from '@routes/index/field';
 
 // components/SingleTargetForm.tsx
 import { dancerArrayFromTarget } from "@routes/bib/BibComponents";
 import { DancerComboBoxComponent } from "@routes/dancer/DancerComponents";
-import { useGetApiDancers } from '~/hookgen/dancer/dancer';
-import { useGetApiCompId } from '~/hookgen/competition/competition';
+import { useGetApiCompId } from '@hookgen/competition/competition';
+import { useGetApiDancers } from '@hookgen/dancer/dancer';
 
 export interface CoupleBib extends Omit<Bib, "target"> {
   target: CoupleTarget;
@@ -319,7 +319,6 @@ export function NewBibFormComponent({ id_competition, bibs_list, dancer_list }: 
   } = formObject;
 
   const queryClient = useQueryClient();
-  // Using the Orval hook to handle the PUT request
   const { data: updatedDancerIdList, mutate: updateBib, isSuccess } = usePutApiCompIdBib({
     mutation: {
       onSuccess: () => {
@@ -408,6 +407,146 @@ export function NewBibFormComponent({ id_competition, bibs_list, dancer_list }: 
           <div className="error_message">⚠️ {errors.root.serverError.message}</div>
         }
 
+        <button type="submit" >Inscrire un-e compétiteurice</button>
+
+      </form >
+    </>
+  );
+}
+
+export function SelectNewBibFormComponent({ id_competition, bibs_list, dancer_list }: { id_competition: CompetitionId, bibs_list: BibList, dancer_list: DancerIdList }) {
+
+  const url = "/admin/dancers/"
+
+  const default_single_target: SingleTarget = { target_type: "single", target: 1, role: [RoleItem.Follower] };
+  const default_couple_target: CoupleTarget = { target_type: "couple", follower: 1, leader: 2 };
+
+  const formObject = useForm<Bib>({
+    defaultValues: {
+      competition: id_competition,
+      bib: 100,
+      target: default_single_target,
+    }
+  });
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    setError,
+    formState: { errors },
+  } = formObject;
+
+  const queryClient = useQueryClient();
+  const { data: updatedDancerIdList, mutate: updateBib, isSuccess } = usePutApiCompIdBib({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: getGetApiCompIdBibsQueryKey(id_competition),
+        });
+      },
+      onError: (err) => {
+        console.error('Error updating competition:', err);
+        setError("root.serverError", { message: 'Erreur lors de l’ajout de la compétition.' });
+      }
+    }
+  });
+
+  const targetType = watch("target.target_type");
+
+  const onSubmit: SubmitHandler<Bib> = (data) => {
+    updateBib({ id: id_competition, data: data });
+  };
+
+  useEffect(() => {
+    // Reset the entire 'target' field when 'target.target_type' changes
+    reset((prevValues: Bib) => ({
+      ...prevValues,
+      target: (targetType === "single" ? default_single_target : default_couple_target)
+    }));
+  }, [targetType, reset]);
+
+  const follower_select_bibs_list = dancer_list.dancers.map(
+    (b) => get_follower_from_bib({
+      competition: id_competition,
+      bib: 100,
+      target: { target_type: "single", role: [RoleItem.Follower], target: b }
+    }, (_) => "")
+  ).filter((v) => v != null);
+  const leader_select_bibs_list = dancer_list.dancers.map(
+    (b) => get_leader_from_bib({
+      competition: id_competition,
+      bib: 100,
+      target: { target_type: "single", role: [RoleItem.Leader], target: b }
+    }, (_) => "")
+  ).filter((v) => v != null);
+
+  return (
+    <>
+      <form onSubmit={handleSubmit(onSubmit)} >
+        {isSuccess &&
+          <div className="success_message">
+            <p>
+              ✅ Bib ajoutée avec succès.
+            </p>
+            {updatedDancerIdList.dancers.map((id_d) => (
+              <p>
+                Mise à jour
+                <Link to={`${url}${id_d}`}>Compétiteurice</Link>
+              </p>
+            ))}
+          </div>
+        }
+
+        <input type="hidden" {...register("competition", { value: id_competition })} />
+
+        <Field label="Dossard" error={errors.bib?.message}>
+          <input type="number" {...register("bib", {
+            valueAsNumber: true,
+            required: true,
+            min: {
+              value: 0,
+              message: "Le numéro de dossard doit être un entier positif.",
+            },
+            validate: {
+              checkUniqueness: (bib) => {
+                return !bibs_list.bibs.map((b) => b.bib).includes(bib) || `Bib ${bib} is already taken`
+              },
+            }
+          })}
+          />
+        </Field>
+
+
+        <Field label="Target type" error={errors.target?.target_type?.message}>
+          <select {...register("target.target_type")}>
+            <option value="single">Single</option>
+            <option value="couple">Couple</option>
+          </select>
+        </Field>
+
+        {targetType === "single" && (
+          <SelectSingleTargetForm
+            formObject={formObject as BibSingleTargetForm}
+            follower_id_list={follower_select_bibs_list}
+            leader_id_list={leader_select_bibs_list} />
+        )}
+
+        {targetType === "couple" && (
+          <SelectCoupleTargetForm
+            formObject={formObject as BibCoupleTargetForm}
+            follower_id_list={follower_select_bibs_list}
+            leader_id_list={leader_select_bibs_list} />
+        )}
+
+        {errors.root?.formValidation &&
+          <div className="error_message">⚠️ {errors.root.formValidation.message}</div>
+        }
+
+        {errors.root?.serverError &&
+          <div className="error_message">⚠️ {errors.root.serverError.message}</div>
+        }
         <button type="submit" >Inscrire un-e compétiteurice</button>
 
       </form >
@@ -521,7 +660,7 @@ export function BibFormComponent({ id_competition }: { id_competition: Competiti
     <>
       <h1>Compétition {competition_data.name}</h1>
       <h2>Ajouter une compétiteurice</h2>
-      <NewBibFormComponent id_competition={id_competition} bibs_list={bibs_list} dancer_list={dancer_list} />
+      <SelectNewBibFormComponent id_competition={id_competition} bibs_list={bibs_list} dancer_list={dancer_list} />
     </>
   );
 }

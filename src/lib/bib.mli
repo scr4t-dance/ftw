@@ -28,6 +28,13 @@ val delete :
 (** Update the bib for a given target in a competition. *)
 
 
+val update :
+  st:State.t -> competition:Competition.id ->
+  old_bib:t ->
+  new_bib:t -> unit
+(** Update the bib for a given target in a competition. *)
+
+
 (* Usual functions *)
 (* ************************************************************************* *)
 

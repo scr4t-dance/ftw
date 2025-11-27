@@ -10,6 +10,56 @@
     "version": "1.0.1"
   },
   "paths": {
+    "/api/phase/{id}/promote": {
+      "put": {
+        "tags": [ "ranking", "heat", "phase" ],
+        "summary": "Promote dancers to next round",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Treshold for next phase",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/NextPhaseFormData" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/phase/{id}/ranking": {
       "get": {
         "tags": [ "ranking", "artefact", "phase" ],
@@ -28,7 +78,7 @@
             "description": "Successful operation",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/PhaseRanks" }
+                "schema": { "$ref": "#/components/schemas/PhaseRanking" }
               }
             }
           },
@@ -397,7 +447,105 @@
         }
       }
     },
-    "/api/phase/{id}/promote": {
+    "/api/phase/{id}/heat_target": {
+      "put": {
+        "tags": [ "heat", "phase" ],
+        "summary": "add a target to a heat",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "a HeatTargetJudge object, where judge data is not used",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/HeatTargetJudge" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [ "heat", "phase" ],
+        "summary": "delete a target from a heat",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Competition",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "requestBody": {
+          "description": "a HeatTargetJudge object, where judge data is not used",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/HeatTargetJudge" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/promote_all": {
       "put": {
         "tags": [ "heat", "phase" ],
         "summary": "Promote dancers to next round",
@@ -415,6 +563,158 @@
           "content": {
             "application/json": {
               "schema": { "$ref": "#/components/schemas/NextPhaseFormData" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/mix_couples": {
+      "put": {
+        "tags": [ "heat", "phase" ],
+        "summary": "reorder leaders and followers of couples into new couples",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "New couples pairs",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HeatCoupleTargetList"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/convert_to_couple": {
+      "put": {
+        "tags": [ "heat", "phase" ],
+        "summary": "Convert heat to couple targets",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Heat number",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/HeatNumber" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Phase not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/phase/{id}/convert_to_single": {
+      "put": {
+        "tags": [ "heat", "phase" ],
+        "summary": "Convert heat to single targets",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Phase",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/PhaseId" }
+          }
+        ],
+        "requestBody": {
+          "description": "Heat number",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/HeatNumber" }
             }
           },
           "required": true
@@ -737,7 +1037,7 @@
           "description": "New bib value",
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/Bib" }
+              "schema": { "$ref": "#/components/schemas/OldBibNewBib" }
             }
           },
           "required": true
@@ -1691,6 +1991,14 @@
         },
         "required": [ "bibs" ]
       },
+      "OldBibNewBib": {
+        "type": "object",
+        "properties": {
+          "old_bib": { "$ref": "#/components/schemas/Bib" },
+          "new_bib": { "$ref": "#/components/schemas/Bib" }
+        },
+        "required": [ "old_bib", "new_bib" ]
+      },
       "SinglesHeat": {
         "type": "object",
         "properties": {
@@ -1714,7 +2022,7 @@
             "items": { "$ref": "#/components/schemas/SinglesHeat" }
           }
         },
-        "required": [ "heats" ]
+        "required": [ "heat_type", "heats" ]
       },
       "CouplesHeat": {
         "type": "object",
@@ -1735,7 +2043,7 @@
             "items": { "$ref": "#/components/schemas/CouplesHeat" }
           }
         },
-        "required": [ "heats" ]
+        "required": [ "heat_type", "heats" ]
       },
       "HeatsArray": {
         "type": "object",
@@ -1861,10 +2169,6 @@
         "properties": {
           "ranking_type": { "type": "string", "enum": [ "rpss" ] },
           "target": { "$ref": "#/components/schemas/Target" },
-          "artefact_list": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/ArtefactRank" }
-          },
           "rank": { "type": "integer" },
           "ranking_details": {
             "type": "array",
@@ -1878,16 +2182,10 @@
         "properties": {
           "ranking_type": { "type": "string", "enum": [ "yan" ] },
           "target": { "$ref": "#/components/schemas/Target" },
-          "artefact_list": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/ArtefactYans" }
-          },
           "rank": { "type": "integer" },
           "score": { "type": "integer" }
         },
-        "required": [
-          "ranking_type", "target", "artefact_list", "rank", "score"
-        ]
+        "required": [ "ranking_type", "target", "rank", "score" ]
       },
       "TargetRank": {
         "type": "object",
@@ -1896,18 +2194,39 @@
           { "$ref": "#/components/schemas/TargetRPSSRank" }
         ]
       },
-      "PhaseRanks": {
+      "OneRanking": {
         "type": "object",
         "properties": {
           "ranks": {
             "type": "array",
-            "items": {
-              "type": "array",
-              "items": { "$ref": "#/components/schemas/TargetRank" }
-            }
+            "items": { "$ref": "#/components/schemas/TargetRank" }
           }
         },
         "required": [ "ranks" ]
+      },
+      "PhaseRankingSingles": {
+        "type": "object",
+        "properties": {
+          "target_type": { "type": "string", "enum": [ "single" ] },
+          "leaders": { "$ref": "#/components/schemas/OneRanking" },
+          "followers": { "$ref": "#/components/schemas/OneRanking" }
+        },
+        "required": [ "target_type", "leaders", "followers" ]
+      },
+      "PhaseRankingCouples": {
+        "type": "object",
+        "properties": {
+          "target_type": { "type": "string", "enum": [ "couple" ] },
+          "couples": { "$ref": "#/components/schemas/OneRanking" }
+        },
+        "required": [ "target_type", "couples" ]
+      },
+      "PhaseRanking": {
+        "type": "object",
+        "oneOf": [
+          { "$ref": "#/components/schemas/PhaseRankingSingles" },
+          { "$ref": "#/components/schemas/PhaseRankingCouples" }
+        ]
       },
       "NextPhaseFormData": {
         "type": "object",
@@ -1923,6 +2242,22 @@
           "max_number_of_targets": { "type": "integer" }
         },
         "required": [ "min_number_of_targets", "max_number_of_targets" ]
+      },
+      "HeatNumber": {
+        "type": "object",
+        "properties": { "heat_number": { "type": "integer" } },
+        "required": [ "heat_number" ]
+      },
+      "HeatCoupleTargetList": {
+        "type": "object",
+        "properties": {
+          "couples": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Target" }
+          },
+          "heat_number": { "type": "integer" }
+        },
+        "required": [ "couples", "heat_number" ]
       }
     }
   }

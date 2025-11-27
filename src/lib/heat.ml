@@ -122,7 +122,7 @@ let () =
       State.exec ~st {|
         CREATE TABLE IF NOT EXISTS heats (
           id INTEGER PRIMARY KEY,
-          phase_id INTEGER REFERENCES phases(id),
+          phase_id INTEGER NOT NULL REFERENCES phases(id),
           heat_number INTEGER NOT NULL,
           leader_id INTEGER REFERENCES dancers(id),
           follower_id INTEGER REFERENCES dancers(id)
@@ -148,6 +148,10 @@ let get_one ~st tid =
   State.query_one_where ~st ~conv ~p:[int]
     {| SELECT * FROM heats WHERE id = ? |} tid
 
+let delete_one ~st tid =
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[int]
+    {| DELETE FROM heats WHERE id = ? |} tid
 
 (* Setters *)
 let add_single ~st ~phase ~heat ~role dancer_id =
@@ -163,12 +167,12 @@ let add_single ~st ~phase ~heat ~role dancer_id =
   | Leader ->
     State.query_one_where ~st ~conv:Id.conv ~p:[int; int; int]
       {| SELECT id FROM heats WHERE phase_id = ? AND heat_number = ?
-                              AND leader_id = ? AND follower_id ISNULL |}
+                              AND leader_id = ? AND follower_id IS NULL |}
       phase heat dancer_id
   | Follower ->
     State.query_one_where ~st ~conv:Id.conv ~p:[int; int; int]
       {| SELECT id FROM heats WHERE phase_id = ? AND heat_number = ?
-                              AND leader_id ISNULL AND follower_id = ? |}
+                              AND leader_id IS NULL AND follower_id = ? |}
       phase heat dancer_id
 
 let add_couple ~st ~phase ~heat ~leader ~follower =
@@ -224,14 +228,14 @@ let update_heats ~f a l =
 
 let mk_singles (l : row list) =
   (* Compute the number of heats *)
-  let n =
+  let number_of_heats =
     List.fold_left
       (fun acc { heat_number; _ } -> max acc (heat_number + 1))
       0 l
   in
   (* Allocate the heats array and fill it.
      At the same time, compute the number of passages for each bib. *)
-  let a = Array.make (n + 1) { leaders = []; followers = []; passages = Id.Map.empty; } in
+  let a = Array.make number_of_heats { leaders = []; followers = []; passages = Id.Map.empty; } in
   let num_total_passages = ref Id.Map.empty in
   update_heats a l
     ~f:(fun heat target_id ~leader ~follow ->
@@ -242,7 +246,7 @@ let mk_singles (l : row list) =
         | None, Some dancer ->
           incr_passage num_total_passages dancer;
           { heat with followers = { target_id; dancer; } :: heat.followers; }
-        | None, None | Some _, Some _ -> failwith "incorrect encoding for j&j heat"
+        | None, None | Some _, Some _ -> heat
       );
   (* Compute the passages *)
   let seen = ref (Id.Map.map (fun n ->
@@ -278,14 +282,14 @@ let get_singles ~st ~phase =
 
 let mk_couples (l: row list) =
   (* Compute the number of heats *)
-  let n =
+  let number_of_heats =
     List.fold_left
       (fun acc { heat_number; _ } -> max acc (heat_number + 1))
       0 l
   in
   (* Allocate the heats array and fill it.
      At the same time, compute the number of passages for each bib. *)
-  let a = Array.make (n + 1) { couples = []; passages = Id.Map.empty; } in
+  let a = Array.make number_of_heats { couples = []; passages = Id.Map.empty; } in
   let num_total_passages = ref Id.Map.empty in
   update_heats a l
     ~f:(fun (heat : couples_heat) target_id ~leader ~follow ->
@@ -294,8 +298,7 @@ let mk_couples (l: row list) =
           incr_passage num_total_passages leader;
           incr_passage num_total_passages follower;
           { heat with couples = { target_id; leader; follower; } :: heat.couples; }
-        | None, _ | _, None ->
-          failwith "incorrect encoding of Jack&Strictly heat"
+        | None, _ | _, None -> heat
       );
   (* Compute the passages *)
   let seen = ref (Id.Map.map (fun n ->
@@ -337,6 +340,50 @@ let get ~st ~phase =
     let couples_heats = get_couples ~st ~phase in
     Couples couples_heats
 
+(* Convert heats between singles and couples *)
+
+let convert_singles_heat_to_couples_heat ~st ~phase ~heat_number =
+  let singles_heats = get_singles ~st ~phase in
+  match heat_number < Array.length singles_heats.singles_heats with
+  | true -> let h = singles_heats.singles_heats.(heat_number) in
+    List.iter2 (fun (leader:single) (follower:single) ->
+        delete_one ~st leader.target_id;
+        delete_one ~st follower.target_id;
+        let _target_id = add_couple ~st ~phase ~heat:heat_number ~leader:leader.dancer ~follower:follower.dancer in
+        ()
+      ) h.leaders h.followers
+  | false ->
+    Logs.err ~src (fun k -> k "Expected heat number below %d, got %d" (Array.length singles_heats.singles_heats) heat_number);
+    failwith "Expected heat_number to high"
+
+let convert_couples_heat_to_singles_heat ~st ~phase ~heat_number =
+  let couples_heats = get_couples ~st ~phase in
+  match heat_number < Array.length couples_heats.couples_heats with
+  | true -> let h = couples_heats.couples_heats.(heat_number) in
+    List.iter (fun (couple:couple) ->
+        delete_one ~st couple.target_id;
+        let _leader_target_id = add_single ~st ~phase ~heat:heat_number ~role:Role.Leader couple.leader in
+        let _follower_target_id = add_single ~st ~phase ~heat:heat_number ~role:Role.Follower couple.follower in
+        ()
+      ) h.couples
+  | false ->
+    Logs.err ~src (fun k -> k "Expected heat number below %d, got %d" (Array.length couples_heats.couples_heats) heat_number);
+    failwith "Expected heat_number to high"
+
+let mix_couples ~st ~phase ~heat_number new_couples_list =
+  let couples_heats = get_couples ~st ~phase in
+  let h = couples_heats.couples_heats.(heat_number) in
+  let old_leaders, old_followers = List.map (fun (c:couple) -> (c.leader, c.follower)) h.couples |> List.split in
+  let new_leaders, new_followers = List.map (fun (Target.Couple {leader;follower}) -> (leader, follower)) new_couples_list |> List.split in
+  let has_same_leaders = Id.Set.equal (Id.Set.of_list old_leaders) (Id.Set.of_list new_leaders) in
+  let has_same_followers = Id.Set.equal (Id.Set.of_list old_followers) (Id.Set.of_list new_followers) in
+  match has_same_leaders, has_same_followers with
+  | true, true -> List.iter2 (
+      fun (c:couple) (Target.Couple {leader;follower}) ->
+        delete_one ~st c.target_id;
+        let _ = add_couple ~st ~phase ~heat:heat_number ~leader ~follower in ()
+    ) h.couples new_couples_list
+  | _ -> assert false
 
 
 (* New code below: to review *)
@@ -383,7 +430,13 @@ let get_id st phase_id heat_number target =
   match heat_id_list with
   | [] -> Ok None
   | [h] -> Ok (Some h)
-  | _ -> Error "Error too many matches"
+  | _tid_list ->
+    (*
+      Logs.err ~src:State.src (fun k->
+        k "Error too many matches for target %a : %s"
+          (Target.print Id.print) target (String.concat ", " (List.map string_of_int tid_list)));
+    *)
+    Error "Error too many matches"
 
 let simple_init st ~(phase:Id.t) (_min_number_of_targets:int) (_max_number_of_targets:int) =
   let open Sqlite3_utils.Ty in
@@ -396,7 +449,7 @@ let simple_init st ~(phase:Id.t) (_min_number_of_targets:int) (_max_number_of_ta
   State.insert ~st ~ty:[int;]
     {| insert into heats (phase_id, heat_number, leader_id, follower_id)
           select phases.id as phase_id
-            , 0 as heat_number
+            , 1 as heat_number
             , leader_id
             , follower_id
           FROM (
@@ -416,17 +469,17 @@ let simple_init st ~(phase:Id.t) (_min_number_of_targets:int) (_max_number_of_ta
           |}
     phase
 
+let clear ~st ~phase =
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[int]
+    {| DELETE FROM heats
+        WHERE 0=0
+        AND phase_id = ?
+        |}
+    phase
 
-let simple_promote st ~(phase:Id.t) (_max_number_of_targets_to_pass:int) =
-  let phase_data = Phase.get st phase in
-  let competition_id = Phase.competition phase_data in
-  let phase_list = List.sort
-      (fun k k' -> Round.compare (Phase.round k) (Phase.round k'))
-      (Phase.find st competition_id) in
-  let order_phase_list = List.filter
-      (fun k -> 1 = Round.compare (Phase.round k) (Phase.round phase_data))
-      phase_list in
-  let new_phase = List.hd order_phase_list in
+let simple_promote ~st ~(phase:Id.t) (_max_number_of_targets_to_pass:int) =
+  let new_phase = Option.get @@ Phase.find_next_round ~st phase in
   Logs.err ~src (fun k->k "next phase %a" Round.print (Phase.round new_phase));
   let open Sqlite3_utils.Ty in
   State.insert ~st ~ty:[int]
@@ -439,7 +492,7 @@ let simple_promote st ~(phase:Id.t) (_max_number_of_targets_to_pass:int) =
   State.insert ~st ~ty:[int;int]
     {| insert into heats (phase_id, heat_number, leader_id, follower_id)
           select ? as phase_id
-            , 0 as heat_number
+            , 1 as heat_number
             , leader_id
             , follower_id
           FROM heats
@@ -472,7 +525,7 @@ let all_single_judgement_targets { singles_heats; } =
 let all_couple_judgement_targets { couples_heats; } =
   Array.fold_left (fun map { couples; passages = _; } ->
       List.fold_left (fun map { leader; follower; target_id; } ->
-        (* all couples are judged, even if some dancer dances more than one time *)
+          (* all couples are judged, even if some dancer dances more than one time *)
           Id.Map.add target_id (Target.Couple {leader; follower }) map
         ) map couples
     ) Id.Map.empty couples_heats
@@ -499,7 +552,8 @@ let ranking ~st ~phase:id =
       then Phase.head_judge_artefact_descr phase
       else Phase.judge_artefact_descr phase
     in
-    Artefact.get ~st ~judge ~target ~descr
+    try Some (Artefact.get ~st ~judge ~target ~descr)
+    with Not_found -> None
   in
   match get ~st ~phase:id, Judge.get ~st ~phase:id with
   | Singles singles, Singles panel ->
@@ -539,3 +593,52 @@ let ranking ~st ~phase:id =
   | _ ->
     failwith "Incoherence between heats and judge panels"
 
+let map_ranking ~targets ~judges r =
+  match r with
+  | Singles {leaders;follows} -> Singles {
+      leaders=Ranking.Res.map ~targets ~judges leaders;
+      follows=Ranking.Res.map ~targets ~judges follows
+    }
+  | Couples {couples} -> Couples {
+      couples=Ranking.Res.map ~targets ~judges couples;
+    }
+
+let iteri ~targets ~judges r =
+  match r with
+  | Singles {leaders;follows} ->
+    Ranking.Res.iteri ~targets ~judges leaders;
+    Ranking.Res.iteri ~targets ~judges follows
+  | Couples {couples} ->
+    Ranking.Res.iteri ~targets ~judges couples
+
+let add_target st ~(phase_id:Id.t) heat_number (target:target_id Target.any) =
+  match target with
+  | Any Single {target; role} -> Ok (add_single ~st ~phase:phase_id ~heat:heat_number ~role target)
+  | Any Couple {leader; follower} -> Ok (add_couple ~st ~phase:phase_id ~heat:heat_number ~leader ~follower)
+  | Any Trouple _ -> Error "add_target for Trouple not implemented"
+
+let set_heat_number ~st ~heat_number tid =
+  let open Sqlite3_utils.Ty in
+  State.insert ~st ~ty:[int;int]
+    {|
+      UPDATE heats
+      SET heat_number = ?
+      WHERE 0=0
+      AND id = ? |}
+    heat_number tid
+
+let delete_target st ~(phase_id:Id.t) heat_number (target:target_id Target.any) =
+  let tid = get_id st phase_id heat_number target in
+  begin match tid with
+    | Ok Some th -> delete_one ~st th
+    | _ -> ()
+  end;
+  Ok phase_id
+
+let stage_target st ~(phase_id:Id.t) heat_number (target:target_id Target.any) =
+  let tid = get_id st phase_id heat_number target in
+  begin match tid with
+    | Ok Some th -> set_heat_number ~st ~heat_number:0 th;
+    | _ -> ()
+  end;
+  Ok phase_id

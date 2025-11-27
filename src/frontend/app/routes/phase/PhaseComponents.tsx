@@ -204,12 +204,12 @@ export function PhasePageNavigationComponent({ id_phase, id_competition }: { id_
             <ol className="no-print">
                 <li>
                     <Link to={`${url}edit_judges`}>
-                        Edit Phase Judges
+                        Modifier les Juges
                     </Link>
                 </li>
                 <li>
                     <Link to={`${url}judges`}>
-                        Phase Judges
+                        Juges
                     </Link>
                 </li>
                 <li>
@@ -219,7 +219,7 @@ export function PhasePageNavigationComponent({ id_phase, id_competition }: { id_
                 </li>
                 <li>
                     <Link to={`${url}edit`}>
-                        Edit Phase
+                        Modifier les paramètres de la Phase
                     </Link>
                 </li>
                 <li>

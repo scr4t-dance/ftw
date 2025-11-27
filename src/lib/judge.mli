@@ -45,7 +45,7 @@ val panel_of_toml : Otoml.t -> panel
 (* ************************************************************************* *)
 
 val clear : st:State.t -> phase:Id.t -> unit
-(** Clea the judge panel for the given phase *)
+(** Clear the judge panel for the given phase *)
 
 val get : st:State.t -> phase:Id.t -> panel
 (** Get the Judge panel for a given phase. *)

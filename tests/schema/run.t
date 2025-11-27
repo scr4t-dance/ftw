@@ -8,7 +8,7 @@ test that database initialisation is reproducible
 
 Launch the FTW server in the background
 
-  $ ftw --db=test.db --port=8082 > /dev/null 2>&1 &
+  $ ftw --db=route_test.db --port=8082 > /dev/null 2>&1 &
 
 Sleep a bit to ensure that the server had had time to initialize and is ready
 to respond to requests
@@ -27,7 +27,7 @@ If the definition changes
 * save new schema in src/migration/schema_V.sql (with V the version number)
 * create migration script src/migration/migrate_V-1_to_V.sql
 * apply to existing database and tests data integrity (with a round trip of exported/imported data)
-  $ sqlite3 "test.db" '.schema'
+  $ sqlite3 "route_test.db" '.schema'
   CREATE TABLE round_names (
           id INTEGER PRIMARY KEY,
           name TEXT UNIQUE);
@@ -89,7 +89,7 @@ If the definition changes
             PRIMARY KEY(judge_id, phase_id)
           );
   CREATE TABLE artefacts (
-            target_id INTEGER REFERENCES heats(id),
+            target_id INTEGER REFERENCES heats(id) ON DELETE CASCADE,
             judge INTEGER REFERENCES dancers(id),
             artefact INTEGER NOT NULL,
             PRIMARY KEY(target_id,judge)
@@ -109,13 +109,6 @@ If the definition changes
             ranking_algorithm TEXT,
             UNIQUE(competition_id, round)
           );
-  CREATE TABLE heats (
-            id INTEGER PRIMARY KEY,
-            phase_id INTEGER REFERENCES phases(id),
-            heat_number INTEGER NOT NULL,
-            leader_id INTEGER REFERENCES dancers(id),
-            follower_id INTEGER REFERENCES dancers(id)
-          );
   CREATE TABLE bibs (
             dancer_id INTEGER REFERENCES dancers(id),
             competition_id INTEGER REFERENCES competitions(id),
@@ -123,6 +116,13 @@ If the definition changes
             role INTEGER NOT NULL,
   
             PRIMARY KEY(bib,competition_id,role)
+          );
+  CREATE TABLE heats (
+            id INTEGER PRIMARY KEY,
+            phase_id INTEGER NOT NULL REFERENCES phases(id),
+            heat_number INTEGER NOT NULL,
+            leader_id INTEGER REFERENCES dancers(id),
+            follower_id INTEGER REFERENCES dancers(id)
           );
 
 

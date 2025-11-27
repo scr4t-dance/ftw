@@ -82,6 +82,16 @@ type 'target ranking =
 
 val ranking : st:State.t -> phase:Phase.id -> Id.t ranking
 
+val map_ranking: targets:('a -> 'b) ->
+  judges:('a -> 'b) ->
+  'a ranking ->
+  'b ranking
+
+val iteri: targets:(target_id -> 'a -> unit) ->
+  judges:(target_id -> 'a -> unit) ->
+  'a ranking ->
+  unit
+
 
 (* DB interaction *)
 (* ************************************************************************* *)
@@ -90,7 +100,9 @@ val ranking : st:State.t -> phase:Phase.id -> Id.t ranking
 (* TODO: review/remove these *)
 val get_id : State.t -> Phase.id -> int -> Id.t Target.any -> (Id.t option, string) result
 val simple_init : State.t -> phase:Phase.id -> int -> int -> unit
-val simple_promote : State.t -> phase:Phase.id -> int -> unit
+val clear : st:State.t -> phase:Id.t -> unit
+(** Clear the heats for the given phase *)
+val simple_promote : st:State.t -> phase:Phase.id -> int -> unit
 
 val add_single :
   st:State.t -> phase:Phase.id ->
@@ -106,4 +118,31 @@ val get : st:State.t -> phase:Phase.id -> t
 val get_singles : st:State.t -> phase:Phase.id -> singles_heats
 val get_couples : st:State.t -> phase:Phase.id -> couples_heats
 
+val convert_singles_heat_to_couples_heat : st:State.t -> phase:target_id -> heat_number:target_id -> unit
+val convert_couples_heat_to_singles_heat : st:State.t -> phase:target_id -> heat_number:target_id -> unit
+val mix_couples :
+  st:State.t ->
+  phase:target_id ->
+  heat_number:target_id ->
+  (Target.couple, target_id) Target.t list ->
+  unit
 
+
+
+val add_target: State.t ->
+  phase_id:Id.t ->
+  int ->
+  target_id Target.any ->
+  (Id.t, string) result
+
+val delete_target: State.t ->
+  phase_id:Id.t ->
+  int ->
+  target_id Target.any ->
+  (Id.t, string) result
+
+val stage_target: State.t ->
+  phase_id:target_id ->
+  target_id ->
+  target_id Target.any ->
+  (target_id, 'a) result

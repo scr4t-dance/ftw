@@ -6,11 +6,11 @@ import { BibFormComponent } from '@routes/bib/NewBibFormComponent';
 import { getGetApiDancersQueryOptions } from '~/hookgen/dancer/dancer';
 
 import {
-    type BibList, type CompetitionId, type EventId,
+    type CompetitionId, type EventId,
 } from "@hookgen/model";
 import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
 import { getGetApiEventIdQueryOptions } from '@hookgen/event/event';
-import { getGetApiCompIdBibsQueryOptions, useGetApiCompIdBibs } from '@hookgen/bib/bib';
+import { getGetApiCompIdBibsQueryOptions } from '@hookgen/bib/bib';
 import { dehydrate, QueryClient } from '@tanstack/react-query';
 
 export async function loader({ params }: Route.LoaderArgs) {

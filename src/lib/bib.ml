@@ -23,6 +23,11 @@ module Map = Map.Make(Aux)
 (* DB interaction *)
 (* ************************************************************************* *)
 
+(** The primary key for bib table is bib,competition_id,role.
+   It allows to work with either
+  * same bib for dancer as lead and follow
+  * different bibs for leaders and followers
+*)
 let () =
   State.add_init ~name:"bib" (fun st ->
       State.exec ~st {|
@@ -122,6 +127,25 @@ let add ~st ~competition ~target ~bib =
   | Any Trouple _ ->
     failwith "TODO"
 
+
+let update ~st ~competition ~old_bib ~new_bib =
+  let existing_target_result = get ~st ~competition ~bib:old_bib in
+  let new_target = get ~st ~competition ~bib:new_bib in
+  begin match existing_target_result, new_target with
+    | Some _, None ->
+      let open Sqlite3_utils.Ty in
+      State.insert ~st ~ty:[int;int;int]
+        {| UPDATE bibs
+        SET bib = ?
+        WHERE 0=0
+        AND competition_id = ?
+        AND bib = ?
+        |}
+        new_bib competition old_bib
+    | None, _ -> raise Not_found
+    | _, Some _ -> raise (Failure "new bib already in use")
+  end
+
 let delete ~st ~competition ~bib =
   let existing_target = get ~st ~competition ~bib in
   begin match existing_target with
@@ -135,4 +159,3 @@ let delete ~st ~competition ~bib =
   State.insert ~st ~ty:[int;int]
     {| DELETE FROM bibs WHERE competition_id = ? AND bib = ? |}
     competition bib
-
