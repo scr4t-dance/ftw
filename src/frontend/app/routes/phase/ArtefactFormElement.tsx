@@ -206,11 +206,6 @@ export function EditPhaseForm({ phase_id, phase_data }: { phase_id: PhaseId, pha
             <h1>Modifier la phase</h1>
             <FormProvider {...formObject}>
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    {isSuccessPatch &&
-                        <div className="success_message">
-                            ✅ Phase "{round}" avec identifiant "{phase_id}" mis à jour avec succès.
-                        </div>
-                    }
 
                     <h2>Artefact Juges</h2>
                     <ArtefactFormElement artefact_description_name='judge_artefact_descr' />
@@ -235,6 +230,12 @@ export function EditPhaseForm({ phase_id, phase_data }: { phase_id: PhaseId, pha
                     <button type="button" disabled={formObject.formState.isSubmitting} onClick={() => reset(phase_data)}>
                         Réinitialiser
                     </button>
+
+                    {isSuccessPatch &&
+                        <div className="success_message">
+                            ✅ Phase "{round}" avec identifiant "{phase_id}" mis à jour avec succès.
+                        </div>
+                    }
 
                 </form>
             </FormProvider>
