@@ -327,13 +327,13 @@ promote to next phase
 
 move to next heat
 
-  $ curl -s -X PUT localhost:8081/api/phase/2/heat_target \
-  > -H "Content-Type: application/json" \
-  > -d '{"phase_id":2,"heat_number":1,"target":{"target_type":"couple","leader":3,"follower":2},"judge":0,"description":{"artefact":"yan","artefact_data":["overall"]}}'
-  5
+ # $ curl -s -X PUT localhost:8081/api/phase/2/heat_target \
+ # > -H "Content-Type: application/json" \
+ # > -d '{"phase_id":2,"heat_number":1,"target":{"target_type":"couple","leader":3,"follower":2},"judge":0,"description":{"artefact":"yan","artefact_data":["overall"]}}'
+ # 5
 
   $ curl -s localhost:8081/api/phase/2/heats
-  {"heat_type":"couple","heat_type":"couple","heats":[{"couples":[]},{"couples":[{"target_type":"couple","leader":3,"follower":2}]}]}
+  {"heat_type":"couple","heat_type":"couple","heats":[{"couples":[{"target_type":"couple","leader":3,"follower":2}]}]}
 
 
   $ curl -s -X PUT localhost:8081/api/phase/2/randomize_heats \

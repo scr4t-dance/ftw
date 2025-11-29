@@ -258,29 +258,22 @@ export function SelectSingleTargetForm({ formObject, leader_id_list, follower_id
     formState: { errors, defaultValues },
   } = formObject;
 
-  const role = watch("target.role.0");
+  const role = watch("target.role");
 
-  // const follower_select_bibs_list = select_bibs_list.bibs.map(
-  //   (b) => get_follower_from_bib(b)
-  // ).filter((v) => v != null);
-  // const leader_select_bibs_list = select_bibs_list.bibs.map(
-  //   (b) => get_leader_from_bib(b)
-  // ).filter((v) => v != null);
-
-  const bibList = role === "Leader" ? leader_id_list : follower_id_list;
+  const bibList = role[0] === "Leader" ? [...leader_id_list] : [...follower_id_list];
 
 
   return (
     <>
       <>
         <RoleField formObject={formObject} />
-
         <Controller
+          key={role[0]}
           control={control}
           name={"target.target"}
           render={({ field }) => (
             <DancerComboBoxComponent
-              label="Leader"
+              label={role[0]}
               error={errors.target?.target?.message}
               dancerIdList={{ dancers: bibList.map(d => d.id_dancer) } as DancerIdList}
               selectedItem={field.value}
@@ -555,7 +548,7 @@ export function SelectNewBibFormComponent({ id_competition, bibs_list, dancer_li
 }
 
 
-export function NewTargetBibFormComponent({ id_competition,bibs_list, target }: { id_competition: CompetitionId, bibs_list:BibList, target: Target }) {
+export function NewTargetBibFormComponent({ id_competition, bibs_list, target }: { id_competition: CompetitionId, bibs_list: BibList, target: Target }) {
 
   const url = "/admin/dancers/"
 
