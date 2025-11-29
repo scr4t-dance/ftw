@@ -546,14 +546,14 @@ let add_pools_couples ~st ~phase couple_pools =
   let add_couple_heat i leader follower =
     let _ = add_couple ~st ~phase ~heat:(i + 1) ~leader ~follower in ()
   in
-  let add_heat i heat = Array.iter (fun (leader, follower) -> add_couple_heat i leader follower) heat in
+  let add_heat i heat = Array.iter (fun (follower, leader) -> add_couple_heat i leader follower) heat in
   Array.iteri add_heat couple_pools;
   ()
 
 let split_pools_couple couple_pools =
-  let leader_pools = Array.map (Array.map fst) couple_pools in
-  let follower_pools = Array.map (Array.map snd) couple_pools in
-  leader_pools, follower_pools
+  let leader_pools = Array.map (Array.map snd) couple_pools in
+  let follower_pools = Array.map (Array.map fst) couple_pools in
+  follower_pools, leader_pools
 
 let check_not_in_rounds rounds dancer_list pools =
   let s = Id.Set.of_list dancer_list in
@@ -591,7 +591,7 @@ let regen_pools ~st ~phase ?(tries=100) ?(early=(0, [])) ?(late=(0, [])) ~min ~m
           end
         | Couples {couples_heats;} ->
           let couples_pools = regen_pools_aux_couples ~min ~max couples_heats in
-          let leader_pools, follower_pools = split_pools_couple couples_pools in
+          let follower_pools, leader_pools = split_pools_couple couples_pools in
           let is_okay = check_early early leader_pools && check_late late leader_pools
                         && check_early early follower_pools && check_late late follower_pools in
           if is_okay then

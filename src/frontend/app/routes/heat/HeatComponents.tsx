@@ -94,6 +94,7 @@ function EditableHeatTarget({ heatTargetJudge, bibs }: { heatTargetJudge: HeatTa
 
 
     const bib_list = get_bibs(bibs, [heatTargetJudge.target])[0];
+    console.log("found bib_list",bib_list, "heatTargetJudge.target", heatTargetJudge.target, "bibs", bibs);
 
     return (
         <HeatTargetRowReadOnly
@@ -355,8 +356,8 @@ export function CoupleHeatTable({ heat, phaseTargets, otherTargets, heat_number,
     ).concat(otherTargets);
 
     return (
-        <div className='bib-table-container'>
-            <div className='bib-table-column'>
+        <div className=''>
+            <div className=''>
                 <h3>Couples</h3>
                 <BibHeatListComponent targets={heat.couples}
                     heat_number={heat_number} otherTargets={ot}

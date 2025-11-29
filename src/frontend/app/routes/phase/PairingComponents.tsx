@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form";
+import cx from "classnames";
 
 import {
+    RoleItem,
     type HeatTargetJudge,
 } from "@hookgen/model";
-import type { BibList, CoupleTarget, DancerId, HeatCoupleTargetList, HeatsArray, Panel, PhaseId, SinglesHeat, SingleTarget, Target } from "@hookgen/model";
+import type { Bib, BibList, CompetitionId, CoupleTarget, DancerId, DancerIdList, HeatCoupleTargetList, HeatsArray, Panel, PhaseId, SinglesHeat, SingleTarget, Target } from "@hookgen/model";
 import {
     getGetApiPhaseIdCouplesHeatsQueryKey,
     getGetApiPhaseIdHeatsQueryKey, getGetApiPhaseIdSinglesHeatsQueryKey, useDeleteApiPhaseIdHeatTarget, useGetApiPhaseIdCouplesHeats, useGetApiPhaseIdSinglesHeats, usePutApiPhaseIdConvertToCouple, usePutApiPhaseIdConvertToSingle, usePutApiPhaseIdHeatTarget,
@@ -19,6 +21,8 @@ import { InitHeatsWithBibForm } from '@routes/heat/InitHeatsForm';
 import { useGetApiPhaseId } from '~/hookgen/phase/phase';
 import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
 import { HeatTargetRowReadOnly } from '@routes/heat/HeatComponents';
+import { get_follower_from_bib, get_leader_from_bib, SelectCoupleTargetForm, SelectSingleTargetForm, type BibCoupleTargetForm, type BibSingleTargetForm } from '../bib/NewBibFormComponent';
+import { Link } from 'react-router';
 
 
 
@@ -298,15 +302,15 @@ export function PairingHeatTable({ targetArray: targetArray, heat_number, id_pha
 
     return (
         <>
-            <button type="button" className='btn'
+            <button type="button" className='btn colored_btn'
                 onClick={() => convertToSingle({ id: id_phase, data: { heat_number: heat_number } })}>
                 Convertir en poules de compétiteurices solo
             </button>
-            <button type="button" className='btn'
+            <button type="button" className='btn colored_btn'
                 onClick={() => convertToCouple({ id: id_phase, data: { heat_number: heat_number } })}>
                 Convertir en poules de coupétiteurices duo
             </button>
-            <button type="button" className='btn'
+            <button type="button" className={cx("btn", isMixing ? "colored_btn" : "")}
                 onClick={() => toggleMixingForm(!isMixing)}>
                 Modifier les couples
             </button>
@@ -324,6 +328,155 @@ export function PairingHeatTable({ targetArray: targetArray, heat_number, id_pha
             }
         </>);
 }
+
+
+export function AddAnyBibToPhase({ id_phase, heat_number }: { id_phase: PhaseId, heat_number: number }) {
+
+    const url = "/admin/dancers/"
+
+    const default_single_target: SingleTarget = { target_type: "single", target: 1, role: [RoleItem.Follower] };
+    const default_couple_target: CoupleTarget = { target_type: "couple", follower: 1, leader: 2 };
+
+    const defaultHeatTarget = {
+        phase_id: id_phase, heat_number: heat_number, target: default_single_target,
+        judge: -1,
+        description: {
+            artefact: "ranking",
+            artefact_data: null,
+        }
+    } as HeatTargetJudge;
+
+    const formObject = useForm<Bib>({
+        defaultValues: {
+            competition: 0,
+            bib: 100,
+            target: default_single_target,
+        }
+    });
+
+    const {
+        register,
+        handleSubmit,
+        watch,
+        reset,
+        setError,
+        formState: { errors },
+    } = formObject;
+
+    const queryClient = useQueryClient();
+
+    const { mutate: addTargetToHeat, isSuccess } = usePutApiPhaseIdHeatTarget({
+        mutation: {
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: getGetApiPhaseIdHeatsQueryKey(id_phase),
+                });
+                queryClient.invalidateQueries({
+                    queryKey: getGetApiPhaseIdSinglesHeatsQueryKey(id_phase),
+                });
+                queryClient.invalidateQueries({
+                    queryKey: getGetApiPhaseIdCouplesHeatsQueryKey(id_phase),
+                });
+                reset();
+            },
+            onError: (err) => {
+                console.error('Error updating competition:', err);
+                setError("root.serverError", { message: 'Erreur lors de l’ajout de la compétition.' });
+            }
+        }
+    });
+
+    const { data: phaseData, isSuccess: isSuccessPhase } = useGetApiPhaseId(id_phase);
+
+    const { data: bibs_list, isSuccess: isSuccessBibs } = useGetApiCompIdBibs(
+        phaseData?.competition as CompetitionId, {
+        query: {
+            enabled: isSuccessPhase
+        }
+    }
+    );
+
+    const targetType = watch("target.target_type");
+
+    const onSubmit: SubmitHandler<Bib> = (data) => {
+
+        const htj = {
+            ...defaultHeatTarget,
+            target: data.target
+        }
+
+        addTargetToHeat({ id: id_phase, data: htj });
+    };
+
+    useEffect(() => {
+        // Reset the entire 'target' field when 'target.target_type' changes
+        reset((prevValues: Bib) => ({
+            ...prevValues,
+            target: (targetType === "single" ? default_single_target : default_couple_target)
+        }));
+    }, [targetType, reset]);
+
+    if (!isSuccessPhase) return null;
+    if (!isSuccessBibs) return <div>Chargement des bibs...</div>;
+
+    const follower_select_bibs_list = bibs_list.bibs.map(
+        (bib) => get_follower_from_bib(bib, (b) => String(b.bib))
+    ).filter((v) => v != null);
+    const leader_select_bibs_list = bibs_list.bibs.map(
+        (bib) => get_leader_from_bib(bib, (b) => String(b.bib))
+    ).filter((v) => v != null);
+
+    return (
+        <>
+            <form onSubmit={handleSubmit(onSubmit)} >
+                {isSuccess &&
+                    <div className="success_message">
+                        <p>
+                            ✅ Nouvelle Target ajoutée avec succès.
+                        </p>
+                    </div>
+                }
+
+                <input type="hidden" {...register("competition")} />
+
+                <input type="hidden" {...register("bib")} />
+
+
+                <Field label="Target type" error={errors.target?.target_type?.message}>
+                    <select {...register("target.target_type")}>
+                        <option value="single">Single</option>
+                        <option value="couple">Couple</option>
+                    </select>
+                </Field>
+
+                {targetType === "single" && (
+                    <SelectSingleTargetForm
+                        formObject={formObject as BibSingleTargetForm}
+                        follower_id_list={follower_select_bibs_list}
+                        leader_id_list={leader_select_bibs_list} />
+                )}
+
+                {targetType === "couple" && (
+                    <SelectCoupleTargetForm
+                        formObject={formObject as BibCoupleTargetForm}
+                        follower_id_list={follower_select_bibs_list}
+                        leader_id_list={leader_select_bibs_list} />
+                )}
+
+                {errors.root?.formValidation &&
+                    <div className="error_message">⚠️ {errors.root.formValidation.message}</div>
+                }
+
+                {errors.root?.serverError &&
+                    <div className="error_message">⚠️ {errors.root.serverError.message}</div>
+                }
+                <button type="submit" >Ajouter un-e nouvelle compétiteurice à la poule 0</button>
+
+            </form >
+        </>
+    );
+}
+
 
 
 export function PairingListComponent({ id_phase }: { id_phase: number, panel_data: Panel, heats: HeatsArray, dataBibs: BibList }) {
@@ -344,6 +497,7 @@ export function PairingListComponent({ id_phase }: { id_phase: number, panel_dat
         <>
             <div className='no-print'>
                 <InitHeatsWithBibForm id_phase={id_phase} />
+                <AddAnyBibToPhase id_phase={id_phase} heat_number={0} />
             </div>
 
             {combinedHeats.map((targetArray, index) => (

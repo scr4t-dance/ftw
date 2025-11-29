@@ -10,7 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryKey, useGetApiPhaseIdArtefactJudgeIdJudge, usePutApiPhaseIdArtefactJudgeIdJudge, } from '@hookgen/artefact/artefact';
 import { Controller, FormProvider, get, useFieldArray, useForm, useFormContext, type SubmitHandler } from 'react-hook-form';
 import { Field } from '@routes/index/field';
-import { dancerArrayFromTarget, DancerCell } from '@routes/bib/BibComponents';
+import { dancerArrayFromTarget, DancerCell, get_bibs } from '@routes/bib/BibComponents';
 import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
 
 const yan_values: (string | undefined)[] = Object.values(YanItem);
@@ -196,16 +196,16 @@ function ArtefactValidCount({ artefactData, artefactDataToSubmit, isDirty }: { a
 
     return (
       <div className='yan_table'>
-      <table>
-        <tbody>
-          <tr>
-            <th>Number of unique ranks</th>
-          </tr>
-          <tr>
-            <td>{ranking_artefact_count}</td>
-          </tr>
-        </tbody>
-      </table>
+        <table>
+          <tbody>
+            <tr>
+              <th>Number of unique ranks</th>
+            </tr>
+            <tr>
+              <td>{ranking_artefact_count}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     );
 
@@ -231,33 +231,33 @@ function ArtefactValidCount({ artefactData, artefactDataToSubmit, isDirty }: { a
 
   return (
     <div className='yan_table'>
-    <table>
-      <tbody>
-        <tr>
-          <th>Criterion</th>
-          {artefact_description.artefact_data.map((criterion, index) => {
-            return (
-              <th key={`yan.${index}`}>
-                {criterion}
-              </th>
-            );
-          })}
-        </tr>
-        {Object.keys(YanItem).map((yan, index) => (
+      <table>
+        <tbody>
           <tr>
-            <td>{yan}</td>
+            <th>Criterion</th>
+            {artefact_description.artefact_data.map((criterion, index) => {
+              return (
+                <th key={`yan.${index}`}>
+                  {criterion}
+                </th>
+              );
+            })}
+          </tr>
+          {Object.keys(YanItem).map((yan, index) => (
+            <tr>
+              <td>{yan}</td>
               {yan_artefact_count[index].map((criterion_count, c_index) => (
-              <td>
-                {criterion_count}
+                <td>
+                  {criterion_count}
                   {(isDirty || yan_artefact_count_to_submit[index][c_index] !== criterion_count)
                     && `(-> ${yan_artefact_count_to_submit[index][c_index]})`
                   }
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div >
   );
 
@@ -351,6 +351,8 @@ function RankingArtefactFormTable({ artefactData, heat_number, artefactInput, da
 
   };
 
+  console.log("ordered_fields", ordered_fields, "dataBibs", dataBibs);
+
   return (
 
     <table>
@@ -368,7 +370,7 @@ function RankingArtefactFormTable({ artefactData, heat_number, artefactInput, da
 
               <tr key={field.id}>
                 <td>
-                  {(dataBibs.bibs.find((bib) => JSON.stringify(bib.target) === JSON.stringify(field.heat_target_judge.target)) as Bib).bib}
+                  {get_bibs(dataBibs, [field.heat_target_judge.target])[0].map((b) => b.bib)}
                 </td>
                 <td>
                   <p>
@@ -459,14 +461,14 @@ function YanArtefactFormTable({ artefactData, heat_number, artefactInput, dataBi
                 <td className="table_comp_target">
                   <div className="row">
                     <p className="table_comp_bib">
-                      {(dataBibs.bibs.find((bib) => JSON.stringify(bib.target) === JSON.stringify(field.heat_target_judge.target)) as Bib).bib}
+                      {get_bibs(dataBibs, [field.heat_target_judge.target])[0].map((b) => b.bib)}
                     </p>
                     <p className="table_comp_role">(
-                    {field.heat_target_judge.target.target_type == "single" &&
-                      field.heat_target_judge.target.role}
-                    {field.heat_target_judge.target.target_type == "couple" &&
+                      {field.heat_target_judge.target.target_type == "single" &&
+                        field.heat_target_judge.target.role}
+                      {field.heat_target_judge.target.target_type == "couple" &&
                         "couple"})
-                  </p>
+                    </p>
                   </div>
                   <div className="table_comp_dancer_name">
                     {dancerArrayFromTarget(field.heat_target_judge.target).map((i) => (
@@ -517,7 +519,7 @@ function generateArtefactFormObject(artefactData: HeatTargetJudgeArtefactArray) 
 
   const queryClient = useQueryClient();
 
-  const { mutate: mutateArtefacts, isSuccess} = usePutApiPhaseIdArtefactJudgeIdJudge({
+  const { mutate: mutateArtefacts, isSuccess } = usePutApiPhaseIdArtefactJudgeIdJudge({
     mutation: {
       onSuccess: (_, { data }) => {
         queryClient.invalidateQueries({
