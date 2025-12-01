@@ -214,7 +214,7 @@ function EditableBibDetails({ bib_object }: { bib_object: Bib }) {
     const [isEditing, setIsEditing] = useState(false);
 
     const formObject = useForm<OldBibNewBib>({
-        defaultValues: {old_bib: bib_object, new_bib: bib_object}
+        defaultValues: { old_bib: bib_object, new_bib: bib_object }
     });
 
     const {
@@ -431,9 +431,12 @@ export function BibListEventAdmin({ competition_list, competition_data_list, bib
                     <tr>
                         <th>Target</th>
                         {competition_list.competitions.map((id_competition, index) => (
-                            <th key={id_competition} colSpan={5}>
-                                <Link to={`../competitions/${id_competition}`}>{competition_data_list[index].name}</Link>
-                            </th>
+                            <>
+                                <th key={id_competition} colSpan={4}>
+                                    <Link to={`../competitions/${id_competition}`}>{competition_data_list[index].name}</Link>
+                                </th>
+                                <th className="no-print"></th>
+                            </>
                         ))}
                     </tr>
                     {dancer_list.map((id_dancer, d_index) => (
@@ -459,9 +462,12 @@ export function BibListEventAdmin({ competition_list, competition_data_list, bib
 
                                         if (bibs[index] === undefined) {
                                             return (
-                                                <td key={id_competition} colSpan={5}>
-                                                    <NewTargetBibFormComponent id_competition={id_competition} bibs_list={bibs_list_array[index]} target={target} />
-                                                </td>
+                                                <>
+                                                    <td key={id_competition} colSpan={4}>
+                                                        <NewTargetBibFormComponent id_competition={id_competition} bibs_list={bibs_list_array[index]} target={target} />
+                                                    </td>
+                                                    <td className='no-print' />
+                                                </>
                                             );
                                         }
 
@@ -471,7 +477,7 @@ export function BibListEventAdmin({ competition_list, competition_data_list, bib
                             );
                         })
                     ))}
-                    <tr>
+                    <tr className="no-print">
 
                         <td>New</td>
                         {competition_list.competitions.map((id_competition) => (
