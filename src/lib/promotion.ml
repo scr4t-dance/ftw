@@ -190,7 +190,7 @@ let compute_promotion_from_divs st dancer_divs (result : Results.r) =
   in
   (* Compute the new division according to the rules *)
   let new_divs, promotion_reason =
-    List.fold_left (fun (divs, _) (reason, (rule : rule)) ->
+    List.fold_left (fun (divs, old_reason) (reason, (rule : rule)) ->
         let new_div : Divisions.t option =
           match rule (Competition.category competition) result points with
           | None -> None
@@ -202,7 +202,7 @@ let compute_promotion_from_divs st dancer_divs (result : Results.r) =
             else None
         in
         match new_div with
-        | None -> divs, reason
+        | None -> divs, old_reason
         | Some new_divs ->
           Logs.debug ~src (fun k->
               k "Promotion (%s)\t%-15s-> %-15s : %a"
