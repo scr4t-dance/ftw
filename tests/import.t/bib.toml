@@ -1,0 +1,56 @@
+# FTW Event Info
+[config]
+format = "ftw.1"
+
+[event]
+name = "test bib"
+short = "test bib"
+start_date = 2025-12-06
+end_date = 2025-12-06
+
+[event.comps.jj_adv]
+name = "JnJ Advanced"
+kind = "Jack_and_Jill"
+category = "Advanced"
+check_divs = false
+leaders = 2
+follows = 2
+results="""
+"""
+
+[event.comps.jj_inter]
+name = "JnJ Inter"
+kind = "Jack_and_Jill"
+category = "Intermediate"
+check_divs = false
+leaders = 15
+follows = 15
+results="""
+"""
+
+[event.comps.jj_initie]
+name = "JnJ Initié"
+kind = "Jack_and_Jill"
+category = "Novice"
+leaders = 2
+follows = 2
+results="""
+"""
+
+[event.comps.jj_initie.dancers]
+bibs="""
+nom_follow_initie	prenom_follow_initie		# 101
+nom_leader_initie	prenom_leader_initie	# 201	
+"""
+
+[event.comps.jj_inter.dancers]
+bibs="""
+nom_follow_inter	prenom_follow_inter		# 102
+nom_leader_inter	prenom_leader_inter	# 202	
+"""
+
+[event.comps.jj_adv.dancers]
+bibs="""
+nom_follow_adv	prenom_follow_adv		# 103
+nom_leader_adv	prenom_leader_adv	# 203	
+"""
