@@ -409,6 +409,9 @@ class ftw_1 st = object(self)
 
   val mutable bibs = Id.Map.empty
 
+  method clear_bibs =
+    bibs <- Id.Map.empty
+
   method find_id ~bib =
     try
       let single_target = Id.Map.find bib bibs in
@@ -417,26 +420,25 @@ class ftw_1 st = object(self)
     with Not_found -> failwith (Format.asprintf "did not find bib %d" bib)
 
   method! import_bibs ~event ~comp t =
+    self#clear_bibs;
     match Otoml.find_opt t Otoml.get_string ["dancers"; "bibs"] with
     | None ->
       Logs.debug ~src (fun k->k "Not bibs found in file, skipping import")
     | Some tsv ->
       Logs.debug ~src (fun k->k "Bibs found, importing...");
-      self#import_bibs_tsv ~event tsv
+      self#import_bibs_tsv tsv
+        ~event ~competition:(Competition.id comp)
         ~first_name:0 ~last_name:1
-        ~leader_bib:2 ~follow_bib:3;
-      (* Set bibs *)
-      Id.Map.iter (fun bib single_target->
-          Bib.add ~st ~competition:(Competition.id comp)
-            ~target:(Target.Any single_target) ~bib
-        ) bibs
+        ~leader_bib:2 ~follow_bib:3
 
-  method add_bib_opt bib_opt single_target =
+  method add_bib_opt ~competition bib_opt single_target =
     match bib_opt with
     | None -> ()
-    | Some bib -> bibs <- Id.Map.add bib single_target bibs
+    | Some bib ->
+      Bib.add ~st ~competition ~target:(Target.Any single_target) ~bib;
+      bibs <- Id.Map.add bib single_target bibs
 
-  method import_bibs_tsv ~event ~first_name ~last_name ~leader_bib ~follow_bib tsv =
+  method import_bibs_tsv ~event ~competition ~first_name ~last_name ~leader_bib ~follow_bib tsv =
     List.iter (fun fields ->
         try
           let leader_bib = extract_bib (List.nth fields leader_bib) in
@@ -449,8 +451,8 @@ class ftw_1 st = object(self)
               self#find_or_add_dancer ()
                 ~first_name ~last_name ~event
             in
-            self#add_bib_opt leader_bib (Target.Single {target=(Dancer.id dancer);role=Role.Leader});
-            self#add_bib_opt follow_bib (Target.Single {target=(Dancer.id dancer);role=Role.Follower});
+            self#add_bib_opt ~competition leader_bib (Target.Single {target=(Dancer.id dancer);role=Role.Leader});
+            self#add_bib_opt ~competition follow_bib (Target.Single {target=(Dancer.id dancer);role=Role.Follower});
             ()
         with Failure msg ->
           let line = String.concat "\t" fields in
