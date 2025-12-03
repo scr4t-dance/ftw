@@ -81,19 +81,6 @@ let bonus_of_note s =
   let f = float_of_string s in
   int_of_float (f *. 1.0)
 
-let points ~st ~event ~comp ~role result =
-  match Competition.category comp with
-  | Non_competitive _ -> 0
-  | Competitive _ ->
-    let date = Event.start_date (Event.get st event) in
-    let n =
-      match (role : Role.t) with
-      | Leader -> Competition.n_leaders comp
-      | Follower -> Competition.n_follows comp
-    in
-    let placement = Results.placement result in
-    Points.find ~date ~n ~placement
-
 (* Ranking helpers *)
 (* ************************************************************************* *)
 
@@ -333,7 +320,7 @@ class virtual importer (st : State.t) = object(self)
           ~result:r.result
           ~points:r.points
           ~competition:r.competition;
-        Promotion.update_with_new_result st r
+        Promotion.update_with_new_result st (Promotion.compute_promotion st r)
       ) l
 
   (* === competitions === *)
@@ -679,7 +666,7 @@ class ftw_1 st = object(self)
       | "F" -> Role.Follower
       | _ -> raise (Otoml.Type_error ("invalid role: " ^ role))
     in
-    let points = points ~st ~event ~comp ~role result in
+    let points = Results.points ~st ~event ~comp ~role result in
     let r : Results.r = {
       competition = (Competition.id comp);
       dancer = Dancer.id d;
@@ -835,7 +822,7 @@ class ftw_2 st ~stable = object(self)
         let dancer = self#get_dancer raw_dancer in
         let role = Otoml.find t Role.of_toml ["role"] in
         let result = Otoml.find t Results.of_toml ["result"] in
-        let points = points ~st ~event ~comp ~role result in
+        let points = Results.points ~st ~event ~comp ~role result in
         let r : Results.r = {
           competition = (Competition.id comp);
           dancer; role; result; points;

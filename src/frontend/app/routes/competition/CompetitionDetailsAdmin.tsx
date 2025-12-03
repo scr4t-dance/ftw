@@ -12,7 +12,7 @@ import { getGetApiCompIdPhasesQueryOptions } from "@hookgen/phase/phase";
 import { getGetApiEventIdQueryOptions } from "@hookgen/event/event";
 
 
-import CompetitionDetailsComponent from "@routes/competition/CompetitionComponents";
+import { CompetitionDetailsComponent } from "@routes/competition/CompetitionComponents";
 
 export async function loader({ params }: Route.LoaderArgs) {
 

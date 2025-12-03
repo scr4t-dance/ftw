@@ -48,6 +48,13 @@ function capitalizeFirstLetter(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+export const formatDate = (date: Date | undefined): string => {
+    if (date?.year && date?.month && date?.day) {
+        return `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
+    }
+    return '';
+};
+
 function EventDetails({ id, data, index }: { id: EventId, data: Event, index: number }) {
 
     if (!data) return null;
@@ -129,13 +136,6 @@ export function EventDetailsComponent({ id_event }: { id_event: EventId }) {
     if (isLoading) return <p>Chargement Evenement</p>;
     if (isError) return <p>Erreur: {error.message}</p>
     if (!event) return <p>Pas de données sur l’événement {id_event}.</p>;
-
-    const formatDate = (date: Date | undefined): string => {
-        if (date?.year && date?.month && date?.day) {
-            return `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
-        }
-        return '';
-    };
 
     return (
         <>

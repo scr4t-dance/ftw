@@ -69,3 +69,21 @@ val all_points :
   role:Role.t ->
   div:Division.t ->
   int
+(** Find the total number of points for a dancer and role. *)
+
+val all_points_before : st:State.t ->
+  dancer:int ->
+  role:Role.t ->
+  div:Division.t ->
+  end_date:Date.t ->
+  int
+(** Find the total number of points for a dancer and role for events that ended before the given date *)
+
+val points : st:State.t ->
+  event:int ->
+  comp:Competition.t ->
+  role:Role.t ->
+  t ->
+  int
+
+val compute : st:State.t -> competition:int -> unit
