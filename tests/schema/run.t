@@ -92,6 +92,13 @@ If the definition changes
             num_followers INTEGER,
             check_divs INTEGER
           );
+  CREATE TABLE forbidden_pairs (
+            competition_id INTEGER NOT NULL REFERENCES competitions(id),
+            dancer1 INTEGER NOT NULL REFERENCES dancers(id),
+            dancer2 INTEGER NOT NULL REFERENCES dancers(id),
+  
+            PRIMARY KEY(competition_id,dancer1,dancer2)
+          );
   CREATE TABLE phases (
             id INTEGER PRIMARY KEY,
             competition_id INT REFERENCES competitions(id),
