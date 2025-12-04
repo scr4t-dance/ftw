@@ -504,7 +504,7 @@ module RPSS = struct
     let m = Matrix.width matrix in
     if start >= stop then set_ranks ~matrix ~start ~stop
     else if k > n - 1 then
-      rank_head ~matrix ~k ~start ~stop
+      rank_head ~matrix ~k:(n - 1) ~start ~stop
     else begin
       let cursor = ref start in
       for i = start to stop do
