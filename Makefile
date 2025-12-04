@@ -33,11 +33,15 @@ build: backend
 # Main Build rules #
 ####################
 
-configure:
+conf-opam:
 	opam install . --deps-only --with-test --with-doc
+
+conf-npm:
 	cd src/frontend && npm install
 	cd src/frontend && npx playwright install chromium firefox webkit
 	cd src/hookgen && npm install
+
+configure: conf-opam conf-npm
 
 src/frontend/app/hookgen/hookgen.sentinel hookgen: src/openapi.json
 	cd src/hookgen && ./node_modules/.bin/orval --config ./orval.config.js
