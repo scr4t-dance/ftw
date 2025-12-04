@@ -1665,6 +1665,79 @@
         }
       }
     },
+    "/api/comp/{id}/forbidden_pairs": {
+      "get": {
+        "tags": [ "phase", "competition" ],
+        "summary": "Get the list of forbidden pairs of a Competition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id of the queried Competition",
+            "required": true,
+            "schema": { "$ref": "#/components/schemas/CompetitionId" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CouplesHeat" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Id supplied",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Competition not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [ "competition" ],
+        "summary": "Create a new competition",
+        "parameters": [ { "name": "id", "in": "path", "required": true } ],
+        "requestBody": {
+          "description": "Details of the Competition to create",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CouplesHeat" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CompetitionId" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/comp": {
       "put": {
         "tags": [ "competition" ],

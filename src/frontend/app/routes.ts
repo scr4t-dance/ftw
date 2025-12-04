@@ -17,6 +17,7 @@ const admin_routes = disable_admin ? [] : [
           route(":id_competition", "routes/competition/CompetitionHomeAdmin.tsx", [
             index("routes/competition/CompetitionDetailsAdmin.tsx"),
             route("promotions", "routes/competition/CompetitionPromotionsRoute.tsx"),
+            route("forbidden", "routes/competition/CompetitionForbiddenPairs.tsx"),
             route("bibs", "routes/bib/BibHomeAdmin.tsx", [
               index("routes/bib/BibListAdmin.tsx"),
               route("new", "routes/bib/NewBibForm.tsx"),
