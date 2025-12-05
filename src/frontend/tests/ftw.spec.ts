@@ -219,10 +219,11 @@ test('create event', async ({ page }) => {
 
 
   await admin_home_locator.click();
+  // for webkit
+  await page.waitForTimeout(250);
   await page.getByRole('link', { name: 'Events' }).click();
   await page.getByRole('link', { name: randomEventName }).click();
   await page.getByRole('link', { name: randomCompetitionName }).click();
-  await page.getByRole('link', { name: `Prelims ${randomCompetitionName}` }).click();
 
   // cofngiuration heats
   await page.getByRole('link', { name: `Prelims ${randomCompetitionName}` }).click();
@@ -271,6 +272,8 @@ test('create event', async ({ page }) => {
   await expect(page.getByText("✅ 1 dancers has been transfered")).toHaveText("✅ 1 dancers has been transfered to next phase")
 
   await admin_home_locator.click();
+  // for webkit
+  await page.waitForTimeout(250);
   await page.getByRole('link', { name: 'Events' }).click();
   await page.getByRole('link', { name: randomEventName }).click();
   await page.getByRole('link', { name: randomCompetitionName }).click();
