@@ -589,7 +589,7 @@ class ftw_1 st = object(self)
           Artefact.set ~st ~judge ~target artefact
         ) artefacts;
       match bonus with
-      | None -> ()
+      | None | Some 0 -> ()
       | Some b -> Bonus.set ~st ~target b
     in
     List.iter (add_heat_and_artefact ~role:Leader) leader_artefacts;
