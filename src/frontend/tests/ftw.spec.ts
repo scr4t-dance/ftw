@@ -226,7 +226,7 @@ test('create event', async ({ page }) => {
 
   // cofngiuration heats
   await page.getByRole('link', { name: `Prelims ${randomCompetitionName}` }).click();
-  await page.getByRole('link', { name: 'Poules' }).click();
+  await page.getByRole('link', { name: 'Poules', exact: true  }).click();
   await page.getByRole('button', { name: 'Insérer les dossards dans la Poule 0' }).click();
   await page.getByText('✅ Dossards insérés dans la Poule 0 !').click();
   await page.locator('input[name="min_number_of_targets"]').click();
@@ -283,7 +283,7 @@ test('create event', async ({ page }) => {
   await page.getByRole('button', { name: 'Mettre à jour la phase' }).click();
   await expect(page.getByText('✅ Phase "Finals" avec')).toContainText("mis à jour avec succès.");
 
-  await page.getByRole('link', { name: 'Poules' }).click();
+  await page.getByRole('link', { name: 'Poules', exact: true  }).click();
   await page.getByRole('link', { name: 'Appairage' }).click();
 
   await page.locator('select[name="target.role"]').click();
@@ -302,7 +302,7 @@ test('create event', async ({ page }) => {
   await page.locator('select[name="1"]').selectOption(String(dancer_0_id));
   await page.getByRole('button', { name: 'Enregistrer les nouveaux' }).nth(1).click();
 
-  await page.getByRole('link', { name: 'Poules' }).click();
+  await page.getByRole('link', { name: 'Poules', exact: true  }).click();
   await page.locator('input[name="min_number_of_targets"]').click();
   await page.locator('input[name="min_number_of_targets"]').fill('1');
   await page.locator('input[name="max_number_of_targets"]').click();
@@ -331,11 +331,11 @@ test('create event', async ({ page }) => {
 
   await page.getByRole('link', { name: 'Competition', exact: true }).click();
   await page.getByRole('link', { name: 'Résultats/Promotions' }).click();
-  //await page.getByRole('button', { name: 'Calculer les promotions' }).click();
-  //await expect(page.getByRole('cell', { name: '1ème' })).toHaveCount(2);
+  await page.getByRole('button', { name: 'Calculer les promotions' }).click();
+  await expect(page.getByRole('cell', { name: '1ème' })).toHaveCount(2);
   //await expect(page.getByRole('cell', { name: dancer_array[0].first_name })).toHaveCount(1);
-  //await expect(page.getByRole('cell', { name: dancer_array[1].first_name })).toHaveCount(1);
-  //await expect(page.getByRole('cell', { name: dancer_array[2].first_name })).toHaveCount(1);
+  await expect(page.getByRole('cell', { name: dancer_array[1].first_name })).toHaveCount(1);
+  await expect(page.getByRole('cell', { name: dancer_array[2].first_name })).toHaveCount(1);
   //await expect(page.getByRole('cell', { name: dancer_array[3].first_name })).toHaveCount(1);
 
 });
