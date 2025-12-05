@@ -48,7 +48,9 @@ let extract_bib s =
       then String.sub s 1 (String.length s - 1)
       else s
     in
-    Some (int_of_string (String.trim s))
+    match int_of_string (String.trim s) with
+    | 0 -> None
+    | bib -> Some bib
   end
 
 let extract_bib' s =
