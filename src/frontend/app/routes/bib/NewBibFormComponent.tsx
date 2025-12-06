@@ -588,7 +588,7 @@ export function NewTargetBibFormComponent({ id_competition, bibs_list, target }:
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} >
+      <form className="no-print" onSubmit={handleSubmit(onSubmit)} >
         {isSuccess &&
           <div className="success_message">
             <p>

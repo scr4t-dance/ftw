@@ -152,7 +152,7 @@ export function BibRowReadOnly({ bib_object, onEdit, onDelete }: BibRowReadOnlyP
 }
 
 type BibRowEditableProps = {
-    formObject: UseFormReturn<Bib, any, Bib>;
+    formObject: UseFormReturn<OldBibNewBib, any, OldBibNewBib>;
     onUpdate: () => void;
     onCancel: () => void;
 };
@@ -164,7 +164,7 @@ function BibRowEditable({ formObject, onUpdate, onCancel }: BibRowEditableProps)
         watch
     } = formObject;
 
-    const targetType = watch("target.target_type");
+    const targetType = watch("new_bib.target.target_type");
 
     return (
         <>
@@ -173,8 +173,8 @@ function BibRowEditable({ formObject, onUpdate, onCancel }: BibRowEditableProps)
             </td>
 
             <td>
-                <Field label="" error={errors.bib?.message}>
-                    <input type="number" {...register("bib", {
+                <Field label="" error={errors?.new_bib?.bib?.message}>
+                    <input type="number" {...register("new_bib.bib", {
                         valueAsNumber: true,
                         required: true,
                         min: {
@@ -188,15 +188,15 @@ function BibRowEditable({ formObject, onUpdate, onCancel }: BibRowEditableProps)
 
             {targetType === "single" && (
                 <>
-                    <td><DancerCell id_dancer={formObject.getValues("target.target")} /></td>
-                    <td>{formObject.getValues("target.role")?.join(", ")}</td>
+                    <td><DancerCell id_dancer={formObject.getValues("new_bib.target.target")} /></td>
+                    <td>{formObject.getValues("new_bib.target.role")?.join(", ")}</td>
                 </>
             )}
 
             {targetType === "couple" && (
                 <>
-                    <td><DancerCell id_dancer={formObject.getValues("target.follower")} /></td>
-                    <td><DancerCell id_dancer={formObject.getValues("target.leader")} /></td>
+                    <td><DancerCell id_dancer={formObject.getValues("new_bib.target.follower")} /></td>
+                    <td><DancerCell id_dancer={formObject.getValues("new_bib.target.leader")} /></td>
                 </>
             )}
             <td>
@@ -213,8 +213,8 @@ function EditableBibDetails({ bib_object }: { bib_object: Bib }) {
 
     const [isEditing, setIsEditing] = useState(false);
 
-    const formObject = useForm<Bib>({
-        defaultValues: bib_object
+    const formObject = useForm<OldBibNewBib>({
+        defaultValues: { old_bib: bib_object, new_bib: bib_object }
     });
 
     const {
@@ -229,7 +229,7 @@ function EditableBibDetails({ bib_object }: { bib_object: Bib }) {
                 queryClient.invalidateQueries({
                     queryKey: getGetApiCompIdBibsQueryKey(bib_object.competition),
                 });
-                reset(variables.data.new_bib);
+                reset(variables.data);
                 setIsEditing(false);
             },
             onError: (err) => {
@@ -250,17 +250,13 @@ function EditableBibDetails({ bib_object }: { bib_object: Bib }) {
     });
 
     const handleUpdate = handleSubmit((data) => {
-        updateBib({ id: bib_object.competition, data: { old_bib: bib_object, new_bib: data } as OldBibNewBib });
+        updateBib({ id: bib_object.competition, data });
     });
 
     const handleCancel = () => {
         reset();
         setIsEditing(false);
     };
-
-    useEffect(() => {
-        reset(bib_object);
-    }, [bib_object, reset]);
 
     return (
         <>
@@ -435,9 +431,12 @@ export function BibListEventAdmin({ competition_list, competition_data_list, bib
                     <tr>
                         <th>Target</th>
                         {competition_list.competitions.map((id_competition, index) => (
-                            <th colSpan={5}>
-                                <Link to={`../competitions/${id_competition}`}>{competition_data_list[index].name}</Link>
-                            </th>
+                            <>
+                                <th key={id_competition} colSpan={4}>
+                                    <Link to={`../competitions/${id_competition}`}>{competition_data_list[index].name}</Link>
+                                </th>
+                                <th className="no-print"></th>
+                            </>
                         ))}
                     </tr>
                     {dancer_list.map((id_dancer, d_index) => (
@@ -463,23 +462,26 @@ export function BibListEventAdmin({ competition_list, competition_data_list, bib
 
                                         if (bibs[index] === undefined) {
                                             return (
-                                                <td colSpan={5}>
-                                                    <NewTargetBibFormComponent id_competition={id_competition} bibs_list={bibs_list_array[index]} target={target} />
-                                                </td>
+                                                <>
+                                                    <td key={id_competition} colSpan={4}>
+                                                        <NewTargetBibFormComponent id_competition={id_competition} bibs_list={bibs_list_array[index]} target={target} />
+                                                    </td>
+                                                    <td className='no-print' />
+                                                </>
                                             );
                                         }
 
-                                        return <EditableBibDetails bib_object={bibs[index]} />
+                                        return <EditableBibDetails key={id_competition} bib_object={bibs[index]} />
                                     })}
                                 </tr>
                             );
                         })
                     ))}
-                    <tr>
+                    <tr className="no-print">
 
                         <td>New</td>
                         {competition_list.competitions.map((id_competition) => (
-                            <td colSpan={5}>
+                            <td key={id_competition} colSpan={5}>
                                 <Link to={`../competitions/${id_competition}/bibs/new`}>Nouveau bib Compétition {id_competition}</Link>
                             </td>
                         ))}
