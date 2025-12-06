@@ -245,25 +245,39 @@ let points ~st ~event ~comp ~role result =
 
 let compute ~st ~competition =
   let phase_list = Phase.find st competition in
-  let get_dancer_set (h:Heat.t) = let leader_list, follower_list = begin match h with
-      | Singles sh ->
-        let _, leader_list, follower_list = Heat.all_single_judgement_targets sh in
-        leader_list, follower_list
-      | Couples ch ->
-        let couple_targets = Heat.all_couple_judgement_targets ch in
-        let single_target_map = Id.Map.map (fun (Target.Couple { leader; follower; }) ->
-            (leader, follower)) couple_targets in
-        let leader_list, follower_list = Id.Map.bindings single_target_map |> List.map snd |> List.split in
-        leader_list, follower_list
-    end in
+  let convert_couple_to_pair_of_dancers (Target.Couple { leader; follower; }) =
+    (leader, follower) in
+  let keep_role role =
+    List.filter_map (fun t ->
+        begin match t with
+          | Target.Single {target;role=r;} when Role.equal role r -> Some target
+          | _ -> None
+        end) in
+  let get_dancer_set (h:Heat.t) =
+    let leader_list, follower_list =
+      begin match h with
+        | Singles sh ->
+          let single_target_map, _, _ = Heat.all_single_judgement_targets sh in
+          let target_list = Id.Map.bindings single_target_map |> List.map snd in
+          let leader_list = keep_role Role.Leader target_list in
+          let follower_list = keep_role Role.Follower target_list in
+          leader_list, follower_list
+        | Couples ch ->
+          let couple_targets_map = Heat.all_couple_judgement_targets ch in
+          let couple_target_list = Id.Map.bindings couple_targets_map |> List.map snd in
+          let leader_list, follower_list = List.map
+              convert_couple_to_pair_of_dancers couple_target_list |> List.split in
+          leader_list, follower_list
+      end in
     let leader_set = Id.Set.of_list leader_list in
     let follower_set = Id.Set.of_list follower_list in
     leader_set, follower_set in
   let leader_set_list, follower_set_list = List.map (
-      fun p -> let heat = Heat.get ~st ~phase:(Phase.id p) in
+      fun p ->
+        let heat = Heat.get ~st ~phase:(Phase.id p) in
         get_dancer_set heat
     ) phase_list |> List.split in
-  let transpose_dancer_phase = List.fold_left2 (fun acc s p ->
+  let transpose_dancer_phase dancer_set_list p_list = List.fold_left2 (fun acc s p ->
       let add_to_list key m =
         let new_list = begin match Id.Map.find_opt key m with
           | None -> [p]
@@ -271,11 +285,11 @@ let compute ~st ~competition =
         end in
         Id.Map.add key new_list m in
       Id.Set.fold add_to_list s acc
-    ) Id.Map.empty in
+    ) Id.Map.empty dancer_set_list p_list in
   let leader_map = transpose_dancer_phase leader_set_list phase_list in
   let follower_map = transpose_dancer_phase follower_set_list phase_list in
   let make_aux r p_list =
-    begin match List.exists (fun p -> (Round.compare (Phase.round p) r)== 0) p_list with
+    begin match List.exists (fun p -> Round.equal (Phase.round p) r) p_list with
       | true -> Present
       | false -> Not_present
     end in
@@ -287,9 +301,10 @@ let compute ~st ~competition =
       finals=make_aux Round.Finals p_list; }
   in
   let make_t ~st ~role dancer_map =
-    let updated_t = Id.Map.filter_map (fun dancer p_list ->
-        let r = make_result phase_list in
-        Some { r with finals=update_finals ~st ~dancer ~role p_list}
+    let updated_t = Id.Map.filter_map (fun _dancer p_list ->
+        let r = make_result p_list in
+        (* Some { r with finals=update_finals ~st ~dancer ~role p_list} *)
+        Some r
       ) dancer_map |> Id.Map.bindings in
     List.iter (fun (dancer, result) ->
         let comp = Competition.get st competition in
@@ -302,7 +317,6 @@ let compute ~st ~competition =
     {| DELETE FROM results
     WHERE competition = ? |}
     competition;
-
   let leader_set = List.fold_left Id.Set.union Id.Set.empty leader_set_list in
   let follower_set = List.fold_left Id.Set.union Id.Set.empty follower_set_list in
   Competition.update_competitors_number ~st ~id:competition ~n_leaders:(Id.Set.cardinal leader_set) ~n_followers:(Id.Set.cardinal follower_set);
