@@ -71,6 +71,14 @@ val all_points :
   int
 (** Find the total number of points for a dancer and role. *)
 
+val update_finals :
+  st:State.t ->
+  dancer:int ->
+  role:Role.t ->
+  Phase.t list ->
+  aux
+
+
 val all_points_before : st:State.t ->
   dancer:int ->
   role:Role.t ->

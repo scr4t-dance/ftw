@@ -228,12 +228,17 @@ let compute_promotion st (result : Results.r) =
   let date_competition = get_comp_date(result.competition) in
   let competition_participation = Results.find ~st (`Dancer (result.dancer)) in
   let previous_comps = List.filter (fun (r:Results.r) ->
-      (Role.equal r.role result.role) && (Date.compare (get_comp_date r.competition) date_competition < 0)
+      (Role.equal r.role result.role)
+      && (Date.compare (get_comp_date r.competition) date_competition < 0)
     ) competition_participation in
-  let sorted_previous_comps = List.sort (fun (r1:Results.r) (r2:Results.r) -> Date.compare (get_comp_date r1.competition) (get_comp_date r2.competition)) previous_comps in
+  let sorted_previous_comps =
+    List.sort (fun (r1:Results.r) (r2:Results.r) ->
+        Date.compare (get_comp_date r1.competition) (get_comp_date r2.competition)
+      ) previous_comps in
   Logs.debug ~src (fun k -> k "Previous comps for dancer %d role %a : %s"
                       result.dancer Role.print_compact result.role
-                      (String.concat "," (List.map (fun ({competition;_}: Results.r) -> string_of_int competition) sorted_previous_comps)));
+                      (String.concat "," (List.map (fun ({competition;_}: Results.r) ->
+                           string_of_int competition) sorted_previous_comps)));
   let promotion_result = begin match sorted_previous_comps with
     | [] -> compute_promotion_from_divs st Divisions.None result
     | first_result :: xs ->

@@ -573,6 +573,20 @@ let check_late (late_n, dancer_list) pools =
   let rounds = CCList.range_by ~step:1 0 (n - 1 - late_n) in
   check_not_in_rounds rounds dancer_list pools
 
+let check_forbidden ~st ~phase leader_pools follower_pools =
+  let competition = Phase.competition (Phase.get st phase) in
+  let forbidden_pairs = Forbidden.get ~st ~competition in
+  Array.for_all2 (fun heat1 heat2 ->
+    List.for_all (fun ({dancer1;dancer2;_}: Forbidden.t) ->
+          not ((Id.Set.mem dancer1 (Id.Set.of_list @@ Array.to_list heat1)) &&
+               (Id.Set.mem dancer2 (Id.Set.of_list @@ Array.to_list heat2)))
+          &&
+          not ((Id.Set.mem dancer2 (Id.Set.of_list @@ Array.to_list heat1)) &&
+               (Id.Set.mem dancer1 (Id.Set.of_list @@ Array.to_list heat2)))
+      ) forbidden_pairs
+  ) leader_pools follower_pools
+
+
 let regen_pools ~st ~phase ?(tries=100) ?(early=(0, [])) ?(late=(0, [])) ~min ~max t =
   let rec aux n =
     if n <= 0 then failwith "could not generate new pools"
@@ -581,7 +595,7 @@ let regen_pools ~st ~phase ?(tries=100) ?(early=(0, [])) ?(late=(0, [])) ~min ~m
       begin match t with
         | Singles {singles_heats;} ->
           let leader_pools, follower_pools = regen_pools_aux_singles ~min ~max singles_heats in
-          let is_okay = check_early early leader_pools && check_late late leader_pools
+          let is_okay = check_forbidden ~st ~phase leader_pools follower_pools && check_early early leader_pools && check_late late leader_pools
                         && check_early early follower_pools && check_late late follower_pools in
           if is_okay then
             let _ = reset st phase in
