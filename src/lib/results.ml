@@ -1,6 +1,8 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+let src = Logs.Src.create "ftw.results"
+
 (* Competition result *)
 (* ************************************************************************* *)
 
@@ -275,7 +277,13 @@ let compute ~st ~competition =
   let leader_set_list, follower_set_list = List.map (
       fun p ->
         let heat = Heat.get ~st ~phase:(Phase.id p) in
-        get_dancer_set heat
+        let fl_set = get_dancer_set heat in
+        Logs.debug ~src (fun k -> k "%d leader %s ; follower %s"
+        (Phase.id p)
+        (fst fl_set |> Id.Set.elements |> List.map string_of_int |> String.concat ",")
+        (snd fl_set |> Id.Set.elements |> List.map string_of_int |> String.concat ",")
+        );
+        fl_set
     ) phase_list |> List.split in
   let transpose_dancer_phase dancer_set_list p_list = List.fold_left2 (fun acc s p ->
       let add_to_list key m =
@@ -301,10 +309,9 @@ let compute ~st ~competition =
       finals=make_aux Round.Finals p_list; }
   in
   let make_t ~st ~role dancer_map =
-    let updated_t = Id.Map.filter_map (fun _dancer p_list ->
+    let updated_t = Id.Map.filter_map (fun dancer p_list ->
         let r = make_result p_list in
-        (* Some { r with finals=update_finals ~st ~dancer ~role p_list} *)
-        Some r
+        Some { r with finals=update_finals ~st ~dancer ~role p_list}
       ) dancer_map |> Id.Map.bindings in
     List.iter (fun (dancer, result) ->
         let comp = Competition.get st competition in

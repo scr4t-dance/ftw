@@ -133,7 +133,7 @@ export function BibRowReadOnly({ bib_object, onEdit, onDelete }: BibRowReadOnlyP
             <td>
                 {dancer_list && dancer_list.map((i) => (
                     <p key={i}>
-                        <DancerCell id_dancer={i} />
+                        <DancerCell id_dancer={i} link={false} />
                     </p>
                 ))
                 }
