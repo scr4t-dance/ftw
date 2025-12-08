@@ -86,7 +86,9 @@ export default function App({ loaderData }: Route.ComponentProps) {
         <Header />
         <Outlet />
         <Footer userId={userId ?? null} />
-        <ReactQueryDevtools initialIsOpen={false} />
+        <div className="no-print">
+          <ReactQueryDevtools initialIsOpen={false} />
+        </div>
       </HydrationBoundary>
     </QueryClientProvider>
   );

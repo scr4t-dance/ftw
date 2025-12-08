@@ -1,0 +1,53 @@
+# FTW Event Info
+[config]
+format = "ftw.1"
+
+[event]
+name = "Rock 4 Temps Paris Plage Cup 2025"
+short = "Paris Plage 2025"
+start_date = 2025-12-06
+end_date = 2025-12-06
+
+[event.comps.jj_adv]
+name = "JnJ Advanced"
+kind = "Jack_and_Jill"
+category = "Advanced"
+check_divs = false
+leaders = 5
+follows = 5
+results="""
+"""
+
+[event.comps.jj_inter]
+name = "JnJ Inter"
+kind = "Jack_and_Jill"
+category = "Intermediate"
+check_divs = false
+leaders = 15
+follows = 15
+results="""
+"""
+
+[event.comps.jj_initie]
+name = "JnJ Initié"
+kind = "Jack_and_Jill"
+category = "Novice"
+leaders = 31
+follows = 34
+results="""
+"""
+
+[event.comps.jj_initie.dancers]
+bibs="""
+
+"""
+
+[event.comps.jj_inter.dancers]
+bibs="""
+
+"""
+
+[event.comps.jj_adv.dancers]
+bibs="""
+
+"""

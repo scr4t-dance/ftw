@@ -32,7 +32,7 @@ export function CompetitionTable({ competition_id_list, competition_data_list }:
 
   return (
     <>
-      <h2>Liste Compétitions 2</h2>
+      <h2>Liste Compétitions</h2>
       <table>
         <thead>
           <tr>

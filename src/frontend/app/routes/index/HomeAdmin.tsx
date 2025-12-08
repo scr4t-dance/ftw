@@ -16,10 +16,10 @@ export default function EventsHomeAdmin({
 
   return (
     <>
-      <div className="header-breadcrumbs">
+      <div className="header-breadcrumbs no-print">
         <Breadcrumbs />
       </div>
-      <h1>Mode Admin</h1>
+      <h1 className="no-print">Mode Admin</h1>
       <Outlet />
     </>
   );

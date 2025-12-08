@@ -41,7 +41,7 @@ function BibList({
 
     return (
         <>
-            <Link to={`${url}new`}>
+            <Link className='no-print' to={`${url}new`}>
                 Créer un-e nouvel-le compétiteur-euse
             </Link>
             <BibListComponent id_competition={id_competition} />
