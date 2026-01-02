@@ -3,13 +3,14 @@
 
 let src = Logs.Src.create "ftw.results"
 
+
 (* Competition result *)
 (* ************************************************************************* *)
 
 type aux =
-  | Not_present       (* or unknown *)
-  | Present           (* but rank unknown *)
-  | Ranked of Rank.t  (* actual rank *)
+  | Not_present           (* or unknown *)
+  | Present               (* but rank unknown *)
+  | Ranked of Rank.t list (* actual ranks, the list should be non-empty *)
 
 type t = {
   prelims :       aux;
@@ -37,7 +38,10 @@ let octofinalist = mk () ~octofinals:Present
 let placement (t : t) : Points.placement =
   match t.finals with
   | Present -> Finals None
-  | Ranked rank -> Finals (Some rank)
+  | Ranked [] -> assert false (* internal assumption *)
+  | Ranked (rank :: other_ranks) ->
+    let r = List.fold_left Rank.min rank other_ranks in
+    Finals (Some r)
   | Not_present ->
     begin match t.semifinals with
       | Present | Ranked _ -> Semifinals
@@ -47,50 +51,48 @@ let placement (t : t) : Points.placement =
 (* Int conversion *)
 (* ************************************************************************* *)
 
-let to_int t =
-  let aux n r =
-    let i =
-      match r with
-      | Not_present -> 0
-      | Present -> 255
-      | Ranked r ->
-        let i = Rank.rank r in
-        (* we encode each rank using 1 byte *)
-        assert (1 <= i && i <= 254); i
-    in
-    i lsl (n * 8)
+let aux_to_int t =
+  let rec aux = function
+    | [] -> 0
+    | rank :: l ->
+      let i = Rank.rank rank in
+      assert (1 <= i && i <= 254);
+      let j = aux l in
+      i + (j lsl 8)
   in
-  aux 0 t.finals lor
-  aux 1 t.semifinals lor
-  aux 2 t.prelims lor
-  aux 3 t.quarterfinals lor
-  aux 4 t.octofinals
+  match t with
+  | Not_present -> 0
+  | Present -> 255
+  | Ranked l -> aux l
 
-let of_int i =
-  let[@inline] aux i n =
-    let j = (i lsr (n * 8)) land 255 in
-    match j with
-    | 0 -> Not_present
-    | 255 -> Present
-    | _ -> Ranked (Rank.mk j)
+let aux_of_int i =
+  let rec aux i =
+    if i = 0 then []
+    else begin
+      let r = Rank.mk (i land 0xff) in
+      let i' = i lsr 8 in
+      r :: aux i'
+    end
   in
-  {
-    prelims = aux i 2;
-    octofinals = aux i 4;
-    quarterfinals = aux i 3;
-    semifinals = aux i 1;
-    finals = aux i 0;
-  }
+  match i with
+  | 0 -> Not_present
+  | 255 -> Present
+  | _ -> Ranked (aux i)
+
 
 (* TOML serialization *)
 (* ************************************************************************* *)
 
 let to_toml t =
+  (* duplicate a bit the functions from `Rank`, but we really want to ensure
+     that we can safely use `0` and that won't be confused with a rank *)
+  let rank_to_toml r = Otoml.integer (Rank.rank r) in
   let aux name t' acc =
     match t' with
     | Not_present -> acc
     | Present -> (name, Otoml.integer 0) :: acc
-    | Ranked r -> (name, Rank.to_toml r) :: acc
+    | Ranked [r] -> (name, rank_to_toml r) :: acc
+    | Ranked l -> (name, Otoml.array (List.map rank_to_toml l)) :: acc
   in
   []
   |> aux "prelims" t.prelims
@@ -102,9 +104,13 @@ let to_toml t =
 
 let of_toml t =
   let aux_of_toml t =
-    match Otoml.get_integer t with
-    | 0 -> Present
-    | _ -> Ranked (Rank.of_toml t)
+    match Otoml.get_opt Otoml.get_integer t with
+    | Some 0 -> Present
+    | Some i -> Ranked [Rank.mk i]
+    | None ->
+      match Otoml.get_opt (Otoml.get_array Otoml.get_integer) t with
+      | Some l -> Ranked (List.map Rank.mk l)
+      | None -> raise (Otoml.Type_error "not the result of a phase")
   in
   let aux t name =
     match Otoml.find_opt t aux_of_toml [name] with
@@ -119,6 +125,26 @@ let of_toml t =
     finals = aux t "finals";
   }
 
+(* Misc *)
+(* ************************************************************************* *)
+
+let merge_aux r r' =
+  match r, r' with
+  | Not_present, r''
+  | r'', Not_present
+  | Present, (Present as r'')
+  | Present, ((Ranked _) as r'')
+  | ((Ranked _) as r''), Present -> r''
+  | Ranked l, Ranked l' -> Ranked (l @ l')
+
+let merge r r' = {
+  prelims = merge_aux r.prelims r'.prelims;
+  octofinals = merge_aux r.octofinals r'.octofinals;
+  quarterfinals = merge_aux r.quarterfinals r'.quarterfinals;
+  semifinals = merge_aux r.semifinals r'.semifinals;
+  finals = merge_aux r.finals r'.finals;
+  }
+
 
 (* DB interaction *)
 (* ************************************************************************* *)
@@ -130,8 +156,12 @@ let () =
           competition INTEGER REFERENCES competitions(id),
           dancer INTEGER REFERENCES dancers(id),
           role INTEGER,
-          result INTEGER,
           points INTEGER,
+          prelims INTEGER,
+          octofinals INTEGER,
+          quarterfinals INTEGER,
+          semifinals INTEGER,
+          finals INTEGER,
           PRIMARY KEY (competition, dancer, role)
         )
       |})
@@ -140,22 +170,36 @@ type r = {
   competition : Competition.id;
   dancer : Dancer.id;
   role : Role.t;
-  result : t;
   points : Points.t;
+  result : t;
 }
 
 let conv =
-  Conv.mk Sqlite3_utils.Ty.[int; int; int; int; int]
-    (fun competition dancer role result points ->
+  Conv.mk Sqlite3_utils.Ty.[int; int; int; int; int; int; int; int; int]
+    (fun competition dancer role points prelims octo quarter semi finals ->
        let role = Role.of_int role in
-       let result = of_int result in
+       let result = {
+         prelims = aux_of_int prelims;
+         octofinals = aux_of_int octo;
+         quarterfinals = aux_of_int quarter;
+         semifinals = aux_of_int semi;
+         finals = aux_of_int finals;
+       }
+       in
        { competition; dancer; role; result; points; })
 
 let add ~st ~competition ~dancer ~role ~result ~points =
   let open Sqlite3_utils.Ty in
-  State.insert ~st ~ty:[int; int; int; int; int]
-    {| INSERT INTO results (competition,dancer,role,result,points) VALUES (?,?,?,?,?) |}
-    competition dancer (Role.to_int role) (to_int result) points
+  State.insert ~st ~ty:[int; int; int; int; int; int; int; int; int]
+    {| INSERT INTO results
+        (competition,dancer,role,points,prelims,octofinals,quarterfinals,semifinals,finals)
+        VALUES (?,?,?,?,?,?,?,?,?) |}
+    competition dancer (Role.to_int role) points
+    (aux_to_int result.prelims)
+    (aux_to_int result.octofinals)
+    (aux_to_int result.quarterfinals)
+    (aux_to_int result.semifinals)
+    (aux_to_int result.finals)
 
 let find ~st = function
   | `Competition competition ->
@@ -176,8 +220,6 @@ let all_points ~st ~dancer ~role ~div =
     dancer
     (Role.to_int role)
     (Category.to_int (Competitive div))
-
-
 
 let all_points_before ~st ~dancer ~role ~div ~end_date =
   let open Sqlite3_utils.Ty in
@@ -200,6 +242,8 @@ let all_points_before ~st ~dancer ~role ~div ~end_date =
     (Date.to_string end_date)
 
 
+(* TODO: rewrite all uses of this function, this recomputes the while ranking for each dancer,
+   that's not very efficient *)
 let update_finals ~st ~(dancer:Dancer.id) ~(role:Role.t) p_list =
   begin match List.find_opt (fun p -> (Round.compare (Phase.round p) Round.Finals)== 0) p_list with
     | Some p ->
@@ -225,7 +269,7 @@ let update_finals ~st ~(dancer:Dancer.id) ~(role:Role.t) p_list =
         ) in
       let rank_option = List.find_opt Option.is_some rank_option_list |> Option.join in
       begin match rank_option with
-        | Some rank -> Ranked rank
+        | Some rank -> Ranked [rank]
         | None -> raise Not_found
       end
     | None -> Not_present

@@ -2041,7 +2041,8 @@ module RankingResults = struct
     match r with
     | Not_present -> Not_present
     | Present -> Present
-    | Ranked i -> Ranked (Ftw.Rank.rank i)
+    | Ranked [i] -> Ranked (Ftw.Rank.rank i)
+    | Ranked _ -> Present (* unsupported for now, but let's not crash everything *)
 end
 
 module DancerCompetitionResults = struct

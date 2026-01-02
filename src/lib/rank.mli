@@ -56,6 +56,10 @@ val equal : t -> t -> bool
 val compare : t -> t -> int
 (** Comparison function. *)
 
+val min : t -> t -> t
+(** Minimum of two ranks, smaller ranks are "better"
+    (i.e. first place is the smallest rank) *)
+
 module Set : Set.S with type elt = t
 (** Sets for identifiers *)
 
