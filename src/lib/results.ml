@@ -3,7 +3,6 @@
 
 let src = Logs.Src.create "ftw.results"
 
-
 (* Competition result *)
 (* ************************************************************************* *)
 
@@ -58,6 +57,8 @@ let aux_to_int t =
       let i = Rank.rank rank in
       assert (1 <= i && i <= 254);
       let j = aux l in
+      (* check that we do not overflow the integer *)
+      assert (j land 0x7fff000000000000 = 0);
       i + (j lsl 8)
   in
   match t with
