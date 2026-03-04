@@ -13,6 +13,9 @@ type placement =
   | Other (**)
 (** Placements that can give rise to a point attribution. *)
 
+val max : t -> t -> t
+(** max of two points total *)
+
 val find : date:Date.t -> n:int -> placement:placement -> t
 (** Returns the points gained for the given placement at the given date,
     for a competition with [n] people registered in a role. *)

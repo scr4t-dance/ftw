@@ -35,6 +35,8 @@ let compare (r : t) r' = Stdlib.compare r r'
 
 let equal r r' = compare r r' = 0
 
+let min r r' = if compare r r' > 0 then r' else r
+
 module Aux = struct
   type nonrec t = t
   let compare = compare

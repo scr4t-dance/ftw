@@ -119,8 +119,12 @@ If the definition changes
             competition INTEGER REFERENCES competitions(id),
             dancer INTEGER REFERENCES dancers(id),
             role INTEGER,
-            result INTEGER,
             points INTEGER,
+            prelims INTEGER,
+            octofinals INTEGER,
+            quarterfinals INTEGER,
+            semifinals INTEGER,
+            finals INTEGER,
             PRIMARY KEY (competition, dancer, role)
           );
   CREATE TABLE bibs (

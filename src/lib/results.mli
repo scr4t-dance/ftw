@@ -6,7 +6,7 @@
 
 type aux =
   | Not_present | Present
-  | Ranked of Rank.t
+  | Ranked of Rank.t list
 
 type t = {
   prelims : aux;
@@ -31,6 +31,8 @@ val octofinalist : t
 
 val placement : t -> Points.placement
 
+val merge : t -> t -> t
+
 (* Serialization *)
 (* ************************************************************************* *)
 
@@ -46,8 +48,8 @@ type r = {
   competition : Competition.id;
   dancer : Dancer.id;
   role : Role.t;
-  result : t;
   points : Points.t;
+  result : t;
 }
 
 val add :

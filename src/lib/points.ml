@@ -11,6 +11,7 @@ type placement =
   | Semifinals
   | Other
 
+let max (i : t) j = max i j
 
 (* Base rules *)
 (* ************************************************************************* *)

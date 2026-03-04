@@ -48,7 +48,9 @@ let extract_bib s =
       then String.sub s 1 (String.length s - 1)
       else s
     in
-    Some (int_of_string (String.trim s))
+    match int_of_string (String.trim s) with
+    | 0 -> None
+    | bib -> Some bib
   end
 
 let extract_bib' s =
@@ -299,18 +301,19 @@ class virtual importer (st : State.t) = object(self)
         end;
         (* check the result is coherent with the ranking of finals *)
         begin match finals_rankings, r.result.finals with
-          | Some finals_ranking, Ranked rank ->
-            begin match Ranking.One.get finals_ranking rank with
-              | Some (rank', Target.Any Couple { leader; follower; })
-                when Rank.equal rank rank' && (
-                    Id.equal r.dancer (Dancer.id leader) ||
-                    Id.equal r.dancer (Dancer.id follower)) -> ()
-              | _ ->
-                Logs.err ~src (fun k ->
-                    k "Finals ranking and competition results do not match for rank %a: %a"
-                      Rank.print rank Dancer.print_compact (Dancer.get ~st r.dancer));
-                assert false
-            end
+          | Some finals_ranking, Ranked l ->
+            List.iter (fun rank ->
+                begin match Ranking.One.get finals_ranking rank with
+                  | Some (rank', Target.Any Couple { leader; follower; })
+                    when Rank.equal rank rank' && (
+                        Id.equal r.dancer (Dancer.id leader) ||
+                        Id.equal r.dancer (Dancer.id follower)) -> ()
+                  | _ ->
+                    Logs.err ~src (fun k ->
+                        k "Finals ranking and competition results do not match for rank %a: %a"
+                          Rank.print rank Dancer.print_compact (Dancer.get ~st r.dancer));
+                    assert false
+                end) l
           | _ -> ()
         end;
         (* actually record the results and compute adequate promotions *)
@@ -587,7 +590,7 @@ class ftw_1 st = object(self)
           Artefact.set ~st ~judge ~target artefact
         ) artefacts;
       match bonus with
-      | None -> ()
+      | None | Some 0 -> ()
       | Some b -> Bonus.set ~st ~target b
     in
     List.iter (add_heat_and_artefact ~role:Leader) leader_artefacts;
@@ -655,7 +658,7 @@ class ftw_1 st = object(self)
       | "E" -> Results.octofinalist
       | _ ->
         begin match int_of_string res with
-          | i -> Results.mk ~finals:(Ranked (Rank.mk i)) ()
+          | i -> Results.mk ~finals:(Ranked [Rank.mk i]) ()
           | exception Failure _ ->
             raise (Otoml.Type_error ("invalid result: " ^ res))
         end
@@ -694,7 +697,29 @@ class ftw_1 st = object(self)
             r :: acc
         ) [] lines
     in
+    let cmp r r' =
+      CCOrd.(
+        Id.compare r.Results.dancer r'.Results.dancer
+        <?> (Role.compare, r.Results.role, r'.Results.role))
+    in
+    let eq r r' = cmp r r' = 0 in
+    let merge r r' =
+      assert (Id.equal r.Results.competition r'.Results.competition);
+      assert (Id.equal r.Results.dancer r'.Results.dancer);
+      assert (Role.equal r.Results.role r'.Results.role);
+      { r with
+        points = Points.max r.Results.points r'.Results.points;
+        result = Results.merge r.Results.result r'.Results.result;
+      }
+    in
     l
+    |> List.sort cmp
+    |> CCList.group_succ ~eq
+    |> List.map (function
+        | [] -> assert false
+        | [r] -> r
+        | r :: others -> List.fold_left merge r others
+      )
 
 
 end
