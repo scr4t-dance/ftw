@@ -16,34 +16,38 @@ let convert_result_list_to_list_result a =
         )
     ) (Ok []) a
 
-let get_heat_followers (sh: Ftw.Heat.singles_heats) =
-  let target_list_array =
-    Array.map (fun (singles_heat: Ftw.Heat.singles_heat) ->
-        List.map (fun (d: Ftw.Heat.single) ->
-            let dancer_id = d.dancer in
-            Ftw.Target.Any (Single {target=dancer_id; role=Ftw.Role.Follower;}))
-          singles_heat.followers) sh.singles_heats
-  in
-  Array.to_list target_list_array
 
-let get_heat_leaders (sh: Ftw.Heat.singles_heats) =
-  let target_list_array =
-    Array.map (fun (singles_heat: Ftw.Heat.singles_heat) ->
-        List.map (fun (d: Ftw.Heat.single) ->
-            let dancer_id = d.dancer in
-            Ftw.Target.Any (Single {target=dancer_id; role=Ftw.Role.Leader;}))
-          singles_heat.leaders) sh.singles_heats
-  in
-  Array.to_list target_list_array
+(* filter targets for first passage only *)
+let get_heat_followers_for_artefacts (sh: Ftw.Heat.singles_heats) =
+  let targetId_map , _, follower_target_list_list = Ftw.Heat.all_single_judgement_targets sh in
+  let anyTargetMap = Ftw.Id.Map.map (fun d -> Ftw.Target.Any d) targetId_map in
+  List.map (fun targetId_list ->
+      List.map (fun targetId ->
+          let target = Ftw.Id.Map.find targetId anyTargetMap in
+          (targetId, target)
+        ) targetId_list
+    ) follower_target_list_list
+
+
+let get_heat_leaders_for_artefacts (sh: Ftw.Heat.singles_heats) =
+  let targetId_map, leader_target_list_list, _ = Ftw.Heat.all_single_judgement_targets sh in
+  let anyTargetMap = Ftw.Id.Map.map (fun d -> Ftw.Target.Any d) targetId_map in
+  List.map (fun targetId_list ->
+      List.map (fun targetId ->
+          let target = Ftw.Id.Map.find targetId anyTargetMap in
+          (targetId, target)
+        ) targetId_list
+    ) leader_target_list_list
 
 let get_heat_couples (ch:Ftw.Heat.couples_heats) =
-  let target_list_array =
-    Array.map (fun (couples_heat: Ftw.Heat.couples_heat) ->
-        List.map (fun (couple:Ftw.Heat.couple) ->
-            Ftw.Target.Any (Couple {leader=couple.leader;follower=couple.follower}))
-          couples_heat.couples) ch.couples_heats
-  in
-  Array.to_list target_list_array
+  let targetId_map, couple_target_list_list = Ftw.Heat.all_couple_judgement_targets ch in
+  let anyTargetMap = Ftw.Id.Map.map (fun d -> Ftw.Target.Any d) targetId_map in
+  List.map (fun targetId_list ->
+      List.map (fun targetId ->
+          let target = Ftw.Id.Map.find targetId anyTargetMap in
+          (targetId, target)
+        ) targetId_list
+    ) couple_target_list_list
 
 let get_artefact_description st id_phase (panel: Ftw.Judge.panel) id_judge =
   let is_head_judge =
@@ -379,7 +383,7 @@ and get_artefact_heat =
        Logs.debug ~src (fun m -> m "Query artefact phase %d judge %d" id id_judge);
        let phase = Ftw.Phase.get st id in
        let panel = Ftw.Judge.get ~st ~phase:id in
-       let target_list_list, judge_head =
+       let targetTuple_list_list, judge_head =
          match panel with
          | Singles panel_singles ->
            let is_judge_follower = List.mem id_judge panel_singles.followers in
@@ -389,9 +393,9 @@ and get_artefact_heat =
            let target_heat_list =
              match is_head_judge, is_judge_follower with
              | true, _ ->
-               List.map2 (fun fl ll -> fl @ ll) (get_heat_followers heats) (get_heat_leaders heats)
-             | false, true ->  get_heat_followers heats
-             | false, false -> get_heat_leaders heats
+               List.map2 (fun fl ll -> fl @ ll) (get_heat_followers_for_artefacts heats) (get_heat_leaders_for_artefacts heats)
+             | false, true ->  get_heat_followers_for_artefacts heats
+             | false, false -> get_heat_leaders_for_artefacts heats
            in
            (target_heat_list, panel_singles.head)
          | Couples panel_couples ->
@@ -406,24 +410,17 @@ and get_artefact_heat =
          | false -> Ftw.Phase.judge_artefact_descr phase
        end in
        let htj_maker heat_number target = Types.HeatTargetJudge.{phase_id=id;heat_number=heat_number;target=Types.Target.of_ftw target;judge=id_judge;description=Types.ArtefactDescription.of_ftw artefact_descr} in
-       let build_htj_target (htj: Types.HeatTargetJudge.t) = Ftw.Heat.get_id st id htj.heat_number (Types.Target.to_ftw htj.target) in
        let get_art heat_target =
          try Ok (Some (Ftw.Artefact.get ~st ~judge:id_judge ~target:heat_target ~descr:artefact_descr))
          with Not_found -> Ok None
        in
        let build_htja htj art = Types.HeatTargetJudgeArtefact.{heat_target_judge=htj; artefact=Option.map Types.Artefact.of_ftw art;} in
-       let make_htja heat_number target =
+       let make_htja heat_number (targetId, target) =
          let htj = htj_maker heat_number target in
-         let heat_target = build_htj_target htj in
-         let art =
-           Result.bind heat_target (fun ht ->
-               match ht with
-               | Some h_t -> get_art h_t
-               | None -> Ok None)
-         in
+         let art = get_art targetId in
          let htja = Result.map (build_htja htj) art in
          htja in
-       let htja_list_list = List.mapi (fun heat_number target_list -> List.map (fun t -> make_htja heat_number t) target_list) target_list_list in
+       let htja_list_list = List.mapi (fun heat_number targetTuple_list -> List.map (fun targetTuple -> make_htja heat_number targetTuple) targetTuple_list) targetTuple_list_list in
        let htja_result_list = List.flatten htja_list_list in
        let htja_list_result = List.fold_left (fun acc htja_result -> Result.bind acc (fun acc_list -> Result.map (fun htja -> acc_list @ [htja]) htja_result)) (Ok []) htja_result_list in
        let htja_array_result = Result.map (fun htja_list -> Types.HeatTargetJudgeArtefactArray.{artefacts=htja_list}) htja_list_result in

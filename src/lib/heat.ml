@@ -577,14 +577,14 @@ let check_forbidden ~st ~phase leader_pools follower_pools =
   let competition = Phase.competition (Phase.get st phase) in
   let forbidden_pairs = Forbidden.get ~st ~competition in
   Array.for_all2 (fun heat1 heat2 ->
-    List.for_all (fun ({dancer1;dancer2;_}: Forbidden.t) ->
+      List.for_all (fun ({dancer1;dancer2;_}: Forbidden.t) ->
           not ((Id.Set.mem dancer1 (Id.Set.of_list @@ Array.to_list heat1)) &&
                (Id.Set.mem dancer2 (Id.Set.of_list @@ Array.to_list heat2)))
           &&
           not ((Id.Set.mem dancer2 (Id.Set.of_list @@ Array.to_list heat1)) &&
                (Id.Set.mem dancer1 (Id.Set.of_list @@ Array.to_list heat2)))
-      ) forbidden_pairs
-  ) leader_pools follower_pools
+        ) forbidden_pairs
+    ) leader_pools follower_pools
 
 
 let regen_pools ~st ~phase ?(tries=100) ?(early=(0, [])) ?(late=(0, [])) ~min ~max t =
@@ -659,7 +659,7 @@ let simple_promote ~st ~(phase:Id.t) (_max_number_of_targets_to_pass:int) =
 (* ************************************************************************* *)
 
 let all_single_judgement_targets { singles_heats; } =
-  let aux ~passages map acc role l =
+  let aux ~passages map role l =
     List.fold_left (fun (map, acc) { target_id; dancer; } ->
         (* only the first (or only) passage is judged *)
         match Id.Map.find_opt dancer passages with
@@ -667,21 +667,26 @@ let all_single_judgement_targets { singles_heats; } =
         | _ ->
           let map = Id.Map.add target_id (Target.Single { target = dancer; role; }) map in
           map, (target_id :: acc)
-      ) (map, acc) l
+      ) (map, []) l
   in
   Array.fold_left (fun (map, acc_l, acc_f) { leaders; followers; passages; } ->
-      let map, acc_l = aux ~passages map acc_l Leader leaders in
-      let map, acc_f = aux ~passages map acc_f Follower followers in
-      (map, acc_l, acc_f)
+      let map, leader_target_id_list = aux ~passages map Leader leaders in
+      let map, follower_target_id_list = aux ~passages map Follower followers in
+      (map, acc_l @ [leader_target_id_list], acc_f @ [follower_target_id_list])
     ) (Id.Map.empty, [], []) singles_heats
 
 let all_couple_judgement_targets { couples_heats; } =
-  Array.fold_left (fun map { couples; passages = _; } ->
-      List.fold_left (fun map { leader; follower; target_id; } ->
-          (* all couples are judged, even if some dancer dances more than one time *)
-          Id.Map.add target_id (Target.Couple {leader; follower }) map
-        ) map couples
-    ) Id.Map.empty couples_heats
+  let aux map c =
+    List.fold_left (fun (map_, acc) { leader; follower; target_id; } ->
+        (* all couples are judged, even if some dancer dances more than one time *)
+        let new_map = Id.Map.add target_id (Target.Couple {leader; follower }) map_ in
+        new_map, (target_id :: acc)
+      ) (map, []) c
+  in
+  Array.fold_left (fun (map, acc_couples) { couples; passages = _; } ->
+      let heat_map, heat_acc = aux map couples in
+      (heat_map, acc_couples @ [heat_acc])
+    ) (Id.Map.empty, []) couples_heats
 
 
 (* Ranking *)
@@ -715,7 +720,7 @@ let ranking ~st ~phase:id =
       Ranking.Algorithm.compute
         ~judges:panel.leaders
         ~head:panel.head
-        ~targets:leaders
+        ~targets:(List.concat leaders)
         ~get_artefact:(get_artefact ~head:panel.head)
         ~get_bonus:(Bonus.get ~st)
         ~t:ranking_algorithm
@@ -724,14 +729,14 @@ let ranking ~st ~phase:id =
       Ranking.Algorithm.compute
         ~judges:panel.followers
         ~head:panel.head
-        ~targets:follows
+        ~targets:(List.concat follows)
         ~get_artefact:(get_artefact ~head:panel.head)
         ~get_bonus:(Bonus.get ~st)
         ~t:ranking_algorithm
     in
     Singles { leaders; follows; }
   | Couples couples, Couples panel ->
-    let map = all_couple_judgement_targets couples in
+    let map, _ = all_couple_judgement_targets couples in
     let targets = Id.Map.bindings map |> List.map fst in
     let couples =
       Ranking.Algorithm.compute

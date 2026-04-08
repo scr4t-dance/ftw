@@ -310,7 +310,7 @@ let compute ~st ~competition =
           let follower_list = keep_role Role.Follower target_list in
           leader_list, follower_list
         | Couples ch ->
-          let couple_targets_map = Heat.all_couple_judgement_targets ch in
+          let couple_targets_map, _ = Heat.all_couple_judgement_targets ch in
           let couple_target_list = Id.Map.bindings couple_targets_map |> List.map snd in
           let leader_list, follower_list = List.map
               convert_couple_to_pair_of_dancers couple_target_list |> List.split in
