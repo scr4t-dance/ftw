@@ -163,7 +163,9 @@ export function ArtefactTableArrayComponent({ phase_id, judges, head_judge, heat
                             <th>
                                 {index === judges.dancers.length && "Head "}
                                 <Link to={`${artefactLinkString}/${judgeId}`}>
-                                    {judgeData.first_name + " " + judgeData.last_name}
+                                    {judgeData.first_name}
+                                    <br/>
+                                    {judgeData.last_name}
                                 </Link>
                             </th>
                         );
