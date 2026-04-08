@@ -66,10 +66,15 @@ val couples_heats_of_toml : Otoml.t -> couples_heats
 (* ************************************************************************* *)
 
 val all_single_judgement_targets : singles_heats ->
-  ([ `Single ], Id.t) Target.t Id.Map.t * Id.t list * Id.t list
+  ([ `Single ], Id.t) Target.t Id.Map.t * Id.t list list * Id.t list list
+  (** returns a tuple with 3 elements.
+  A map of target id to Target,
+  a list of list of leaders target ids where leaders are grouped by heats
+  a list of list of followers target ids where followers are grouped by heats
+  *)
 
 val all_couple_judgement_targets : couples_heats ->
-  ([ `Couple ], Id.t) Target.t Id.Map.t
+  ([ `Couple ], Id.t) Target.t Id.Map.t * Id.t list list
 
 type 'target ranking =
   | Singles of {
