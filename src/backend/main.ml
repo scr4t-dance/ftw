@@ -3,20 +3,32 @@
 
 let src = Logs.Src.create "ftw.backend"
 
+(* Initialization *)
+(* ************************************************************************* *)
+
+(* [lookup_file name dirs] finds the first file called [filename] in the list
+   of firectories of the dune sites for assets *)
+let find_sites_dir filename =
+  List.find_map
+    (fun dir ->
+      let filename' = Filename.concat dir filename in
+      if Sys.file_exists filename' then Some dir else None)
+    Sites.Sites.assets
+
 (* Main Server *)
 (* ************************************************************************* *)
 
-let loader _root path _request =
+let loader _root path request =
   Logs.debug ~src (fun m -> m "Loading static request for '%s'" path);
-  match Static.read path with
+  match find_sites_dir path with
   | None ->
     (* if the path is not found in the frontend, automatically redirect to `index.html` *)
     begin match Static.read "index.html" with
       | None -> assert false (* let's assume the frontend will always have an `index.html` *)
       | Some asset -> Dream.html asset
     end
-  | Some asset ->
-    Printf.printf "\nFound %s default\n" path; flush_all(); Dream.respond asset
+  | Some dir ->
+    Dream.from_filesystem dir path request
 
 let router () =
   (* Setup the router with the base information for openapi *)

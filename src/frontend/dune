@@ -1,0 +1,21 @@
+
+(executables
+ (names main)
+ (package ftw_bin)
+ (modes js)
+ (libraries
+  js_of_ocaml
+  bonsai
+  bonsai.web
+  bonsai.web_ui_form
+  bonsai.extra)
+ (preprocess
+  (pps ppx_jane js_of_ocaml-ppx ppx_css))
+)
+
+(install
+  (section (site (ftw_bin assets)))
+  (files
+    (main.bc.js as main.bs.js)
+  )
+)

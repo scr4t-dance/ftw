@@ -4,6 +4,10 @@
 (package
  (name ftw)
  (version 0.1))
+
 (package
  (name ftw_bin)
- (version 0.1))
+ (version 0.1)
+ (site (share assets))
+)
+

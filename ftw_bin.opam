@@ -17,13 +17,13 @@ depends: [
   "dune"
   "ftw" { = version }
   "dream"
-  "crunch"
   "cmdliner" {>= "1.3.0" }
   "logs"
   "fmt"
   "openapi_router"
   "ppx_deriving"
   "ppx_deriving_yojson"
+  "bonsai"
   "odoc" {with-doc}
   "sherlodoc" {with-doc}
 ]

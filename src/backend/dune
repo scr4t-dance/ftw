@@ -14,9 +14,9 @@
      cmdliner containers yojson)
 )
 
-; crunch static files
-(rule
-  (target static.ml)
-  (deps (source_tree static))
-  (action (with-stdout-to %{null}
-   (run ocaml-crunch -m plain static -o %{target}))))
+; assets as files
+(generate_site_module
+  (module sites)
+  (sites ftw_bin)
+)
+
