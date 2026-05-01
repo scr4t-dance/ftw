@@ -54,18 +54,29 @@ type 'a get =
   | Inactive
   | Loading
   | Result of 'a
+  | Error of string
+[@@deriving sexp, equal]
 
-let query_get_aux (route : _ Ftw_api.Routes.get) params =
-  Js_of_ocaml.XmlHttpRequest. ;;
-    Js_of_ocaml.Js.
+let get_model (type a) (schema : a Ftw_api.Schema.t) =
+  let module M : Bonsai.Model with type t = a get = struct
+    type nonrec t = a get
+    let equal = equal_get (Ftw_api.Schema.equal schema)
+    let sexp_of_t = sexp_of_get (Ftw_api.Schema.sexp_of_t schema)
+    let t_of_sexp = get_of_sexp (Ftw_api.Schema.t_of_sexp schema)
+  end
+  in
+  (module M : Bonsai.Model with type t = a get)
 
-  let open! Lwt.Syntax in
-  let* (resp, raw_body) = Cohttp_lwt_jsoo.Client.get (Uri.of_string (route#url params)) in
-  let+ body_str = Cohttp_lwt.Body.to_string raw_body in
+let query_get (route : _ Ftw_api.Routes.get) params =
+  let open! Async_kernel.Deferred.Let_syntax in
+  Cohttp_async.Client.get (Uri.of_string (route#url params)) >>= fun (resp, body) ->
+  Cohttp_async.Body.to_string body >>| fun body ->
   match resp.status with
   | #Cohttp.Code.success_status ->
-    (* If the request succeeded, parse it into a Q.t *)
-    Ok (Jsont_bytesrw.decode_string (Ftw_api.Schema.jsont route#result_chema) body_str)
+    begin match Jsont_bytesrw.decode_string (Ftw_api.Schema.jsont route#result_schema) body with
+      | Ok result -> Ok result
+      | Error msg -> Error (`Msg msg)
+    end
   (* Handle "known" errors *)
   | `Unauthorized -> Error `Unauthorized
   | `Forbidden -> Error `Forbidden
@@ -75,21 +86,54 @@ let query_get_aux (route : _ Ftw_api.Routes.get) params =
   | #Cohttp.Code.redirection_status
   | #Cohttp.Code.informational_status
   | #Cohttp.Code.client_error_status
-  | `Code _ -> Error (`Msg body_str)
+  | `Code _ -> Error (`Msg body)
 
-let query_get route params =
-  let%sub response, set_response = Bonsai.state Inactive ~reset:(fun _ -> Inactive) in
+let query_get_component (type a)
+    ~(route : (_, a, _) Ftw_api.Routes.get) ~params
+    ~loading_view ~result_view ~err_view
+  =
+  let model = get_model route#result_schema in
+  let st = Bonsai.state model ~reset:(fun _ -> Inactive) ~default_model:Inactive in
+  let%sub result, set_result = st in
   (* On activate, we'll dispatch our `a Effect.t`, and set the result as state. *)
   let%sub on_activate =
-    let%arr params = params in
-    and set_response = set_response in
-    let%bind.Effect response_from_server = Effect_lwt.of_deferred_fun in
-    set_response (Some response_from_server)
+    let%arr params
+    and set_result in
+    Effect.(
+      set_result Loading >>= fun () ->
+      of_deferred_fun (query_get route) params >>= fun res ->
+            match res with
+          | Ok result -> set_result (Result result)
+          | Error _ -> set_result (Error "error while loading"))
   in
   let%sub () = Bonsai.Edge.lifecycle ~on_activate () in
+  (* TODO: add a refresh option *)
+  match%sub result with
+  | Inactive -> assert false
+  | Loading -> loading_view
+  | Result r -> result_view r
+  | Error err -> err_view err
 
-  assert false
+(* Event List *)
+(* ************************************************************************* *)
 
+let event_list =
+  query_get_component
+    ~route:Ftw_api.Routes.Event.list ~params:(Value.return object end)
+    ~loading_view:(Computation.return @@ Vdom.Node.text "loading...")
+    ~err_view:(fun err_msg ->
+        let%arr err_msg in
+        Vdom.Node.textf "Error: %s" err_msg)
+    ~result_view:(fun res ->
+        let%arr res in
+        Vdom.Node.ul
+          (List.map res ~f:(fun (ev : Ftw_api.Types.Event.t) ->
+               Vdom.Node.li [
+                 Vdom.Node.textf "Event(%d): %s"
+                   ev.id ev.name
+               ]
+             ))
+      )
 
 (* Routing *)
 (* ************************************************************************* *)
@@ -104,7 +148,7 @@ let main =
       Vdom.Node.button [link_vdom ~children:(Vdom.Node.textf "FOO !") "/events"];
     ]
   | "/events" ->
-    assert false
+    event_list
   | _ ->
     Computation.return @@
     Vdom.Node.div

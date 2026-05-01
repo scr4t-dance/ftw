@@ -1,0 +1,11 @@
+(library
+  (name     ftw_core)
+  (package  ftw)
+
+  ; deps
+  (libraries
+    fmt logs
+    gen containers
+    printbox
+  )
+)

@@ -10,6 +10,8 @@ bug-reports: "https://github.com/scr4t-dance/ftw/issues"
 depends: [
   "dune" {>= "3.18"}
   "ftw" {= version}
+  "base"
+  "sexplib0"
   "jsont"
   "odoc" {with-doc}
 ]

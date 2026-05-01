@@ -17,7 +17,7 @@ depends: [
   "logs"
   "fmt"
   "bonsai"
-  "cohttp-lwt-jsoo"
+  "cohttp-async"
   "odoc" {with-doc}
 ]
 build: [

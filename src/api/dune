@@ -3,11 +3,15 @@
   (name        ftw_api)
   (public_name ftw-api)
 
+  ; ppx
+  (preprocess
+   (pps ppx_sexp_conv ppx_compare))
+
   ; deps
   (libraries
-    ftw
-    unix fmt logs
-    gen containers
-    jsont uutf uunf
+    ftw_core
+    fmt logs jsont
+    containers
+    sexplib0 ppx_compare
   )
 )

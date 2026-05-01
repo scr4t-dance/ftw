@@ -17,8 +17,7 @@
    sqlite3 sqlite3_utils
    containers gen spelll otoml
    bos fpath logs fmt uunf uutf
-   printbox printbox-text)
-)
+   printbox printbox-text))
 
 (package
  (name ftw-api)
@@ -26,9 +25,8 @@
  (description "TODO")
  (depends
    (ftw (= :version))
-   jsont
- )
-)
+   base sexplib0
+   jsont))
 
 (package
  (name ftw-server)
@@ -41,7 +39,4 @@
    jsont bytesrw
    (cmdliner (>= 1.3.0))
    logs fmt
-   bonsai cohttp-lwt-jsoo
- )
-)
-
+   bonsai cohttp-async))

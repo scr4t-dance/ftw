@@ -1,6 +1,9 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+open Sexplib0.Sexp_conv
+open Ppx_compare_lib.Builtin
+
 (* Basic types/schemas *)
 (* ************************************************************************* *)
 
@@ -8,7 +11,12 @@ module Id = struct
 
   type t = Ftw.Id.t (* = int *)
 
-  let schema : t Schema.t = Schema.mk Jsont.int
+  let schema : t Schema.t =
+    Schema.mk
+      ~jsont:Jsont.int
+      ~equal:Ftw.Id.equal
+      ~t_of_sexp:int_of_sexp
+      ~sexp_of_t:sexp_of_int
 
 end
 
@@ -19,22 +27,22 @@ module Date = struct
     day : int;
     month : int;
     year : int;
-  }
+  } [@@deriving sexp, equal]
 
   let day { day; _ } = day
   let month { month; _ } = month
   let year { year; _ } = year
   let make day month year = { day; month; year; }
 
+  let jsont =
+    Jsont.Object.map ~kind:"Date" make
+    |> Jsont.Object.mem "day" Jsont.int ~enc:day
+    |> Jsont.Object.mem "month" Jsont.int ~enc:month
+    |> Jsont.Object.mem "year" Jsont.int ~enc:year
+    |> Jsont.Object.finish
+
   let schema : t Schema.t =
-    let conv =
-      Jsont.Object.map ~kind:"Date" make
-      |> Jsont.Object.mem "day" Jsont.int ~enc:day
-      |> Jsont.Object.mem "month" Jsont.int ~enc:month
-      |> Jsont.Object.mem "year" Jsont.int ~enc:year
-      |> Jsont.Object.finish
-    in
-    Schema.mk conv
+    Schema.mk ~jsont ~equal ~sexp_of_t ~t_of_sexp
 
   (* OpenAPI spec
   let ref, schema =
@@ -72,7 +80,7 @@ module Event = struct
     name : string;
     start_date : Date.t;
     end_date : Date.t;
-  }
+  } [@@deriving sexp, equal]
 
   let id { id; _ } = id
   let name { name; _ } = name
@@ -85,16 +93,16 @@ module Event = struct
       (Ftw.Event.id ev) (Ftw.Event.name ev)
       (Ftw.Event.start_date ev) (Ftw.Event.end_date ev)
 
+  let jsont =
+    Jsont.Object.map ~kind:"Event" make
+    |> Jsont.Object.mem "id" (Schema.jsont Id.schema) ~enc:id
+    |> Jsont.Object.mem "name" Jsont.string ~enc:name
+    |> Jsont.Object.mem "start_date" (Schema.jsont Date.schema) ~enc:start_date
+    |> Jsont.Object.mem "end_date" (Schema.jsont Date.schema) ~enc:end_date
+    |> Jsont.Object.finish
+
   let schema : t Schema.t =
-    let conv =
-      Jsont.Object.map ~kind:"Event" make
-      |> Jsont.Object.mem "id" (Schema.jsont Id.schema) ~enc:id
-      |> Jsont.Object.mem "name" Jsont.string ~enc:name
-      |> Jsont.Object.mem "start_date" (Schema.jsont Date.schema) ~enc:start_date
-      |> Jsont.Object.mem "end_date" (Schema.jsont Date.schema) ~enc:end_date
-      |> Jsont.Object.finish
-    in
-    Schema.mk conv
+    Schema.mk ~equal ~jsont ~t_of_sexp ~sexp_of_t
 
   (* OpenAPI spec
   let ref, schema =
@@ -120,13 +128,14 @@ end
 
 module EventList = struct
 
-  type t = Event.t list
+  type t = Event.t list [@@deriving sexp, equal]
 
   let of_ftw l = List.map Event.of_ftw l
 
+  let jsont = Jsont.list (Schema.jsont Event.schema)
+
   let schema : t Schema.t =
-    let conv = Jsont.list (Schema.jsont Event.schema) in
-    Schema.mk conv
+    Schema.mk ~equal ~jsont ~t_of_sexp ~sexp_of_t
 
 end
 
@@ -136,10 +145,11 @@ end
 module Err = struct
 
   (* TODO: use the proper Error.t type here *)
-  type t = string
+  type t = string [@@deriving sexp, equal]
+
+  let jsont = Jsont.string
 
   let schema : t Schema.t =
-    let conv = Jsont.string in
-    Schema.mk conv
+    Schema.mk ~equal ~jsont ~t_of_sexp ~sexp_of_t
 
 end

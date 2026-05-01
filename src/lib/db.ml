@@ -8,6 +8,7 @@ let src = Logs.Src.create "ftw.db"
 
 type t = {
   main : Sqlite3.db;
+  users : Sqlite3.db;
 }
 
 type db =
@@ -23,17 +24,18 @@ let initializers = ref []
 let add_init ~name f =
   initializers := (name, f) :: !initializers
 
-let sqldb ~db { main; } =
+let sqldb ~db { main; users } =
   match db with
   | Main -> main
-  | Users -> failwith "TODO"
+  | Users -> users
 
-let mk ~init path =
-  let main = Sqlite3.db_open path in
+let mk ~init ~user_path ~main_path =
+  let main = Sqlite3.db_open main_path in
+  let users = Sqlite3.db_open user_path in
   (* Enable foreign keys so that the "REFERENCES" uses in tables are
      actually enforced and checked. *)
   Sqlite3_utils.exec0_exn main {| PRAGMA foreign_keys = ON |};
-  let st = { main; } in
+  let st = { main; users } in
   if init then begin
     Logs.debug ~src (fun k->k "Starting DB initialization");
     List.iter (fun (name, f)->
@@ -84,9 +86,11 @@ let add_init_descr_table ?(db=Main) ~table_name ~to_int ~to_descr ~values () =
 (* Helper/Wrapper functions *)
 (* ************************************************************************* *)
 
-let atomically { main; } ~f =
+let atomically { main; users } ~f =
   Sqlite3_utils.atomically main (fun main ->
-      f { main; }
+      Sqlite3_utils.atomically users (fun users ->
+          f { main; users; }
+        )
     )
 
 let exec ?(db=Main) ~st sql =

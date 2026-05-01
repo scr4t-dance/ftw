@@ -2,15 +2,13 @@
   (name        ftw)
   (public_name ftw)
 
-  ; ppxs
-  (preprocess (pps ppx_deriving_yojson ppx_deriving.enum ppx_deriving.ord))
-
   ; deps
   (libraries
+    ftw_core
     unix fmt logs
     gen containers
     printbox printbox-text
-    sqlite3 sqlite3_utils
     otoml spelll uutf uunf
+    sqlite3 sqlite3_utils
   )
 )
