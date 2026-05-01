@@ -1,6 +1,7 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+
 module S = Openapi_router.Json_Schema
 
 (* Helper functions *)
@@ -2164,3 +2165,4 @@ module PromotionList = struct
       ]
       ~required:["promotions"]
 end
+

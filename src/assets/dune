@@ -1,0 +1,13 @@
+
+(install
+  (package ftw-server)
+  (section (site (ftw-server assets)))
+  (files
+    (index.html as index.html)
+    (logo.png as static/logo.png)
+    (bootstrap.bundle.min.js as static/bootstrap.bundle.min.js)
+    (bootstrap.bundle.min.js.map as static/bootstrap.bundle.min.js.map)
+    (bootstrap.min.css as static/bootstrap.min.css)
+    (bootstrap.min.css.map as static/bootstrap.min.css.map)
+  )
+)

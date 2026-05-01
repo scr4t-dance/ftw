@@ -10,6 +10,7 @@ type server = {
   db_path : string;
   db_no_init : bool;
   server_port : int;
+  api_delay : int;
 }
 
 type openapi = {
@@ -118,10 +119,13 @@ let server =
   and+ server_port =
     let doc = "Port to listen on" in
     Arg.(value & opt int 8080 & info ["p"; "port"] ~doc)
+  and+ api_delay =
+    let doc = "Delay for all API queries. Mainly for testing purposes" in
+    Arg.(value & opt int 0 & info ["delay"] ~doc)
   in
   setup_bt bt;
   setup_log logs_style logs_level;
-  Server { db_path; db_no_init; server_port; }
+  Server { db_path; db_no_init; server_port; api_delay; }
 
 (* Openapi options *)
 (* ************************************************************************* *)

@@ -1,13 +1,47 @@
-(lang dune 3.0)
+(lang dune 3.18)
 (name ftw)
+(using dune_site 0.1)
+(generate_opam_files)
+
+(source (github scr4t-dance/ftw))
+(license GPLv3)
+(authors "Guillaume Bury" "Xavier Duquesne")
+(maintainers "Guillaume Bury")
+(maintenance_intent "(latest)")
 
 (package
  (name ftw)
- (version 0.1))
+ (synopsis "Library for the FTW scoring and points system")
+ (description "TODO")
+ (depends
+   sqlite3 sqlite3_utils
+   containers gen spelll otoml
+   bos fpath logs fmt uunf uutf
+   printbox printbox-text)
+)
 
 (package
- (name ftw_bin)
- (version 0.1)
- (site (share assets))
+ (name ftw-api)
+ (synopsis "API definitions for the FTW scoring and points system")
+ (description "TODO")
+ (depends
+   (ftw (= :version))
+   jsont
+ )
+)
+
+(package
+ (name ftw-server)
+ (sites (share assets))
+ (synopsis "Web server for the FTW scoring system")
+ (description "TODO")
+ (depends
+   (ftw (= :version))
+   dream
+   jsont bytesrw
+   (cmdliner (>= 1.3.0))
+   logs fmt
+   bonsai cohttp-lwt-jsoo
+ )
 )
 

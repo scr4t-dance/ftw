@@ -1,0 +1,13 @@
+
+(library
+  (name        ftw_api)
+  (public_name ftw-api)
+
+  ; deps
+  (libraries
+    ftw
+    unix fmt logs
+    gen containers
+    jsont uutf uunf
+  )
+)

@@ -43,16 +43,16 @@ let () =
 
 type row = {
   dancer_id : Dancer.id;
-  competition_id : Competition.id;
+  _competition_id : Competition.id;
   bib : t;
   role : Role.t;
 }
 
 let conv =
   Conv.mk Sqlite3_utils.Ty.[int;int;int;int]
-    (fun dancer_id competition_id bib role ->
+    (fun dancer_id _competition_id bib role ->
        let role = Role.of_int role in
-       { dancer_id; competition_id; bib; role; }
+       { dancer_id; _competition_id; bib; role; }
     )
 
 let conv_one_bib = function

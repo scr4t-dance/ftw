@@ -4,6 +4,8 @@
 (* Instantiate the Openapi_router module and Interface *)
 (* ************************************************************************* *)
 
+
+(*
 module Config = struct
   type app = default_routes:Dream.route list -> Dream.handler
   type route = Dream.route
@@ -31,3 +33,4 @@ module T = Openapi_router.Make (Config)
 
 (* Include the resulting module for more ease of use. *)
 include T
+*)

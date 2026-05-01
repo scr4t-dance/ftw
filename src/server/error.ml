@@ -11,7 +11,7 @@ type t =
   | Incorrect_query_int of { id : string; payload : string; }
   | Incorrect_param_int of { param: string; payload : string; }
   | Invalid_json_body of { msg : string; payload : string;}
-  | Invalid_date of { date : Types.Date.t; }
+  | Invalid_date of { date : Ftw.Date.t; }
   | Bad_event_dates of { start_date : Ftw.Date.t; end_date : Ftw.Date.t; }
 
 let mk err = Error err
@@ -79,7 +79,7 @@ let err_msg = function
       "Error while parsing json body: %s\n %s" msg payload
   | Invalid_date { date; } ->
     Format.asprintf
-      "Invalid date: %s" (Types.Date.show date)
+      "Invalid date: %s" (Ftw.Date.to_string date)
   | Bad_event_dates { start_date; end_date; } ->
     Format.asprintf
       "Invalid Event dates: %s - %s"

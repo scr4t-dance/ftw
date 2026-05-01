@@ -2,21 +2,22 @@
 ; main server binary
 (executable
   (name         main)
-  (public_name  ftw)
-  (package      ftw_bin)
+  (public_name  ftw-server)
+  (package      ftw-server)
   (preprocess
     (pps lwt_ppx ppx_deriving.show ppx_deriving_yojson)
   )
   (libraries
-     ftw
-     openapi_router dream
+     ftw ftw_api dream
      fmt fmt.cli logs logs.cli logs.fmt
-     cmdliner containers yojson)
+     cmdliner containers yojson jsont jsont.bytesrw
+     dune-site
+  )
 )
 
 ; assets as files
-(generate_site_module
+(generate_sites_module
   (module sites)
-  (sites ftw_bin)
+  (sites ftw-server)
 )
 

@@ -1,0 +1,21 @@
+
+(executables
+ (names main)
+ (modes js)
+ (libraries
+  js_of_ocaml
+  ftw ftw_api
+  bonsai bonsai.web cohttp-lwt-jsoo
+  jsont jsont.bytesrw
+  )
+ (preprocess
+  (pps js_of_ocaml-ppx bonsai.ppx_bonsai))
+)
+
+(install
+  (package ftw-server)
+  (section (site (ftw-server assets)))
+  (files
+    (main.bc.js as static/main.bc.js)
+  )
+)

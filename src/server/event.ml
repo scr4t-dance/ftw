@@ -1,6 +1,13 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+let list =
+  let api = Ftw_api.Routes.Event.list in
+  Api.get api#url_template ~result_schema:api#result_schema @@ fun _req st ->
+  Ok (Ftw_api.Types.EventList.of_ftw (Ftw.Event.list st))
+
+(*
+
 open Utils.Syntax
 
 (* Routes *)
@@ -153,3 +160,4 @@ and create_event =
        let id = Ftw.Event.create ~st ~name:event.name ~short_name ~start_date ~end_date in
        Ok id)
 
+*)

@@ -22,14 +22,16 @@ let loader _root path request =
   Logs.debug ~src (fun m -> m "Loading static request for '%s'" path);
   match find_sites_dir path with
   | None ->
+    Logs.debug ~src (fun m -> m "Path not found, defaulting to index.html");
     (* if the path is not found in the frontend, automatically redirect to `index.html` *)
-    begin match Static.read "index.html" with
+    begin match find_sites_dir "index.html" with
       | None -> assert false (* let's assume the frontend will always have an `index.html` *)
-      | Some asset -> Dream.html asset
+      | Some dir -> Dream.from_filesystem dir "index.html" request
     end
   | Some dir ->
     Dream.from_filesystem dir path request
 
+(*
 let router () =
   (* Setup the router with the base information for openapi *)
   let router =
@@ -54,6 +56,11 @@ let router () =
   |> Judge.routes
   |> Ranking.routes
   |> Results.routes
+*)
+
+let delay s callback req =
+  if s > 0 then Unix.sleep s;
+  callback req
 
 let server (options : Options.server) =
   (* Default routes to serve the clients files (pages, scripts and css) *)
@@ -62,7 +69,7 @@ let server (options : Options.server) =
     Dream.get "/**" (Dream.static ~loader "");
   ] in
   (* Create the router *)
-  let router = router () in
+  (* let router = router () in *)
   (* Define CORS middleware manually *)
   let cors_middleware handler request =
     match Dream.method_ request with
@@ -89,18 +96,26 @@ let server (options : Options.server) =
   @@ State.init
     ~path:options.db_path
     ~init:(not options.db_no_init)
-  @@ Router.build ~default_routes router
+  @@ Dream.router (
+    Dream.scope (Ftw_api.Routes.prefix)
+      [Dream.origin_referrer_check; delay options.api_delay] [
+      Event.list
+    ] ::
+    default_routes
+  )
 
 (* Spec export *)
 (* ************************************************************************* *)
 
-let openapi (options : Options.openapi) =
+let openapi (_options : Options.openapi) =
+  (*
   let router = router () in
   let spec = router.spec in
   let ch = open_out options.file in
   let fmt = Format.formatter_of_out_channel ch in
   Format.fprintf fmt "%a@." (Yojson.Safe.pretty_print ~std:false) (Spec.yojson_of_t spec);
   let () = close_out ch in
+  *)
   ()
 
 (* DB init *)

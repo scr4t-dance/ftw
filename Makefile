@@ -5,29 +5,8 @@ SHELL := /bin/bash
 FLAGS=
 BINDIR=_build/install/default/bin
 
-# Some variables for the frontend build
-FRONTEND_TARGET=src/frontend/build
-FRONTEND_DEPS=\
-	src/hookgen/package.json \
-	src/hookgen/package-lock.json \
-	src/frontend/package.json \
-	src/frontend/package-lock.json \
-	src/frontend/.env.production \
-	src/frontend/.env.development \
-	src/frontend/react-router.config.ts \
-	src/frontend/vite.config.ts \
-	src/frontend/tsconfig.json \
-	src/frontend/public/* \
-	$(shell find src/frontend/app/ -type f)
-
-BACKEND_DEPS=\
-	$(shell find src/backend/ -type f)
-
 # Aliases
 all: build
-
-build: backend
-
 
 ####################
 # Main Build rules #
@@ -36,31 +15,19 @@ build: backend
 conf-opam:
 	opam install . --deps-only --with-test --with-doc
 
-conf-npm:
-	cd src/frontend && npm install
-	cd src/frontend && npx playwright install chromium firefox webkit
-	cd src/hookgen && npm install
+configure: conf-opam
 
-configure: conf-opam conf-npm
-
-src/frontend/app/hookgen/hookgen.sentinel hookgen: src/openapi.json
-	cd src/hookgen && ./node_modules/.bin/orval --config ./orval.config.js
-	touch src/frontend/app/hookgen/hookgen.sentinel
-
-$(FRONTEND_TARGET): src/frontend/app/hookgen/hookgen.sentinel $(FRONTEND_DEPS)
-	cd src/frontend && npm run build
-
-frontend: $(FRONTEND_TARGET)
-
-backend: $(FRONTEND_TARGET)
-	dune build $(FLAGS) @install
-
+build:
+	dune build $(FLAGS)
 
 ######################
 # Tests, Docs & misc #
 ######################
 
-tests: backend
+run: build
+	dune exec -- ftw-server -vv --db=foo.db --delay=3
+
+tests: build
 	@dune runtest \
 		|| (echo -e "\n\e[01;31m!!! TESTS FAILED !!!\e[0m\n-> run 'make promote' to update the tests result files\nRun 'make openapi' if tests fail"; \
 		    exit 1 )
@@ -68,34 +35,17 @@ tests: backend
 promote:
 	dune promote
 
-src/openapi.json openapi: $(BACKEND_DEPS)
-	dune build $(FLAGS) @install
-	dune exec -- ftw openapi src/openapi.json
-
 doc:
 	dune build $(FLAGS) @doc
 
 clean:
 	dune clean
-	rm -rf $(FRONTEND_TARGET)
-	rm -rf src/frontend/node_modules
-	rm -rf src/hookgen/node_modules
-	rm -rf src/frontend/app/hookgen
-	rm -rf src/frontend/.react-router
-
 
 ################
 # Helper Rules #
 ################
 
-run: backend
-	./bin/deploy_production.sh
-
-dev: backend
-	./bin/deploy_frontend_dev.sh
-
 top:
 	dune utop
 
-.PHONY: all build top doc run dev tests promote clean frontend backend
-	hookgen openapi
+.PHONY: all conf-opam configure build tests promote doc clean top
