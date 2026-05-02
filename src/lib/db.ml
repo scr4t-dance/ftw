@@ -1,136 +1,60 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-let src = Logs.Src.create "ftw.db"
-
 (* Type definition *)
 (* ************************************************************************* *)
 
-type t = {
-  main : Sqlite3.db;
-  users : Sqlite3.db;
-}
+type t = Sqlite3.db
 
-type db =
-  | Main
-  | Users
-
-
-(* DB creation & initialization *)
-(* ************************************************************************* *)
-
-let initializers = ref []
-
-let add_init ~name f =
-  initializers := (name, f) :: !initializers
-
-let sqldb ~db { main; users } =
-  match db with
-  | Main -> main
-  | Users -> users
-
-let mk ~init ~user_path ~main_path =
-  let main = Sqlite3.db_open main_path in
-  let users = Sqlite3.db_open user_path in
-  (* Enable foreign keys so that the "REFERENCES" uses in tables are
-     actually enforced and checked. *)
-  Sqlite3_utils.exec0_exn main {| PRAGMA foreign_keys = ON |};
-  let st = { main; users } in
-  if init then begin
-    Logs.debug ~src (fun k->k "Starting DB initialization");
-    List.iter (fun (name, f)->
-        try f st
-        with
-        | Sqlite3.Error msg as exn ->
-          let bt = Printexc.get_backtrace () in
-          Logs.err ~src (fun k ->
-              k "SQLite error during initialization for %s: %s\nBacktrace:\n%s"
-                name msg bt);
-          raise exn
-        | exn ->
-          let bt = Printexc.get_backtrace () in
-          Logs.err ~src (fun k ->
-              k "Failed initialization for %s: %s\nBacktrace:\n%s"
-                name (Printexc.to_string exn) bt);
-          raise exn
-      ) (List.rev !initializers);
-    Logs.debug ~src (fun k->k "Finished initialization of DB")
-  end;
-  st
-
-(* Helper for intializing tables that are mainly here so that the DB can
-   be (more or less) self-describing, or at least a bit more readable
-   without context. *)
-let add_init_descr_table ?(db=Main) ~table_name ~to_int ~to_descr ~values () =
-  let aux st =
-    let db = sqldb ~db st in
-    (* create table *)
-    Sqlite3_utils.exec0_exn db (Format.asprintf {|
-      CREATE TABLE IF NOT EXISTS %s (
-        id INTEGER PRIMARY KEY,
-        name TEXT UNIQUE)
-      |} table_name);
-    (* Add all values *)
-    List.iter (fun value ->
-        let name = to_descr value in
-        let open Sqlite3_utils.Ty in
-        Sqlite3_utils.exec_no_cursor_exn db ~ty:[ int; text; ]
-          (Format.asprintf
-             {| INSERT OR IGNORE INTO %s (id, name) VALUES (?,?) |} table_name)
-          (to_int value) name
-      ) values
-  in
-  add_init ~name:table_name aux
+module Ty = Sqlite3_utils.Ty
 
 
 (* Helper/Wrapper functions *)
 (* ************************************************************************* *)
 
-let atomically { main; users } ~f =
-  Sqlite3_utils.atomically main (fun main ->
-      Sqlite3_utils.atomically users (fun users ->
-          f { main; users; }
-        )
+let atomically t ~f =
+  Sqlite3_utils.atomically t (fun t ->
+          f t
     )
 
-let exec ?(db=Main) ~st sql =
+let exec ~db sql =
   let open Sqlite3_utils in
-  exec0_exn (sqldb ~db st) sql
+  exec0_exn db sql
 
-let insert ?(db=Main) ~ty ~st sql =
+let insert ~db ~ty sql =
   let open Sqlite3_utils in
-  exec_no_cursor_exn (sqldb ~db st) sql ~ty
+  exec_no_cursor_exn db sql ~ty
 
-let query_all ?(db=Main) ~f ~conv ~st sql =
+let query_all ~db ~f ~conv sql =
   let Conv.Conv (p, res) = conv in
   let open Sqlite3_utils in
-  exec_no_params_exn (sqldb ~db st) sql
+  exec_no_params_exn db sql
     ~ty:(p, res) ~f:(Sqlite3_utils.Cursor.iter ~f)
 
-let query_list ?(db=Main) ~conv ~st sql =
+let query_list ~db ~conv sql =
   let Conv.Conv (p, res) = conv in
   let open Sqlite3_utils in
-  exec_no_params_exn (sqldb ~db st) sql
+  exec_no_params_exn db sql
     ~ty:(p, res) ~f:(Sqlite3_utils.Cursor.to_list)
 
-let query_all_where ?(db=Main) ~f ~p ~conv ~st sql =
+let query_all_where ~db ~f ~p ~conv sql =
   let Conv.Conv (res, f_conv) = conv in
   let open Sqlite3_utils in
-  exec_exn (sqldb ~db st) sql
+  exec_exn ~db sql
     ~ty:(p, res, f_conv)
     ~f:(Sqlite3_utils.Cursor.iter ~f)
 
-let query_list_where ?(db=Main) ~p ~conv ~st sql =
+let query_list_where ~db ~p ~conv sql =
   let Conv.Conv (res, f_conv) = conv in
   let open Sqlite3_utils in
-  exec_exn (sqldb ~db st) sql
+  exec_exn db sql
     ~ty:(p, res, f_conv)
     ~f:(Sqlite3_utils.Cursor.to_list)
 
-let query_one_where ?(db=Main) ~p ~conv ~st sql =
+let query_one_where ~db ~p ~conv sql =
   let Conv.Conv (res, f_conv) = conv in
   let open Sqlite3_utils in
-  exec_exn (sqldb ~db st) sql
+  exec_exn db sql
     ~ty:(p, res, f_conv)
     ~f:(Sqlite3_utils.Cursor.get_one_exn)
 

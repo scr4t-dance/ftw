@@ -14,30 +14,6 @@ type t =
     There cannot be two phases with the same round type in a competition. *)
 
 
-(* Serialization *)
-(* ************************************************************************* *)
-
-val toml_key : t -> string
-(** Suitable key for toml *)
-
-
-(* DB interaction *)
-(* ************************************************************************* *)
-
-val to_int : t -> int
-(** Conversion to integer. *)
-
-val of_int : int -> t
-(** Conversion from integer.
-    @raise Stdlib.Failure _ if the int is out of range *)
-
-val p : (int -> 'a, 'a) Sqlite3_utils.Ty.t
-(** Sqlite query "type" for identifiers *)
-
-val conv : t Conv.t
-(** Converter for identifiers *)
-
-
 (* Usual functions *)
 (* ************************************************************************* *)
 
@@ -47,9 +23,6 @@ val print : Format.formatter -> t -> unit
 val equal : t -> t -> bool
 (** Equality function *)
 
-val next : t -> t option
-(** Get next round *)
-
 val compare : t -> t -> int
 (** Comparison function. *)
 
@@ -58,3 +31,11 @@ module Set : Set.S with type elt = t
 
 module Map : Map.S with type key = t
 (** Maps for identifiers *)
+
+
+(* Interesting functions *)
+(* ************************************************************************* *)
+
+val next : t -> t option
+(** Get next round *)
+

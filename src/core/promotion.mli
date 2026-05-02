@@ -1,11 +1,15 @@
 
+(* This file is free software, part of FTW. See file "LICENSE" for more information *)
+
+(* Type definitions *)
+(* ************************************************************************* *)
+
 type update =
-    None
-  | Downgrade_to of Divisions.t
+  | No_update
   | Upgrade_to_at_least of Divisions.t
 
 type reason =
-    Participation
+  | Participation
   | Invited
   | Qualifying_finalist
   | Inter_finalist
@@ -13,21 +17,38 @@ type reason =
   | Points_hard
   | Points_auto
 
-val reason_to_string : reason -> string
-
 type t = {
   competition : int;
   dancer : int;
   role : Role.t;
-  current_divisions : Divisions.t;
+  old_divisions : Divisions.t;
   new_divisions : Divisions.t;
   reason : reason;
 }
 
-val current_divisions : t -> Divisions.t
+(* Helpers *)
+(* ************************************************************************* *)
 
-val new_divisions : t -> Divisions.t
+val print_reason : Format.formatter -> reason -> unit
 
+
+(* Promotion computation *)
+(* ************************************************************************* *)
+
+type lazy_points = {
+  novice : Points.t Lazy.t;
+  inter : Points.t Lazy.t;
+  adv : Points.t Lazy.t;
+}
+
+val compute :
+  event:Event.t -> comp:Competition.t -> dancer:Dancer.t ->
+  current_points:lazy_points -> result:Results.r -> t option
+(** Compute whether a result triggers a promotion. *)
+
+
+(* Promotion rules *)
+(* ************************************************************************* *)
 
 type points = Division.t -> int
 
@@ -44,9 +65,3 @@ val auto_promote : Division.t -> Divisions.t -> rule
 
 val rules : (reason * rule) list Date.Itm.t
 
-val compute_promotion : State.t -> Results.r -> t
-(** Compute promotions recursively.
-    It enables to handles cases where we want to recompute results of a past competition.
-*)
-
-val update_with_new_result : State.t -> t -> unit

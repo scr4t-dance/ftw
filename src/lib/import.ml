@@ -1,7 +1,8 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-open Misc.Result
+open Ftw_core.Misc.Result
+
 let src = Logs.Src.create "ftw.import"
 
 (* Judges *)
@@ -108,7 +109,7 @@ let import_dancers ~st file =
             let id = int_of_string id in
             let birthday = if birthday = "" then None else Some (Date.of_string birthday) in
             let email = if email = "" then None else Some email in
-            Dancer.import () ~st ~id
+            Dancer.Private.import () ~st ~id
               ~first_name ~last_name ?birthday ?email
               ~as_leader:None ~as_follower:None
           | _ ->

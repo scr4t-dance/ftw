@@ -2,10 +2,13 @@
   (name     ftw_core)
   (package  ftw)
 
+  ; ppx
+  (preprocess
+   (pps ppx_sexp_conv ppx_compare))
+
   ; deps
   (libraries
-    fmt logs
-    gen containers
-    printbox
+    fmt logs jsont
+    gen containers printbox
   )
 )

@@ -12,8 +12,11 @@ type t =
   | Incorrect_query_int of { id : string; payload : string; }
   | Incorrect_param_int of { param: string; payload : string; }
   | Invalid_json_body of { msg : string; payload : string;}
-  | Invalid_date of { date : Ftw.Date.t; }
-  | Bad_event_dates of { start_date : Ftw.Date.t; end_date : Ftw.Date.t; }
+  | Invalid_date of { date : Ftw_core.Date.t; }
+  | Bad_event_dates of {
+      start_date : Ftw_core.Date.t;
+      end_date : Ftw_core.Date.t;
+    }
 
 let mk err = Error err
 
@@ -62,9 +65,8 @@ let err_msg = function
     Format.asprintf
       "Error while parsing json body: %s\n %s" msg payload
   | Invalid_date { date; } ->
-    Format.asprintf
-      "Invalid date: %s" (Ftw.Date.to_string date)
+    Format.asprintf "Invalid date: %a" Ftw_core.Date.print date
   | Bad_event_dates { start_date; end_date; } ->
     Format.asprintf
-      "Invalid Event dates: %s - %s"
-      (Ftw.Date.to_string start_date) (Ftw.Date.to_string end_date)
+      "Invalid Event dates: %a - %a"
+      Ftw_core.Date.print start_date Ftw_core.Date.print end_date

@@ -16,6 +16,14 @@ type t = {
   finals : aux;
 }
 
+type r = {
+  competition : Competition.id;
+  dancer : Dancer.id;
+  role : Role.t;
+  points : Points.t;
+  result : t;
+}
+
 val mk :
   ?prelims:aux ->
   ?octofinals:aux ->
@@ -32,68 +40,3 @@ val octofinalist : t
 val placement : t -> Points.placement
 
 val merge : t -> t -> t
-
-(* Serialization *)
-(* ************************************************************************* *)
-
-val to_toml : t -> Otoml.t
-
-val of_toml : Otoml.t -> t
-
-
-(* DB interaction *)
-(* ************************************************************************* *)
-
-type r = {
-  competition : Competition.id;
-  dancer : Dancer.id;
-  role : Role.t;
-  points : Points.t;
-  result : t;
-}
-
-val add :
-  st:State.t -> competition:Competition.id ->
-  dancer:Dancer.id -> role:Role.t ->
-  result:t -> points:Points.t -> unit
-(** Add a result to the DB. *)
-
-val find :
-  st:State.t -> [
-    | `Dancer of Dancer.id
-    | `Competition of Competition.id
-  ] -> r list
-(** Find the list of results for a given competition or dancer. *)
-
-val all_points :
-  st:State.t ->
-  dancer:Dancer.id ->
-  role:Role.t ->
-  div:Division.t ->
-  int
-(** Find the total number of points for a dancer and role. *)
-
-val update_finals :
-  st:State.t ->
-  dancer:int ->
-  role:Role.t ->
-  Phase.t list ->
-  aux
-
-
-val all_points_before : st:State.t ->
-  dancer:int ->
-  role:Role.t ->
-  div:Division.t ->
-  end_date:Date.t ->
-  int
-(** Find the total number of points for a dancer and role for events that ended before the given date *)
-
-val points : st:State.t ->
-  event:int ->
-  comp:Competition.t ->
-  role:Role.t ->
-  t ->
-  int
-
-val compute : st:State.t -> competition:int -> unit

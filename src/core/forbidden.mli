@@ -1,5 +1,11 @@
-type t = { competition : int; dancer1 : int; dancer2 : int; }
 
-val conv : t Conv.t
-val get : st:State.t -> competition:int -> t list
-val set : st:State.t -> competition:int -> t list -> unit
+(* This file is free software, part of FTW. See file "LICENSE" for more information *)
+
+(* Type definitions *)
+(* ************************************************************************* *)
+
+type t = {
+  competition : Competition.id;
+  dancer1 : Dancer.id;
+  dancer2 : Dancer.id;
+}

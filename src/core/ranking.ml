@@ -109,9 +109,8 @@ module One = struct
     done;
     matrix
 
-  let print ~pp fmt t =
-    let box = PrintBox.grid ~bars:true (printbox_matrix ~pp t) in
-    PrintBox_text.pp fmt box
+  let printbox ~pp t =
+    PrintBox.grid ~bars:true (printbox_matrix ~pp t)
 
 end
 
@@ -276,7 +275,7 @@ module Matrix = struct
 
 end
 
-(* Algorithms - Yan wieghted *)
+(* Algorithms - Yan weighted *)
 (* *********************************************************************** *)
 
 module Yan_weighted = struct
@@ -285,12 +284,36 @@ module Yan_weighted = struct
     yes : int;
     alt : int;
     no : int;
-  } [@@deriving yojson]
+  }
 
   type conf = {
     weights : weight list;
     head_weights : weight list;
-  } [@@deriving yojson]
+  }
+
+  (* conf accessors/constructors *)
+  let weight_no t = t.no
+  let weight_alt t = t.alt
+  let weight_yes t = t.yes
+  let mk_weight yes alt no = { yes; alt; no; }
+  let weight_jsont =
+    Jsont.Object.map ~kind:"YanWeight" mk_weight
+    |> Jsont.Object.mem "yes" Jsont.int ~enc:weight_yes
+    |> Jsont.Object.mem "alt" Jsont.int ~enc:weight_alt
+    |> Jsont.Object.mem "no" Jsont.int ~enc:weight_no
+    |> Jsont.Object.finish
+
+  let weights_jsont =
+    Jsont.list weight_jsont
+
+  let weights t = t.weights
+  let head_weights t = t.head_weights
+  let mk_conf weights head_weights = { weights; head_weights; }
+  let conf_jsont =
+    Jsont.Object.map ~kind:"YanWeightedConf" mk_conf
+    |> Jsont.Object.mem "weights" weights_jsont ~enc:weights
+    |> Jsont.Object.mem "head_weights" weights_jsont ~enc:head_weights
+    |> Jsont.Object.finish
 
   (* printing *)
 
@@ -309,40 +332,6 @@ module Yan_weighted = struct
     Format.fprintf fmt "%a / %a"
       print_weights weights
       print_weights head_weights
-
-  (* serialization *)
-
-  let weight_to_toml { yes; alt; no; } =
-    Otoml.inline_table [
-      "yes", Otoml.integer yes;
-      "alt", Otoml.integer alt;
-      "no", Otoml.integer no;
-    ]
-
-  let weight_of_toml t =
-    let yes = Otoml.find_exn t Otoml.get_integer ["yes"] in
-    let alt = Otoml.find_exn t Otoml.get_integer ["alt"] in
-    let no = Otoml.find_exn t Otoml.get_integer ["no"] in
-    { yes; alt; no; }
-
-  let weights_to_toml l =
-    Otoml.array (List.map weight_to_toml l)
-
-  let weights_of_toml t =
-    Otoml.get_array weight_of_toml t
-
-  let conf_to_toml { weights; head_weights; } =
-    [ weights_to_toml weights;
-      weights_to_toml head_weights ]
-
-  let conf_of_toml = function
-    | [ w; h_w ] ->
-      let weights = weights_of_toml w in
-      let head_weights = weights_of_toml h_w in
-      { weights; head_weights; }
-    | _ ->
-      assert false (* TODO: error msg *)
-
 
   (* creating and computing the ranking accumulator *)
 
@@ -431,7 +420,6 @@ end
 module RPSS = struct
 
   type conf = unit
-  [@@deriving yojson]
 
   type cell = {
     mutable votes : int option;
@@ -440,6 +428,14 @@ module RPSS = struct
   }
 
   type acc = cell array
+
+  (* json *)
+
+  let conf_jsont =
+    Jsont.Object.map ~kind:"RPSSConf" ()
+    |> Jsont.Object.finish
+
+  (* computation *)
 
   let acc_line acc =
     Array.map (function { votes; sum; head; } ->
@@ -567,6 +563,7 @@ module RPSS = struct
     end
 
 end
+
 (* Ranking info/explanations *)
 (* ************************************************************************* *)
 
@@ -589,17 +586,13 @@ module Res = struct
     | RPSS matrix -> Matrix.ranks matrix
     | Yan_weighted matrix -> Matrix.ranks matrix
 
-  let matrix_box ~pp = function
+  let printbox ~pp = function
     | RPSS matrix ->
       Matrix.printbox matrix ~pp
         ~acc_line:RPSS.acc_line ~acc_side:`Right
     | Yan_weighted matrix ->
       Matrix.printbox matrix ~pp
         ~acc_line:Yan_weighted.acc_line ~acc_side:`Left
-
-  let debug ~pp fmt { info; _ } =
-    let box = matrix_box ~pp info in
-    PrintBox_text.pp fmt box
 
   let map ~targets ~judges { status; info; } =
     let info =
@@ -625,7 +618,6 @@ module Algorithm = struct
   type t =
     | RPSS of RPSS.conf
     | Yan_weighted of Yan_weighted.conf
-  [@@deriving yojson]
 
   (* Usual functions *)
   (* *********************************************************************** *)
@@ -636,24 +628,23 @@ module Algorithm = struct
     | Yan_weighted conf ->
       Yan_weighted.print_conf fmt conf
 
-  (* Algorithms Serialization *)
+  (* Json *)
   (* *********************************************************************** *)
 
-  let to_toml = function
-    | RPSS () ->
-      Otoml.array [ Otoml.string "RPSS"; ]
-    | Yan_weighted conf ->
-      Otoml.array ( Otoml.string "Yan_weighted" :: Yan_weighted.conf_to_toml conf)
+  let rpss conf = RPSS conf
+  let yan_weighted conf = Yan_weighted conf
+  let jsont =
+    let rpss = Jsont.Object.Case.map "RPSS" RPSS.conf_jsont ~dec:rpss in
+    let yan_weighted = Jsont.Object.Case.map "Yan_weighted" Yan_weighted.conf_jsont ~dec:yan_weighted in
+    let enc_case = function
+      | RPSS conf -> Jsont.Object.Case.value rpss conf
+      | Yan_weighted conf -> Jsont.Object.Case.value yan_weighted conf
+    in
+    let cases = Jsont.Object.Case.[make rpss; make yan_weighted] in
+    Jsont.Object.map ~kind:"Algorithm" Fun.id
+    |> Jsont.Object.case_mem "algorithm" Jsont.string ~enc:Fun.id ~enc_case cases
+    |> Jsont.Object.finish
 
-  let of_toml t =
-    match Otoml.get_array Otoml.get_value t with
-    | s :: _ when Otoml.get_opt Otoml.get_string s = Some "RPSS" ->
-      RPSS ()
-    | s :: r when Otoml.get_opt Otoml.get_string s = Some "Yan_weighted" ->
-      let conf = Yan_weighted.conf_of_toml r in
-      Yan_weighted conf
-    | _ ->
-      raise (Otoml.Type_error "Not a Ranking algorithm")
 
   (* Ranking computation *)
   (* *********************************************************************** *)
@@ -673,7 +664,7 @@ module Algorithm = struct
     done
 
   let rank ~judges ~head ~targets ~get_artefact ~get_bonus ~t : _ Res.t =
-    let aux ~debug:_ ~conf ~acc ~rank =
+    let aux ~conf ~acc ~rank =
       let matrix = Matrix.init ~head ~judges ~targets ~acc in
       fill_matrix matrix ~get_artefact ~get_bonus;
       let status = rank ~conf matrix in
@@ -683,13 +674,11 @@ module Algorithm = struct
     | RPSS conf ->
       let status, matrix =
         aux ~conf ~acc:RPSS.acc ~rank:RPSS.rank
-          ~debug:(fun fmt matrix -> Res.debug ~pp:Id.print fmt {status = Partial; info = RPSS matrix; })
       in
       { status; info = RPSS matrix; }
     | Yan_weighted conf ->
       let status, matrix =
         aux ~conf ~acc:Yan_weighted.acc ~rank:Yan_weighted.rank
-          ~debug:(fun fmt matrix -> Res.debug ~pp:Id.print fmt {status = Partial; info = Yan_weighted matrix; })
       in
       { status; info = Yan_weighted matrix; }
 

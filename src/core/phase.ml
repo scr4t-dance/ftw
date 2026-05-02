@@ -4,7 +4,7 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type id = Id.t [@@deriving yojson]
+type id = Id.t
 
 type t = {
   id : id;
@@ -25,149 +25,14 @@ let ranking_algorithm { ranking_algorithm; _ } = ranking_algorithm
 let judge_artefact_descr { judge_artefact_descr; _ } = judge_artefact_descr
 let head_judge_artefact_descr { head_judge_artefact_descr; _ } = head_judge_artefact_descr
 
-(* DB interaction *)
+(* Private functions *)
 (* ************************************************************************* *)
 
-let () =
-  State.add_init ~name:"phase" (fun st ->
-      State.exec ~st {|
-        CREATE TABLE IF NOT EXISTS phases (
-          id INTEGER PRIMARY KEY,
-          competition_id INT REFERENCES competitions(id),
-          round INTEGER REFERENCES round_names(id),
-          judge_artefact_descr TEXT,
-          head_judge_artefact_descr TEXT,
-          ranking_algorithm TEXT,
-          UNIQUE(competition_id, round)
-        )
-      |}
-    )
+module Private = struct
 
-let conv =
-  Conv.mk
-    Sqlite3_utils.Ty.[int; int; int; text; text; text]
-    (fun id competition_id round
-      judge_artefact_descr head_judge_artefact_descr ranking_algorithm ->
-      let round = Round.of_int round in
-      let ranking_algorithm =
-        Misc.Json.parse_exn ranking_algorithm
-          ~of_yojson:Ranking.Algorithm.of_yojson
-      in
-      let judge_artefact_descr =
-        Misc.Json.parse_exn judge_artefact_descr
-          ~of_yojson:Artefact.Descr.of_yojson
-      in
-      let head_judge_artefact_descr =
-        Misc.Json.parse_exn head_judge_artefact_descr
-          ~of_yojson:Artefact.Descr.of_yojson
-      in
-      { id; competition_id; round; ranking_algorithm;
-        judge_artefact_descr; head_judge_artefact_descr;
-      })
+  let mk ~id ~comp ~round
+      ~judge_artefact_descr ~head_judge_artefact_descr ~ranking_algorithm =
+    { id; competition_id = comp; round;
+      judge_artefact_descr; head_judge_artefact_descr; ranking_algorithm; }
 
-let get st id =
-  try
-    State.query_one_where ~st ~conv ~p:Id.p
-      {|SELECT * FROM phases WHERE id=?|} id
-  with Sqlite3_utils.RcError NOTFOUND -> raise Not_found
-
-let find_ids st competition_id =
-  State.query_list_where ~p:Id.p ~conv:Id.conv ~st
-    {| SELECT id FROM phases WHERE competition_id = ? ORDER BY id |} competition_id
-
-let find st competition_id =
-  State.query_list_where ~p:Id.p ~conv ~st
-    {| SELECT * FROM phases WHERE competition_id = ? ORDER BY id |} competition_id
-
-let find_round st competition_id r =
-  let phases = find st competition_id in
-  List.find_opt (fun phase -> Round.equal r (round phase)) phases
-
-let find_next_round ~st phase =
-  let phase_data = get st phase in
-  let competition_id = competition phase_data in
-  let round = round phase_data in
-  let rec aux r =
-    begin match r with
-      | None -> None
-      | Some rr -> begin match find_round st competition_id rr with
-          | Some p -> Some p
-          | None -> aux (Round.next rr)
-        end
-    end in
-  aux (Round.next round)
-
-let create
-    ~st competition_id round
-    ~ranking_algorithm
-    ~judge_artefact_descr
-    ~head_judge_artefact_descr
-  =
-  Logs.debug (fun k->
-      k "@[<hv 2>Creating new phase with@ competition_id: %d / round: %a@ \
-         artefacts: %a@ head_artefacts: %a@ ranking algorithm: %a@]"
-        competition_id Round.print round
-        Artefact.Descr.print judge_artefact_descr
-        Artefact.Descr.print head_judge_artefact_descr
-        Ranking.Algorithm.print ranking_algorithm
-    );
-  let round = Round.to_int round in
-  let ranking_algorithm =
-    Misc.Json.print ranking_algorithm
-      ~to_yojson:Ranking.Algorithm.to_yojson
-  in
-  let judge_artefact_descr =
-    Misc.Json.print judge_artefact_descr
-      ~to_yojson:Artefact.Descr.to_yojson
-  in
-  let head_judge_artefact_descr =
-    Misc.Json.print head_judge_artefact_descr
-      ~to_yojson:Artefact.Descr.to_yojson
-  in
-  let open Sqlite3_utils.Ty in
-  State.insert ~st ~ty:[int; int; text; text; text]
-    {|INSERT INTO phases (competition_id,round,judge_artefact_descr,
-                          head_judge_artefact_descr,ranking_algorithm)
-      VALUES (?,?,?,?,?)|}
-    competition_id round
-    judge_artefact_descr
-    head_judge_artefact_descr
-    ranking_algorithm;
-  State.query_one_where ~st ~conv ~p:[int; int]
-    {| SELECT * FROM phases WHERE competition_id=? AND round=? |}
-    competition_id round
-
-let update ~st phase_id
-    ~ranking_algorithm
-    ~judge_artefact_descr
-    ~head_judge_artefact_descr =
-  let ranking_algorithm =
-    Misc.Json.print ranking_algorithm
-      ~to_yojson:Ranking.Algorithm.to_yojson
-  in
-  let judge_artefact_descr =
-    Misc.Json.print judge_artefact_descr
-      ~to_yojson:Artefact.Descr.to_yojson
-  in
-  let head_judge_artefact_descr =
-    Misc.Json.print head_judge_artefact_descr
-      ~to_yojson:Artefact.Descr.to_yojson
-  in
-  let open Sqlite3_utils.Ty in
-  State.insert ~st ~ty:[text; text; text; int]
-    {|
-      UPDATE phases SET
-        judge_artefact_descr=?
-        , head_judge_artefact_descr=?
-        , ranking_algorithm=?
-      WHERE  id=?
-    |}
-    judge_artefact_descr head_judge_artefact_descr
-    ranking_algorithm phase_id
-
-let delete ~st id_phase =
-  let open Sqlite3_utils.Ty in
-  State.insert ~st ~ty:[int]
-    {| DELETE FROM phases
-        WHERE id=?|} id_phase;
-  id_phase
+end

@@ -9,12 +9,12 @@ open Ppx_compare_lib.Builtin
 
 module Id = struct
 
-  type t = Ftw.Id.t (* = int *)
+  type t = Ftw_core.Id.t (* = int *)
 
   let schema : t Schema.t =
     Schema.mk
       ~jsont:Jsont.int
-      ~equal:Ftw.Id.equal
+      ~equal:Ftw_core.Id.equal
       ~t_of_sexp:int_of_sexp
       ~sexp_of_t:sexp_of_int
 
@@ -23,7 +23,7 @@ end
 (* Dates, identifying a day. *)
 module Date = struct
 
-  type t = Ftw.Date.t = {
+  type t = Ftw_core.Date.t = {
     day : int;
     month : int;
     year : int;
@@ -90,8 +90,8 @@ module Event = struct
 
   let of_ftw ev =
     make
-      (Ftw.Event.id ev) (Ftw.Event.name ev)
-      (Ftw.Event.start_date ev) (Ftw.Event.end_date ev)
+      (Ftw_core.Event.id ev) (Ftw_core.Event.name ev)
+      (Ftw_core.Event.start_date ev) (Ftw_core.Event.end_date ev)
 
   let jsont =
     Jsont.Object.map ~kind:"Event" make

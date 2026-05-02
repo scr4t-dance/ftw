@@ -34,9 +34,7 @@ module One : sig
 
   type with_heat_ids = Id.t t
 
-  val print :
-    pp:(Format.formatter -> 'a -> unit) ->
-    Format.formatter -> 'a t -> unit
+  val printbox : pp:(Format.formatter -> 'a -> unit) -> 'a t -> PrintBox.t
 
   val map_targets : f:('a -> 'b) -> 'a t -> 'b t
 
@@ -151,6 +149,9 @@ module RPSS : sig
 
   type conf = unit
 
+  val conf_jsont : conf Jsont.t
+  (** Jsont type *)
+
   type cell = {
     mutable votes : int option;
     mutable sum : int option;
@@ -170,12 +171,15 @@ module Yan_weighted : sig
     yes : int;
     alt : int;
     no : int;
-  } [@@deriving yojson]
+  }
 
   type conf = {
     weights : weight list;
     head_weights : weight list;
-  } [@@deriving yojson]
+  }
+
+  val conf_jsont : conf Jsont.t
+  (** Jsont type *)
 
   type acc = {
     judges : int;
@@ -204,6 +208,8 @@ module Res : sig
   val ranking : 'target t -> 'target One.t
   (* Ranking from a result. *)
 
+  val printbox : pp:(Format.formatter -> 'a -> unit) -> 'a matrix -> PrintBox.t
+
   val map :
     targets:('a -> 'b) ->
     judges:('a -> 'b) ->
@@ -216,11 +222,6 @@ module Res : sig
     unit
   (** Iter over the targets *)
 
-  val debug :
-    pp:(Format.formatter -> 'target -> unit) ->
-    Format.formatter -> 'target t -> unit
-    (** debug printing *)
-
 end
 
 (* Wrapper type *)
@@ -230,19 +231,14 @@ module Algorithm : sig
 
   type t =
     | RPSS of RPSS.conf
-    | Yan_weighted of Yan_weighted.conf
-  [@@deriving yojson]
+    | Yan_weighted of Yan_weighted.conf (**)
   (** The type for ranking algorithms. *)
 
   val print : Format.formatter -> t -> unit
   (** Printing. *)
 
-  val to_toml : t -> Otoml.t
-  (** Serialization to toml. *)
-
-  val of_toml : Otoml.t -> t
-  (** Deserialization from toml.
-      @raise Otoml.Type_error *)
+  val jsont : t Jsont.t
+  (** Jsont type *)
 
   val compute :
     judges:Judge.id list ->

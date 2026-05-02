@@ -11,7 +11,6 @@ type t =
   | Intermediate
   | Intermediate_Advanced
   | Advanced (**)
-[@@deriving yojson]
 (** This represents the divisions accessible to a given dancer. Semantically,
     the [None] and [Novice] divisions are equivalent, but [None] is the
     initial divisions for dancers that have not yet danced in a role.
@@ -35,18 +34,3 @@ val print : Format.formatter -> t -> unit
 val includes : Division.t -> t -> bool
 
 
-(* DB interaction *)
-(* ************************************************************************* *)
-
-val to_int : t -> int
-(** Conversion to integer. *)
-
-val of_int : int -> t
-(** Conversion from integer.
-    @raise Stdlib.Failure _ if the int is out of range *)
-
-val p : (int -> 'a, 'a) Sqlite3_utils.Ty.t
-(** Sqlite query "type" for identifiers *)
-
-val conv : t Conv.t
-(** Converter for identifiers *)

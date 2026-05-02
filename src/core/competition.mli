@@ -4,11 +4,11 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type id = Id.t [@@deriving yojson]
+type id = Id.t
 (** Ids for events *)
 
 type t
-(** Events *)
+(** Competitions *)
 
 
 (* Common functions *)
@@ -43,35 +43,16 @@ val check_divs : t -> bool
 val print_compact : Format.formatter -> t -> unit
 (** Compact printing *)
 
-
-(* DB interaction *)
+(* Private functions *)
 (* ************************************************************************* *)
 
-val get : State.t -> id -> t
-(** Get an event from its id.
-    @raise Stdlib.Not_found if the competition is not found. *)
+module Private :sig
 
-val from_event : State.t -> Event.id -> t list
-(** Get the list of all competitions that belong to a given event. *)
+  val mk :
+    id:id -> event:Event.id -> name:string ->
+    kind:Kind.t -> category:Category.t ->
+    n_leaders:int -> n_follows:int ->
+    ?check_divs:bool -> unit -> t
+    (** Raw creation function. *)
 
-val ids_from_event : State.t -> Event.id -> id list
-(** Get the list of all competitions that belong to a given event. *)
-
-val create :
-  st:State.t ->
-  event_id:Event.id -> ?check_divs:bool ->
-  name:string -> kind:Kind.t -> category:Category.t ->
-  n_leaders:int -> n_follows:int -> unit -> t
-(** Create a new competition *)
-
-val import :
-  st:State.t -> id:id ->
-  event_id:Event.id -> ?check_divs:bool ->
-  name:string -> kind:Kind.t -> category:Category.t ->
-  n_leaders:int -> n_follows:int -> unit -> unit
-(** Import a competition (including id). *)
-
-val ids_from_dancer_history : State.t -> Dancer.id -> id list
-(** Get the list of all competitions a dancer participated in. *)
-
-val update_competitors_number : st:State.t -> id:id -> n_leaders:id -> n_followers:id -> unit
+end

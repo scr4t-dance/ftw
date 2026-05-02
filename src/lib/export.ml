@@ -39,13 +39,15 @@ let export_results ~st comp =
 (* Phases *)
 (* ************************************************************************* *)
 
-let all_singles_artefacts ~st ~phase ~judge_artefacts ~head_artefacts (heats : Heat.singles_heats) =
+let all_singles_artefacts ~st ~phase
+    ~judge_artefacts ~head_artefacts (heats : Heat.singles) =
   let aux ~judging ~descr judge =
-    let aux ({ target_id = target; dancer = _; } : Heat.single) =
+    let aux single =
+      let target = Target.With_id.id single in
       let artefact = Artefact.get ~descr ~st ~judge ~target in
       Artefact.Targeted.to_toml { judge; target; artefact; }
     in
-    List.concat_map (fun (heat : Heat.singles_heat) ->
+    List.concat_map (fun (heat : Heat.singles_one) ->
         match (judging : Judging.t) with
         | Head ->
           List.map aux heat.leaders @
@@ -69,13 +71,15 @@ let all_singles_artefacts ~st ~phase ~judge_artefacts ~head_artefacts (heats : H
       Option.fold ~none:[] ~some:(aux ~judging:Head ~descr:head_artefacts) head
     )
 
-let all_couples_artefacts ~st ~phase ~judge_artefacts ~head_artefacts (heats : Heat.couples_heats) =
+let all_couples_artefacts ~st ~phase
+    ~judge_artefacts ~head_artefacts (heats : Heat.couples) =
   let aux ~judging ~descr judge =
-    let aux ({ target_id = target; leader = _; follower = _; } : Heat.couple) =
+    let aux couple =
+      let target = Target.With_id.id couple in
       let artefact = Artefact.get ~descr ~st ~judge ~target in
       Artefact.Targeted.to_toml { judge; target; artefact; }
     in
-    List.concat_map (fun (heat : Heat.couples_heat) ->
+    List.concat_map (fun (heat : Heat.couples_one) ->
         match (judging : Judging.t) with
         | Head | Couples ->
           List.map aux heat.couples
@@ -103,14 +107,14 @@ let export_phase ~st phase =
     match judge_panel with
     | Couples _ ->
       let heats = Heat.get_couples ~st ~phase:(Phase.id phase) in
-      let heats_toml = Heat.couples_heats_to_toml heats in
+      let heats_toml = Heat.couples_to_toml heats in
       let judge_artefacts_toml, head_artefacts_toml =
         all_couples_artefacts ~st ~phase:(Phase.id phase) ~judge_artefacts ~head_artefacts heats
       in
       heats_toml, judge_artefacts_toml, head_artefacts_toml
     | Singles _ ->
       let heats = Heat.get_singles ~st ~phase:(Phase.id phase) in
-      let heats_toml = Heat.singles_heats_to_toml heats in
+      let heats_toml = Heat.singles_to_toml heats in
       let judge_artefacts_toml, head_artefacts_toml =
         all_singles_artefacts ~st ~phase:(Phase.id phase) ~judge_artefacts ~head_artefacts heats
       in
@@ -152,7 +156,7 @@ let comp_name comp =
 let export_comp ~st comp =
   Logs.debug ~src (fun k->k "Exporting competition %d" (Competition.id comp));
   let results_fields = export_results ~st comp in
-  let phases = Phase.find st (Competition.id comp) in
+  let phases = Phase.find ~st (Competition.id comp) in
   let phases_fields = export_phases ~st phases in
   let t = Otoml.table (
       ("id", Otoml.integer (Competition.id comp)) ::

@@ -4,7 +4,7 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type id = Id.t [@@deriving yojson]
+type id = Id.t
 (** Ids for events *)
 
 type t
@@ -36,19 +36,13 @@ val print_compact : Format.formatter -> t -> unit
 (** Compact printing. *)
 
 
-(* DB interaction *)
+(* Private functions *)
 (* ************************************************************************* *)
 
-val list : State.t -> t list
-(** List all events *)
+module Private : sig
 
-val get : State.t -> id -> t
-(** Get an event from its id.
-    @raise Stdlib.Not_found if the event is not found. *)
+  val mk :
+    id:id -> name:string -> short_name:string ->
+    start_date:Date.t -> end_date:Date.t -> t
 
-val create : st:State.t -> name:string -> short_name:string -> start_date:Date.t -> end_date:Date.t -> id
-(** Create a new event. *)
-
-val import : st:State.t -> id:id -> name:string -> short_name:string -> start_date:Date.t -> end_date:Date.t -> unit
-(** Import an event with a fixed id. *)
-
+end

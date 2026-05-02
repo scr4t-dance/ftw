@@ -4,7 +4,7 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type id = Id.t [@@deriving yojson]
+type id = Id.t
 (** Ids for phases *)
 
 type t
@@ -38,40 +38,17 @@ val head_judge_artefact_descr : t -> Artefact.Descr.t
 val ranking_algorithm : t -> Ranking.Algorithm.t
 (** Ranking algorithm of the phase *)
 
-
-(* DB interaction *)
+(* Private functions *)
 (* ************************************************************************* *)
 
-val get : State.t -> id -> t
-(** Get an event from its id.
-    @raise Stdlib.Not_found if the phase is not found. *)
+module Private : sig
 
-val find : State.t -> Competition.id -> t list
-(** Get the list of all phases that belong to a given competition. *)
+  val mk :
+    id:id ->
+    comp:id ->
+    round:Round.t ->
+    judge_artefact_descr:Artefact.Descr.t ->
+    head_judge_artefact_descr:Artefact.Descr.t ->
+    ranking_algorithm:Ranking.Algorithm.t -> t
 
-val find_ids : State.t -> Competition.id -> id list
-(** Optimized version of {!find} that only returns phases ids. *)
-
-val find_round : State.t -> Competition.id -> Round.t -> t option
-(** Try and find the given round for the competition. *)
-
-val find_next_round : st:State.t -> id -> t option
-(** Get next phase *)
-
-val create :
-  st:State.t -> Competition.id -> Round.t ->
-  ranking_algorithm:Ranking.Algorithm.t ->
-  judge_artefact_descr:Artefact.Descr.t ->
-  head_judge_artefact_descr:Artefact.Descr.t ->
-  t
-(** Create a new phase *)
-
-val update : st:State.t -> id ->
-  ranking_algorithm:Ranking.Algorithm.t ->
-  judge_artefact_descr:Artefact.Descr.t ->
-  head_judge_artefact_descr:Artefact.Descr.t ->
-  unit
-(** Update the details of a phase. *)
-
-val delete : st:State.t -> id -> id
-(** Delete a phase. TODO : delete more than phase. TODO : soft delete ? *)
+end

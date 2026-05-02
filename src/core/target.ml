@@ -4,6 +4,8 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
+type id = Id.t
+
 type single = [ `Single ]
 type couple = [ `Couple ]
 type trouple = [ `Trouple ]
@@ -16,12 +18,41 @@ type ('kind, 'a) t =
   | Couple :
       { leader : 'a; follower : 'a; } -> (couple, 'a) t
   | Trouple :
-      { dancer1 : 'a; dancer2 : 'a; dancer3 : 'a; } -> (trouple, 'a) t
+      { target1 : 'a; target2 : 'a; target3 : 'a; } -> (trouple, 'a) t
 
 type 'a any = Any : (_, 'a) t -> 'a any
+(* Existencial wrappers *)
+
+(* useful alias *)
+type ('kind, 'a) target = ('kind, 'a) t
 
 
-(* Usual functions *)
+(* Creation *)
+(* ************************************************************************* *)
+
+let single ~target ~role = Single { target; role; }
+let couple ~leader ~follower = Couple { leader; follower; }
+let trouple (target1, target2, target3) = Trouple { target1; target2; target3; }
+
+
+(* Printing *)
+(* ************************************************************************* *)
+
+let print_single pp fmt (Single { target; role; }) =
+  Format.fprintf fmt "%a:%a" Role.print_compact role pp target
+
+let print_couple pp fmt (Couple { leader; follower; }) =
+  Format.fprintf fmt "%a & %a" pp leader pp follower
+
+let print_trouple pp fmt (Trouple {target1; target2; target3; }) =
+  Format.fprintf fmt "%a & %a & %a" pp target1 pp target2 pp target3
+
+let print pp fmt = function
+  | Any (Single _ as s) -> print_single pp fmt s
+  | Any (Couple _ as c) -> print_couple pp fmt c
+  | Any (Trouple _ as t) -> print_trouple pp fmt t
+
+(* Mapping over targets *)
 (* ************************************************************************* *)
 
 let map (type kind a b) ~f:(f: (a -> b)) (t : (kind, a) t) : (kind, b) t =
@@ -30,76 +61,74 @@ let map (type kind a b) ~f:(f: (a -> b)) (t : (kind, a) t) : (kind, b) t =
     Single { target = f target; role; }
   | Couple { leader; follower; } ->
     Couple { leader = f leader; follower = f follower; }
-  | Trouple { dancer1; dancer2; dancer3; } ->
-    Trouple { dancer1 = f dancer1; dancer2 = f dancer2; dancer3 = f dancer3; }
+  | Trouple { target1; target2; target3; } ->
+    Trouple { target1 = f target1; target2 = f target2; target3 = f target3; }
 
 let map_any ~f (Any target) = Any (map ~f target)
 
-let print_single pp fmt (Single { target; role; }) =
-  Format.fprintf fmt "%a:%a" Role.print_compact role pp target
-
-let print_couple pp fmt (Couple { leader; follower; }) =
-  Format.fprintf fmt "%a & %a" pp leader pp follower
-
-let print_trouple pp fmt (Trouple {dancer1; dancer2; dancer3; }) =
-  Format.fprintf fmt "%a & %a & %a" pp dancer1 pp dancer2 pp dancer3
-
-let print pp fmt = function
-  | Any (Single _ as s) -> print_single pp fmt s
-  | Any (Couple _ as c) -> print_couple pp fmt c
-  | Any (Trouple _ as t) -> print_trouple pp fmt t
-
-
-(* Serialization *)
+(* Targets with ids *)
 (* ************************************************************************* *)
 
-let to_toml (Any t) =
-  match t with
-  | Single { target; role; } ->
-    Otoml.inline_table [
-      "target", Id.to_toml target;
-      "role", Role.to_toml role;
-    ]
-  | Couple { leader; follower; } ->
-    Otoml.inline_table [
-      "leader", Id.to_toml leader;
-      "follower", Id.to_toml follower;
-    ]
-  | Trouple { dancer1; dancer2; dancer3; } ->
-    Otoml.inline_table [
-      "dancer1", Id.to_toml dancer1;
-      "dancer2", Id.to_toml dancer2;
-      "dancer3", Id.to_toml dancer3;
-    ]
+module With_id = struct
 
-let of_toml_single t =
-  let open Misc.Opt in
-  let+ target = Otoml.find_opt t Id.of_toml ["target"] in
-  let+ role = Otoml.find_opt t Role.of_toml ["role"] in
-  Some (Single { target; role})
+  type ('kind, 'a) t = {
+    id : id;
+    target : ('kind, 'a) target;
+  }
 
-let of_toml_couple t =
-  let open Misc.Opt in
-  let+ leader = Otoml.find_opt t Id.of_toml ["leader"] in
-  let+ follower = Otoml.find_opt t Id.of_toml ["follower"] in
-  Some (Couple { leader; follower; })
+  type 'a any = Any : (_, 'a) t -> 'a any
 
-let of_toml_trouple t =
-  let open Misc.Opt in
-  let+ dancer1 = Otoml.find_opt t Id.of_toml ["dancer1"] in
-  let+ dancer2 = Otoml.find_opt t Id.of_toml ["dancer2"] in
-  let+ dancer3 = Otoml.find_opt t Id.of_toml ["dancer3"] in
-  Some (Trouple { dancer1; dancer2; dancer3; })
+  let id { id; _ } = id
+  let target { target = t; _ } = t
 
-let of_toml t =
-  match of_toml_single t with
-  | Some single -> Any single
-  | None ->
-    match of_toml_couple t with
-    | Some couple -> Any couple
-    | None ->
-      match of_toml_trouple t with
-      | Some trouple -> Any trouple
-      | None -> raise (Otoml.Type_error "not a bib target")
+  let mk id target = { id; target; }
 
+end
+
+(* Singles *)
+(* ************************************************************************* *)
+
+module Single = struct
+
+  type 'a t = (single, 'a) target
+
+  let role (Single { target = _; role; }) = role
+  let dancer (Single { target; role = _; }) = target
+
+  module Ord(T : Set.OrderedType) :
+    Set.OrderedType with type t = T.t t
+  = struct
+    type t = (single, T.t) target
+    let compare
+        (Single { target = t1; role = r1; })
+        (Single { target = t2; role = r2; }) =
+      let open CCOrd in
+      T.compare t1 t2
+      <?> (Role.compare, r1, r2)
+  end
+end
+
+(* Couples *)
+(* ************************************************************************* *)
+
+module Couple = struct
+
+  type 'a t = (couple, 'a) target
+
+  let leader (Couple { leader = t; _ } ) = t
+  let follower (Couple { follower = t; _ } ) = t
+
+  module Ord(T : Set.OrderedType) :
+    Set.OrderedType with type t = T.t t
+  = struct
+    type t = (couple, T.t) target
+    let compare
+        (Couple { leader = l1; follower = f1; })
+        (Couple { leader = l2; follower = f2; }) =
+      let open CCOrd in
+      T.compare l1 l2
+      <?> (T.compare, f1, f2)
+  end
+
+end
 

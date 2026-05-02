@@ -1,0 +1,193 @@
+
+(* This file is free software, part of FTW. See file "LICENSE" for more information *)
+
+include Ftw_core.Artefact
+
+(* Artefact descriptions *)
+(* ************************************************************************* *)
+
+module Descr = struct
+
+  include Ftw_core.Artefact.Descr
+
+  (* Serialization *)
+
+  let to_toml = function
+    | Ranking ->
+      Otoml.array [ Otoml.string "Ranking" ]
+    | Yans { criterions } ->
+      Otoml.array (
+        Otoml.string "Yans" ::
+        List.map Otoml.string criterions)
+
+  let of_toml t =
+    match Otoml.(get_array get_value) t with
+    | [ t' ] when Otoml.(get_opt get_string) t' = Some "Ranking" ->
+      Ranking
+    | t' :: r when Otoml.(get_opt get_string) t' = Some "Yans" ->
+      let criterions = List.map Otoml.get_string r in
+      Yans { criterions }
+    | _ ->
+      raise (Otoml.Type_error "Incorrect encoding of Artefact.Descr.t")
+
+  (* TODO: DB interaction (json ?) *)
+
+end
+
+
+(* Encoding and decoding *)
+(* ************************************************************************* *)
+
+(* Int encoding schema:
+
+   The FTW db will store a very large number of artefacts (in the order of a
+   few thousands for each competition). Therefore the encoding of artefacts is
+   designed to take as little space as possible. This is possible because
+   SQlite stores integers using between 1 and 8 bytes depending on the
+   magnitude of the stored integers. In other words, small enough integers are
+   stored using less space.
+
+   Since each competition phase has in its configuration a description of the
+   stored (and expected) artefacts, we can also require the description of an
+   artefact in order to decode it (i.e. use a tagless encoding), saving a
+   precious few bits, and ensure that almost always, an encoded artefact can
+   fit in a single byte. *)
+
+let of_int ~descr v =
+  (* constant-size YAN encoded using the [i] and [i+1] least significant bits. *)
+  let[@inline] decode_yan v i =
+    if Misc.Bit.is_set ~index:i v then
+      if Misc.Bit.is_set ~index:(i + 1) v then
+        Yes
+      else
+        Alt
+    else
+      No
+  in
+  match (descr : Descr.t) with
+  | Ranking -> Rank (Rank.mk v)
+  | Yans { criterions; } ->
+    let rec aux v i = function
+      | [] -> []
+      | _ :: r -> decode_yan v i :: aux v (i + 2) r
+    in
+    let yans = (aux[@unrolled 4]) v 0 criterions in
+    Yans yans
+
+let to_int t =
+  let encode_yan v i y =
+    assert (not (Misc.Bit.is_set ~index:i v) &&
+            not (Misc.Bit.is_set ~index:(i + 1) v));
+    match y with
+    | Yes -> v |> Misc.Bit.set ~index:i |> Misc.Bit.set ~index:(i + 1)
+    | Alt -> v |> Misc.Bit.set ~index:i
+    | No -> v
+  in
+  match (t : t) with
+  | Rank r -> Rank.rank r
+  | Yans l ->
+    fst @@ List.fold_left
+      (fun (v, i) y -> (encode_yan v i y, i + 2)) (0, 0) l
+
+
+(* DB interaction *)
+(* ************************************************************************* *)
+
+let p = Sqlite3_utils.Ty.([int])
+let conv ~descr = Conv.mk p (of_int ~descr)
+
+let db = State.Main
+
+let () =
+  State.add_init ~name:"artefact" (fun st ->
+      State.exec ~st ~db {|
+        CREATE TABLE IF NOT EXISTS artefacts (
+          target_id INTEGER REFERENCES heats(id) ON DELETE CASCADE,
+          judge INTEGER REFERENCES dancers(id),
+          artefact INTEGER NOT NULL,
+          PRIMARY KEY(target_id,judge)
+          ON CONFLICT REPLACE
+        )
+      |})
+
+(* Note: the target here is a Heat.target_id;
+    however we cannot put these annotations explicitly because
+    of circular dependencies *)
+let get ~st ~judge ~target ~descr =
+  try
+    State.query_one_where ~st ~db ~p:Db.Ty.[int;int] ~conv:(conv ~descr)
+      {| SELECT artefact FROM artefacts WHERE target_id = ? AND judge = ? |}
+      target judge
+  with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
+    Logs.err ~src:State.src (fun k->
+        k "artefact not found for judge:%a, target: %a"
+          Id.print judge Id.print target);
+    raise Not_found
+
+let set ~st ~judge ~target t =
+  State.insert ~st ~db ~ty:Db.Ty.[int;int;int]
+    {| INSERT INTO artefacts(target_id,judge,artefact) VALUES (?,?,?) |}
+    target judge (to_int t)
+
+let delete ~st ~judge ~target =
+  State.insert ~st ~db ~ty:Db.Ty.[int;int]
+    {| DELETE FROM artefacts
+        WHERE 0=0
+          AND target_id = ?
+          AND judge = ? |}
+    target judge
+
+
+(* Serialization *)
+(* ************************************************************************* *)
+
+let yan_to_toml = function
+  | Yes -> Otoml.integer 3
+  | Alt -> Otoml.integer 2
+  | No -> Otoml.integer 1
+
+let yan_of_toml t =
+  match Otoml.get_integer t with
+  | 1 -> No
+  | 2 -> Alt
+  | 3 -> Yes
+  | i -> raise (Otoml.Type_error ("Not a Yan: " ^ (string_of_int i)))
+
+let yans_to_toml l = Otoml.array (List.map yan_to_toml l)
+let yans_of_toml t = Otoml.get_array yan_of_toml t
+
+let to_toml = function
+  | Rank i -> Rank.to_toml i
+  | Yans l -> yans_to_toml l
+
+let of_toml ~descr t =
+  match (descr : Descr.t) with
+  | Ranking -> Rank (Rank.of_toml t)
+  | Yans _ -> Yans (yans_of_toml t)
+
+(* Extended Serialization *)
+(* ************************************************************************* *)
+
+module Targeted = struct
+
+  type nonrec t = {
+    judge: Judge.id;
+    target : Id.t;
+    artefact : t;
+  }
+
+  let to_toml { judge; target; artefact; } =
+    Otoml.array [Id.to_toml judge; Id.to_toml target; to_toml artefact ]
+
+  let of_toml ~descr t =
+    match Otoml.get_array Otoml.get_value t with
+    | [ id; target; artefact ] ->
+      let judge = Id.of_toml id in
+      let target = Id.of_toml target in
+      let artefact = of_toml ~descr artefact in
+      { judge; target; artefact; }
+    | _ -> assert false
+
+end
+
+

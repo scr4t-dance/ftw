@@ -4,29 +4,8 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type t = int [@@deriving yojson]
+type t = int
 (** A generic type for identifiers, using integers *)
-
-
-(* DB interaction *)
-(* ************************************************************************* *)
-
-val p : (t -> 'a, 'a) Sqlite3_utils.Ty.t
-(** Sqlite query "type" for identifiers *)
-
-val conv : t Conv.t
-(** Converter for identifiers *)
-
-
-(* Serialization *)
-(* ************************************************************************* *)
-
-val to_toml : t -> Otoml.t
-(** Serialization to toml. *)
-
-val of_toml : Otoml.t -> t
-(** Deserialization from toml.
-    @raise Otoml.Type_error *)
 
 
 (* Usual functions *)

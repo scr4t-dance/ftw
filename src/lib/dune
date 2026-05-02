@@ -6,6 +6,7 @@
   (libraries
     ftw_core
     unix fmt logs
+    jsont jsont.bytesrw
     gen containers
     printbox printbox-text
     otoml spelll uutf uunf
