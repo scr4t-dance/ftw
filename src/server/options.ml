@@ -7,7 +7,8 @@ open Cmdliner
 (* ************************************************************************* *)
 
 type server = {
-  db_path : string;
+  main_db_path : string;
+  user_db_path : string;
   db_no_init : bool;
   server_port : int;
   api_delay : int;
@@ -18,18 +19,21 @@ type openapi = {
 }
 
 type init = {
-  db_path : string;
+  main_db_path : string;
+  user_db_path : string;
   dancer_file : string option;
 }
 
 type import = {
-  db_path : string;
+  main_db_path : string;
+  user_db_path : string;
   db_no_init : bool;
   ev_path : string;
 }
 
 type export = {
-  db_path : string;
+  main_db_path : string;
+  user_db_path : string;
   db_no_init : bool;
   out_path : string;
   ev_id : int;
@@ -83,9 +87,13 @@ let setup_bt bt =
 (* Common args *)
 (* ************************************************************************* *)
 
-let db_path =
-  let doc = "Path to the sqlite db to use" in
+let main_db_path =
+  let doc = "Path to the main sqlite db to use" in
   Arg.(required & opt (some string) None & info ["db"] ~doc)
+
+let user_db_path =
+  let doc = "Path to the user sqlite db to use" in
+  Arg.(required & opt (some string) (Some ":memory:") & info ["user-db"] ~doc)
 
 let db_no_init =
   let doc = "Disable db initialisation (useful when the db is read-only)" in
@@ -114,7 +122,8 @@ let server =
   let+ bt
   and+ logs_level
   and+ logs_style
-  and+ db_path
+  and+ main_db_path
+  and+ user_db_path
   and+ db_no_init
   and+ server_port =
     let doc = "Port to listen on" in
@@ -125,7 +134,7 @@ let server =
   in
   setup_bt bt;
   setup_log logs_style logs_level;
-  Server { db_path; db_no_init; server_port; api_delay; }
+  Server { main_db_path; user_db_path; db_no_init; server_port; api_delay; }
 
 (* Openapi options *)
 (* ************************************************************************* *)
@@ -149,14 +158,15 @@ let openapi =
 let init =
   let open Term.Syntax in
   let+ bt
-  and+ db_path
+  and+ main_db_path
+  and+ user_db_path
   and+ logs_level
   and+ logs_style
   and+ dancer_list
   in
   setup_bt bt;
   setup_log logs_style logs_level;
-  Init { db_path; dancer_file = dancer_list; }
+  Init { main_db_path; user_db_path; dancer_file = dancer_list; }
 
 
 (* Import options *)
@@ -165,7 +175,8 @@ let init =
 let import =
   let open Term.Syntax in
   let+ bt
-  and+ db_path
+  and+ main_db_path
+  and+ user_db_path
   and+ db_no_init
   and+ logs_level
   and+ logs_style
@@ -178,7 +189,7 @@ let import =
   in
   setup_bt bt;
   setup_log logs_style logs_level;
-  Import { db_path; db_no_init; ev_path; }
+  Import { main_db_path; user_db_path; db_no_init; ev_path; }
 
 (* Export options *)
 (* ************************************************************************* *)
@@ -186,7 +197,8 @@ let import =
 let export =
   let open Term.Syntax in
   let+ bt
-  and+ db_path
+  and+ main_db_path
+  and+ user_db_path
   and+ db_no_init
   and+ logs_level
   and+ logs_style
@@ -201,5 +213,4 @@ let export =
   setup_bt bt;
   setup_log logs_style logs_level;
   let dancer_export = dancer_export dancer_list in
-  Export { db_path; db_no_init; out_path; ev_id; dancer_export; }
-
+  Export { main_db_path; user_db_path; db_no_init; out_path; ev_id; dancer_export; }

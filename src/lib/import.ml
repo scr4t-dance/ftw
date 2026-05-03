@@ -1,4 +1,5 @@
 
+
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
 open Ftw_core.Misc.Result
@@ -194,16 +195,16 @@ class virtual importer (st : State.t) = object(self)
       let r = dancer_ranking_res ~st r in
       Ranking.Res.debug ~pp:(Target.print Dancer.print_compact) fmt r
     in
-    match (r : _ Heat.ranking) with
-    | Singles { leaders; follows; } ->
+    match (r : _ Phase.any_ranking) with
+    | Any Singles { leaders; follows; } ->
       Logs.debug ~src (fun k->
           k "Rankings:@\nLeaders:@\n%a@\n@\nFollowers:@\n%a"
             pp leaders pp follows)
-    | Couples { couples; } ->
+    | Any Couples { couples; } ->
       Logs.debug ~src (fun k->k "Rankings:@\n%a" pp couples)
 
   method compute_ranking ~phase =
-    Heat.ranking ~st ~phase:(Phase.id phase)
+    Phase.ranking ~st ~phase
 
 
   (* === Phases === *)
@@ -321,7 +322,9 @@ class virtual importer (st : State.t) = object(self)
           ~result:r.result
           ~points:r.points
           ~competition:r.competition;
-        Promotion.update_with_new_result st (Promotion.compute_promotion st r)
+        match Results.promotion ~st ~event:(Event.get ~st event) ~comp r with
+        | None -> ()
+        | Some p -> Promotion.record ~st p
       ) l
 
   (* === competitions === *)
@@ -342,10 +345,10 @@ class virtual importer (st : State.t) = object(self)
           ~event_id:event ~name ~kind ~category
           ~n_leaders ~n_follows ?check_divs
       | Some id ->
-        Competition.import ~st ~id ()
+        Competition.Private.import ~st ~id ()
           ~event_id:event ~name ~kind ~category
           ~n_leaders ~n_follows ?check_divs;
-        Competition.get st id
+        Competition.get ~st id
     in
     self#import_bibs ~event ~comp t;
     self#import_phases ~event ~comp t;
@@ -371,7 +374,7 @@ class virtual importer (st : State.t) = object(self)
       | None ->
         Event.create ~st ~name ~short_name ~start_date ~end_date
       | Some id ->
-        Event.import ~st ~id ~name ~short_name ~start_date ~end_date;
+        Event.Private.import ~st ~id ~name ~short_name ~start_date ~end_date;
         id
     in
     let t = find t Otoml.get_value ["comps"] in
@@ -489,8 +492,8 @@ class ftw_1 st = object(self)
           Logs.err ~src (fun k->k "Missing artefacts");
           assert false
       end
-    | Yans { criterion; } ->
-      let n = List.length criterion in
+    | Yans { criterions; } ->
+      let n = List.length criterions in
       let l, scores = CCList.take_drop n scores in
       assert (List.length l = n);
       let l = List.map yan_of_note l in
@@ -630,7 +633,7 @@ class ftw_1 st = object(self)
     List.iter add_heat_and_artefact artefacts
 
   method import_artefacts ~event ~phase t =
-    let comp = Competition.get st (Phase.competition phase) in
+    let comp = Competition.get ~st (Phase.competition phase) in
     match Competition.kind comp, Phase.round phase with
     | Jack_and_Jill, (Prelims | Octofinals | Quarterfinals | Semifinals) ->
       self#import_singles_artefacts ~event ~phase t;
@@ -667,7 +670,7 @@ class ftw_1 st = object(self)
       | "F" -> Role.Follower
       | _ -> raise (Otoml.Type_error ("invalid role: " ^ role))
     in
-    let points = Results.points ~st ~event ~comp ~role result in
+    let points = Results.points ~event:(Event.get ~st event) ~comp ~role result in
     let r : Results.r = {
       competition = (Competition.id comp);
       dancer = Dancer.id d;
@@ -776,7 +779,7 @@ class ftw_2 st ~stable = object(self)
 
 
   method import_judges ~phase t =
-    let comp = Competition.get st (Phase.competition phase) in
+    let comp = Competition.get ~st (Phase.competition phase) in
     let panel = Otoml.find_exn t Judge.panel_of_toml ["judges"] in
     match Competition.kind comp, Phase.round phase, panel with
     | Jack_and_Jill, (Prelims | Octofinals | Quarterfinals | Semifinals), Singles _
@@ -792,33 +795,34 @@ class ftw_2 st ~stable = object(self)
   val mutable heat_target_map = Id.Map.empty
 
   method import_heats ~phase t =
-    let comp = Competition.get st (Phase.competition phase) in
+    let comp = Competition.get ~st (Phase.competition phase) in
     match Competition.kind comp, Phase.round phase with
     | Jack_and_Jill, (Prelims | Octofinals | Quarterfinals | Semifinals) ->
-      let heats = Otoml.find_exn t Heat.singles_heats_of_toml ["heats"] in
-      let aux ~heat ~role (single : Heat.single) =
+      let heats = Otoml.find_exn t Heat.singles_of_toml ["heats"] in
+      let aux ~heat ~role single =
         let new_id =
           Heat.add_single
             ~st ~phase:(Phase.id phase)
-            ~heat ~role single.dancer
+            ~heat ~role (Target.Single.dancer (Target.With_id.target single))
         in
-        heat_target_map <- Id.Map.add single.target_id new_id heat_target_map
+        heat_target_map <- Id.Map.add (Target.With_id.id single) new_id heat_target_map
       in
-      Array.iteri (fun heat (singles_heat : Heat.singles_heat) ->
+      Array.iteri (fun heat (singles_heat : Heat.singles_one) ->
           List.iter (aux ~heat ~role:Leader) singles_heat.leaders;
           List.iter (aux ~heat ~role:Follower) singles_heat.followers
         ) heats.singles_heats
     | Jack_and_Jill, Finals
     | (Routine | Strictly | JJ_Strictly), _ ->
-      let heats = Otoml.find_exn t Heat.couples_heats_of_toml ["heats"] in
-      Array.iteri (fun heat (couples_heat : Heat.couples_heat) ->
-          List.iter (fun (couple : Heat.couple) ->
+      let heats = Otoml.find_exn t Heat.couples_of_toml ["heats"] in
+      Array.iteri (fun heat (couples_heat : Heat.couples_one) ->
+          List.iter (fun couple ->
               let new_id =
                 Heat.add_couple
-                  ~st ~phase:(Phase.id phase)
-                  ~heat ~leader:couple.leader ~follower:couple.follower
+                  ~st ~phase:(Phase.id phase) ~heat
+                  ~leader:(Target.Couple.leader (Target.With_id.target couple))
+                  ~follower:(Target.Couple.follower (Target.With_id.target couple))
               in
-              heat_target_map <- Id.Map.add couple.target_id new_id heat_target_map
+              heat_target_map <- Id.Map.add (Target.With_id.id couple) new_id heat_target_map
             ) couples_heat.couples
         ) heats.couples_heats
 
@@ -845,7 +849,7 @@ class ftw_2 st ~stable = object(self)
         let dancer = self#get_dancer raw_dancer in
         let role = Otoml.find t Role.of_toml ["role"] in
         let result = Otoml.find t Results.of_toml ["result"] in
-        let points = Results.points ~st ~event ~comp ~role result in
+        let points = Results.points ~event:(Event.get ~st event) ~comp ~role result in
         let r : Results.r = {
           competition = (Competition.id comp);
           dancer; role; result; points;

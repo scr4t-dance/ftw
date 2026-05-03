@@ -4,7 +4,7 @@
 let list =
   let api = Ftw_api.Routes.Event.list in
   Api.get api#url_template ~result_schema:api#result_schema @@ fun _req st ->
-  Ok (Ftw_api.Types.EventList.of_ftw (Ftw.Event.list st))
+  Ok (Ftw_api.Types.EventList.of_ftw (Ftw.Event.list ~st))
 
 (*
 

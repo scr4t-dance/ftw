@@ -4,9 +4,9 @@
  (modes js)
  (libraries
   js_of_ocaml
-  ftw ftw_api
+  ftw_core ftw_api
   bonsai bonsai.web
-  async_kernel cohttp-async
+  async_kernel
   jsont jsont.bytesrw
   )
  (preprocess

@@ -7,9 +7,14 @@ include module type of Ftw_core.Heat
 (* Serialization *)
 (* ************************************************************************* *)
 
+val singles_one_to_toml : singles_one -> Otoml.t
+
 val singles_to_toml : singles -> Otoml.t
 
+val singles_one_of_toml : Otoml.t -> singles_one
+
 val singles_of_toml : Otoml.t -> singles
+
 
 val couples_to_toml : couples -> Otoml.t
 

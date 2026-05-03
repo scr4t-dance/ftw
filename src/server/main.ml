@@ -18,18 +18,24 @@ let find_sites_dir filename =
 (* Main Server *)
 (* ************************************************************************* *)
 
-let loader _root path request =
+let loader _root path req =
   Logs.debug ~src (fun m -> m "Loading static request for '%s'" path);
-  match find_sites_dir path with
-  | None ->
-    Logs.debug ~src (fun m -> m "Path not found, defaulting to index.html");
+  let default () = 
     (* if the path is not found in the frontend, automatically redirect to `index.html` *)
     begin match find_sites_dir "index.html" with
       | None -> assert false (* let's assume the frontend will always have an `index.html` *)
-      | Some dir -> Dream.from_filesystem dir "index.html" request
+      | Some dir -> Dream.from_filesystem dir "index.html" req
     end
-  | Some dir ->
-    Dream.from_filesystem dir path request
+  in
+  match path with
+  | "" -> assert false
+  | _ ->
+    match find_sites_dir path with
+    | None ->
+      Logs.debug ~src (fun m -> m "Path not found, defaulting to index.html");
+      default ()
+    | Some dir ->
+      Dream.from_filesystem dir path req
 
 (*
 let router () =
@@ -65,7 +71,7 @@ let delay s callback req =
 let server (options : Options.server) =
   (* Default routes to serve the clients files (pages, scripts and css) *)
   let default_routes = [
-    Dream.get "/" (loader "" "");
+    Dream.get "/" (fun req -> Dream.redirect req "/index.html");
     Dream.get "/**" (Dream.static ~loader "");
   ] in
   (* Create the router *)
@@ -94,7 +100,8 @@ let server (options : Options.server) =
   @@ cors_middleware
   @@ Dream.memory_sessions
   @@ State.init
-    ~path:options.db_path
+    ~main_path:options.main_db_path
+    ~user_path:options.user_db_path
     ~init:(not options.db_no_init)
   @@ Dream.router (
     Dream.scope (Ftw_api.Routes.prefix)
@@ -122,8 +129,12 @@ let openapi (_options : Options.openapi) =
 (* ************************************************************************* *)
 
 let init (options : Options.init) =
-  let st = Ftw.State.mk ~init:true options.db_path in
-  Ftw.State.atomically st
+  let st =
+    Ftw.State.mk ~init:true
+      ~main_path:options.main_db_path
+      ~user_path:options.user_db_path
+  in
+  Ftw.State.atomically ~st
     ~f:(fun st ->
         match options.dancer_file with
         | None ->
@@ -136,8 +147,12 @@ let init (options : Options.init) =
 (* ************************************************************************* *)
 
 let import (options : Options.import) =
-  let st = Ftw.State.mk ~init:(not options.db_no_init) options.db_path in
-  Ftw.State.atomically st
+  let st =
+    Ftw.State.mk ~init:(not options.db_no_init)
+    ~main_path:options.main_db_path
+    ~user_path:options.user_db_path
+  in
+  Ftw.State.atomically ~st
     ~f:(fun st ->
         match Ftw.Import.import_event ~st options.ev_path with
         | Ok _ev_ids -> ()
@@ -150,8 +165,12 @@ let import (options : Options.import) =
 (* ************************************************************************* *)
 
 let export (options : Options.export) =
-  let st = Ftw.State.mk ~init:(not options.db_no_init) options.db_path in
-  Ftw.State.atomically st
+  let st =
+    Ftw.State.mk ~init:(not options.db_no_init)
+      ~main_path:options.main_db_path
+      ~user_path:options.user_db_path
+  in
+  Ftw.State.atomically ~st
     ~f:(fun st ->
         match Ftw.Export.export_event
                 ~st options.out_path options.ev_id with

@@ -12,6 +12,6 @@
     ftw_core
     fmt logs jsont
     containers
-    sexplib0 ppx_compare
+    sexplib0
   )
 )

@@ -57,6 +57,7 @@ type 'a get =
   | Error of string
 [@@deriving sexp, equal]
 
+(*
 let get_model (type a) (schema : a Ftw_api.Schema.t) =
   let module M : Bonsai.Model with type t = a get = struct
     type nonrec t = a get
@@ -66,8 +67,10 @@ let get_model (type a) (schema : a Ftw_api.Schema.t) =
   end
   in
   (module M : Bonsai.Model with type t = a get)
+*)
 
-let query_get (route : _ Ftw_api.Routes.get) params =
+let query_get (_route : _ Ftw_api.Routes.get) _params = Async_kernel.Deferred.return (Result.Error "")
+  (*
   let open! Async_kernel.Deferred.Let_syntax in
   Cohttp_async.Client.get (Uri.of_string (route#url params)) >>= fun (resp, body) ->
   Cohttp_async.Body.to_string body >>| fun body ->
@@ -87,13 +90,14 @@ let query_get (route : _ Ftw_api.Routes.get) params =
   | #Cohttp.Code.informational_status
   | #Cohttp.Code.client_error_status
   | `Code _ -> Error (`Msg body)
+*)
 
 let query_get_component (type a)
     ~(route : (_, a, _) Ftw_api.Routes.get) ~params
     ~loading_view ~result_view ~err_view
   =
-  let model = get_model route#result_schema in
-  let st = Bonsai.state model ~reset:(fun _ -> Inactive) ~default_model:Inactive in
+  (* let model = get_model route#result_schema in *)
+  let st = Bonsai.state ~reset:(fun _ -> Inactive) Inactive in
   let%sub result, set_result = st in
   (* On activate, we'll dispatch our `a Effect.t`, and set the result as state. *)
   let%sub on_activate =
@@ -140,20 +144,14 @@ let event_list =
 
 let main =
   match%sub curr_path with
-  | "/index" | "/index.html" ->
-    Computation.return @@
-    Vdom.Node.div
-      ~attrs:[Vdom.Attr.classes ["container-xxl"]] [
-      Vdom.Node.textf "Hello World !";
-      Vdom.Node.button [link_vdom ~children:(Vdom.Node.textf "FOO !") "/events"];
-    ]
-  | "/events" ->
+    | "/events" ->
     event_list
   | _ ->
     Computation.return @@
     Vdom.Node.div
       ~attrs:[Vdom.Attr.classes ["container-xxl"]] [
-      Vdom.Node.textf "Who are you ?!"
+      Vdom.Node.textf "Hello World !";
+      Vdom.Node.button [link_vdom ~children:(Vdom.Node.textf "FOO !") "/events"];
     ]
 
 (* Main entrypoint *)
