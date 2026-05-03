@@ -40,3 +40,11 @@ val octofinalist : t
 val placement : t -> Points.placement
 
 val merge : t -> t -> t
+
+val points :
+  event:Event.t ->
+  comp:Competition.t ->
+  role:Role.t ->
+  t ->
+  int
+

@@ -586,14 +586,6 @@ module Res = struct
     | RPSS matrix -> Matrix.ranks matrix
     | Yan_weighted matrix -> Matrix.ranks matrix
 
-  let printbox ~pp = function
-    | RPSS matrix ->
-      Matrix.printbox matrix ~pp
-        ~acc_line:RPSS.acc_line ~acc_side:`Right
-    | Yan_weighted matrix ->
-      Matrix.printbox matrix ~pp
-        ~acc_line:Yan_weighted.acc_line ~acc_side:`Left
-
   let map ~targets ~judges { status; info; } =
     let info =
       match info with
@@ -607,6 +599,17 @@ module Res = struct
     | RPSS matrix -> Matrix.iteri ~targets ~judges matrix
     | Yan_weighted matrix -> Matrix.iteri ~targets ~judges matrix
 
+  let printbox ~pp = function
+    | RPSS matrix ->
+      Matrix.printbox matrix ~pp
+        ~acc_line:RPSS.acc_line ~acc_side:`Right
+    | Yan_weighted matrix ->
+      Matrix.printbox matrix ~pp
+        ~acc_line:Yan_weighted.acc_line ~acc_side:`Left
+
+  let debug ~pp fmt { info; _ } =
+    let box = printbox ~pp info in
+    PrintBox_text.pp fmt box
 
 end
 

@@ -19,34 +19,12 @@ val couples_of_toml : Otoml.t -> couples
 (* Heat helpers *)
 (* ************************************************************************* *)
 
-(*
-val all_single_judgement_targets : singles_heats ->
+val all_single_judgement_targets : singles ->
   ([ `Single ], Id.t) Target.t Id.Map.t * Id.t list * Id.t list
 
-val all_couple_judgement_targets : couples_heats ->
+val all_couple_judgement_targets : couples ->
   ([ `Couple ], Id.t) Target.t Id.Map.t
 
-type 'target ranking =
-  | Singles of {
-      leaders : 'target Ranking.Res.t;
-      follows : 'target Ranking.Res.t;
-    }
-  | Couples of {
-      couples : 'target Ranking.Res.t;
-    }
-
-val ranking : st:State.t -> phase:Phase.id -> Id.t ranking
-
-val map_ranking: targets:('a -> 'b) ->
-  judges:('a -> 'b) ->
-  'a ranking ->
-  'b ranking
-
-val iteri: targets:(target_id -> 'a -> unit) ->
-  judges:(target_id -> 'a -> unit) ->
-  'a ranking ->
-  unit
-*)
 
 (* DB interaction *)
 (* ************************************************************************* *)
@@ -56,7 +34,7 @@ val iteri: targets:(target_id -> 'a -> unit) ->
 val clear : st:State.t -> phase:Id.t -> unit
 
 val init : st:State.t ->
-  phase:Phase.id ->
+  phase:Ftw_core.Phase.id ->
   min:int ->
   max:int ->
   early_heats:int ->
@@ -68,18 +46,18 @@ val init : st:State.t ->
   unit
 
 val add_single :
-  st:State.t -> phase:Phase.id ->
+  st:State.t -> phase:Ftw_core.Phase.id ->
   heat:int -> role:Role.t -> Dancer.id -> Target.id
 
 val add_couple :
-  st:State.t -> phase:Phase.id ->
+  st:State.t -> phase:Ftw_core.Phase.id ->
   heat:int -> leader:Dancer.id -> follower:Dancer.id -> Target.id
 
 val get_one : st:State.t -> Target.id -> Id.t Target.any
 
-val get : st:State.t -> phase:Phase.id -> t
-val get_singles : st:State.t -> phase:Phase.id -> singles
-val get_couples : st:State.t -> phase:Phase.id -> couples
+val get : st:State.t -> phase:Ftw_core.Phase.id -> t
+val get_singles : st:State.t -> phase:Ftw_core.Phase.id -> singles
+val get_couples : st:State.t -> phase:Ftw_core.Phase.id -> couples
 
 
 

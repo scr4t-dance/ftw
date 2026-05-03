@@ -6,7 +6,7 @@
 
 include Ftw_core.Phase
 
-(* DB interaction *)
+(* Basic DB interaction *)
 (* ************************************************************************* *)
 
 let db = State.Main
@@ -53,34 +53,6 @@ let get ~st id =
     State.query_one_where ~st ~db ~conv ~p:Id.p
       {|SELECT * FROM phases WHERE id=?|} id
   with Sqlite3_utils.RcError NOTFOUND -> raise Not_found
-
-(*
-let from_comp ~st competition_id =
-  State.query_list_where ~st ~db ~p:Id.p ~conv
-    {| SELECT * FROM phases WHERE competition_id = ? ORDER BY id |} competition_id
-
-let ids_from_comp ~st competition_id =
-  State.query_list_where ~st ~db ~p:Id.p ~conv:Id.conv
-    {| SELECT id FROM phases WHERE competition_id = ? ORDER BY id |} competition_id
-
-let from_comp_and_round ~st competition_id r =
-  let phases = from_comp ~st competition_id in
-  List.find_opt (fun phase -> Round.equal r (round phase)) phases
-
-let find_next_round ~st phase =
-  let phase_data = get ~st phase in
-  let competition_id = competition phase_data in
-  let round = round phase_data in
-  let rec aux r =
-    begin match r with
-      | None -> None
-      | Some rr -> begin match from_comp_and_round ~st competition_id rr with
-          | Some p -> Some p
-          | None -> aux (Round.next rr)
-        end
-    end in
-  aux (Round.next round)
-*)
 
 let create
     ~st competition_id round
@@ -154,4 +126,88 @@ let delete ~st id_phase =
     {| DELETE FROM phases
         WHERE id=?|} id_phase;
   id_phase
+
+
+(* Phase ranking *)
+(* ************************************************************************* *)
+
+type ('kind, 'target) ranking =
+  | Singles : {
+      leaders : 'target Ranking.Res.t;
+      follows : 'target Ranking.Res.t;
+    } -> (Target.single, 'target) ranking
+  | Couples : {
+      couples : 'target Ranking.Res.t;
+    } -> (Target.couple, 'target) ranking
+
+type 'target any_ranking = Any : (_, 'target) ranking -> 'target any_ranking
+
+let ranking ~st ~phase =
+  let ranking_algorithm = ranking_algorithm phase in
+  let get_artefact ~head ~judge ~target =
+    let descr =
+      if (Option.equal Id.equal) (Some judge) head
+      then head_judge_artefact_descr phase
+      else judge_artefact_descr phase
+    in
+    try Some (Artefact.get ~st ~judge ~target ~descr)
+    with Not_found -> None
+  in
+  match Heat.get ~st ~phase:(id phase), Judge.get ~st ~phase:(id phase) with
+  | Singles singles, Singles panel ->
+    let _map, leaders, follows = Heat.all_single_judgement_targets singles in
+    let leaders =
+      Ranking.Algorithm.compute
+        ~judges:panel.leaders
+        ~head:panel.head
+        ~targets:leaders
+        ~get_artefact:(get_artefact ~head:panel.head)
+        ~get_bonus:(Bonus.get ~st)
+        ~t:ranking_algorithm
+    in
+    let follows =
+      Ranking.Algorithm.compute
+        ~judges:panel.followers
+        ~head:panel.head
+        ~targets:follows
+        ~get_artefact:(get_artefact ~head:panel.head)
+        ~get_bonus:(Bonus.get ~st)
+        ~t:ranking_algorithm
+    in
+    Any (Singles { leaders; follows; })
+  | Couples couples, Couples panel ->
+    let map = Heat.all_couple_judgement_targets couples in
+    let targets = Id.Map.bindings map |> List.map fst in
+    let couples =
+      Ranking.Algorithm.compute
+        ~judges:panel.couples
+        ~head:panel.head
+        ~targets
+        ~get_artefact:(get_artefact ~head:panel.head)
+        ~get_bonus:(Bonus.get ~st)
+        ~t:ranking_algorithm
+    in
+    Any (Couples { couples; })
+  | _ ->
+    failwith "Incoherence between heats and judge panels"
+
+let map_ranking ~targets ~judges r =
+  match r with
+  | Any Singles {leaders;follows} ->
+    Any (Singles {
+      leaders=Ranking.Res.map ~targets ~judges leaders;
+      follows=Ranking.Res.map ~targets ~judges follows;
+    })
+  | Any Couples {couples} ->
+    Any (Couples {
+      couples=Ranking.Res.map ~targets ~judges couples;
+    })
+
+let iteri ~targets ~judges r =
+  match r with
+  | Any Singles {leaders;follows} ->
+    Ranking.Res.iteri ~targets ~judges leaders;
+    Ranking.Res.iteri ~targets ~judges follows
+  | Any Couples {couples} ->
+    Ranking.Res.iteri ~targets ~judges couples
 

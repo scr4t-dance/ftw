@@ -54,6 +54,23 @@ let placement (t : t) : Points.placement =
       | Not_present -> Other
     end
 
+(* Points *)
+(* ************************************************************************* *)
+
+let points ~event ~comp ~role result =
+  match Competition.category comp with
+  | Non_competitive _ -> 0
+  | Competitive _ ->
+    let date = Event.start_date event in
+    let n =
+      match (role : Role.t) with
+      | Leader -> Competition.n_leaders comp
+      | Follower -> Competition.n_follows comp
+    in
+    let placement = placement result in
+    Points.find ~date ~n ~placement
+
+
 (* Misc *)
 (* ************************************************************************* *)
 

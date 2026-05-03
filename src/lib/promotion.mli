@@ -6,5 +6,8 @@ include module type of Ftw_core.Promotion
 (* DB interaction *)
 (* ************************************************************************* *)
 
-(* TODO *)
+val record : st:State.t -> t -> unit
+(** Record/add a promotion in the state, as well as update the division of the
+    concerned dancer. *)
+
 

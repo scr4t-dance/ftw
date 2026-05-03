@@ -423,9 +423,7 @@ let check_late (late_n, dancer_list) pools =
   let rounds = CCList.range_by ~step:1 0 (n - 1 - late_n) in
   check_not_in_rounds rounds dancer_list pools
 
-let check_forbidden ~st ~phase leader_pools follower_pools =
-  let competition = Phase.competition (Phase.get ~st phase) in
-  let forbidden_pairs = Forbidden.get ~st ~competition in
+let check_forbidden ~forbidden_pairs leader_pools follower_pools =
   Array.for_all2 (fun leaders followers ->
     List.for_all (fun ({dancer1;dancer2;_}: Forbidden.t) ->
           not ((Id.Set.mem dancer1 leaders) && (Id.Set.mem dancer2 followers)) &&
@@ -440,11 +438,12 @@ let regen ~st ~phase ?(tries=100) ?(early=(0, [])) ?(late=(0, [])) ~min ~max t =
       Logs.info (fun k->k "Generating new pool");
       begin match t with
         | Singles {singles_heats;} ->
+          let forbidden_pairs = assert false in
           let leader_pools, follower_pools = regen_singles ~min ~max singles_heats in
           let leader_sets = singles_sets leader_pools in
           let follower_sets = singles_sets follower_pools in
           let is_okay =
-            check_forbidden ~st ~phase leader_sets follower_sets &&
+            check_forbidden ~forbidden_pairs leader_sets follower_sets &&
             check_early early leader_sets && check_late late leader_sets &&
             check_early early follower_sets && check_late late follower_sets
           in
@@ -514,10 +513,11 @@ let simple_promote ~st ~(phase:Id.t) (_max_number_of_targets_to_pass:int) =
 (* Helpers *)
 (* ************************************************************************* *)
 
-(*
 let all_single_judgement_targets { singles_heats; } =
   let aux ~passages map acc role l =
-    List.fold_left (fun (map, acc) { target_id; dancer; } ->
+    List.fold_left (fun (map, acc) single ->
+        let target_id = Target.With_id.id single in
+        let dancer = Target.Single.dancer (Target.With_id.target single) in
         (* only the first (or only) passage is judged *)
         match Id.Map.find_opt dancer passages with
         | Some Multiple { nth } when nth > 1 -> map, acc
@@ -534,122 +534,13 @@ let all_single_judgement_targets { singles_heats; } =
 
 let all_couple_judgement_targets { couples_heats; } =
   Array.fold_left (fun map { couples; passages = _; } ->
-      List.fold_left (fun map { leader; follower; target_id; } ->
+      List.fold_left (fun map couple ->
+          let target_id = Target.With_id.id couple in
+          let leader = Target.Couple.leader (Target.With_id.target couple) in
+          let follower = Target.Couple.follower (Target.With_id.target couple) in
           (* all couples are judged, even if some dancer dances more than one time *)
           Id.Map.add target_id (Target.Couple {leader; follower }) map
         ) map couples
     ) Id.Map.empty couples_heats
-*)
 
-(* Ranking *)
-(* ************************************************************************* *)
-(*
-type 'target ranking =
-  | Singles of {
-      leaders : 'target Ranking.Res.t;
-      follows : 'target Ranking.Res.t;
-    }
-  | Couples of {
-      couples : 'target Ranking.Res.t;
-    }
 
-let ranking ~st ~phase:id =
-  let phase = Phase.get ~st id in
-  let ranking_algorithm = Phase.ranking_algorithm phase in
-  let get_artefact ~head ~judge ~target =
-    let descr =
-      if (Option.equal Id.equal) (Some judge) head
-      then Phase.head_judge_artefact_descr phase
-      else Phase.judge_artefact_descr phase
-    in
-    try Some (Artefact.get ~st ~judge ~target ~descr)
-    with Not_found -> None
-  in
-  match get ~st ~phase:id, Judge.get ~st ~phase:id with
-  | Singles singles, Singles panel ->
-    let _map, leaders, follows = all_single_judgement_targets singles in
-    let leaders =
-      Ranking.Algorithm.compute
-        ~judges:panel.leaders
-        ~head:panel.head
-        ~targets:leaders
-        ~get_artefact:(get_artefact ~head:panel.head)
-        ~get_bonus:(Bonus.get ~st)
-        ~t:ranking_algorithm
-    in
-    let follows =
-      Ranking.Algorithm.compute
-        ~judges:panel.followers
-        ~head:panel.head
-        ~targets:follows
-        ~get_artefact:(get_artefact ~head:panel.head)
-        ~get_bonus:(Bonus.get ~st)
-        ~t:ranking_algorithm
-    in
-    Singles { leaders; follows; }
-  | Couples couples, Couples panel ->
-    let map = all_couple_judgement_targets couples in
-    let targets = Id.Map.bindings map |> List.map fst in
-    let couples =
-      Ranking.Algorithm.compute
-        ~judges:panel.couples
-        ~head:panel.head
-        ~targets
-        ~get_artefact:(get_artefact ~head:panel.head)
-        ~get_bonus:(Bonus.get ~st)
-        ~t:ranking_algorithm
-    in
-    Couples { couples; }
-  | _ ->
-    failwith "Incoherence between heats and judge panels"
-
-let map_ranking ~targets ~judges r =
-  match r with
-  | Singles {leaders;follows} -> Singles {
-      leaders=Ranking.Res.map ~targets ~judges leaders;
-      follows=Ranking.Res.map ~targets ~judges follows
-    }
-  | Couples {couples} -> Couples {
-      couples=Ranking.Res.map ~targets ~judges couples;
-    }
-
-let iteri ~targets ~judges r =
-  match r with
-  | Singles {leaders;follows} ->
-    Ranking.Res.iteri ~targets ~judges leaders;
-    Ranking.Res.iteri ~targets ~judges follows
-  | Couples {couples} ->
-    Ranking.Res.iteri ~targets ~judges couples
-
-let add_target st ~(phase_id:Id.t) heat_number (target:target_id Target.any) =
-  match target with
-  | Any Single {target; role} -> Ok (add_single ~st ~phase:phase_id ~heat:heat_number ~role target)
-  | Any Couple {leader; follower} -> Ok (add_couple ~st ~phase:phase_id ~heat:heat_number ~leader ~follower)
-  | Any Trouple _ -> Error "add_target for Trouple not implemented"
-
-let set_heat_number ~st ~heat_number tid =
-  let open Sqlite3_utils.Ty in
-  State.insert ~st ~ty:[int;int]
-    {|
-      UPDATE heats
-      SET heat_number = ?
-      WHERE 0=0
-      AND id = ? |}
-    heat_number tid
-
-let delete_target st ~(phase_id:Id.t) heat_number (target:target_id Target.any) =
-  let tid = get_id st phase_id heat_number target in
-  begin match tid with
-    | Ok Some th -> delete_one ~st th
-    | _ -> ()
-  end;
-  Ok phase_id
-
-let stage_target st ~(phase_id:Id.t) heat_number (target:target_id Target.any) =
-  let tid = get_id st phase_id heat_number target in
-  begin match tid with
-    | Ok Some th -> set_heat_number ~st ~heat_number:0 th;
-    | _ -> ()
-  end;
-  Ok phase_id
-*)

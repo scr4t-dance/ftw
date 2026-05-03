@@ -156,7 +156,7 @@ let comp_name comp =
 let export_comp ~st comp =
   Logs.debug ~src (fun k->k "Exporting competition %d" (Competition.id comp));
   let results_fields = export_results ~st comp in
-  let phases = Phase.find ~st (Competition.id comp) in
+  let phases = Competition.phases ~st comp in
   let phases_fields = export_phases ~st phases in
   let t = Otoml.table (
       ("id", Otoml.integer (Competition.id comp)) ::
@@ -184,8 +184,8 @@ let export_comps ~st comps =
 let event_toml ~st ~local event_id =
   Logs.debug ~src (fun k->k "Exporting event %d" event_id);
   let format = if not local then "ftw.2" else assert false (* TODO: add local event export *) in
-  let event = Event.get st event_id in
-  let comps = Competition.from_event st event_id in
+  let event = Event.get ~st event_id in
+  let comps = Event.competitions ~st event in
   let comp_fields = export_comps ~st comps in
   let id = Otoml.integer (Event.id event) in
   let name = Otoml.string (Event.name event) in

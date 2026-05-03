@@ -27,6 +27,11 @@ val create :
 (** Create a new competition *)
 
 
+val phases : st:State.t -> t -> Phase.t list
+
+val round : st:State.t -> t -> Round.t -> Phase.t option
+
+
 (* Private functions *)
 (* ************************************************************************* *)
 

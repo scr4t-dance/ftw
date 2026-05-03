@@ -194,21 +194,31 @@ end
 
 module Res : sig
 
+  (* Types *)
+  (* ***** *)
+
   type 'target t
 
   type 'target matrix =
     | RPSS of (RPSS.acc, 'target) Matrix.t
     | Yan_weighted of (Yan_weighted.acc, 'target) Matrix.t
 
+
+  (* Inspection *)
+  (* ********** *)
+
   val status : _ t -> Status.t
   (** Status of a ranking result *)
 
   val info : 'target t -> 'target matrix
+  (** Explanation for a ranking *)
 
   val ranking : 'target t -> 'target One.t
   (* Ranking from a result. *)
 
-  val printbox : pp:(Format.formatter -> 'a -> unit) -> 'a matrix -> PrintBox.t
+
+  (* Helpers *)
+  (* ******* *)
 
   val map :
     targets:('a -> 'b) ->
@@ -221,6 +231,18 @@ module Res : sig
     'a t ->
     unit
   (** Iter over the targets *)
+
+
+  (* Debug *)
+  (* ***** *)
+
+  val printbox :
+    pp:(Format.formatter -> 'a -> unit) ->
+    'a matrix -> PrintBox.t
+
+  val debug :
+    pp:(Format.formatter -> 'a -> unit) ->
+    Format.formatter -> 'a t -> unit
 
 end
 

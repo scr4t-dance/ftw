@@ -190,9 +190,6 @@ class virtual importer (st : State.t) = object(self)
   (* =============== *)
 
   method log_ranking r =
-    let _debug fmt r =
-      Ranking.Res.debug ~pp:Id.print fmt r
-    in
     let pp fmt r =
       let r = dancer_ranking_res ~st r in
       Ranking.Res.debug ~pp:(Target.print Dancer.print_compact) fmt r
@@ -286,13 +283,13 @@ class virtual importer (st : State.t) = object(self)
     (* check whether we have imported artefacts for the finals, and if so
        check the results are coherent *)
     let finals_rankings =
-      match Phase.find_round st (Competition.id comp) Finals with
+      match Competition.round ~st comp Finals with
       | None -> None
       | Some phase ->
-        match Heat.ranking ~st ~phase:(Phase.id phase) with
-        | Couples { couples; } ->
+        match Phase.ranking ~st ~phase with
+        | Any Singles _ -> failwith "singles ranking for a finals is not allowed"
+        | Any Couples { couples; } ->
           Some (Ranking.Res.ranking @@ dancer_ranking_res ~st couples)
-        | Singles _ -> failwith "singles ranking for a finals is not allowed"
     in
     (* Record the results *)
     List.iter (fun (r : Results.r) ->

@@ -78,6 +78,15 @@ let create ~st
   Logs.debug ~src:State.src (fun k->k "Competition created with id %d" (id t));
   t
 
+let phases ~st comp =
+  State.query_list_where ~st ~db ~p:Id.p ~conv:Phase.conv
+    {| SELECT * FROM phases WHERE competition_id = ? ORDER BY id |} (id comp)
+  |> List.sort (fun comp1 comp2 -> Round.compare (Phase.round comp1) (Phase.round comp2))
+
+let round ~st comp round =
+  List.find_opt (fun phase -> Round.equal round (Phase.round phase)) (phases ~st comp)
+
+
 (* Private functions *)
 (* ************************************************************************* *)
 
@@ -101,25 +110,3 @@ module Private = struct
 
 end
 
-
-(* OLD CODE
-
-   (* TODO: move this to another file ? *)
-   let ids_from_dancer_history st dancer_id =
-   State.query_list_where ~p:Id.p ~conv:Id.conv ~st
-    {| SELECT competition_id FROM bibs WHERE dancer_id = ? |}
-    dancer_id
-
-   let update_competitors_number ~st ~id:comp_id ~n_leaders ~n_followers =
-   let open Sqlite3_utils.Ty in
-   State.insert ~st ~ty:[ int; int; int; ]
-    {| UPDATE competitions
-        SET
-        num_leaders = ?,
-        num_followers = ?
-        WHERE id = ?
-        |}
-    n_leaders n_followers
-    comp_id
-
-*)

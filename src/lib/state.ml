@@ -23,9 +23,9 @@ let sqldb ~db { main; users } =
   | Main -> main
   | Users -> users
 
-let atomically { main; users; } ~f =
-  Db.atomically main (fun main ->
-    Db.atomically users (fun users ->
+let atomically ~st:{ main; users; } ~f =
+  Db.atomically main ~f:(fun main ->
+    Db.atomically users ~f:(fun users ->
           f { main; users; }
         )
     )

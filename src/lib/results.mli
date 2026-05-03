@@ -34,10 +34,9 @@ val all_points :
   int
 (** Find the total number of points for a dancer and role. *)
 
-val points : st:State.t ->
-  event:int ->
-  comp:Competition.t ->
-  role:Role.t ->
-  t ->
-  int
+val promotion :
+  st:State.t ->
+  event:Ftw_core.Event.t ->
+  comp:Ftw_core.Competition.t ->
+  r -> Promotion.t option
 

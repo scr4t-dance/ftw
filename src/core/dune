@@ -9,6 +9,7 @@
   ; deps
   (libraries
     fmt logs jsont
-    gen containers printbox
+    gen containers
+    printbox printbox-text
   )
 )
