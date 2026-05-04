@@ -5,12 +5,13 @@
   (public_name  ftw-server)
   (package      ftw-server)
   (preprocess
-    (pps lwt_ppx ppx_deriving.show ppx_deriving_yojson)
+    (pps lwt_ppx dream-html.ppx)
   )
   (libraries
-     ftw ftw_core ftw_api dream
+     ftw ftw_core ftw_api
+     dream dream-html dream-htmx
      fmt fmt.cli logs logs.cli logs.fmt
-     cmdliner containers yojson jsont jsont.bytesrw
+     cmdliner containers jsont jsont.bytesrw
      dune-site
   )
 )

@@ -25,6 +25,8 @@ let mk ~day ~month ~year =
   if month <= 0 || month > 12 then raise (Invalid_date `Month);
   { day; month; year; }
 
+  let first_day ~year = mk ~day:1 ~month:1 ~year
+  let last_day ~year = mk ~day:31 ~month:12 ~year
 
 (* Usual functions *)
 (* ************************************************************************* *)

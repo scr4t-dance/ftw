@@ -20,53 +20,24 @@ let find_sites_dir filename =
 
 let loader _root path req =
   Logs.debug ~src (fun m -> m "Loading static request for '%s'" path);
-  let default () = 
-    (* if the path is not found in the frontend, automatically redirect to `index.html` *)
-    begin match find_sites_dir "index.html" with
-      | None -> assert false (* let's assume the frontend will always have an `index.html` *)
-      | Some dir -> Dream.from_filesystem dir "index.html" req
-    end
-  in
   match path with
-  | "" -> assert false
+  | "" -> assert false (* should have been redirected before this point *)
   | _ ->
     match find_sites_dir path with
     | None ->
-      Logs.debug ~src (fun m -> m "Path not found, defaulting to index.html");
-      default ()
+      Logs.debug ~src (fun m -> m "Path not found, returning 404");
+      Dream.empty `Not_Found
     | Some dir ->
       Dream.from_filesystem dir path req
-
-(*
-let router () =
-  (* Setup the router with the base information for openapi *)
-  let router =
-    Router.empty
-    |> Types.schemas
-    |> Router.title "FTW"
-    |> Router.version "1.0.1"
-    |> Router.description "Api for the FTW dance competition scoring software"
-    |> Router.license (
-      Spec.make_license_object () ~name:"GPL 3.0"
-        ~url:"https://www.gnu.org/licenses/gpl-3.0.en.html")
-  in
-  (* Add the routes for api endpoints *)
-  router
-  |> Event.routes
-  |> Competition.routes
-  |> Phase.routes
-  |> Dancer.routes
-  |> Bib.routes
-  |> Heat.routes
-  |> Artefact.routes
-  |> Judge.routes
-  |> Ranking.routes
-  |> Results.routes
-*)
 
 let delay s callback req =
   if s > 0 then Unix.sleep s;
   callback req
+
+let%path index = "/index.html"
+let%path events_page = "/events"
+let%path events_api = "/events"
+
 
 let server (options : Options.server) =
   (* Default routes to serve the clients files (pages, scripts and css) *)
@@ -74,56 +45,27 @@ let server (options : Options.server) =
     Dream.get "/" (fun req -> Dream.redirect req "/index.html");
     Dream.get "/**" (Dream.static ~loader "");
   ] in
-  (* Create the router *)
-  (* let router = router () in *)
-  (* Define CORS middleware manually *)
-  let cors_middleware handler request =
-    match Dream.method_ request with
-    | `OPTIONS ->
-      Dream.respond ~headers:[
-        ("Access-Control-Allow-Origin", "*");
-        ("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
-        ("Access-Control-Allow-Headers", "Content-Type, Authorization");
-      ] ~status:`No_Content ""
-    | _ ->
-      let%lwt response = handler request in
-      Dream.add_header response "Access-Control-Allow-Origin" "*";
-      Dream.add_header response "Access-Control-Allow-Headers" "Content-Type, Authorization";
-      Lwt.return response
-  in
   (* Setup the dream server and run it *)
   Dream.run
     ~interface:"0.0.0.0"
     ~port:options.server_port
     ~tls:false
   @@ Dream.logger
-  @@ cors_middleware
   @@ Dream.memory_sessions
   @@ State.init
     ~main_path:options.main_db_path
     ~user_path:options.user_db_path
     ~init:(not options.db_no_init)
   @@ Dream.router (
-    Dream.scope (Ftw_api.Routes.prefix)
+    Dream.scope "/api"
       [Dream.origin_referrer_check; delay options.api_delay] [
-      Event.list
+        Dream_html.get events_api Page_event_list.api;
     ] ::
+    Dream_html.get index Page_index.page ::
+    Dream_html.get events_page Page_event_list.page ::
     default_routes
   )
 
-(* Spec export *)
-(* ************************************************************************* *)
-
-let openapi (_options : Options.openapi) =
-  (*
-  let router = router () in
-  let spec = router.spec in
-  let ch = open_out options.file in
-  let fmt = Format.formatter_of_out_channel ch in
-  Format.fprintf fmt "%a@." (Yojson.Safe.pretty_print ~std:false) (Spec.yojson_of_t spec);
-  let () = close_out ch in
-  *)
-  ()
 
 (* DB init *)
 (* ************************************************************************* *)
@@ -187,7 +129,6 @@ let () =
   let cmd =
     let open Cmdliner in
     Cmd.group ~default:Options.server info [
-      Cmd.v (Cmd.info "openapi") Options.openapi;
       Cmd.v (Cmd.info "init") Options.init;
       Cmd.v (Cmd.info "import") Options.import;
       Cmd.v (Cmd.info "export") Options.export;
@@ -201,7 +142,6 @@ let () =
   | Ok (`Help | `Version) -> exit 0
   (* Options parsed, run the code *)
   | Ok `Ok Options.Server options -> server options
-  | Ok `Ok Options.Openapi options -> openapi options
   | Ok `Ok Options.Init options -> init options
   | Ok `Ok Options.Import options -> import options
   | Ok `Ok Options.Export options -> export options

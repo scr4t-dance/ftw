@@ -9,6 +9,9 @@ include module type of Ftw_core.Event
 val list : st:State.t -> t list
 (** List all events *)
 
+val list_from_year : st:State.t -> year:int -> t list
+(** List events from one specific year *)
+
 val get : st:State.t -> id -> t
 (** Get an event from its id.
     @raise Stdlib.Not_found if the event is not found. *)

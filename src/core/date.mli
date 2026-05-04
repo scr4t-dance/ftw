@@ -46,4 +46,5 @@ val day : t -> int
 val month : t -> int
 val year : t -> int
 
-
+val first_day : year:int -> t
+val last_day : year:int -> t

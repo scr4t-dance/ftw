@@ -14,10 +14,6 @@ type server = {
   api_delay : int;
 }
 
-type openapi = {
-  file : string;
-}
-
 type init = {
   main_db_path : string;
   user_db_path : string;
@@ -42,7 +38,6 @@ type export = {
 
 type t =
   | Server of server
-  | Openapi of openapi
   | Init of init
   | Import of import
   | Export of export
@@ -135,22 +130,6 @@ let server =
   setup_bt bt;
   setup_log logs_style logs_level;
   Server { main_db_path; user_db_path; db_no_init; server_port; api_delay; }
-
-(* Openapi options *)
-(* ************************************************************************* *)
-
-let openapi =
-  let open Term.Syntax in
-  let+ bt
-  and+ logs_level
-  and+ logs_style
-  and+ file =
-    let doc = "Output file for the openapi doc" in
-    Arg.(required & pos 0 (some string) None & info [] ~doc ~docv:"FILE")
-  in
-  setup_bt bt;
-  setup_log logs_style logs_level;
-  Openapi { file; }
 
 (* Init option *)
 (* ************************************************************************* *)

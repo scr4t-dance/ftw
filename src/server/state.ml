@@ -1,4 +1,9 @@
 
+(* This file is free software, part of FTW. See file "LICENSE" for more information *)
+
+(* Ftw state in dream *)
+(* ************************************************************************* *)
+
 let field =
   Dream.new_field ()
     ~name:"internal db"

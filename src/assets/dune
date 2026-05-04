@@ -9,5 +9,6 @@
     (bootstrap.bundle.min.js.map as static/bootstrap.bundle.min.js.map)
     (bootstrap.min.css as static/bootstrap.min.css)
     (bootstrap.min.css.map as static/bootstrap.min.css.map)
+    (htmx.min.js as static/htmx.min.js)
   )
 )

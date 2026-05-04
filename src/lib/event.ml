@@ -36,6 +36,12 @@ let list ~st =
   State.query_list ~st ~db ~conv
     {| SELECT * FROM events |}
 
+let list_from_year ~st ~year =
+  State.query_list_where ~st ~db ~conv ~p:Db.Ty.[text; text]
+  {| SELECT * FROM events WHERE start_date >= ? AND start_date <= ?|}
+  (Date.to_string (Date.first_day ~year))
+  (Date.to_string (Date.last_day ~year))
+
 let get ~st id =
   try
     State.query_one_where ~st ~db ~p:Id.p ~conv
