@@ -7,6 +7,7 @@
 
 ; Generate a test DB using the import feature
 (rule
+  (mode promote)
   (target db.sqlite)
   (deps (source_tree archive))
   (action (run ftw-server import --db=%{target} --verbosity=error archive))
