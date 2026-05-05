@@ -22,3 +22,4 @@ val (@>>) :
   ('a, 'c) Sqlite3_utils.Ty.t
 
 val int : int t
+val string : string t

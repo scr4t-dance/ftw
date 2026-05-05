@@ -6,10 +6,13 @@ include module type of Ftw_core.Event
 (* DB interaction *)
 (* ************************************************************************* *)
 
+val last : st:State.t -> t
+(** Last event *)
+
 val list : st:State.t -> t list
 (** List all events *)
 
-val list_from_year : st:State.t -> year:int -> t list
+val list_before : st:State.t -> n:int -> id:id -> t list
 (** List events from one specific year *)
 
 val get : st:State.t -> id -> t

@@ -6,6 +6,10 @@
 
 include Ftw_core.Date
 
+let today () =
+  let tm = Unix.localtime (Unix.time ()) in
+  mk ~day:tm.tm_mday ~month:tm.tm_mon ~year:tm.tm_year
+
 (* DB interactions *)
 (* ************************************************************************* *)
 

@@ -3,7 +3,7 @@
 
 let src = Logs.Src.create "ftw.backend"
 
-(* Initialization *)
+(* Static assets *)
 (* ************************************************************************* *)
 
 (* [lookup_file name dirs] finds the first file called [filename] in the list
@@ -14,9 +14,6 @@ let find_sites_dir filename =
       let filename' = Filename.concat dir filename in
       if Sys.file_exists filename' then Some dir else None)
     Sites.Sites.assets
-
-(* Main Server *)
-(* ************************************************************************* *)
 
 let loader _root path req =
   Logs.debug ~src (fun m -> m "Loading static request for '%s'" path);
@@ -30,21 +27,15 @@ let loader _root path req =
     | Some dir ->
       Dream.from_filesystem dir path req
 
+
+(* Main Server *)
+(* ************************************************************************* *)
+
 let delay s callback req =
   if s > 0 then Unix.sleep s;
   callback req
 
-let%path index = "/index.html"
-let%path events_page = "/events"
-let%path events_api = "/events"
-
-
 let server (options : Options.server) =
-  (* Default routes to serve the clients files (pages, scripts and css) *)
-  let default_routes = [
-    Dream.get "/" (fun req -> Dream.redirect req "/index.html");
-    Dream.get "/**" (Dream.static ~loader "");
-  ] in
   (* Setup the dream server and run it *)
   Dream.run
     ~interface:"0.0.0.0"
@@ -56,15 +47,24 @@ let server (options : Options.server) =
     ~main_path:options.main_db_path
     ~user_path:options.user_db_path
     ~init:(not options.db_no_init)
-  @@ Dream.router (
-    Dream.scope "/api"
+  @@ Dream.router [
+
+    (* Pages *)
+    Dream_html.get Paths.Page.index Index.page;
+    Dream_html.get Paths.Page.events Events.page;
+    Dream_html.get Paths.Page.login Login.page;
+
+    (* API routes *)
+    Dream.scope "/"
       [Dream.origin_referrer_check; delay options.api_delay] [
-        Dream_html.get events_api Page_event_list.api;
-    ] ::
-    Dream_html.get index Page_index.page ::
-    Dream_html.get events_page Page_event_list.page ::
-    default_routes
-  )
+        Dream_html.get Paths.Api.events Events.api;
+        Dream_html.post Paths.Post.login Login.post;
+    ];
+
+    (* Default routes *)
+    Dream.get "/" (fun req -> Dream.redirect req "/index.html");
+    Dream.get "/**" (Dream.static ~loader "");
+  ]
 
 
 (* DB init *)
@@ -112,13 +112,29 @@ let export (options : Options.export) =
       ~main_path:options.main_db_path
       ~user_path:options.user_db_path
   in
-  Ftw.State.atomically ~st
-    ~f:(fun st ->
-        match Ftw.Export.export_event
-                ~st options.out_path options.ev_id with
-        | Ok _ -> ()
-        | Error () -> raise Exit
-      )
+  Ftw.State.atomically ~st ~f:(fun st ->
+    match Ftw.Export.export_event
+            ~st options.out_path options.ev_id with
+    | Ok _ -> ()
+    | Error () -> raise Exit
+  )
+
+(* Set admin endpoint *)
+(* ************************************************************************* *)
+
+let set_admin (options: Options.set_admin) =
+  let st =
+    Ftw.State.mk ~init:(not options.db_no_init)
+      ~main_path:options.main_db_path
+      ~user_path:options.user_db_path
+  in
+  Ftw.State.atomically ~st ~f:(fun st ->
+    Ftw.User.create ~st
+      ~username:options.username
+      ~email:options.email
+      ~pwd:options.pwd
+      ~dancer_id:options.dancer_id
+  )
 
 (* Main entrypoint *)
 (* ************************************************************************* *)
@@ -132,6 +148,7 @@ let () =
       Cmd.v (Cmd.info "init") Options.init;
       Cmd.v (Cmd.info "import") Options.import;
       Cmd.v (Cmd.info "export") Options.export;
+      Cmd.v (Cmd.info "set-admin") Options.set_admin;
     ]
   in
   match Cmdliner.Cmd.eval_value cmd with
@@ -145,3 +162,4 @@ let () =
   | Ok `Ok Options.Init options -> init options
   | Ok `Ok Options.Import options -> import options
   | Ok `Ok Options.Export options -> export options
+  | Ok `Ok Options.Set_admin options -> set_admin options

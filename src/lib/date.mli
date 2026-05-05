@@ -3,6 +3,8 @@
 
 include module type of Ftw_core.Date
 
+val today : unit -> t
+
 (* DB interaction *)
 (* ************************************************************************* *)
 

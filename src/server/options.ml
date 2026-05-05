@@ -36,11 +36,22 @@ type export = {
   dancer_export : Ftw.Export.dancer_export;
 }
 
+type set_admin = {
+  main_db_path : string;
+  user_db_path : string;
+  db_no_init : bool;
+  username : string;
+  pwd : string;
+  email : string;
+  dancer_id : int;
+}
+
 type t =
   | Server of server
   | Init of init
   | Import of import
   | Export of export
+  | Set_admin of set_admin
 
 (* Logs & debugging *)
 (* ************************************************************************* *)
@@ -193,3 +204,31 @@ let export =
   setup_log logs_style logs_level;
   let dancer_export = dancer_export dancer_list in
   Export { main_db_path; user_db_path; db_no_init; out_path; ev_id; dancer_export; }
+
+(* Set admin options *)
+(* ************************************************************************* *)
+
+let set_admin =
+  let open Term.Syntax in
+  let+ bt
+  and+ logs_level
+  and+ logs_style
+  and+ main_db_path
+  and+ user_db_path
+  and+ db_no_init
+  and+ username =
+    let doc = "Username for the admin" in
+    Arg.(required & pos 0 (some string) None & info [] ~doc)
+  and+ pwd =
+    let doc = "Password for the admin" in
+    Arg.(required & pos 1 (some string) None & info [] ~doc)
+  and+ email =
+    let doc = "Email address for the admin" in
+    Arg.(value & opt string "" & info ["email"] ~doc)
+  and+ dancer_id =
+    let doc = "SCR4T id for the admin account" in
+    Arg.(required & opt (some int) None & info ["dancer-id"] ~doc)
+  in
+  setup_bt bt;
+  setup_log logs_style logs_level;
+  Set_admin { main_db_path; user_db_path; db_no_init; username; pwd; email; dancer_id; }

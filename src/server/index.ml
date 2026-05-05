@@ -7,8 +7,7 @@ open Dream_html.HTML
 (* Hello world *)
 (* ************************************************************************* *)
 
-let page _req =
-  respond @@
-  Template.page ~local:true ~body:[
-    p [] [txt "Hello World !"]
+let page req =
+  Template.page ~req ~root:Index ~title:"FTW" [
+    p [] [txt "Hello World !"];
   ]

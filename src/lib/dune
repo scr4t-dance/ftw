@@ -7,7 +7,7 @@
     ftw_core
     unix fmt logs
     jsont jsont.bytesrw
-    gen containers
+    gen containers argon2
     printbox printbox-text
     otoml spelll uutf uunf
     sqlite3 sqlite3_utils

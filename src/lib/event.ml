@@ -32,15 +32,17 @@ let conv =
        let end_date = Date.of_string end_date in
        Private.mk ~id ~name ~short_name ~start_date ~end_date)
 
+let last ~st =
+  State.query_one_where ~st ~db ~conv ~p:Db.Ty.[]
+  {| SELECT * from events ORDER BY id DESC LIMIT 1 |}
+
 let list ~st =
   State.query_list ~st ~db ~conv
     {| SELECT * FROM events |}
 
-let list_from_year ~st ~year =
-  State.query_list_where ~st ~db ~conv ~p:Db.Ty.[text; text]
-  {| SELECT * FROM events WHERE start_date >= ? AND start_date <= ?|}
-  (Date.to_string (Date.first_day ~year))
-  (Date.to_string (Date.last_day ~year))
+let list_before ~st ~n ~id =
+  State.query_list_where ~st ~db ~conv ~p:Db.Ty.[int; int]
+  {| SELECT * FROM events WHERE id < ? ORDER BY start_date DESC LIMIT ?|} id n
 
 let get ~st id =
   try
