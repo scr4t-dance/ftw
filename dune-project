@@ -17,6 +17,7 @@
    sqlite3 sqlite3_utils
    containers gen spelll otoml
    bos fpath logs fmt uunf uutf
+   jsont bytesrw fuzzy_match
    printbox printbox-text))
 
 (package
@@ -35,8 +36,7 @@
  (description "TODO")
  (depends
    (ftw (= :version))
-   dream
-   jsont bytesrw
+   dream dream-html dream-htmx
+   jsont bytesrw fuzzy_match
    (cmdliner (>= 1.3.0))
-   logs fmt
-   bonsai cohttp-async))
+   logs fmt))

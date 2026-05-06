@@ -21,6 +21,9 @@ depends: [
   "fmt"
   "uunf"
   "uutf"
+  "jsont"
+  "bytesrw"
+  "fuzzy_match"
   "printbox"
   "printbox-text"
   "odoc" {with-doc}

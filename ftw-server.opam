@@ -11,13 +11,14 @@ depends: [
   "dune" {>= "3.18"}
   "ftw" {= version}
   "dream"
+  "dream-html"
+  "dream-htmx"
   "jsont"
   "bytesrw"
+  "fuzzy_match"
   "cmdliner" {>= "1.3.0"}
   "logs"
   "fmt"
-  "bonsai"
-  "cohttp-async"
   "odoc" {with-doc}
 ]
 build: [
