@@ -230,3 +230,29 @@ module Index = struct
 
 end
 
+(* Fuzzy *)
+(* ************************************************************************* *)
+
+(* quite inefficient, TODO: do it better *)
+module Fuzzy = struct
+  
+  module M = Map.Make(String)
+
+  let search ~st ~pattern =
+    (* note that in v0.18 of Fuzzy_search, there is a search_assoc function,
+       which will remove the need for the map and most of the inefficiency here.
+       the remaining work will mainly be to cache the list of full names in
+       the state *)
+    let all_dancers = list ~st in
+    let l =
+      List.map (fun d ->
+        Format.asprintf "%s %s"(first_name d) (last_name d), d
+      ) all_dancers
+    in
+    let map = M.of_list l in
+    let items = List.map fst l in
+    let query = Fuzzy_search.Query.create pattern in
+    let results = Fuzzy_search.search query ~items in
+    List.map (fun full_name -> M.find full_name map) results
+
+end

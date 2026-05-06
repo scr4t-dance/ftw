@@ -77,6 +77,16 @@ module Index : sig
 
 end
 
+
+(* Index *)
+(* ************************************************************************* *)
+
+module Fuzzy : sig
+
+  val search : st:State.t -> pattern:string -> t list
+
+end
+
 (* Private functions *)
 (* ************************************************************************* *)
 

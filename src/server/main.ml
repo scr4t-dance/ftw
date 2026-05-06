@@ -47,18 +47,21 @@ let server (options : Options.server) =
     ~main_path:options.main_db_path
     ~user_path:options.user_db_path
     ~init:(not options.db_no_init)
+  @@ User.init
   @@ Dream.router [
 
     (* Pages *)
     Dream_html.get Paths.Page.index Index.page;
     Dream_html.get Paths.Page.events Events.page;
     Dream_html.get Paths.Page.login Login.page;
+    Dream_html.get Paths.Page.dancers Dancers.page;
 
     (* API routes *)
     Dream.scope "/"
       [Dream.origin_referrer_check; delay options.api_delay] [
         Dream_html.get Paths.Api.events Events.api;
         Dream_html.post Paths.Post.login Login.post;
+        Dream_html.post Paths.Post.dancers Dancers.post;
     ];
 
     (* Default routes *)
@@ -129,11 +132,14 @@ let set_admin (options: Options.set_admin) =
       ~user_path:options.user_db_path
   in
   Ftw.State.atomically ~st ~f:(fun st ->
-    Ftw.User.create ~st
-      ~username:options.username
-      ~email:options.email
-      ~pwd:options.pwd
-      ~dancer_id:options.dancer_id
+    let user =
+      Ftw.User.create ~st
+        ~username:options.username
+        ~email:options.email
+        ~pwd:options.pwd
+        ~dancer_id:options.dancer_id
+    in
+    Ftw.Position.add ~st ~user Admin
   )
 
 (* Main entrypoint *)

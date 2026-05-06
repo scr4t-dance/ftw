@@ -10,6 +10,12 @@ type id = Id.t
 type t
 (** Events *)
 
+type status =
+  | Setup
+  | In_progress
+  | Finished (**)
+(** Event status *)
+
 
 (* Common functions *)
 (* ************************************************************************* *)
@@ -29,6 +35,12 @@ val start_date : t -> Date.t
 val end_date : t -> Date.t
 (** End date of the event. *)
 
+val public : t -> bool
+(** Whether the event is public *)
+
+val status : t -> status
+(** Current status, i.e. is it in progress, etc... *)
+
 val compare : t -> t -> int
 (** Comparison function. Compares the date before *)
 
@@ -43,6 +55,7 @@ module Private : sig
 
   val mk :
     id:id -> name:string -> short_name:string ->
-    start_date:Date.t -> end_date:Date.t -> t
+    start_date:Date.t -> end_date:Date.t ->
+      public:bool -> status:status -> t
 
 end

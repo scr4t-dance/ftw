@@ -25,7 +25,7 @@ let bootstrap_css_link ~local : _ format4 =
 
 let bootstrap_icons_link ~local : _ format4 =
   if local
-  then "/static/bootstrap-icons.min.ss"
+  then "/static/bootstrap-icons.css"
   else "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
 
 let bootstrap_js_src ~local : _ format4 =
@@ -55,21 +55,21 @@ let page_header ~root ~req =
   [
     div [class_ "container"] [
       header [class_ "d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom"] [
-        a [href "/"; class_ "d-flex align-items-center col-md-3 mb-2 mb-md-0 text-dark text-decoration-none"]
+        a [path_attr href Paths.Page.index; class_ "d-flex align-items-center col-md-3 mb-2 mb-md-0 text-dark text-decoration-none"]
           [img [class_ "bi me-2"; width "40"; height "40"; role `img; Aria.label "SCR4T"; src "/static/logo.png"]];
         ul [class_"nav col-12 col-md-auto mb-2 justify-content-center mb-md-0"] [
-          li [] [a [href "/"; class_ "nav-link px-2 %s" (link_class ~target:Index ~root)] [txt "Index"]];
-          li [] [a [href "/events"; class_ "nav-link px-2 %s" (link_class ~target:Event ~root)] [txt "Events"]];
-          li [] [a [href "/dancers"; class_ "nav-link px-2 %s" (link_class ~target:Dancers ~root)] [txt "Dancers"]];
-          li [] [a [href "/infos"; class_ "nav-link px-2 %s" (link_class ~target:Infos ~root)] [txt "Infos"]];
+          li [] [a [path_attr href Paths.Page.index; class_ "nav-link px-2 %s" (link_class ~target:Index ~root)] [txt "Index"]];
+          li [] [a [path_attr href Paths.Page.events; class_ "nav-link px-2 %s" (link_class ~target:Event ~root)] [txt "Events"]];
+          li [] [a [path_attr href Paths.Page.dancers; class_ "nav-link px-2 %s" (link_class ~target:Dancers ~root)] [txt "Dancers"]];
+          li [] [a [path_attr href Paths.Page.infos; class_ "nav-link px-2 %s" (link_class ~target:Infos ~root)] [txt "Infos"]];
         ];
         div [class_ "col-md-3 text-end"] (
-          match User.get_username req with
-          | Anonymous ->
-            [a [href "/login"; class_ "btn btn-outline-primary me-2"] [txt "Login"]]
-          | Logged username -> [
+          match User.get req with
+          | None ->
+            [a [path_attr href Paths.Page.login; class_ "btn btn-outline-primary me-2"] [txt "Login"]]
+          | Some user -> [
             i [class_ "bi bi-person-check-fill"] [];
-            span [] [txt "%s" username];
+            span [] [txt "%s" (Ftw.User.name user)];
           ]
         );
       ]

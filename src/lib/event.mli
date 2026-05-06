@@ -19,7 +19,11 @@ val get : st:State.t -> id -> t
 (** Get an event from its id.
     @raise Stdlib.Not_found if the event is not found. *)
 
-val create : st:State.t -> name:string -> short_name:string -> start_date:Date.t -> end_date:Date.t -> id
+val create : st:State.t ->
+  name:string -> short_name:string ->
+  start_date:Date.t -> end_date:Date.t ->
+  public:bool -> status:status ->
+  id
 (** Create a new event. *)
 
 val competitions : st:State.t -> t -> Competition.t list
@@ -33,7 +37,11 @@ module Private : sig
 
   include module type of Ftw_core.Event.Private
 
-  val import : st:State.t -> id:id -> name:string -> short_name:string -> start_date:Date.t -> end_date:Date.t -> unit
+  val import : st:State.t -> id:id ->
+    name:string -> short_name:string ->
+    start_date:Date.t -> end_date:Date.t ->
+    public:bool -> status:status ->
+    unit
   (** Import an event with a fixed id. *)
 
 end

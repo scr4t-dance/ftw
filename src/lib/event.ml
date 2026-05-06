@@ -6,6 +6,13 @@
 
 include Ftw_core.Event
 
+type status = Ftw_core.Event.status =
+  | Setup
+  | In_progress
+  | Finished 
+  [@@deriving enum]
+
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
@@ -20,17 +27,21 @@ let () =
           short_name TEXT,
           start_date TEXT,
           end_date TEXT,
+          public INTEGER,
+          status INTEGER,
           UNIQUE (name, start_date, end_date)
         )
       |})
 
 let conv =
   Conv.mk
-    Sqlite3_utils.Ty.(p5 int text text text text)
-    (fun id name short_name start_date end_date ->
+    Db.Ty.[int; text; text; text; text; int; int]
+    (fun id name short_name start_date end_date public status ->
        let start_date = Date.of_string start_date in
        let end_date = Date.of_string end_date in
-       Private.mk ~id ~name ~short_name ~start_date ~end_date)
+       let public = public <> 0 in
+       let status = Option.get @@ status_of_enum status in (* TODO: proper error ? *)
+       Private.mk ~id ~name ~short_name ~start_date ~end_date ~public ~status)
 
 let last ~st =
   State.query_one_where ~st ~db ~conv ~p:Db.Ty.[]
@@ -51,14 +62,14 @@ let get ~st id =
   with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
     raise Not_found
 
-let create ~st ~name ~short_name ~start_date ~end_date : Id.t =
+let create ~st ~name ~short_name ~start_date ~end_date ~public ~status : Id.t =
   Logs.debug ~src:State.src (fun k->
       k "@[<hv 2>Creating event with@ name: %s@ short: %s@ start_date: %a@ end_date: %a@]"
         name short_name Date.print start_date Date.print end_date
     );
-  State.insert ~st ~db ~ty:Db.Ty.[ text; text; text; text; ]
-    {| INSERT INTO events (name, short_name, start_date, end_date) VALUES (?,?,?,?) |}
-    name short_name (Date.to_string start_date) (Date.to_string end_date);
+  State.insert ~st ~db ~ty:Db.Ty.[ text; text; text; text; int; int]
+    {| INSERT INTO events (name, short_name, start_date, end_date, public, status) VALUES (?,?,?,?,?,?) |}
+    name short_name (Date.to_string start_date) (Date.to_string end_date) (if public then 1 else 0) (status_to_enum status);
   (* TODO: try and get the id of the new event from the insert statement above,
      rather than using a new query *)
   let id =
@@ -81,13 +92,14 @@ module Private = struct
 
   include Ftw_core.Event.Private
 
-  let import ~st ~id:event_id ~name ~short_name ~start_date ~end_date =
+  let import ~st ~id:event_id ~name ~short_name ~start_date ~end_date ~public ~status =
     Logs.debug ~src:State.src (fun k->
         k "@[<hv 2>Importing event with@ id: %d@ name: %s@ short: %s@ start_date: %a@ end_date: %a@]"
           event_id name short_name Date.print start_date Date.print end_date
       );
-    State.insert ~st ~db ~ty:Db.Ty.[ int; text; text; text; text; ]
+    State.insert ~st ~db ~ty:Db.Ty.[ int; text; text; text; text; int; int]
       {| INSERT INTO events (id, name, short_name, start_date, end_date) VALUES (?,?,?,?,?) |}
       event_id name short_name (Date.to_string start_date) (Date.to_string end_date)
+      (if public then 1 else 0) (status_to_enum status)
 
 end

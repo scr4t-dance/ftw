@@ -1,0 +1,20 @@
+# FTW Event Info
+[config]
+format="ftw.1"
+
+[event]
+name = "!! TEST !!"
+short = "test"
+start_date = 2016-01-01
+end_date = 2017-01-01
+public = false
+
+[event.comps.foo]
+name = ""
+kind = "Jack_and_Jill"
+category = "Regular"
+leaders = 0
+follows = 0
+results = """
+"""
+

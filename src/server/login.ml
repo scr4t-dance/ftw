@@ -15,7 +15,7 @@ type aux =
   | Bad_passwd of { username : string; }
 
 let form req aux =
-  form [Hx.post "/login";
+  form [path_attr Hx.post Paths.Post.login;
         Hx.swap "outerHTML";
         ] [
     csrf_tag req;
@@ -34,7 +34,9 @@ let form req aux =
         ];
         div [class_ "col-4"] [
           label [for_ "password"; class_ "form-label"] [txt "Password"];
-          input [type_ "password"; class_ "form-control"; name "password"; placeholder "passwd"];
+          input [type_ "password"; name "password"; placeholder "password";
+                 class_ "form-control %s"
+                (match aux with Bad_passwd _ -> "is-invalid" | _ -> "");];
           (match aux with
           | First_try -> null []
           | User_not_found _ -> null []
@@ -47,9 +49,9 @@ let form req aux =
       ]
 
 let page req =
-  match User.get_username req with
-  | Logged _ -> redirect req ("/user", "/user")
-  | Anonymous -> Template.page ~req ~root:User [form req First_try]
+  match User.get req with
+  | Some _ -> redirect req (path_attr href Paths.Page.user)
+  | None -> Template.page ~req ~root:User [form req First_try]
 
 
 (* Login POST authentification *)
@@ -69,13 +71,15 @@ let post req =
     | Error _errs -> assert false (* internal error *)
     | Ok (username, pwd) ->
       begin match Ftw.User.authentificate ~st ~username ~pwd with
-      | `All_good -> Template.api_redirect "/"
+      | `Ok user ->
+        let%lwt () = User.set req user in
+        Template.api_redirect ((Paths.apply Paths.Page.index) |> Paths.render)
       | `Bad_passwd -> Template.api ~body:[form req (Bad_passwd { username; })]
       | `User_not_found -> Template.api ~body:[form req (User_not_found { username; })]
       | `Passwd_not_set -> Template.api ~body:[form req (Bad_passwd { username; })]
       | `Hash_error msg ->
-        Logs.err ~src (fun k->k "Error while checking passwd: %s" msg);
-        assert false (* TODO: error page *)
+        Logs.debug ~src (fun k->k "Error while checking passwd: %s" msg);
+        Template.api ~body:[form req (Bad_passwd { username; })]
       end
     end
   | _ -> assert false (* error ? *)

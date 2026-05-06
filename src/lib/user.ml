@@ -18,9 +18,36 @@ type t = {
   name : string;
   email : string;
 
-  (* link to FTW main db*)
+  (* link to FTW main db *)
   dancer_id : Id.t;
 }
+
+(* Std functions *)
+(* ************************************************************************* *)
+
+let id t = t.id
+let name t = t.name
+let email t = t.email
+let dancer_id t = t.dancer_id
+
+let mk id name email dancer_id =
+  { id; name; email; dancer_id; }
+
+let print fmt { id; name; email = _; dancer_id; } =
+  Format.fprintf fmt "%d:%s(%d)" id name dancer_id
+
+
+(* Json serialization *)
+(* ************************************************************************* *)
+
+let jsont =
+  Jsont.Object.map ~kind:"User" mk
+  |> Jsont.Object.mem "id" Jsont.int ~enc:id
+  |> Jsont.Object.mem "name" Jsont.string ~enc:name
+  |> Jsont.Object.mem "email" Jsont.string ~enc:email
+  |> Jsont.Object.mem "dancer_id" Jsont.int ~enc:dancer_id
+  |> Jsont.Object.finish
+
 
 (* Passwd hash *)
 (* ************************************************************************* *)
@@ -68,7 +95,7 @@ let () =
     State.add_init ~name:"passwd" (fun st ->
       State.exec ~st ~db {|
         CREATE TABLE IF NOT EXISTS passwd (
-          id INTEGER PRIMARY KEY REFERENCES users(id),
+          user_id INTEGER PRIMARY KEY REFERENCES users(id),
           passwd TEXT,
           last_set TEXT
         )
@@ -82,7 +109,7 @@ let conv =
 let passwd ~st user_id =
   try
     Some (State.query_one_where ~st ~db ~p:Id.p ~conv:Conv.string
-      {| SELECT passwd FROM passwd WHERE id = ? |} user_id)
+      {| SELECT passwd FROM passwd WHERE user_id = ? |} user_id)
   with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
     None
 
@@ -117,7 +144,7 @@ let authentificate ~st ~username ~pwd =
     | None -> `Passwd_not_set
     | Some encoded ->
       match verify_passwd ~encoded ~pwd with
-      | Ok true -> `All_good
+      | Ok true -> `Ok user
       | Ok false -> `Bad_passwd
       | Error errcode -> `Hash_error (Argon2.ErrorCodes.message errcode)
 
@@ -130,11 +157,12 @@ let create ~st ~username ~email ~pwd ~dancer_id =
     State.insert ~st ~db ~ty:Db.Ty.[text; text; int]
       {| INSERT INTO users (name, email, dancer_id) VALUES (?,?,?) |}
       username email dancer_id;
-    let user_id =
-      State.query_one_where ~st ~db ~p:Id.p ~conv:Id.conv
-        {| SELECT id FROM users WHERE dancer_id = ? |} dancer_id
+    let user =
+      State.query_one_where ~st ~db ~p:Id.p ~conv
+        {| SELECT * FROM users WHERE dancer_id = ? |} dancer_id
     in
     State.insert ~st ~db ~ty:Db.Ty.[int; text]
-      {| INSERT INTO passwd (id, passwd, last_set) VALUES (?,?,datetime('now','localtime')) |}
-      user_id encoded_pwd
+      {| INSERT INTO passwd (user_id, passwd, last_set) VALUES (?,?,datetime('now','localtime')) |}
+      (id user) encoded_pwd;
+    user
     )

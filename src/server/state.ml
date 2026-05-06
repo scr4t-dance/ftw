@@ -6,8 +6,8 @@
 
 let field =
   Dream.new_field ()
-    ~name:"internal db"
-    ~show_value:(fun _ -> "fourever state")
+    ~name:"ftw state"
+    ~show_value:(fun _ -> "<sqlite.db>")
 
 let init ~init ~main_path ~user_path =
   let state = ref None in

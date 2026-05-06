@@ -369,12 +369,13 @@ class virtual importer (st : State.t) = object(self)
     let short_name = Option.value ~default:"" (find_opt t get_string ["short"]) in
     let start_date = find t Date.of_toml ["start_date"] in
     let end_date = find t Date.of_toml ["end_date"] in
+    let public = Option.value ~default:true (find_opt t get_boolean ["public"]) in
     let event =
       match find_opt t get_integer ["id"] with
       | None ->
-        Event.create ~st ~name ~short_name ~start_date ~end_date
+        Event.create ~st ~name ~short_name ~start_date ~end_date ~public ~status:Finished
       | Some id ->
-        Event.Private.import ~st ~id ~name ~short_name ~start_date ~end_date;
+        Event.Private.import ~st ~id ~name ~short_name ~start_date ~end_date ~public ~status:Finished;
         id
     in
     let t = find t Otoml.get_value ["comps"] in

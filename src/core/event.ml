@@ -6,12 +6,19 @@
 
 type id = Id.t
 
+type status =
+  | Setup
+  | In_progress
+  | Finished
+
 type t = {
   id : id;
   name : string;
   short_name : string;
   start_date : Date.t;
   end_date : Date.t;
+  public : bool;
+  status : status;
 }
 
 (* Common functions *)
@@ -22,6 +29,8 @@ let name { name; _ } = name
 let short_name { short_name; _ } = short_name
 let start_date { start_date; _ } = start_date
 let end_date { end_date; _ } = end_date
+let public { public; _ } = public
+let status { status; _ } = status
 
 (* comparison sorts by date first because it's more convenient,
    even if slightly less efficient. *)
@@ -45,8 +54,8 @@ let print_compact fmt t =
 
 module Private = struct
 
-  let mk ~id ~name ~short_name ~start_date ~end_date =
-    { id; name; short_name; start_date; end_date; }
+  let mk ~id ~name ~short_name ~start_date ~end_date ~public ~status =
+    { id; name; short_name; start_date; end_date; public; status; }
 
 end
 

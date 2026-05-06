@@ -12,6 +12,7 @@
      dream dream-html dream-htmx
      fmt fmt.cli logs logs.cli logs.fmt
      cmdliner containers jsont jsont.bytesrw
+     fuzzy_match.search
      dune-site
   )
 )

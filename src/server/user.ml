@@ -4,17 +4,27 @@
 (* User state in dream *)
 (* ************************************************************************* *)
 
-type 'a t =
-  | Anonymous
-  | Logged of 'a
+let field : Ftw.User.t Dream.field =
+  Dream.new_field ()
+    ~name:"user"
+    ~show_value:(fun user -> Format.asprintf "%a" Ftw.User.print user)
 
-let get_username req =
-  match Dream.session_field req "user_name" with
-  | None | Some "" -> Anonymous
-  | Some username -> Logged username
+let init inner_handler req =
+  match Dream.session_field req "user" with
+  | None | Some "" -> inner_handler req
+  | Some user_serialized ->
+    let user = Ftw.Misc.Json.of_string_exn ~jsont:Ftw.User.jsont user_serialized in
+    Dream.set_field req field user;
+    inner_handler req
 
-let get_userid req =
-  match Dream.session_field req "user_id" with
-  | None | Some "" -> Anonymous
-  | Some user_id -> Logged (int_of_string user_id)
+let get req =
+  match Dream.field req field with
+  | None -> None
+  | Some user -> Some user
 
+let set req user =
+  let serialized = Ftw.Misc.Json.to_string_exn ~jsont:Ftw.User.jsont user in
+  Dream.set_session_field req "user" serialized
+
+let unset req =
+  Dream.drop_session_field req "user"
