@@ -15,6 +15,7 @@ let api_redirect path =
   Dream_htmx.redirect path response;
   Lwt.return response
 
+  
 (* Links to static ressources *)
 (* ************************************************************************* *)
 

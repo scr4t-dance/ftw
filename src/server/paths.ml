@@ -12,9 +12,9 @@ let render = snd
 
 module Page = struct
 
-  let%path index = "/index.html"
-  let%path event = "/event/%d"
+  let%path index = "/index"
   let%path events = "/events"
+  let%path event = "/event/%d"
   let%path dancers = "/dancers"
   let%path login = "/login"
   let%path user = "user"
@@ -31,4 +31,5 @@ end
 
 module Api = struct
   let events = Dream_html.path "/api/events" "/api/events?before=%d"
+  let%path comp_results = "/api/comp/%d"
 end

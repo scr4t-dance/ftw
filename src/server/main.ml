@@ -55,17 +55,19 @@ let server (options : Options.server) =
     Dream_html.get Paths.Page.events Events.page;
     Dream_html.get Paths.Page.login Login.page;
     Dream_html.get Paths.Page.dancers Dancers.page;
+    Dream_html.get Paths.Page.event Event.page;
 
     (* API routes *)
     Dream.scope "/"
       [Dream.origin_referrer_check; delay options.api_delay] [
         Dream_html.get Paths.Api.events Events.api;
+        Dream_html.get Paths.Api.comp_results Competition.api_results;
         Dream_html.post Paths.Post.login Login.post;
         Dream_html.post Paths.Post.dancers Dancers.post;
     ];
 
     (* Default routes *)
-    Dream.get "/" (fun req -> Dream.redirect req "/index.html");
+    Dream.get "/" (fun req -> Dream_html.(redirect req (path_attr HTML.href Paths.Page.index)));
     Dream.get "/**" (Dream.static ~loader "");
   ]
 

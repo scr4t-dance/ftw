@@ -4,7 +4,8 @@
 open! Dream_html
 open Dream_html.HTML
 
-(* Main page *)
+
+(* Page + API *)
 (* ************************************************************************* *)
 
 let replace_me_tr ev_id =
@@ -18,28 +19,29 @@ let replace_me_tr ev_id =
       ]]];
   ]
 
+let ev_link ~ev =
+  a [path_attr href Paths.Page.event (Ftw.Event.id ev); class_ "d-block link-secondary link-underline-opacity-0"]
+
 let tr_of_ev ~st ~user ev =
-  let public = Ftw_core.Event.public ev in
-  if public ||
-    (match Ftw.Position.get_all_for_event ~st ~user ~ev with [] -> false | _ :: _ -> true) then
-      tr [] [
-        td [] [
-          if public
-            then null []
-            else i [class_ "bi bi-cone-striped text-danger"] [];
-          txt "%s%s" (if Ftw_core.Event.public ev then "" else "(private) ") (Ftw.Event.name ev)];
-        td [] [txt "%d" (Ftw.Event.start_date ev |> Ftw.Date.month)];
-        td [] [txt "%d" (Ftw.Event.start_date ev |> Ftw.Date.year)];
-      ]
-    else
-      null []
+  if User.has_access_to_event ~st ~user ~ev then
+    tr [] [
+      td [] [ev_link ~ev [
+        if Ftw_core.Event.public ev
+          then null []
+          else i [class_ "bi bi-cone-striped text-danger"] [];
+          txt "%s%s" (if Ftw_core.Event.public ev then "" else "(private) ") (Ftw.Event.name ev)]];
+      td [] [ev_link ~ev [txt "%d" (Ftw.Event.start_date ev |> Ftw.Date.month)]];
+      td [] [ev_link ~ev [txt "%d" (Ftw.Event.start_date ev |> Ftw.Date.year)]];
+    ]
+  else
+    null []
 
 let page req =
   State.get req @@ fun st ->
   let user = User.get req in
   let ev = Ftw.Event.last ~st in
   Template.page ~req ~root:Event [
-    table [class_ "table table-striped"] [
+    table [class_ "table table-hover"] [
       thead [] [
         tr [] [
           th [scope "col"] [txt "Name"];
@@ -53,7 +55,6 @@ let page req =
       ]
     ]
   ]
-
 
 let api_aux req id =
   let n = 2 in
