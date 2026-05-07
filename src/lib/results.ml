@@ -175,14 +175,23 @@ let find ~st = function
 let all_points ~st ~dancer ~role ~div =
   let open Db.Ty in
   let conv = Conv.mk [nullable int] CCFun.id in
-  CCOption.get_or ~default:0 @@
-  State.query_one_where ~st ~db ~conv ~p:[int; int; int]
-    {| SELECT SUM(results.points)
-       FROM results JOIN competitions ON results.competition=competitions.id
-       WHERE results.dancer = ? AND results.role = ? AND competitions.category = ? |}
-    dancer
-    (Role.to_int role)
-    (Category.to_int (Competitive div))
+  match (role : Role.t) with
+  | Leader ->  
+    CCOption.get_or ~default:0 @@
+    State.query_one_where ~st ~db ~conv ~p:[int; int]
+      {| SELECT SUM(results.points1)
+           FROM results JOIN competitions ON results.competition=competitions.id
+           WHERE results.dancer1 = ? AND competitions.category = ? |}
+      dancer
+      (Category.to_int (Competitive div))
+  | Follower ->  
+    CCOption.get_or ~default:0 @@
+    State.query_one_where ~st ~db ~conv ~p:[int; int]
+      {| SELECT SUM(results.points2)
+           FROM results JOIN competitions ON results.competition=competitions.id
+           WHERE results.dancer2 = ? AND competitions.category = ? |}
+      dancer
+      (Category.to_int (Competitive div))
 
 let promotion ~st ~event ~comp result =
   let get_dancer id = Dancer.get ~st id in

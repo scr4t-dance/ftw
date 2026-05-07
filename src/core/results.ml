@@ -87,58 +87,76 @@ let points ~event ~comp ~role result =
 (* Ordering results *)
 (* ************************************************************************* *)
 
-type 'kind ranking = {
-  finalists : ('kind, Dancer.id) Target.t Ranking.One.t;
-  semifinalists : Dancer.id list;
-  quarterfinalists : Dancer.id list;
-  octofinalists : Dancer.id list;
-  only_prelims : Dancer.id list;
+type presents = {
+  leaders : Dancer.id list;
+  followers : Dancer.id list;
 }
 
-type any_ranking = Any : _ ranking -> any_ranking
+type ranking = {
+  final_ranks : Dancer.id Target.any Ranking.One.t;
+  finalists : presents;
+  semifinalists : presents;
+  quarterfinalists : presents;
+  octofinalists : presents;
+  only_prelims : presents;
+}
 
 let ranking ~comp:_ results =
   let max_final_rank_index = ref 0 in
-  let finals = Array.make 100 [] in
-  let semifinalist = ref [] in
-  let quarterfinalists = ref [] in
-  let octofinalists = ref [] in
-  let prelims = ref [] in
+  let final_ranks = Array.make 100 [] in
+  let finalists = ref ([], []) in
+  let semifinalist = ref ([], []) in
+  let quarterfinalists = ref ([], []) in
+  let octofinalists = ref ([], []) in
+  let prelims = ref ([], []) in
+  let add ref r =
+    let l, f = !ref in
+    match r.target with
+    | Any Single { target = { dancer; points = _; }; role = Leader; } ->
+      ref := (dancer :: l, f)
+    | Any Single { target = { dancer; points = _; }; role = Follower; } ->
+      ref := (l, dancer :: f)
+    | Any Couple { leader = { dancer = l'; points = _ };
+                   follower = { dancer = f'; points = _ } } ->
+      ref := (l' :: l, f' :: f)
+    | Any Trouple _ ->
+      assert false
+  in
+  let to_presents ref =
+    let leaders, followers = !ref in
+    { leaders; followers; }
+  in
+  let list_to_ranked i l =
+    let map target = Target.map_any ~f:(fun { dancer = id; points = _ } -> id) target in
+    let rank = Rank.of_index i in
+    match l with
+    | [] -> Ranking.One.None
+    | [r] -> Ranking.One.Ranked { rank; target = map r.target; }
+    | _ :: _ ->
+      Ranking.One.Tie { rank; tie = Array.of_list @@
+      List.map (fun r -> map r.target) l }
+  in
   List.iter (fun (r : r) -> 
     match r.result.finals with
     | Ranked rank ->
       let i = Rank.to_index rank in
       max_final_rank_index := max i !max_final_rank_index;
-      finals.(i) <- r :: finals.(i)
-      | _ -> ()
+      final_ranks.(i) <- r :: final_ranks.(i)
+    | Present -> add finalists r
+    | _ -> ()
     ) results;
   let ranks =
-    Array.init (!max_final_rank_index + 1) (fun _i ->
-      Ranking.One.None
-      (*
-      match Competition.kind comp, finals.(i) with
-      | (Routine | Strictly | JJ_Strictly | Jack_and_Jill), [r1; r2] ->
-        let leader, follower =
-          match r1.role, r2.role with
-          | Leader, Follower -> r1.dancer, r2.dancer
-          | Follower, Leader -> r2.dancer, r1.dancer
-          | _ -> assert false (* TODO: proper error *)
-        in
-        let couple : (Target.couple, Dancer.id) Target.t =
-          Couple { leader; follower; }
-        in
-        Ranking.One.
-      | _ ->
-        assert false
-        *)
+    Array.init (!max_final_rank_index + 1) (fun i ->
+      list_to_ranked i (final_ranks.(i))
       )
   in
-  Any {
-    finalists = Ranking.One.{ ranks; };
-    semifinalists = !semifinalist;
-    quarterfinalists = !quarterfinalists;
-    octofinalists = !octofinalists;
-    only_prelims = !prelims;
+  {
+    final_ranks = { ranks; };
+    finalists = to_presents finalists;
+    semifinalists = to_presents semifinalist;
+    quarterfinalists = to_presents quarterfinalists;
+    octofinalists = to_presents octofinalists;
+    only_prelims = to_presents prelims;
   }
   
 

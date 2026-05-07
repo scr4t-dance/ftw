@@ -62,14 +62,18 @@ val points :
 (* Competition ranking *)
 (* ************************************************************************* *)
 
-type 'kind ranking = {
-  finalists : ('kind, Dancer.id) Target.t Ranking.One.t;
-  semifinalists : Dancer.id list;
-  quarterfinalists : Dancer.id list;
-  octofinalists : Dancer.id list;
-  only_prelims : Dancer.id list;
+type presents = {
+  leaders : Dancer.id list;
+  followers : Dancer.id list;
 }
 
-type any_ranking = Any : _ ranking -> any_ranking
+type ranking = {
+  final_ranks : Dancer.id Target.any Ranking.One.t;
+  finalists : presents;
+  semifinalists : presents;
+  quarterfinalists : presents;
+  octofinalists : presents;
+  only_prelims : presents;
+}
 
-val ranking : comp:Competition.t -> r list -> any_ranking
+val ranking : comp:Competition.t -> r list -> ranking

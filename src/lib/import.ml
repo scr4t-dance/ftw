@@ -647,7 +647,37 @@ class ftw_1 st = object(self)
   (* === competition results === *)
   (* =========================== *)
 
-  method parse_results_row ~event ~comp ~res
+  method parse_results_single_row ~event ~comp ~res ~role ~last_name ~first_name () =
+    let dancer = self#find_or_add_dancer ~event ~first_name ~last_name () in
+    let result =
+      match res with
+      | "F" -> Results.finalist
+      | "S" -> Results.semifinalist
+      | "Q" -> Results.quarterfinalist
+      | "E" -> Results.octofinalist
+      | _ ->
+        begin match int_of_string res with
+          | i -> Results.mk ~finals:(Ranked (Rank.mk i)) ()
+          | exception Failure _ ->
+            raise (Otoml.Type_error ("invalid result: " ^ res))
+        end
+    in
+    let p =
+      Results.points ~event:(Event.get ~st event) ~comp ~role result
+    in
+    let target =
+      Target.(Any (Single { role;
+        target = Results.{ dancer = (Dancer.id dancer); points = p; };
+      }))
+    in
+    let r : Results.r = {
+      competition = (Competition.id comp);
+      result; target;
+    }
+    in
+    r
+
+  method parse_results_couple_row ~event ~comp ~res
     ~leader_last_name ~leader_first_name
     ~follow_last_name ~follow_first_name
     () =
@@ -692,28 +722,39 @@ class ftw_1 st = object(self)
   method parse_results_list ~event ~comp t =
     let contents = Otoml.get_string t in
     let lines = String.split_on_char '\n' contents in
-    let l =
-      List.fold_left (fun acc line ->
-          let line = String.trim line in
-          if String.length line <= 0 || line.[0] = '#' then acc
-          else
-            let r =
-              match String.split_on_char '\t' line with
-              | res :: leader_last_name :: leader_first_name :: _leader_points ::
-                       follow_last_name :: follow_first_name :: _follow_points :: _ ->
-                self#parse_results_row ~event ~comp ~res
+    let rec aux acc = function
+    | [] -> acc
+    | line :: r when String.trim line = "" -> aux acc r
+    | line :: r when String.length line <= 0 || line.[0] = '#' -> aux acc r
+    | line1 :: line2 :: r ->
+      begin match String.split_on_char '\t' (String.trim line1),
+            String.split_on_char '\t' (String.trim line2) with
+      | res :: "L" :: leader_last_name :: leader_first_name :: _,
+       _res :: "F" :: follow_last_name :: follow_first_name :: _ ->
+        let res =
+          self#parse_results_couple_row ~event ~comp ~res
                   ~leader_last_name ~leader_first_name
                   ~follow_last_name ~follow_first_name
                   ()
-              | _ ->
-                Logs.err ~src (fun k->k "error in result !");
-                raise (Otoml.Type_error (Format.asprintf  "not a valid result: '%s'" line))
-            in
-            r :: acc
-        ) [] lines
-    in
-    l
-
+        in
+        aux (res :: acc) r
+      | res :: "L" :: last_name :: first_name :: _, _ ->
+        let res =
+          self#parse_results_single_row ~event ~comp ~res ~role:Leader ~first_name ~last_name ()
+        in
+        aux (res :: acc) (line2 :: r)
+      | res :: "F" :: last_name :: first_name :: _, _ ->
+        let res =
+          self#parse_results_single_row ~event ~comp ~res ~role:Follower ~first_name ~last_name ()
+        in
+        aux (res :: acc) (line2 :: r)
+      | _ ->
+        Logs.err ~src (fun k->k "error in result !");
+        raise (Otoml.Type_error (Format.asprintf  "not a valid result: '%s'" (line1 ^ "\n" ^ line2) ))
+      end
+      | _ -> assert false
+      in
+      aux [] lines
 
 end
 

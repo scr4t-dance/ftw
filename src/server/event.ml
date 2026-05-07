@@ -59,7 +59,15 @@ let finished ~req ~st ~ev =
           div [id "comp-%d" i; class_ "accordion-collapse collapse";
                (* string_attr ~raw:true "data-bs-parent" "#accordionComps" *)] [
             div [class_ "accordion-body"] [
-              p [] [txt "TODO: load comp results using HTMX"];
+              div [path_attr Hx.get Paths.Api.comp_results (Ftw.Competition.id comp);
+                   Hx.swap "outerHTML";
+                   Hx.trigger "revealed";] [
+                div [class_ "d-flex justify-content-center"] [
+                  div [class_ "spinner-border"; role `status] [
+                    span [class_ "visually-hidden"] [txt "Loading..."]
+                  ]
+                ]
+              ]
             ];
           ];
         ]
