@@ -27,11 +27,10 @@ let append_dancers file l =
 (* ************************************************************************* *)
 
 let export_results ~st comp =
-  let results = Results.find ~st (`Competition (Competition.id comp)) in
+  let results = Results.find ~st (`Competition comp) in
   [ "results", Otoml.array (List.map (fun (res : Results.r) ->
         Otoml.inline_table [
-          "dancer", Id.to_toml res.dancer;
-          "role", Role.to_toml res.role;
+          "target", Target.to_toml ~to_toml:Results.p_to_toml res.target;
           "result", Results.to_toml res.result;
         ]) results)
   ]

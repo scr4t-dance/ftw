@@ -44,7 +44,7 @@ let print_reason fmt = function
 
 type points = Division.t -> int
 
-type rule = Category.t -> Results.r -> points -> update
+type rule = Category.t -> Results.o -> points -> update
 
 (* First participants in competition have an all-zero divs,
    and thus it need to be upgraded to at least novice. *)
@@ -173,7 +173,7 @@ type lazy_points = {
   adv : Points.t Lazy.t;
 }
 
-let compute_aux ~date ~current_divs ~current_points ~result_category ~result =
+let compute_aux ~date ~current_divs ~current_points ~result_category ~(result : Results.o) =
   let points div =
     let new_points =
       match (result_category : Category.t) with
@@ -208,15 +208,22 @@ let compute_aux ~date ~current_divs ~current_points ~result_category ~result =
   | [] -> None
   | (new_divs, reason) :: _ -> Some (new_divs, reason)
 
-let compute ~event ~comp ~dancer ~current_points ~result =
+let compute ~get_dancer ~event ~comp ~current_points ~result =
   assert (Id.equal result.Results.competition (Competition.id comp));
-  let role = result.Results.role in
+  Target.to_list result.target
+  |> List.filter_map (fun (p, role) ->
+    let dancer = get_dancer p.Results.dancer in
+  let current_points = current_points (Dancer.id dancer) role in
   let date = Event.end_date event in
   let result_category = Competition.category comp in
   let current_divs =
-    match role with
+    match (role : Role.t) with
     | Leader -> Dancer.as_leader dancer
     | Follower -> Dancer.as_follower dancer
+  in
+  let result : Results.o = {
+    dancer = Dancer.id dancer; role; points = p.Results.points; result = result.result;
+    }
   in
   match compute_aux ~date ~current_divs ~current_points ~result_category ~result with
   | None -> None
@@ -228,5 +235,5 @@ let compute ~event ~comp ~dancer ~current_points ~result =
       new_divisions = new_divs;
       reason;
     } in
-    Some promotion
-
+    Some (promotion)
+  )

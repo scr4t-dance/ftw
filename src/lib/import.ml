@@ -255,22 +255,24 @@ class virtual importer (st : State.t) = object(self)
     match Competition.category comp with
     | Non_competitive _ -> ()
     | Competitive comp_div ->
-      let dancer = Dancer.get ~st r.dancer in
-      let divs =
-        match r.role with
-        | Leader -> Dancer.as_leader dancer
-        | Follower -> Dancer.as_follower dancer
-      in
-      let effective_divs =
-        match divs with
-        | None -> Divisions.Novice
-        | _ -> divs
-      in
-      if not (Divisions.includes comp_div effective_divs) then begin
-        Logs.err ~src (fun k->
-            k "Dancer %a is not allowed to participate in a %a competition"
-              Dancer.print dancer Division.print comp_div)
-      end
+      Results.explode r
+      |> List.iter (fun (o : Results.o) ->
+          let dancer = Dancer.get ~st o.dancer in
+          let divs =
+          match (o.role : Role.t) with
+            | Leader -> Dancer.as_leader dancer
+            | Follower -> Dancer.as_follower dancer
+          in
+          let effective_divs =
+            match divs with
+            | None -> Divisions.Novice
+            | _ -> divs
+          in
+          if not (Divisions.includes comp_div effective_divs) then begin
+            Logs.err ~src (fun k->
+              k "Dancer %a is not allowed to participate in a %a competition"
+                Dancer.print dancer Division.print comp_div)
+        end)
 
   (* === results === *)
   (* =============== *)
@@ -300,31 +302,26 @@ class virtual importer (st : State.t) = object(self)
         end;
         (* check the result is coherent with the ranking of finals *)
         begin match finals_rankings, r.result.finals with
-          | Some finals_ranking, Ranked l ->
-            List.iter (fun rank ->
-                begin match Ranking.One.get finals_ranking rank with
-                  | Some (rank', Target.Any Couple { leader; follower; })
-                    when Rank.equal rank rank' && (
-                        Id.equal r.dancer (Dancer.id leader) ||
-                        Id.equal r.dancer (Dancer.id follower)) -> ()
+          | Some finals_ranking, Ranked rank ->
+                begin match Ranking.One.get finals_ranking rank, r.target with
+                  | Some (rank', Target.Any Couple { leader; follower; }),
+                    Any Couple { leader = { dancer = l; points= _ ;} ;
+                                 follower = { dancer = f; points = _; }; }
+                    when Rank.equal rank rank' &&
+                        Id.equal l (Dancer.id leader) &&
+                        Id.equal f (Dancer.id follower) -> ()
                   | _ ->
                     Logs.err ~src (fun k ->
-                        k "Finals ranking and competition results do not match for rank %a: %a"
-                          Rank.print rank Dancer.print_compact (Dancer.get ~st r.dancer));
+                        k "Finals ranking and competition results do not match for rank %a"
+                          Rank.print rank);
                     assert false
-                end) l
+                end
           | _ -> ()
         end;
         (* actually record the results and compute adequate promotions *)
-        Results.add ~st
-          ~role:r.role
-          ~dancer:r.dancer
-          ~result:r.result
-          ~points:r.points
-          ~competition:r.competition;
-        match Results.promotion ~st ~event:(Event.get ~st event) ~comp r with
-        | None -> ()
-        | Some p -> Promotion.record ~st p
+        Results.add ~st r;
+        Results.promotion ~st ~event:(Event.get ~st event) ~comp r
+        |> List.iter (Promotion.record ~st)
       ) l
 
   (* === competitions === *)
@@ -650,8 +647,16 @@ class ftw_1 st = object(self)
   (* === competition results === *)
   (* =========================== *)
 
-  method parse_results_row ~event ~comp ~res ~role ~last_name ~first_name () =
-    let d = self#find_or_add_dancer ~event ~first_name ~last_name () in
+  method parse_results_row ~event ~comp ~res
+    ~leader_last_name ~leader_first_name
+    ~follow_last_name ~follow_first_name
+    () =
+    let leader =
+      self#find_or_add_dancer ~event ~first_name:leader_first_name ~last_name:leader_last_name ()
+    in
+    let follower =
+      self#find_or_add_dancer ~event ~first_name:follow_first_name ~last_name:follow_last_name ()
+    in
     let result =
       match res with
       | "F" -> Results.finalist
@@ -660,22 +665,26 @@ class ftw_1 st = object(self)
       | "E" -> Results.octofinalist
       | _ ->
         begin match int_of_string res with
-          | i -> Results.mk ~finals:(Ranked [Rank.mk i]) ()
+          | i -> Results.mk ~finals:(Ranked (Rank.mk i)) ()
           | exception Failure _ ->
             raise (Otoml.Type_error ("invalid result: " ^ res))
         end
     in
-    let role =
-      match role with
-      | "L" -> Role.Leader
-      | "F" -> Role.Follower
-      | _ -> raise (Otoml.Type_error ("invalid role: " ^ role))
+    let leader_points =
+      Results.points ~event:(Event.get ~st event) ~comp ~role:Leader result
     in
-    let points = Results.points ~event:(Event.get ~st event) ~comp ~role result in
+    let follow_points =
+      Results.points ~event:(Event.get ~st event) ~comp ~role:Follower result
+    in
+    let target =
+      Target.(Any (Couple {
+        leader = Results.{ dancer = (Dancer.id leader); points = leader_points; };
+        follower = Results.{ dancer = (Dancer.id follower); points = follow_points; };
+      }))
+    in
     let r : Results.r = {
       competition = (Competition.id comp);
-      dancer = Dancer.id d;
-      role; result; points;
+      result; target;
     }
     in
     r
@@ -690,8 +699,12 @@ class ftw_1 st = object(self)
           else
             let r =
               match String.split_on_char '\t' line with
-              | res :: role :: last_name :: first_name :: ([] | _ :: []) ->
-                self#parse_results_row ~event ~comp ~res ~role ~last_name ~first_name ()
+              | res :: leader_last_name :: leader_first_name :: _leader_points ::
+                       follow_last_name :: follow_first_name :: _follow_points :: _ ->
+                self#parse_results_row ~event ~comp ~res
+                  ~leader_last_name ~leader_first_name
+                  ~follow_last_name ~follow_first_name
+                  ()
               | _ ->
                 Logs.err ~src (fun k->k "error in result !");
                 raise (Otoml.Type_error (Format.asprintf  "not a valid result: '%s'" line))
@@ -699,29 +712,7 @@ class ftw_1 st = object(self)
             r :: acc
         ) [] lines
     in
-    let cmp r r' =
-      CCOrd.(
-        Id.compare r.Results.dancer r'.Results.dancer
-        <?> (Role.compare, r.Results.role, r'.Results.role))
-    in
-    let eq r r' = cmp r r' = 0 in
-    let merge r r' =
-      assert (Id.equal r.Results.competition r'.Results.competition);
-      assert (Id.equal r.Results.dancer r'.Results.dancer);
-      assert (Role.equal r.Results.role r'.Results.role);
-      { r with
-        points = Points.max r.Results.points r'.Results.points;
-        result = Results.merge r.Results.result r'.Results.result;
-      }
-    in
     l
-    |> List.sort cmp
-    |> CCList.group_succ ~eq
-    |> List.map (function
-        | [] -> assert false
-        | [r] -> r
-        | r :: others -> List.fold_left merge r others
-      )
 
 
 end
@@ -729,7 +720,7 @@ end
 (* Format: FTW version 2 *)
 (* ************************************************************************* *)
 
-class ftw_2 st ~stable = object(self)
+class ftw_2 st ~stable = object(_self)
 
   (* === base class === *)
   (* ================== *)
@@ -844,16 +835,13 @@ class ftw_2 st ~stable = object(self)
   (* === competition results === *)
   (* =========================== *)
 
-  method parse_results_list ~event ~comp t =
+  method parse_results_list ~event:_ ~comp t =
     Otoml.get_array (fun t ->
-        let raw_dancer = Otoml.find t Id.of_toml ["dancer"] in
-        let dancer = self#get_dancer raw_dancer in
-        let role = Otoml.find t Role.of_toml ["role"] in
+        let target = Otoml.find t (Target.of_toml ~of_toml:Results.p_of_toml) ["target"] in
         let result = Otoml.find t Results.of_toml ["result"] in
-        let points = Results.points ~event:(Event.get ~st event) ~comp ~role result in
         let r : Results.r = {
           competition = (Competition.id comp);
-          dancer; role; result; points;
+          result; target;
         } in
         r
       ) t

@@ -6,3 +6,9 @@
 
 include Ftw_core.Points
 
+
+(* Serialization *)
+(* ************************************************************************* *)
+
+let to_toml i = Otoml.integer i
+let of_toml t = Otoml.get_integer t

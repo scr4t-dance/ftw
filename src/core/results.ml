@@ -5,9 +5,9 @@
 (* ************************************************************************* *)
 
 type aux =
-  | Not_present           (* or unknown *)
-  | Present               (* but rank unknown *)
-  | Ranked of Rank.t list (* actual ranks, the list should be non-empty *)
+  | Not_present      (* or unknown *)
+  | Present          (* but rank unknown *)
+  | Ranked of Rank.t (* actual ranks, the list should be non-empty *)
 
 type t = {
   prelims :       aux;
@@ -17,11 +17,21 @@ type t = {
   finals :        aux;
 }
 
-type r = {
-  competition : Competition.id;
+type o = {
   dancer : Dancer.id;
   role : Role.t;
   points : Points.t;
+  result : t;
+}
+
+type p = {
+  dancer : Dancer.id;
+  points : Points.t;
+}
+
+type r = {
+  competition : Competition.id;
+  target : p Target.any;
   result : t;
 }
 
@@ -44,10 +54,7 @@ let octofinalist = mk () ~octofinals:Present
 let placement (t : t) : Points.placement =
   match t.finals with
   | Present -> Finals None
-  | Ranked [] -> assert false (* internal assumption *)
-  | Ranked (rank :: other_ranks) ->
-    let r = List.fold_left Rank.min rank other_ranks in
-    Finals (Some r)
+  | Ranked rank -> Finals (Some rank)
   | Not_present ->
     begin match t.semifinals with
       | Present | Ranked _ -> Semifinals
@@ -56,6 +63,12 @@ let placement (t : t) : Points.placement =
 
 (* Points *)
 (* ************************************************************************* *)
+
+let explode r =
+  Target.to_list r.target
+  |> List.map (fun ({ dancer; points }, role) ->
+    { dancer; role; points; result = r.result; }
+  )
 
 let points ~event ~comp ~role result =
   match Competition.category comp with
@@ -71,24 +84,61 @@ let points ~event ~comp ~role result =
     Points.find ~date ~n ~placement
 
 
-(* Misc *)
+(* Ordering results *)
 (* ************************************************************************* *)
 
-let merge_aux r r' =
-  match r, r' with
-  | Not_present, r''
-  | r'', Not_present
-  | Present, (Present as r'')
-  | Present, ((Ranked _) as r'')
-  | ((Ranked _) as r''), Present -> r''
-  | Ranked l, Ranked l' -> Ranked (l @ l')
+type 'kind ranking = {
+  finalists : ('kind, Dancer.id) Target.t Ranking.One.t;
+  semifinalists : Dancer.id list;
+  quarterfinalists : Dancer.id list;
+  octofinalists : Dancer.id list;
+  only_prelims : Dancer.id list;
+}
 
-let merge r r' = {
-  prelims = merge_aux r.prelims r'.prelims;
-  octofinals = merge_aux r.octofinals r'.octofinals;
-  quarterfinals = merge_aux r.quarterfinals r'.quarterfinals;
-  semifinals = merge_aux r.semifinals r'.semifinals;
-  finals = merge_aux r.finals r'.finals;
+type any_ranking = Any : _ ranking -> any_ranking
+
+let ranking ~comp:_ results =
+  let max_final_rank_index = ref 0 in
+  let finals = Array.make 100 [] in
+  let semifinalist = ref [] in
+  let quarterfinalists = ref [] in
+  let octofinalists = ref [] in
+  let prelims = ref [] in
+  List.iter (fun (r : r) -> 
+    match r.result.finals with
+    | Ranked rank ->
+      let i = Rank.to_index rank in
+      max_final_rank_index := max i !max_final_rank_index;
+      finals.(i) <- r :: finals.(i)
+      | _ -> ()
+    ) results;
+  let ranks =
+    Array.init (!max_final_rank_index + 1) (fun _i ->
+      Ranking.One.None
+      (*
+      match Competition.kind comp, finals.(i) with
+      | (Routine | Strictly | JJ_Strictly | Jack_and_Jill), [r1; r2] ->
+        let leader, follower =
+          match r1.role, r2.role with
+          | Leader, Follower -> r1.dancer, r2.dancer
+          | Follower, Leader -> r2.dancer, r1.dancer
+          | _ -> assert false (* TODO: proper error *)
+        in
+        let couple : (Target.couple, Dancer.id) Target.t =
+          Couple { leader; follower; }
+        in
+        Ranking.One.
+      | _ ->
+        assert false
+        *)
+      )
+  in
+  Any {
+    finalists = Ranking.One.{ ranks; };
+    semifinalists = !semifinalist;
+    quarterfinalists = !quarterfinalists;
+    octofinalists = !octofinalists;
+    only_prelims = !prelims;
   }
-
+  
 

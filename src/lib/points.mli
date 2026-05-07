@@ -3,3 +3,14 @@
 
 include module type of Ftw_core.Points
 
+
+(* Serialization *)
+(* ************************************************************************* *)
+
+val to_toml : t -> Otoml.t
+(** Serialization to toml. *)
+
+val of_toml : Otoml.t -> t
+(** Deserialization from toml.
+    @raise Otoml.Type_error *)
+

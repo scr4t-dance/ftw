@@ -34,6 +34,12 @@ let single ~target ~role = Single { target; role; }
 let couple ~leader ~follower = Couple { leader; follower; }
 let trouple (target1, target2, target3) = Trouple { target1; target2; target3; }
 
+let to_list = function
+  | Any Single { target; role; } -> [target, role]
+  | Any Couple { leader; follower; } -> [ leader, Leader; follower, Follower]
+  | Any Trouple _ ->
+    assert false (* TODO add a Role pour trouple dancer and implement this *)
+
 
 (* Printing *)
 (* ************************************************************************* *)

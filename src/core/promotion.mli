@@ -42,8 +42,10 @@ type lazy_points = {
 }
 
 val compute :
-  event:Event.t -> comp:Competition.t -> dancer:Dancer.t ->
-  current_points:lazy_points -> result:Results.r -> t option
+  get_dancer:(Dancer.id -> Dancer.t) ->
+  event:Event.t -> comp:Competition.t ->
+  current_points:(Dancer.id -> Role.t -> lazy_points) ->
+  result:Results.r -> t list
 (** Compute whether a result triggers a promotion. *)
 
 
@@ -52,7 +54,7 @@ val compute :
 
 type points = Division.t -> int
 
-type rule = Category.t -> Results.r -> points -> update
+type rule = Category.t -> Results.o -> points -> update
 
 val participation : rule
 val invited : rule

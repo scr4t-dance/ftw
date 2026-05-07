@@ -10,19 +10,21 @@ val to_toml : t -> Otoml.t
 
 val of_toml : Otoml.t -> t
 
+val p_to_toml : p -> Otoml.t
+
+val p_of_toml : Otoml.t -> p
+
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
-val add :
-  st:State.t -> competition:Competition.id ->
-  dancer:Dancer.id -> role:Role.t ->
-  result:t -> points:Points.t -> unit
-(** Add a result to the DB. *)
+val add : st:State.t -> r -> unit
+(** Add a result row to the DB. *)
 
 val find :
   st:State.t -> [
-    | `Dancer of Dancer.id
-    | `Competition of Competition.id
+    | `Dancer of Dancer.t
+    | `Competition of Competition.t
   ] -> r list
 (** Find the list of results for a given competition or dancer. *)
 
@@ -38,5 +40,4 @@ val promotion :
   st:State.t ->
   event:Ftw_core.Event.t ->
   comp:Ftw_core.Competition.t ->
-  r -> Promotion.t option
-
+  r -> Promotion.t list
