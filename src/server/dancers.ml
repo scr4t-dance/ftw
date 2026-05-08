@@ -7,12 +7,6 @@ open Dream_html.HTML
 (* Main page *)
 (* ************************************************************************* *)
 
-let tr_of_dancer dancer =
-  tr [] [
-    td [] [txt "%s" (Ftw.Dancer.first_name dancer)];
-    td [] [txt "%s" (Ftw.Dancer.last_name dancer)];
-  ]
-
 let page req =
   State.get req @@ fun _st ->
   Template.page ~req ~root:Dancers [
@@ -33,6 +27,8 @@ let page req =
         tr [] [
           th [scope "col"] [txt "First Name"];
           th [scope "col"] [txt "Last Name"];
+          th [scope "col"] [txt "Leader divs"];
+          th [scope "col"] [txt "Follower divs"];
         ];
       ];
       tbody [id "search-results"] [
@@ -41,6 +37,21 @@ let page req =
         ];
       ]
     ]
+  ]
+
+(* List *)
+(* ************************************************************************* *)
+
+let dancer_link ~dancer =
+  a [path_attr href  Paths.Page.dancer (Ftw.Dancer.id dancer);
+     class_ "d-block link-secondary link-underline-opacity-0"]
+
+let tr_of_dancer dancer =
+  tr [] [
+    td [] [dancer_link ~dancer [txt "%s" (Ftw.Dancer.first_name dancer)]];
+    td [] [dancer_link ~dancer [txt "%s" (Ftw.Dancer.last_name dancer)]];
+    td [] [dancer_link ~dancer [txt "L:%s" (Ftw.Divisions.to_string (Ftw.Dancer.as_leader dancer))]];
+    td [] [dancer_link ~dancer [txt "F:%s" (Ftw.Divisions.to_string (Ftw.Dancer.as_follower dancer))]];
   ]
 
 let search_form =
@@ -63,3 +74,22 @@ let post req =
         Template.api ~body
     end
   | _ -> assert false (* error *)
+
+(* Dancer choice *)
+(* ************************************************************************* *)
+(*
+let tr_of_dancer dancer =
+  tr [] [
+    td [] [txt "%s" (Ftw.Dancer.first_name dancer)];
+    td [] [txt "%s" (Ftw.Dancer.last_name dancer)];
+    td [] [txt "L:%s" (Ftw.Divisions.to_string (Ftw.Dancer.as_leader dancer))];
+    td [] [txt "F:%s" (Ftw.Divisions.to_string (Ftw.Dancer.as_follower dancer))];
+    td [] [
+      button [
+        class_ "btn btn-primary"
+        ] [
+        txt "choose"
+        ]
+    ];
+  ]
+*)

@@ -42,7 +42,7 @@ let server (options : Options.server) =
     ~port:options.server_port
     ~tls:false
   @@ Dream.logger
-  @@ Dream.memory_sessions
+  @@ Dream.cookie_sessions
   @@ State.init
     ~main_path:options.main_db_path
     ~user_path:options.user_db_path
@@ -55,7 +55,9 @@ let server (options : Options.server) =
     Dream_html.get Paths.Page.events Events.page;
     Dream_html.get Paths.Page.login Login.page;
     Dream_html.get Paths.Page.dancers Dancers.page;
+    Dream_html.get Paths.Page.dancer Dancer.page;
     Dream_html.get Paths.Page.event Event.page;
+    Dream_html.get Paths.Page.event_create Event.create_page;
 
     (* API routes *)
     Dream.scope "/"
@@ -64,6 +66,7 @@ let server (options : Options.server) =
         Dream_html.get Paths.Api.comp_results Competition.api_results;
         Dream_html.post Paths.Post.login Login.post;
         Dream_html.post Paths.Post.dancers Dancers.post;
+        Dream_html.post Paths.Post.event_create Event.create_post;
     ];
 
     (* Default routes *)

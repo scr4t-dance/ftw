@@ -15,14 +15,14 @@ category = "Regular"
 leaders = 0
 follows = 0
 results = """
-1	F	Daumal	Ange
 1	L	Khansa	Rémi
+1	F	Daumal	Ange
 
-2	F	Pébrier	Madeleine
 2	L	Jorge Do Marco	Romain
+2	F	Pébrier	Madeleine
 
-3	F	Antoine	Louise
 3	L	Jeanson	Antonio
+3	F	Antoine	Louise
 
 F	L	Croenne-Ambroise	Aurélien
 F	L	Bartaud	Raphaël
@@ -38,17 +38,17 @@ category = "Qualifying"
 leaders = 0
 follows = 0
 results = """
-1	F	Parquier	Claire
 1	L	Franque	Guillaume
+1	F	Parquier	Claire
 
-2	F	Desseaux	Albane
 2	L	Rambaud	Matthieu
+2	F	Desseaux	Albane
 
-3	F	Gaurois	Alexia
 3	L	Khansa	Rémi
+3	F	Gaurois	Alexia
 
-F	L	Ziakovic	Théo
 F	F	Lim	Melody
+F	L	Ziakovic	Théo
 
 F	L	Aron	Vincent
 F	F	Renoul	Louise
@@ -68,12 +68,12 @@ leaders = 0
 follows = 0
 results = """
 # Podium
-1	F	Vallerio	Héloise
 1	L	Bury	Guillaume
+1	F	Vallerio	Héloise
 
 # Sorted people
-F	F	Cimelli	Léa
 F	L	Ben Kiran	Paul
+F	F	Cimelli	Léa
 
 # Unsorted people
 F	F	Geneste-Samissof	Natacha
@@ -99,15 +99,15 @@ leaders = 0
 follows = 0
 results= """
 # Podium
-1	F	Vallerio	Héloise
 1	L	Ben Kiran	Paul
+1	F	Vallerio	Héloise
 
 # Sorted people
-F	F	Cimelli	Léa
 F	L	De Longuemar	Guillaume
+F	F	Cimelli	Léa
 
-F	F	Geneste-Samissof	Natacha
 F	L	Bury	Guillaume
+F	F	Geneste-Samissof	Natacha
 
 # Unsorted people
 F	F	Debu	Sandra

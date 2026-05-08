@@ -5,7 +5,7 @@ open! Dream_html
 open Dream_html.HTML
 
 
-(* Page + API *)
+(* Page *)
 (* ************************************************************************* *)
 
 let replace_me_tr ev_id =
@@ -22,8 +22,8 @@ let replace_me_tr ev_id =
 let ev_link ~ev =
   a [path_attr href Paths.Page.event (Ftw.Event.id ev); class_ "d-block link-secondary link-underline-opacity-0"]
 
-let tr_of_ev ~st ~user ev =
-  if User.has_access_to_event ~st ~user ~ev then
+let tr_of_ev ~st ?user ev =
+  if User.has_access_to_event ~st ?user ~ev () then
     tr [] [
       td [] [ev_link ~ev [
         if Ftw_core.Event.public ev
@@ -41,27 +41,48 @@ let page req =
   let user = User.get req in
   let ev = Ftw.Event.last ~st in
   Template.page ~req ~root:Event [
-    table [class_ "table table-hover"] [
-      thead [] [
-        tr [] [
-          th [scope "col"] [txt "Name"];
-          th [scope "col"] [txt "Month"];
-          th [scope "col"] [txt "Year"];
-        ];
+    div [class_ "row"] [
+      div [class_ "col"] [
+        h1 [] [txt "Event List"];
       ];
-      tbody [] [
-        tr_of_ev ~st ~user ev;
-        replace_me_tr (Ftw.Event.id ev)
+      if (Ftw.Position.admin (Ftw.Position.get_global ~st ?user ())) then
+        div [class_ "col-2 align-items-end"] [
+          div [class_ "row"] [
+            a [path_attr href Paths.Page.event_create;
+               class_ "d-block link-secondary link-underline-opacity-0"] [
+              i [class_ "bi bi-plus-square align-items-end"] [];
+              txt " create";
+            ]
+          ]
+        ]
+      else null [];
+    ];
+    div [class_ "row"] [
+      table [class_ "table table-hover"] [
+        thead [] [
+          tr [] [
+            th [scope "col"] [txt "Name"];
+            th [scope "col"] [txt "Month"];
+            th [scope "col"] [txt "Year"];
+          ];
+        ];
+        tbody [] [
+          tr_of_ev ~st ?user ev;
+          replace_me_tr (Ftw.Event.id ev)
+        ]
       ]
     ]
   ]
+
+(* API *)
+(* ************************************************************************* *)
 
 let api_aux req id =
   let n = 2 in
   State.get req @@ fun st ->
   let user = User.get req in
   let l = Ftw.Event.list_before ~st ~n ~id in
-  let body = (List.map (tr_of_ev ~st ~user) l) in
+  let body = (List.map (tr_of_ev ~st ?user) l) in
   let new_id =
     match CCList.last_opt l with
     | None -> Logs.debug (fun k ->k "no last ev ?"); id

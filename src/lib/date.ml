@@ -13,6 +13,8 @@ let today () =
 (* DB interactions *)
 (* ************************************************************************* *)
 
+exception Invalid_date of string
+
 let to_string { day; month; year; } =
   Format.asprintf "%04d-%02d-%02d" year month day
 
@@ -23,7 +25,7 @@ let of_string s =
     let day = int_of_string (String.sub s 8 2) in
     mk ~day ~month ~year
   with Invalid_argument _ ->
-    failwith (Format.asprintf "%s is not a correct date" s)
+    raise (Invalid_date s)
 
 let p = Sqlite3_utils.Ty.([text])
 let conv = Conv.mk p of_string

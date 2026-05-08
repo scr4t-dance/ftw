@@ -8,6 +8,8 @@ val today : unit -> t
 (* DB interaction *)
 (* ************************************************************************* *)
 
+exception Invalid_date of string
+
 val to_string : t -> string
 (** Conversion to string. Note that this is meant for encoding into the DB,
     so the format is not necessarily human readable, though it is meant so

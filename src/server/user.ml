@@ -33,8 +33,11 @@ let unset req =
 (* Helpers *)
 (* ************************************************************************* *)
 
-let has_access_to_event ~st ~user ~ev =
+let has_access_to_event ~st ?user ~ev () =
   Ftw_core.Event.public ev ||
-  (match Ftw.Position.get_all_for_event ~st ~user ~ev with [] -> false | _ :: _ -> true)
+  (match Ftw.Position.get_all_for_event ~st ?user ~ev () with [] -> false | _ :: _ -> true)
 
+let can_create_event ~st ?user () =
+  let l = Ftw.Position.get_global ~st ?user () in
+  Ftw.Position.admin l
   

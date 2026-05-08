@@ -15,7 +15,9 @@ module Page = struct
   let%path index = "/index"
   let%path events = "/events"
   let%path event = "/event/%d"
+  let%path event_create = "/create/event"
   let%path dancers = "/dancers"
+  let%path dancer = "/dancer/%d"
   let%path login = "/login"
   let%path user = "user"
   let%path infos = "/infos"
@@ -26,6 +28,7 @@ module Post = struct
 
   let%path login = "/login"
   let%path dancers = "/dancers"
+  let%path event_create = "/create/event"
 
 end
 

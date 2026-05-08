@@ -67,6 +67,8 @@ let phase = function
 (* Position sorting *)
 (* ************************************************************************* *)
 
+let admin l =
+  List.mem Admin l
 
 
 (* DB interaction *)
@@ -111,17 +113,24 @@ let clear_from_event ~st ~user ~ev =
   {| DELETE FROM positions WHERE user_id = ? AND event_id = ? |}
   (User.id user) (Event.id ev)
 
-let get_global ~st ~user =
+let (let+) user f =
+  match user with None -> [] | Some user -> f user
+
+let get_all ~st ?user () =
+  let+ user in
+  State.query_list_where ~st ~db ~p:Id.p ~conv
+    {| SELECT * FROM positions WHERE user_id = ? |} (User.id user)
+
+let get_global ~st ?user () =
+  let+ user in
   State.query_list_where ~st ~db ~p:Id.p ~conv
   {| SELECT * FROM positions WHERE user_id = ? AND event_id = 0
                                AND comp_id = 0 AND phase_id = 0 |}
   (User.id user)
 
-let get_all_for_event ~st ~user ~ev =
-  match user with
-  | None -> []
-  | Some user ->
-    State.query_list_where ~st ~db ~p:Db.Ty.[int; int] ~conv
-      {| SELECT * FROM positions WHERE user_id = ? AND (event_id = ? OR event_id = 0) |}
-      (User.id user) (Event.id ev)
+let get_all_for_event ~st ?user ~ev () =
+  let+ user in
+  State.query_list_where ~st ~db ~p:Db.Ty.[int; int] ~conv
+    {| SELECT * FROM positions WHERE user_id = ? AND (event_id = ? OR event_id = 0) |}
+    (User.id user) (Event.id ev)
 

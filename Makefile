@@ -25,7 +25,7 @@ build:
 ######################
 
 run: build
-	dune exec -- ftw-server -vv --db=tests/db.sqlite --user-db=tests/users.sqlite --delay=1
+	dune exec -- ftw-server -vv --db=tests/db.sqlite --user-db=tests/users.sqlite
 
 tests: build
 	@dune runtest \
