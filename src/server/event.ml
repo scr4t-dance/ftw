@@ -113,12 +113,22 @@ let base ~req:_ ~st:_ ~ev rest =
                        (date_to_string @@ Ftw.Event.end_date ev)]) ::
   rest
 
+let admin ~req ~st ~ev =
+  match Ftw.Event.status ev with
+  | Setup | In_progress ->
+    div [class_ "row"] [
+      div [class_ "col"] [
+        a [path_attr href Paths.Page.comp_create] [
+          txt "Create competition";
+        ]
+      ]
+    ]
+  | Finished -> null []
+
 (* Main - Finished page *)
-let finished ~req ~st ~ev =
+let competitions ~req:_ ~st ~ev =
   let comps = Ftw.Event.competitions ~st ev in
-  Template.page ~req ~title:"Event" ~root:Event @@
-  base ~req ~st ~ev [
-    div [class_ "container"] [
+  div [class_ "container"] [
     div [class_ "accordion"; id "accordionComps"] (
       List.mapi (fun i comp ->
         div [class_"accordion-item"] [
@@ -147,17 +157,17 @@ let finished ~req ~st ~ev =
         ]
       ) comps
     );
-  ] ]
+  ]
 
 let page req ev_id =
   State.get req @@ fun st ->
   let user = User.get req in
   let ev = Ftw.Event.get ~st ev_id in
-  if User.has_access_to_event ~st ?user ~ev () then
-    begin match Ftw.Event.status ev with
-      | Setup -> assert false
-      | In_progress -> assert false
-      | Finished -> finished ~req ~st ~ev
-    end
-  else
+  if User.has_access_to_event ~st ?user ~ev () then begin
+    Template.page ~req ~title:"Event" ~root:Event @@
+    (base ~req ~st ~ev [
+      admin ~req ~st ~ev;
+      competitions ~req ~st ~ev;
+      ])
+  end else
     redirect req (path_attr href Paths.Page.events)
