@@ -15,7 +15,6 @@ val singles_one_of_toml : Otoml.t -> singles_one
 
 val singles_of_toml : Otoml.t -> singles
 
-
 val couples_to_toml : couples -> Otoml.t
 
 val couples_of_toml : Otoml.t -> couples
@@ -34,21 +33,17 @@ val all_couple_judgement_targets : couples ->
 (* DB interaction *)
 (* ************************************************************************* *)
 
-
 (* TODO: review/remove these *)
 val clear : st:State.t -> phase:Id.t -> unit
 
-val init : st:State.t ->
-  phase:Ftw_core.Phase.id ->
-  min:int ->
-  max:int ->
-  early_heats:int ->
-  early_heats_dancers:string ->
-  late_heats:int ->
-  late_heats_dancers:string ->
-  ?tries:int ->
-  t ->
-  unit
+val regen :
+  st:State.t -> phase:Ftw_core.Phase.id ->
+  ?tries:int -> ?early:(int * (Dancer.id list)) -> ?late:(int * (Dancer.id list)) ->
+  min:int -> max:int -> t -> unit
+
+val init :
+    st:State.t -> phase:Ftw_core.Phase.id ->
+    Dancer.id Ftw_core.Target.any list -> unit
 
 val add_single :
   st:State.t -> phase:Ftw_core.Phase.id ->

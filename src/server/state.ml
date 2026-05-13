@@ -25,4 +25,4 @@ let init ~init ~main_path ~user_path =
 let get request callback =
   match Dream.field request field with
   | None -> failwith "no internal db state was found"
-  | Some st -> callback st
+  | Some st -> Ftw.State.atomically ~st ~f:callback

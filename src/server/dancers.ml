@@ -1,15 +1,16 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+open Syntax
 open! Dream_html
 open Dream_html.HTML
 
-(* Main page *)
+(* Main List page *)
 (* ************************************************************************* *)
 
 let page req =
-  State.get req @@ fun _st ->
-  Template.page ~req ~root:Dancers [
+  let$ _st = Page.mk ~req ~root:Dancers ~title:"Dancers" ~perms:[] in
+  [
     h3 [] [
       txt "Search Dancers";
       span [class_ "htmx-indicator"] [txt " (searching...)"];
@@ -39,7 +40,7 @@ let page req =
     ]
   ]
 
-(* List *)
+(* List HTMX endpoint *)
 (* ************************************************************************* *)
 
 let dancer_link ~dancer =
@@ -60,36 +61,17 @@ let search_form =
   pattern
 
 let post req =
-  State.get req @@ fun st ->
   match%lwt Dream.form req with
   | `Ok form_result ->
+    let$ st = Htmx.ret ~req ~perms:[] in
     begin match Form.validate search_form form_result with
     | Error _errs -> assert false (* internal error, or incorrect api usage from external source *)
     | Ok pattern ->
       if String.length pattern < 2 then
-        Template.api ~body:[tr [] [td [colspan 2] [txt "type at least 2 letters to search..."]]]
+        `Body [tr [] [td [colspan 2] [txt "type at least 2 letters to search..."]]]
       else
         let l = Ftw.Dancer.Fuzzy.search ~st ~pattern in
         let body = List.map tr_of_dancer l in
-        Template.api ~body
+        `Body body
     end
   | _ -> assert false (* error *)
-
-(* Dancer choice *)
-(* ************************************************************************* *)
-(*
-let tr_of_dancer dancer =
-  tr [] [
-    td [] [txt "%s" (Ftw.Dancer.first_name dancer)];
-    td [] [txt "%s" (Ftw.Dancer.last_name dancer)];
-    td [] [txt "L:%s" (Ftw.Divisions.to_string (Ftw.Dancer.as_leader dancer))];
-    td [] [txt "F:%s" (Ftw.Divisions.to_string (Ftw.Dancer.as_follower dancer))];
-    td [] [
-      button [
-        class_ "btn btn-primary"
-        ] [
-        txt "choose"
-        ]
-    ];
-  ]
-*)

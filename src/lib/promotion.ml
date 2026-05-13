@@ -71,8 +71,7 @@ let add ~st p =
     (reason_to_int p.reason)
 
 let record ~st p =
-  State.atomically ~st ~f:(fun st ->
-      Dancer.update_divisions ~st ~dancer:p.dancer ~role:p.role ~divs:p.new_divisions;
-      add ~st p;
-    )
+  Dancer.update_divisions ~st ~dancer:p.dancer ~role:p.role ~divs:p.new_divisions;
+  add ~st p;
+  ()
 

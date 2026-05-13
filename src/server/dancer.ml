@@ -1,6 +1,7 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+open Syntax
 open! Dream_html
 open Dream_html.HTML
 
@@ -13,12 +14,9 @@ let position_row ~req:_ ~st:_ position =
   | Admin -> tr [] [td [] [txt "Admin"]]
   | _ -> tr [] [td [] [txt "TODO !!"]]
 
-
 (* Positions *)
-let positions ~req ~st ~user ~dancer =
-  if not (Ftw.Position.admin (Ftw.Position.get_global ~st ?user ())) then
-    null []
-  else begin
+let positions ~req ~st ~dancer =
+  if User.check_perms ~req ~st [View_positions] then begin
     div [class_ "row"] (
       match Ftw.User.find ~st (`Dancer (Ftw.Dancer.id dancer)) with
       | None -> [txt "No user yet"] (* TODO: add option to create user *)
@@ -30,7 +28,8 @@ let positions ~req ~st ~user ~dancer =
           )
         ]
     )
-  end
+  end else
+    null []
 
 (* comp results *)
 let comp_results ~req:_ ~st:_ ~dancer:_ (_role : Ftw.Role.t) =
@@ -40,10 +39,9 @@ let comp_results ~req:_ ~st:_ ~dancer:_ (_role : Ftw.Role.t) =
 
 (* Main page *)
 let page req dancer_id =
-  State.get req @@ fun st ->
-  let user = User.get req in
+  let$ st = Page.mk ~req ~root:Dancers ~title:"Dancer" ~perms:[] in
   let dancer = Ftw.Dancer.get ~st dancer_id in
-  Template.page ~req ~root:Dancers [
+  [
     div [class_ "row"] [
       txt "%s %s" (Ftw.Dancer.first_name dancer) (Ftw.Dancer.last_name dancer)
       ];
@@ -51,5 +49,5 @@ let page req dancer_id =
       comp_results ~req ~st ~dancer Leader;
       comp_results ~req ~st ~dancer Follower;
     ];
-    positions ~req ~st ~user ~dancer;
+    positions ~req ~st ~dancer;
   ]

@@ -29,15 +29,6 @@ let set req user =
 let unset req =
   Dream.drop_session_field req "user"
 
-
-(* Helpers *)
-(* ************************************************************************* *)
-
-let has_access_to_event ~st ?user ~ev () =
-  Ftw_core.Event.public ev ||
-  (match Ftw.Position.get_all_for_event ~st ?user ~ev () with [] -> false | _ :: _ -> true)
-
-let can_create_event ~st ?user () =
-  let l = Ftw.Position.get_global ~st ?user () in
-  Ftw.Position.admin l
-  
+let check_perms ~req ~st perms =
+  let user = get req in
+  List.for_all (Ftw.Permission.check ~st ?user) perms

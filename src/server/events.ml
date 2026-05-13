@@ -1,6 +1,7 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+open Syntax
 open! Dream_html
 open Dream_html.HTML
 
@@ -9,7 +10,7 @@ open Dream_html.HTML
 (* ************************************************************************* *)
 
 let replace_me_tr ev_id =
-  tr [path_attr Hx.get Paths.Api.events ev_id;
+  tr [path_attr Hx.get Paths.Htmx.events ev_id;
       Hx.swap "outerHTML";
       Hx.trigger "revealed"] [
     td [colspan 3] [
@@ -22,8 +23,8 @@ let replace_me_tr ev_id =
 let ev_link ~ev =
   a [path_attr href Paths.Page.event (Ftw.Event.id ev); class_ "d-block link-secondary link-underline-opacity-0"]
 
-let tr_of_ev ~st ?user ev =
-  if User.has_access_to_event ~st ?user ~ev () then
+let tr_of_ev ~req ~st ev =
+  if User.check_perms ~req ~st [View_event {ev}] then
     tr [] [
       td [] [ev_link ~ev [
         if Ftw_core.Event.public ev
@@ -37,15 +38,14 @@ let tr_of_ev ~st ?user ev =
     null []
 
 let page req =
-  State.get req @@ fun st ->
-  let user = User.get req in
+  let$ st = Page.mk ~req ~root:Event ~title:"Event List" ~perms:[] in
   let ev = Ftw.Event.last ~st in
-  Template.page ~req ~root:Event [
+  [
     div [class_ "row"] [
       div [class_ "col"] [
         h1 [] [txt "Event List"];
       ];
-      if (Ftw.Position.admin (Ftw.Position.get_global ~st ?user ())) then
+      if User.check_perms ~req ~st [Create_event] then
         div [class_ "col-2 align-items-end"] [
           div [class_ "row"] [
             a [path_attr href Paths.Page.event_create;
@@ -67,7 +67,7 @@ let page req =
           ];
         ];
         tbody [] [
-          tr_of_ev ~st ?user ev;
+          tr_of_ev ~req ~st ev;
           replace_me_tr (Ftw.Event.id ev)
         ]
       ]
@@ -78,11 +78,10 @@ let page req =
 (* ************************************************************************* *)
 
 let api_aux req id =
-  let n = 2 in
-  State.get req @@ fun st ->
-  let user = User.get req in
+  let$ st = Htmx.ret ~req ~perms:[] in
+  let n = 100 in
   let l = Ftw.Event.list_before ~st ~n ~id in
-  let body = (List.map (tr_of_ev ~st ?user) l) in
+  let body = (List.map (tr_of_ev ~req ~st) l) in
   let new_id =
     match CCList.last_opt l with
     | None -> Logs.debug (fun k ->k "no last ev ?"); id
@@ -93,7 +92,7 @@ let api_aux req id =
     then body
     else body @ [replace_me_tr new_id]
   in
-  Template.api ~body:body
+  `Body body
 
 let api req =
   let id = Utils.int_query req "before" in

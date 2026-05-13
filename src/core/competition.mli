@@ -10,12 +10,26 @@ type id = Id.t
 type t
 (** Competitions *)
 
+type status =
+ | Setup
+ | Registration
+ | Distribution
+ | Progress
+ | Finished (**)
+(** Competition statuses *)
+
 
 (* Common functions *)
 (* ************************************************************************* *)
 
 val id : t -> id
 (** Unique id for the competition. *)
+
+val status : t -> status
+(** Current status for the competition *)
+
+val public : t -> bool
+(** Whether the competition is public *)
 
 val name : t -> string
 (** Name of the competition *)
@@ -49,10 +63,14 @@ val print_compact : Format.formatter -> t -> unit
 module Private :sig
 
   val mk :
-    id:id -> event:Event.id -> name:string ->
-    kind:Kind.t -> category:Category.t ->
+    id:id -> event:Event.id ->
+    status:status -> public:bool ->
+    name:string -> kind:Kind.t -> category:Category.t ->
     n_leaders:int -> n_follows:int ->
     ?check_divs:bool -> unit -> t
     (** Raw creation function. *)
+
+  val with_status : status -> t -> t
+  (** Update the status of a competition *)
 
 end

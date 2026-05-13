@@ -1,0 +1,9 @@
+
+(executable
+  (name script)
+  (libraries ftw))
+
+(executable
+  (name dream_secret)
+  (libraries dream))
+

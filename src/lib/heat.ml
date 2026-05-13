@@ -28,12 +28,16 @@ let singles_one_of_toml t =
   let followers = Otoml.find t (Otoml.get_array single_of_toml) ["followers"] in
   { leaders; followers; passages = Id.Map.empty; }
 
-let singles_to_toml { singles_heats; } =
-  Otoml.array (Array.to_list (Array.map singles_one_to_toml singles_heats))
+let singles_to_toml { singles_heats; unallocated; } =
+  Otoml.inline_table [
+    "unallocated", Otoml.array (List.map single_to_toml unallocated);
+    "heats", Otoml.array (Array.to_list (Array.map singles_one_to_toml singles_heats));
+  ]
 
 let singles_of_toml t =
-  let l = Otoml.get_array singles_one_of_toml t in
-  { singles_heats = Array.of_list l; }
+  let l = Otoml.find_exn t (Otoml.get_array singles_one_of_toml) ["heats"] in
+  let unallocated = Otoml.find_or ~default:[] t (Otoml.get_array single_of_toml) ["unallocated"] in
+  { unallocated; singles_heats = Array.of_list l; }
 
 (* couples *)
 
@@ -50,12 +54,16 @@ let couples_one_of_toml t =
   let couples = Otoml.get_array couple_of_toml t in
   { couples; passages = Id.Map.empty; }
 
-let couples_to_toml { couples_heats; } =
-  Otoml.array (Array.to_list (Array.map couples_one_to_toml couples_heats))
+let couples_to_toml { couples_heats; unallocated; } =
+  Otoml.inline_table [
+    "unallocated", Otoml.array (List.map couple_to_toml unallocated);
+    "heats", Otoml.array (Array.to_list (Array.map couples_one_to_toml couples_heats));
+  ]
 
 let couples_of_toml t =
-  let l = Otoml.get_array couples_one_of_toml t in
-  { couples_heats = Array.of_list l; }
+  let l = Otoml.find_exn t (Otoml.get_array couples_one_of_toml) ["heats"] in
+  let unallocated = Otoml.find_or t ~default:[] (Otoml.get_array couple_of_toml) ["unallocated"] in
+  { unallocated; couples_heats = Array.of_list l; }
 
 
 (* DB interaction *)
@@ -155,10 +163,13 @@ let incr_passage map_ref dancer_id =
         | Some n -> Some (n + 1)
       ) !map_ref
 
-let update_heats ~f a l =
+let update_heats ~f ~g a l =
   List.iter (fun { target_id; heat_number; leader; follow } ->
-      let heat = a.(heat_number) in
-      a.(heat_number) <- f heat target_id ~leader ~follow
+    if heat_number = 0
+    then g target_id ~leader ~follow
+    else
+      let heat = a.(heat_number - 1) in
+      a.(heat_number - 1) <- f heat target_id ~leader ~follow
     ) l
 
 
@@ -169,14 +180,24 @@ let mk_singles (l : row list) =
   (* Compute the number of heats *)
   let number_of_heats =
     List.fold_left
-      (fun acc { heat_number; _ } -> max acc (heat_number + 1))
+      (fun acc { heat_number; _ } -> max acc heat_number)
       0 l
   in
   (* Allocate the heats array and fill it.
      At the same time, compute the number of passages for each bib. *)
+  let unallocated = ref [] in
   let a = Array.make number_of_heats { leaders = []; followers = []; passages = Id.Map.empty; } in
   let num_total_passages = ref Id.Map.empty in
   update_heats a l
+    ~g:(fun target_id ~leader ~follow ->
+        match leader, follow with
+        | Some dancer, None ->
+          let leader = Target.With_id.mk target_id (Target.single ~role:Leader ~target:dancer) in
+          unallocated := leader :: !unallocated
+        | None, Some dancer ->
+          let follower = Target.With_id.mk target_id (Target.single ~role:Follower ~target:dancer) in
+          unallocated := follower :: !unallocated
+        | None, None | Some _, Some _ -> ())
     ~f:(fun (heat : singles_one) target_id ~leader ~follow ->
         match leader, follow with
         | Some dancer, None ->
@@ -212,7 +233,7 @@ let mk_singles (l : row list) =
       a.(i) <- { leaders; followers; passages; }
     ) a;
   (* Return the result *)
-  { singles_heats = a; }
+  { singles_heats = a; unallocated = !unallocated; }
 
 let get_singles ~st ~phase =
   mk_singles @@ raw_get st ~phase
@@ -230,9 +251,16 @@ let mk_couples (l: row list) =
   in
   (* Allocate the heats array and fill it.
      At the same time, compute the number of passages for each bib. *)
+  let unallocated = ref [] in
   let a = Array.make number_of_heats { couples = []; passages = Id.Map.empty; } in
   let num_total_passages = ref Id.Map.empty in
   update_heats a l
+    ~g:(fun target_id ~leader ~follow ->
+          match leader, follow with
+          | Some leader, Some follower ->
+            let couple = Target.With_id.mk target_id (Target.couple ~leader ~follower) in
+            unallocated := couple :: !unallocated
+          | None, _ | _, None -> ())
     ~f:(fun (heat : couples_one) target_id ~leader ~follow ->
         match leader, follow with
         | Some leader, Some follower ->
@@ -266,7 +294,7 @@ let mk_couples (l: row list) =
       a.(i) <- { couples; passages; }
     ) a;
   (* Return the result *)
-  { couples_heats = a; }
+  { couples_heats = a; unallocated = !unallocated; }
 
 let get_couples ~st ~phase =
   mk_couples @@ raw_get st ~phase
@@ -301,20 +329,29 @@ let clear ~st ~phase =
 
 module Singles = Set.Make(Target.Single.Ord(Id))
 
-let regen_singles ~min ~max singles_heats =
+let regen_singles ~min ~max singles_heats unallocated =
+  let leaders_set, followers_set =
+    List.fold_left (fun (leaders, follows) target ->
+      match Target.With_id.target target with
+      | Target.Single { target = _; role = Leader; } as target ->
+        Singles.add target leaders, follows
+      | Target.Single { target = _; role = Follower; } as target ->
+        leaders, Singles.add target follows
+      ) (Singles.empty, Singles.empty) unallocated
+  in
   let leaders_set =
     Array.fold_left (fun acc singles_heat ->
         List.fold_left (fun acc single ->
             Singles.add (Target.With_id.target single) acc
           ) acc singles_heat.leaders
-      ) Singles.empty singles_heats
+      ) leaders_set singles_heats
   in
   let followers_set =
     Array.fold_left (fun acc singles_heat ->
         List.fold_left (fun acc single ->
             Singles.add (Target.With_id.target single) acc
           ) acc singles_heat.followers
-      ) Singles.empty singles_heats
+      ) followers_set singles_heats
   in
   let n_leaders = Singles.cardinal leaders_set in
   let n_followers = Singles.cardinal followers_set in
@@ -371,13 +408,18 @@ let add_singles ~st ~phase leader_pools follow_pools =
 
 module Couples = Set.Make(Target.Couple.Ord(Id))
 
-let regen_couples ~min ~max couples_heats =
+let regen_couples ~min ~max couples_heats unallocated =
+  let couples_set =
+    List.fold_left (fun acc couple ->
+      Couples.add (Target.With_id.target couple) acc
+    ) Couples.empty unallocated
+  in
   let couples_set =
     Array.fold_left (fun acc couples_heat ->
         List.fold_left (fun acc couple ->
             Couples.add (Target.With_id.target couple) acc
           ) acc couples_heat.couples
-      ) Couples.empty couples_heats
+      ) couples_set couples_heats
   in
   let n_couples = Couples.cardinal couples_set in
   let couples =
@@ -437,9 +479,9 @@ let regen ~st ~phase ?(tries=100) ?(early=(0, [])) ?(late=(0, [])) ~min ~max t =
     else begin
       Logs.info (fun k->k "Generating new pool");
       begin match t with
-        | Singles {singles_heats;} ->
-          let forbidden_pairs = assert false in
-          let leader_pools, follower_pools = regen_singles ~min ~max singles_heats in
+        | Singles { singles_heats; unallocated; } ->
+          let forbidden_pairs = [] in
+          let leader_pools, follower_pools = regen_singles ~min ~max singles_heats unallocated in
           let leader_sets = singles_sets leader_pools in
           let follower_sets = singles_sets follower_pools in
           let is_okay =
@@ -453,8 +495,8 @@ let regen ~st ~phase ?(tries=100) ?(early=(0, [])) ?(late=(0, [])) ~min ~max t =
           end else begin
             aux (n - 1)
           end
-        | Couples {couples_heats;} ->
-          let couples_pools = regen_couples ~min ~max couples_heats in
+        | Couples { couples_heats; unallocated; } ->
+          let couples_pools = regen_couples ~min ~max couples_heats unallocated in
           let leader_sets, follower_sets = couples_sets couples_pools in
           let is_okay =
             check_early early leader_sets && check_late late leader_sets &&
@@ -471,49 +513,19 @@ let regen ~st ~phase ?(tries=100) ?(early=(0, [])) ?(late=(0, [])) ~min ~max t =
   in
   aux tries
 
-let split_dancer_list = function
-  | "" -> []
-  | s ->
-    List.map int_of_string
-      (CCString.split_on_char ',' s)
+let init ~st ~phase targets =
+  List.iter (fun target ->
+    match (target : Dancer.id Ftw_core.Target.any) with
+    | Any Single { target; role; } -> ignore @@ add_single ~st ~phase ~role ~heat:0 target
+    | Any Couple { leader; follower; } -> ignore @@ add_couple ~st ~phase ~heat:0 ~leader ~follower
+    | Any Trouple _ -> assert false
+  ) targets
 
-let init ~st ~phase ~min ~max
-    ~early_heats ~early_heats_dancers
-    ~late_heats ~late_heats_dancers =
-  regen ~st ~phase ~min ~max
-    ~early:(early_heats, split_dancer_list early_heats_dancers)
-    ~late:(late_heats, split_dancer_list late_heats_dancers)
-
-(*
-let simple_promote ~st ~(phase:Id.t) (_max_number_of_targets_to_pass:int) =
-  let new_phase = Option.get @@ Phase.find_next_round ~st phase in
-  Logs.err ~src (fun k->k "next phase %a" Round.print (Phase.round new_phase));
-  let open Sqlite3_utils.Ty in
-  State.insert ~st ~ty:[int]
-    {| DELETE FROM heats
-        WHERE 0=0
-        AND phase_id = ?
-        |}
-    (Phase.id new_phase);
-  let open Sqlite3_utils.Ty in
-  State.insert ~st ~ty:[int;int]
-    {| insert into heats (phase_id, heat_number, leader_id, follower_id)
-          select ? as phase_id
-            , 1 as heat_number
-            , leader_id
-            , follower_id
-          FROM heats
-
-          where 0=0
-          AND heats.phase_id = ?
-          |}
-    (Phase.id new_phase) phase
-*)
 
 (* Helpers *)
 (* ************************************************************************* *)
 
-let all_single_judgement_targets { singles_heats; } =
+let all_single_judgement_targets { singles_heats; unallocated; } =
   let aux ~passages map acc role l =
     List.fold_left (fun (map, acc) single ->
         let target_id = Target.With_id.id single in
@@ -526,13 +538,29 @@ let all_single_judgement_targets { singles_heats; } =
           map, (target_id :: acc)
       ) (map, acc) l
   in
+  let acc =
+    List.fold_left (fun (map, acc_l, acc_f) single ->
+      let target_id = Target.With_id.id single in
+      let target = Target.With_id.target single in
+      let map = Id.Map.add target_id target map in
+      match Target.Single.role target with
+      | Leader -> map, target_id :: acc_l, acc_f
+      | Follower -> map, acc_l, target_id :: acc_f
+    ) (Id.Map.empty, [], []) unallocated
+  in
   Array.fold_left (fun (map, acc_l, acc_f) { leaders; followers; passages; } ->
       let map, acc_l = aux ~passages map acc_l Leader leaders in
       let map, acc_f = aux ~passages map acc_f Follower followers in
       (map, acc_l, acc_f)
-    ) (Id.Map.empty, [], []) singles_heats
+    ) acc singles_heats
 
-let all_couple_judgement_targets { couples_heats; } =
+let all_couple_judgement_targets { couples_heats; unallocated; } =
+  let map =
+    List.fold_left (fun acc couple ->
+      let target_id = Target.With_id.id couple in
+      Id.Map.add target_id (Target.With_id.target couple) acc
+    ) Id.Map.empty unallocated
+  in
   Array.fold_left (fun map { couples; passages = _; } ->
       List.fold_left (fun map couple ->
           let target_id = Target.With_id.id couple in
@@ -541,6 +569,6 @@ let all_couple_judgement_targets { couples_heats; } =
           (* all couples are judged, even if some dancer dances more than one time *)
           Id.Map.add target_id (Target.Couple {leader; follower }) map
         ) map couples
-    ) Id.Map.empty couples_heats
+    ) map couples_heats
 
 

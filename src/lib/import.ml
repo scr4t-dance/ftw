@@ -227,7 +227,7 @@ class virtual importer (st : State.t) = object(self)
       Otoml.find t Ranking.Algorithm.of_toml ["ranking_algorithm"]
     in
     let phase =
-      Phase.create ~st (Competition.id comp) round
+      Phase.create ~st (Competition.id comp) round ~status:Finished
         ~ranking_algorithm ~judge_artefact_descr ~head_judge_artefact_descr
     in
     self#import_judges ~phase t;
@@ -335,14 +335,17 @@ class virtual importer (st : State.t) = object(self)
     let n_leaders = find t Otoml.get_integer ["leaders"] in
     let n_follows = find t Otoml.get_integer ["follows"] in
     let check_divs = find_opt t Otoml.get_boolean ["check_divs"] in
+    let public = Option.value ~default:true (find_opt t get_boolean ["public"]) in
     let comp =
       match find_opt t get_integer ["id"] with
       | None ->
-        Competition.create ~st ()
+        Competition.create ()
+          ~st ~public ~status:Finished
           ~event_id:event ~name ~kind ~category
           ~n_leaders ~n_follows ?check_divs
       | Some id ->
-        Competition.Private.import ~st ~id ()
+        Competition.Private.import ()
+          ~st ~id ~public ~status:Finished
           ~event_id:event ~name ~kind ~category
           ~n_leaders ~n_follows ?check_divs;
         Competition.get ~st id

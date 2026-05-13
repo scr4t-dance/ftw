@@ -13,7 +13,7 @@ module Ty = Sqlite3_utils.Ty
 (* ************************************************************************* *)
 
 let atomically t ~f =
-  Sqlite3_utils.atomically t (fun t ->
+  Sqlite3_utils.transact t (fun t ->
           f t
     )
 

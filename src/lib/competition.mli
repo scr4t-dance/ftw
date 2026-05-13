@@ -4,7 +4,7 @@
 include module type of Ftw_core.Competition
 
 
-(* DB interaction *)
+(* DB read *)
 (* ************************************************************************* *)
 
 val conv : t Conv.t
@@ -19,17 +19,22 @@ val from_event : st:State.t -> Ftw_core.Event.id -> t list
 val ids_from_event : st:State.t -> Ftw_core.Event.id -> id list
 (** Get the list of all competitions that belong to a given event. *)
 
+val phases : st:State.t -> t -> Phase.t list
+
+val round : st:State.t -> t -> Round.t -> Phase.t option
+
+
+(* DB writes *)
+(* ************************************************************************* *)
+
 val create :
-  st:State.t ->
-  event_id:Ftw_core.Event.id -> ?check_divs:bool ->
+  st:State.t -> event_id:Ftw_core.Event.id ->
+  status:status -> public:bool -> ?check_divs:bool ->
   name:string -> kind:Kind.t -> category:Category.t ->
   n_leaders:int -> n_follows:int -> unit -> t
 (** Create a new competition *)
 
-
-val phases : st:State.t -> t -> Phase.t list
-
-val round : st:State.t -> t -> Round.t -> Phase.t option
+val update : st:State.t -> t -> unit
 
 
 (* Private functions *)
@@ -40,7 +45,7 @@ module Private :sig
   include module type of Ftw_core.Competition.Private
 
   val import :
-    st:State.t -> id:id ->
+    st:State.t -> id:id -> status:status -> public:bool ->
     event_id:Ftw_core.Event.id -> ?check_divs:bool ->
     name:string -> kind:Kind.t -> category:Category.t ->
     n_leaders:int -> n_follows:int -> unit -> unit

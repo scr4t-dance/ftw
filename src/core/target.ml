@@ -27,6 +27,32 @@ type 'a any = Any : (_, 'a) t -> 'a any
 type ('kind, 'a) target = ('kind, 'a) t
 
 
+(* Comparison *)
+(* ************************************************************************* *)
+
+module Ord(T : Set.OrderedType) :
+  Set.OrderedType with type t = T.t any
+  = struct
+    type t = T.t any
+    let compare t t' =
+      match t, t' with
+      | Any Single { target = t; role = r; },
+        Any Single { target = t'; role = r'; } ->
+        CCOrd.(Role.compare r r' <?> (T.compare, t, t'))
+      | Any Couple { leader = l; follower = f; },
+        Any Couple { leader = l'; follower = f'; } ->
+        CCOrd.(T.compare l l' <?> (T.compare, f, f'))
+      | Any Trouple { target1 = t1; target2 = t2; target3 = t3; },
+        Any Trouple { target1 = t1'; target2 = t2'; target3 = t3'; } ->
+        CCOrd.(T.compare t1 t1' <?> (T.compare, t2, t2') <?> (T.compare, t3, t3'))
+      
+      | Any Single _, Any (Couple _ | Trouple _) -> -1
+      | Any (Couple _ | Trouple _), Any Single _ -> 1
+
+      | Any Couple _, Any Trouple _ -> -1
+      | Any Trouple _, Any Couple _ -> 1
+end
+
 (* Creation *)
 (* ************************************************************************* *)
 

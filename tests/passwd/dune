@@ -1,5 +1,0 @@
-(executable
-  (name script)
-  (libraries argon2)
-)
-

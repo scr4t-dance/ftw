@@ -19,3 +19,8 @@ end
 
 module Set = Set.Make(Aux)
 module Map = Map.Make(Aux)
+
+(* Usual functions *)
+(* ************************************************************************* *)
+
+

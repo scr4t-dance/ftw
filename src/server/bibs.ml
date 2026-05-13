@@ -1,15 +1,9 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-open Syntax
 open! Dream_html
 open Dream_html.HTML
 
-(* Hello world *)
+(* API for results *)
 (* ************************************************************************* *)
 
-let page req =
-  let$ _st = Page.mk ~req ~root:Index ~title:"FTW" ~perms:[] in
-  [
-    p [] [txt "Hello World !"];
-  ]

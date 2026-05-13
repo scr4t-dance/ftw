@@ -15,6 +15,7 @@ type t =
   | Mock_Judge of { ev: Event.id; comp : Competition.id; phase: Phase.id; }
   | Marshaller of { ev: Event.id; comp : Competition.id; phase: Phase.id; }
 
+
 (* Creation and inspection *)
 (* ************************************************************************* *)
 
@@ -70,6 +71,8 @@ let phase = function
 let admin l =
   List.mem Admin l
 
+let clerk ~ev l =
+  List.mem (Clerk { ev; }) l
 
 (* DB interaction *)
 (* ************************************************************************* *)
@@ -131,6 +134,20 @@ let get_global ~st ?user () =
 let get_all_for_event ~st ?user ~ev () =
   let+ user in
   State.query_list_where ~st ~db ~p:Db.Ty.[int; int] ~conv
-    {| SELECT * FROM positions WHERE user_id = ? AND (event_id = ? OR event_id = 0) |}
+    {| SELECT * FROM positions WHERE user_id = ?
+                                 AND (event_id = ? OR event_id = 0) |}
     (User.id user) (Event.id ev)
 
+let get_all_for_comp ~st ?user ~ev ~comp () =
+  let+ user in
+  State.query_list_where ~st ~db ~p:Db.Ty.[int; int; int] ~conv
+    {| SELECT * FROM positions WHERE user_id = ?
+                                AND (comp_id = ? OR (comp_id = 0 AND (event_id = ? OR event_id = 0)))|}
+    (User.id user) (Competition.id comp) (Event.id ev)
+
+let get_all_for_phase ~st ?user ~ev ~comp ~phase () =
+  let+ user in
+  State.query_list_where ~st ~db ~p:Db.Ty.[int; int; int; int] ~conv
+    {| SELECT * FROM positions WHERE user_id = ?
+                                AND (phase_id = ? OR (phase_id = 0 AND (comp_id = ? OR (comp_id = 0 AND (event_id = ? OR event_id = 0)))))|}
+    (User.id user) (Phase.id phase) (Competition.id comp) (Event.id ev)

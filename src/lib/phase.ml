@@ -6,6 +6,15 @@
 
 include Ftw_core.Phase
 
+type status = Ftw_core.Phase.status =
+  | Inactive
+  | Setup
+  | Progress
+  | Scoring
+  | Finished
+[@@deriving enum]
+
+
 (* Basic DB interaction *)
 (* ************************************************************************* *)
 
@@ -18,6 +27,7 @@ let () =
           id INTEGER PRIMARY KEY,
           competition_id INT REFERENCES competitions(id),
           round INTEGER REFERENCES round_names(id),
+          status INTEGER,
           judge_artefact_descr TEXT,
           head_judge_artefact_descr TEXT,
           ranking_algorithm TEXT,
@@ -28,9 +38,10 @@ let () =
 
 let conv =
   Conv.mk
-    Sqlite3_utils.Ty.[int; int; int; text; text; text]
-    (fun id comp round
+    Sqlite3_utils.Ty.[int; int; int; int; text; text; text]
+    (fun id comp round status
       judge_artefact_descr head_judge_artefact_descr ranking_algorithm ->
+      let status = Option.get @@ status_of_enum status in
       let round = Round.of_int round in
       let ranking_algorithm =
         Misc.Json.of_string_exn ranking_algorithm
@@ -45,7 +56,7 @@ let conv =
           ~jsont:Artefact.Descr.jsont
       in
       Private.mk
-      ~id ~comp ~round ~ranking_algorithm
+      ~id ~comp ~round ~status ~ranking_algorithm
         ~judge_artefact_descr ~head_judge_artefact_descr)
 
 let get ~st id =
@@ -55,20 +66,13 @@ let get ~st id =
   with Sqlite3_utils.RcError NOTFOUND -> raise Not_found
 
 let create
-    ~st competition_id round
+    ~st competition_id round ~status
     ~ranking_algorithm
     ~judge_artefact_descr
     ~head_judge_artefact_descr
   =
-  Logs.debug (fun k->
-      k "@[<hv 2>Creating new phase with@ competition_id: %d / round: %a@ \
-         artefacts: %a@ head_artefacts: %a@ ranking algorithm: %a@]"
-        competition_id Round.print round
-        Artefact.Descr.print judge_artefact_descr
-        Artefact.Descr.print head_judge_artefact_descr
-        Ranking.Algorithm.print ranking_algorithm
-    );
   let round = Round.to_int round in
+  let status = status_to_enum status in
   let ranking_algorithm =
     Misc.Json.to_string_exn ranking_algorithm
       ~jsont:Ranking.Algorithm.jsont
@@ -82,11 +86,11 @@ let create
       ~jsont:Artefact.Descr.jsont
   in
   let open Sqlite3_utils.Ty in
-  State.insert ~st ~db ~ty:[int; int; text; text; text]
-    {|INSERT INTO phases (competition_id,round,judge_artefact_descr,
+  State.insert ~st ~db ~ty:[int; int; int; text; text; text]
+    {|INSERT INTO phases (competition_id,round,status,judge_artefact_descr,
                           head_judge_artefact_descr,ranking_algorithm)
-      VALUES (?,?,?,?,?)|}
-    competition_id round
+      VALUES (?,?,?,?,?,?)|}
+    competition_id round status
     judge_artefact_descr
     head_judge_artefact_descr
     ranking_algorithm;
@@ -94,38 +98,37 @@ let create
     {| SELECT * FROM phases WHERE competition_id=? AND round=? |}
     competition_id round
 
-let update ~st phase_id
-    ~ranking_algorithm
-    ~judge_artefact_descr
-    ~head_judge_artefact_descr =
+let update ~st t =
+  let status = status_to_enum (status t) in
   let ranking_algorithm =
-    Misc.Json.to_string_exn ranking_algorithm
+    Misc.Json.to_string_exn (ranking_algorithm t)
       ~jsont:Ranking.Algorithm.jsont
   in
   let judge_artefact_descr =
-    Misc.Json.to_string_exn judge_artefact_descr
+    Misc.Json.to_string_exn (judge_artefact_descr t)
       ~jsont:Artefact.Descr.jsont
   in
   let head_judge_artefact_descr =
-    Misc.Json.to_string_exn head_judge_artefact_descr
+    Misc.Json.to_string_exn (head_judge_artefact_descr t)
       ~jsont:Artefact.Descr.jsont
   in
-  State.insert ~st ~db ~ty:Db.Ty.[text; text; text; int]
+  State.insert ~st ~db ~ty:Db.Ty.[int; text; text; text; int]
     {|
       UPDATE phases SET
-        judge_artefact_descr=?
-        , head_judge_artefact_descr=?
-        , ranking_algorithm=?
-      WHERE  id=?
+        status = ?,
+        judge_artefact_descr = ?,
+        head_judge_artefact_descr = ?,
+        ranking_algorithm = ?
+      WHERE id=?
     |}
+    status
     judge_artefact_descr head_judge_artefact_descr
-    ranking_algorithm phase_id
+    ranking_algorithm (id t)
 
 let delete ~st id_phase =
   State.insert ~st ~db ~ty:Db.Ty.[int]
     {| DELETE FROM phases
-        WHERE id=?|} id_phase;
-  id_phase
+        WHERE id=?|} id_phase
 
 
 (* Phase ranking *)

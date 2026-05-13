@@ -82,6 +82,21 @@ let get ~st ~competition ~bib =
     end
   | exception Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND -> None
 
+let find ~st ~comp = function
+  | `Single (dancer, role) ->
+    begin match
+      State.query_one_where ~st ~db ~conv:Id.conv ~p:Db.Ty.[int; int; int]
+      {| SELECT bib FROM bibs WHERE competition_id = ? AND dancer_id = ? AND role = ? |}
+      (Competition.id comp) (Dancer.id dancer) (Role.to_int role)
+    with
+      | bib ->
+        begin match get ~st ~competition:(Competition.id comp) ~bib with
+          | Some target -> Some (bib, target)
+          | None -> assert false
+        end
+      | exception Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND -> None
+    end
+
 let get_all ~st ~competition =
   let open Sqlite3_utils.Ty in
   match
@@ -91,6 +106,12 @@ let get_all ~st ~competition =
   with
   | l -> conv_all_bibs l
   | exception Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND -> []
+
+module TMap = Stdlib.Map.Make(Target.Ord(Id))
+
+let get_map ~st ~comp =
+  let l = get_all ~st ~competition:(Ftw_core.Competition.id comp) in
+  List.fold_left (fun acc (bib, target) -> TMap.add target bib acc) TMap.empty l
 
 let insert_row ~st ~competition ~dancer ~role ~bib =
   State.insert ~st ~db ~ty:Db.Ty.[int;int;int;int]

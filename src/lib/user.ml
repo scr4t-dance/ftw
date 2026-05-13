@@ -153,7 +153,6 @@ let create ~st ~username ~email ~pwd ~dancer_id =
   | Error _ ->
     assert false
   | Ok encoded_pwd ->
-    State.atomically ~st ~f:(fun st ->
     State.insert ~st ~db ~ty:Db.Ty.[text; text; int]
       {| INSERT INTO users (name, email, dancer_id) VALUES (?,?,?) |}
       username email dancer_id;
@@ -165,4 +164,3 @@ let create ~st ~username ~email ~pwd ~dancer_id =
       {| INSERT INTO passwd (user_id, passwd, last_set) VALUES (?,?,datetime('now','localtime')) |}
       (id user) encoded_pwd;
     user
-    )

@@ -37,7 +37,7 @@ let includes div t =
   match (div : Division.t) with
   | Novice ->
     begin match t with
-      | Novice | Novice_Intermediate -> true
+      | None | Novice | Novice_Intermediate -> true
       | _ -> false
     end
   | Intermediate ->

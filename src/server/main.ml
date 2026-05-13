@@ -42,6 +42,9 @@ let server (options : Options.server) =
     ~port:options.server_port
     ~tls:false
   @@ Dream.logger
+  (* dream secret, see script in tests/script/dream_secret.ml *)
+  @@ Dream.set_secret "NWRSF-Qa569MqaIzIAJCBRgzjUE8SSS2FE10env3EiQ"
+    ~old_secrets:[]
   @@ Dream.cookie_sessions
   @@ State.init
     ~main_path:options.main_db_path
@@ -58,15 +61,27 @@ let server (options : Options.server) =
     Dream_html.get Paths.Page.dancer Dancer.page;
     Dream_html.get Paths.Page.event Event.page;
     Dream_html.get Paths.Page.event_create Event.create_page;
+    Dream_html.get Paths.Page.event_distrib Event.distrib;
+    Dream_html.get Paths.Page.comp Competition.page;
+    Dream_html.get Paths.Page.phase Phase.page;
 
     (* API routes *)
     Dream.scope "/"
       [Dream.origin_referrer_check; delay options.api_delay] [
-        Dream_html.get Paths.Api.events Events.api;
-        Dream_html.get Paths.Api.comp_results Competition.api_results;
-        Dream_html.post Paths.Post.login Login.post;
+
+        Dream_html.get Paths.Htmx.events Events.api;
+        Dream_html.get Paths.Htmx.comp_view Competition.htmx_view;
+        Dream_html.get Paths.Htmx.phase_view Phase.htmx_view;
+        Dream_html.post Paths.Htmx.login Login.post;
+        Dream_html.get Paths.Htmx.logout Login.logout;
+        Dream_html.post Paths.Htmx.distrib_add Event.distrib_add;
+        Dream_html.post Paths.Htmx.distrib_delete Event.distrib_delete;
+        Dream_html.get Paths.Htmx.comp_start Competition.htmx_start;
+        Dream_html.post Paths.Htmx.phase_regen Phase.heat_regen_htmx;
+
         Dream_html.post Paths.Post.dancers Dancers.post;
         Dream_html.post Paths.Post.event_create Event.create_post;
+        Dream_html.post Paths.Post.event_distrib Event.distrib_api;
     ];
 
     (* Default routes *)

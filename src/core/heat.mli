@@ -17,6 +17,7 @@ type singles_one = {
 }
 
 type singles = {
+  unallocated : ([`Single], Dancer.id) Target.With_id.t list;
   singles_heats : singles_one array;
 }
 
@@ -27,6 +28,7 @@ type couples_one = {
 }
 
 type couples = {
+  unallocated : ([`Couple], Dancer.id) Target.With_id.t list;
   couples_heats : couples_one array;
 }
 

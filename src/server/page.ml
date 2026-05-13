@@ -1,21 +1,10 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+open Syntax
 open Dream_html
 open Dream_html.HTML
 
-(* API *)
-(* ************************************************************************* *)
-
-let api ~body:api_body =
-  respond @@ concat (null []) api_body
-
-let api_redirect path =
-  let%lwt response = api ~body:[] in
-  Dream_htmx.redirect path response;
-  Lwt.return response
-
-  
 (* Links to static ressources *)
 (* ************************************************************************* *)
 
@@ -50,10 +39,56 @@ type menu_root =
   | Infos
 
 let link_class ~target ~root =
-  if target = root then "link_secondary" else "link-dark"
+  if target = root  then "link-primary" else "link-secondary"
+
+let active ~target ~root =
+  if target = root then "active" else ""
 
 let page_header ~root ~req =
   [
+    (*
+    nav [class_ "navbar navbar-expand-xxl border-bottom py-3 mb-4"] [
+      div [class_ "container-fluid"] [
+        a
+          [path_attr href Paths.Page.index; class_ "navbar-brand"]
+          [img [src "/static/logo.png"; alt "SCR4T"; width "40"; height "40"; role `img]];
+        div [class_ "collapse navbar-collapse"; id "navbar"] [
+          ul [class_ "navbar-nav me-auto mb-2 mb-xl-0"] [
+            li [class_ "nav-item"] [
+              a
+                [class_ "nav-link %s" (active ~target:Event ~root); path_attr href Paths.Page.events]
+                [txt "Events"];
+            ];
+            li [class_ "nav-item"] [
+              a
+                [class_ "nav-link %s" (active ~target:Dancers ~root); path_attr href Paths.Page.dancers]
+                [txt "Events"];
+            ];
+            li [class_ "nav-item dropdown"] [
+              a
+                [ class_ "nav-link dropdown-toggle"; role `button;
+                  string_attr "data-bs-toggle" "dropdown"; Aria.expanded false;
+                  path_attr href Paths.Page.dancers]
+                [txt "Infos"];
+              ul [class_ "dropdown-menu"] [
+                li [] [a [class_ "dropdown-item"; path_attr href Paths.Page.index] [txt "Rules"]];
+                li [] [a [class_ "dropdown-item"; path_attr href Paths.Page.index] [txt "FAQ"]];
+              ]
+            ];
+          ];
+          div [class_ "d-flex"] (
+          match User.get req with
+          | None ->
+            [a [path_attr href Paths.Page.login; class_ "btn btn-outline-primary me-2"] [txt "Login"]]
+          | Some user -> [
+            i [class_ "bi bi-person-check-fill"] [];
+            span [] [txt "%s" (Ftw.User.name user)];
+          ]
+        );
+        ];
+      ];
+    ];
+    *)
     div [class_ "container"] [
       header [class_ "d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom"] [
         a [path_attr href Paths.Page.index; class_ "d-flex align-items-center col-md-3 mb-2 mb-md-0 text-dark text-decoration-none"]
@@ -70,7 +105,12 @@ let page_header ~root ~req =
             [a [path_attr href Paths.Page.login; class_ "btn btn-outline-primary me-2"] [txt "Login"]]
           | Some user -> [
             i [class_ "bi bi-person-check-fill"] [];
-            span [] [txt "%s" (Ftw.User.name user)];
+            span [class_ "mx-2"] [txt "%s" (Ftw.User.name user)];
+            span [class_ "mx-2"] [
+              button
+                [ class_ "btn btn-outline-danger"; path_attr Hx.get Paths.Htmx.logout]
+                [ txt "logout" ]
+            ];
           ]
         );
       ]
@@ -104,8 +144,19 @@ let page_body page_body =
 (* Base Page template *)
 (* ************************************************************************* *)
 
-let page ?(local=true) ?title:(title_text="FTW") ~req ~root body_node =
-  respond @@ html [lang "en"] [
+let mk' ~req ~st ~root ~title:title_text ~perms k =
+  let local = true in
+  let status, actual_body =
+    if (User.check_perms ~req ~st perms)
+    then `OK, k ()
+    else begin
+      let status = `Forbidden in
+      let body = [ txt "You do not have the permission to access this content" ] in
+      status, body
+    end
+  in
+
+  respond ~status @@ html [lang "en"] [
     head [] [
       meta [charset "utf-8"];
       meta [name "viewport"; content "width=device-width, initial-scale=1"];
@@ -130,9 +181,12 @@ let page ?(local=true) ?title:(title_text="FTW") ~req ~root body_node =
     body [] [
       div [class_ "container container-xxl"] (
         page_header ~root ~req @
-        page_body body_node @
+        page_body actual_body @
         page_footer
       )
     ]
   ]
 
+let mk ~req ~root ~title ~perms k =
+  let$ st = State.get req in 
+  mk' ~req ~st ~root ~title ~perms (fun () -> k st)

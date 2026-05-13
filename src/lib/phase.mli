@@ -8,31 +8,24 @@ include module type of Ftw_core.Phase
 
 val conv : t Conv.t
 
-
 val get : st:State.t -> id -> t
 (** Get an event from its id.
     @raise Stdlib.Not_found if the phase is not found. *)
 
 val create :
-  st:State.t -> Ftw_core.Competition.id -> Round.t ->
+  st:State.t -> Ftw_core.Competition.id -> Round.t -> status:status ->
   ranking_algorithm:Ranking.Algorithm.t ->
   judge_artefact_descr:Artefact.Descr.t ->
   head_judge_artefact_descr:Artefact.Descr.t ->
   t
 (** Create a new phase *)
 
-val update : st:State.t -> id ->
-  ranking_algorithm:Ranking.Algorithm.t ->
-  judge_artefact_descr:Artefact.Descr.t ->
-  head_judge_artefact_descr:Artefact.Descr.t ->
-  unit
+val update : st:State.t -> t -> unit
 (** Update the details of a phase. *)
 
-val delete : st:State.t -> id -> id
+val delete : st:State.t -> id -> unit
 (** Delete a phase.
-    TODO: delete more than phase.
-    TODO: soft delete ?
-*)
+    TODO: soft delete ? *)
 
 type ('kind, 'target) ranking =
   | Singles : {

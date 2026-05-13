@@ -6,6 +6,14 @@
 
 include Ftw_core.Competition
 
+type status = Ftw_core.Competition.status =
+ | Setup
+ | Registration
+ | Distribution
+ | Progress
+ | Finished
+ [@@deriving enum]
+
 
 (* DB interaction *)
 (* ************************************************************************* *)
@@ -18,6 +26,8 @@ let () =
         CREATE TABLE IF NOT EXISTS competitions (
           id INTEGER PRIMARY KEY,
           event INTEGER REFERENCES events(id),
+          status INTEGER,
+          public INTEGER,
           name TEXT,
           kind INTEGER REFERENCES competition_kinds(id),
           category INTEGER REFERENCES competition_categories(id),
@@ -29,12 +39,14 @@ let () =
 
 let conv =
   Conv.mk
-    Sqlite3_utils.Ty.[int; int; text; int; int; int; int; int ]
-    (fun id event name kind category n_leaders n_follows check_divs ->
-       let check_divs = Bool.of_int check_divs in
-       let kind = Kind.of_int kind in
-       let category = Category.of_int category in
-       Private.mk ~id ~event ~name ~kind ~category ~n_leaders ~n_follows ~check_divs ())
+    Sqlite3_utils.Ty.[int; int; int; int; text; int; int; int; int; int; ]
+    (fun id event status public name kind category n_leaders n_follows check_divs ->
+      let status = Option.get @@ status_of_enum status in (* TODO: proper error *)
+      let public = public <> 0 in
+      let check_divs = Bool.of_int check_divs in
+      let kind = Kind.of_int kind in
+      let category = Category.of_int category in
+      Private.mk ~id ~event ~status ~public ~name ~kind ~category ~n_leaders ~n_follows ~check_divs ())
 
 let get ~st id =
   State.query_one_where ~st ~db ~p:Id.p ~conv
@@ -49,24 +61,14 @@ let ids_from_event ~st event_id =
     {| SELECT id FROM competitions WHERE event = ? |} event_id
 
 let create ~st
-    ~event_id ?(check_divs=true)
-    ~name ~kind ~category
-    ~n_leaders ~n_follows
+    ~event_id ~status ~public ?(check_divs=true)
+    ~name ~kind ~category ~n_leaders ~n_follows
     () =
-  Logs.debug ~src:State.src (fun k->
-      k "@[<hv 2>Creating new competition with@ \
-         event_id: %d / name: %s@ \
-         kind: %a (%d)@ category: %a(%d)@ \
-         n_leaders: %d / n_follows: %d@ \
-         check_divs: %b@]"
-        event_id name
-        Kind.print kind (Kind.to_int kind) Category.print category (Category.to_int category)
-        n_leaders n_follows check_divs);
-  State.insert ~st ~db ~ty:Db.Ty.[ int; text; int; int; int; int; int ]
+  State.insert ~st ~db ~ty:Db.Ty.[ int; int; int; text; int; int; int; int; int ]
     {| INSERT INTO competitions
-       (event, name, kind, category, num_leaders, num_followers,check_divs)
-       VALUES (?,?,?,?,?,?,?) |}
-    event_id name (Kind.to_int kind) (Category.to_int category)
+       (event, status, public, name, kind, category, num_leaders, num_followers,check_divs)
+       VALUES (?,?,?,?,?,?,?,?,?) |}
+    event_id (status_to_enum status) (if public then 1 else 0) name (Kind.to_int kind) (Category.to_int category)
     n_leaders n_follows (Bool.to_int check_divs);
   (* TODO: try and get the id of the new competition from the insert statement above,
      rather than using a new query *)
@@ -78,9 +80,20 @@ let create ~st
   Logs.debug ~src:State.src (fun k->k "Competition created with id %d" (id t));
   t
 
+let update ~st t =
+  State.insert ~st ~db ~ty:Db.Ty.[ int; int; int; text; int; int; int; int; int; int ]
+    {| UPDATE competitions SET
+       event = ?, status = ?, public = ?, name = ?, kind = ?, category = ?,
+       num_leaders = ?, num_followers = ?, check_divs = ?
+      WHERE id = ? |}
+      (event t) (status_to_enum (status t)) (if public t then 1 else 0)
+      (name t) (Kind.to_int (kind t)) (Category.to_int (category t))
+      (n_leaders t) (n_follows t) (Bool.to_int (check_divs t)) (id t)
+
 let phases ~st comp =
+  Logs.debug (fun k->k "phases : id=%d" (id comp));
   State.query_list_where ~st ~db ~p:Id.p ~conv:Phase.conv
-    {| SELECT * FROM phases WHERE competition_id = ? ORDER BY id |} (id comp)
+    {| SELECT * FROM phases WHERE competition_id = ? |} (id comp)
   |> List.sort (fun comp1 comp2 -> Round.compare (Phase.round comp1) (Phase.round comp2))
 
 let round ~st comp round =
@@ -94,17 +107,17 @@ module Private = struct
 
   include Ftw_core.Competition.Private
 
-  let import ~st ~id:comp_id
+  let import ~st ~id:comp_id ~status ~public
       ~event_id ?(check_divs=true)
       ~name ~kind ~category
       ~n_leaders ~n_follows
       () =
     let open Db.Ty in
-    State.insert ~st ~db ~ty:[ int; int; text; int; int; int; int; int ]
+    State.insert ~st ~db ~ty:[ int; int; int; int; text; int; int; int; int; int ]
       {| INSERT INTO competitions
-       (id, event, name, kind, category, num_leaders, num_followers,check_divs)
-       VALUES (?,?,?,?,?,?,?,?) |}
-      comp_id event_id name (Kind.to_int kind) (Category.to_int category)
+       (id, status, public, event, name, kind, category, num_leaders, num_followers,check_divs)
+       VALUES (?,?,?,?,?,?,?,?,?,?) |}
+      comp_id (status_to_enum status) (if public then 1 else 0) event_id name (Kind.to_int kind) (Category.to_int category)
       n_leaders n_follows (Bool.to_int check_divs)
 
 
