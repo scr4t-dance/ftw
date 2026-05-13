@@ -34,13 +34,13 @@ body {
 
     --clear_background: #eaf4ff;
 
-    --text-grey:rgb(59, 59, 59);
+    --text-grey: rgb(59, 59, 59);
 
     --button: #617489;
     --button-hover: #4a5c6e;
 
-    --button-grey:#d7d7d7;
-    --button-grey-hover:#c5c5c5;
+    --button-grey: #d7d7d7;
+    --button-grey-hover: #c5c5c5;
 
     --warning-text: #842029;
     --warning-background: #f8d7da;
@@ -189,8 +189,9 @@ ul li {
     display: flex;
     flex-direction: row;
     justify-content: center;
-    align-items: center;
+    align-items: stretch;
     flex-wrap: wrap;
+    column-gap: 1rem;
 }
 
 .logout_container {
@@ -201,13 +202,22 @@ ul li {
 }
 
 .bib-table-column {
-    width: 50%;
     max-width: 1000px;
 }
+
 .bib-table-column table {
     table-layout: fixed;
 }
 
+@media screen and (min-width: 600px) {
+    .bib-table-container {
+        flex-wrap: nowrap;
+    }
+
+    .bib-table-column {
+        width: 50%;
+    }
+}
 
 /*=========================================+
 |                  BUTTONS                 |
@@ -239,7 +249,8 @@ ul li {
     border: none;
 }
 
-.btn a, .btn {
+.btn a,
+.btn {
     text-wrap: wrap;
     color: #4a5c6e;
     text-decoration: none;
@@ -374,6 +385,7 @@ table th {
     .competition_history {
         flex-wrap: wrap;
     }
+
     .competition_history_role {
         width: 100%;
     }
@@ -545,6 +557,7 @@ form .error_message {
 
     border: solid 0px;
     border-radius: 5px;
+    border-width: 3px;
 
     max-width: 25px;
 
@@ -559,8 +572,7 @@ form .error_message {
 }
 
 .btn_radio_judge_form:hover {
-    border-width: 0px;
-    opacity: 100%;
+    opacity: 75%;
 }
 
 .yan_yes {
@@ -580,8 +592,7 @@ form .error_message {
 
 .btn_radio_judge_form:has(input[type="checkbox"]:checked) {
     opacity: 100%;
-    border-width: 3px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 /*=========================================+

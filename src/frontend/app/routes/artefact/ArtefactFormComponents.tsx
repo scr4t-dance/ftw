@@ -702,6 +702,18 @@ export function ArtefactFormJudge({ artefactData, dataBibs }: ArtefactFormCompon
     <FormProvider {...formObject}>
       <ArtefactValidCount artefactData={validatedArtefacts} artefactDataToSubmit={currentArtefacts} isDirty={isDirty} />
       <form onSubmit={handleSubmitCallback} className='yan_table' >
+
+        <button type="submit" className="btn" disabled={isSubmitting}>
+          Mettre à jour les artefacts {artefactData.artefacts[0].heat_target_judge.target.target_type === "single" && artefactData.artefacts[0].heat_target_judge.target.role}
+        </button>
+        <button
+          className="btn"
+          type="button"
+          disabled={isSubmitting}
+          onClick={() => reset(artefactData)}>
+          Réinitialiser
+        </button>
+
         {artefact_description.artefact === "yan" && unique_heat_number && unique_heat_number.map((heat_number) => (
           <>
             <h2>Heat {heat_number}</h2>
@@ -745,6 +757,7 @@ export function ArtefactFormJudge({ artefactData, dataBibs }: ArtefactFormCompon
           Réinitialiser
         </button>
 
+      <ArtefactValidCount artefactData={validatedArtefacts} artefactDataToSubmit={currentArtefacts} isDirty={isDirty} />
       </form>
     </FormProvider >
   );
@@ -851,19 +864,21 @@ export function ArtefactFormJudgeRoute({ id_phase, id_judge, id_competition }: A
   }, {} as GroupedArtefacts)
 
   return (
-    <div className='bib-table-container'>
+    <>
       <h1>Judge <DancerCell id_dancer={id_judge} /></h1>
-      {Object.entries(groupedArtefacts).map(([role, htjaArray]) =>
-        <>
-          <div className='bib-table-column'>
-            <h1>{role}</h1>
-            <ArtefactFormJudge
-              artefactData={htjaArray}
-              dataBibs={dataBibs}
-            />
-          </div>
-        </>
-      )}
-    </div>
+      <div className='bib-table-container'>
+        {Object.entries(groupedArtefacts).map(([role, htjaArray]) =>
+          <>
+            <div className='bib-table-column'>
+              <h1>{role}</h1>
+              <ArtefactFormJudge
+                artefactData={htjaArray}
+                dataBibs={dataBibs}
+              />
+            </div>
+          </>
+        )}
+      </div>
+    </>
   );
 }

@@ -14,7 +14,7 @@ import { useGetApiPhaseIdJudges } from '~/hookgen/judge/judge';
 import { useGetApiPhaseIdRanking } from '~/hookgen/ranking/ranking';
 import NextPhaseForm from '@routes/artefact/NextPhaseForm';
 import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryOptions } from '~/hookgen/artefact/artefact';
-import { ArtefactCell, transposeJudgeTargetArtefacts } from './ArtefactComponents';
+import { ArtefactCell, ArtefactScorerCell, transposeJudgeTargetArtefacts } from './ArtefactComponents';
 
 const yan_rank_list_list = {
     target_type: "single",
@@ -76,6 +76,8 @@ function RankRow({ target_rank, all_judges, htjaArray }: { target_rank: TargetRa
     const artefactArray = all_judges
         .map((i) => htjaArray.artefacts.find(htja => htja?.heat_target_judge.judge === i));
 
+    const colSize = 3 + artefactArray.map(x => x?.artefact?.artefact_type === "yan" ? x?.artefact?.artefact_data.length : 1).reduce((a, b) => (a + b));
+
     return (
         <>
             <td>{target_rank.rank}</td>
@@ -92,9 +94,9 @@ function RankRow({ target_rank, all_judges, htjaArray }: { target_rank: TargetRa
             {artefactArray.map((htja, index) => {
                 if (htja)
                     return (
-                        <td className={index === 0 ? "inner-vertical-line" : ""}>
-                            <ArtefactCell htja={htja} />
-                        </td>
+                        <>
+                            <ArtefactScorerCell htja={htja} index={colSize} />
+                        </>
                     );
 
                 return (<td></td>)
@@ -127,12 +129,12 @@ function JudgeHeadCell({ judgeId, judgeData, isHead }: { judgeId: DancerId, judg
 
     if (!judgeData) return null;
     return (
-        <th>
+        <>
             {isHead && "Head "}
             <Link to={`../artefacts/judge/${judgeId}`}>
                 {judgeData.first_name + " " + judgeData.last_name}
             </Link>
-        </th>
+        </>
     );
 }
 
@@ -188,10 +190,14 @@ function OneRankListTable({ phase_id, judges, head_judge, oneRanking, treshold }
     //console.log("htjaData", htjaData);
     const target_artefacts = transposeJudgeTargetArtefacts(bibTargets, htjaData);
 
-    if(oneRanking.ranks.length === 0) return (<>Undefined ranks</>);
+    if (oneRanking.ranks.length === 0) return (<>Undefined ranks</>);
 
     const first_target_rank = oneRanking.ranks[0];
     console.log("first_target_rank", first_target_rank, "oneRanking", oneRanking, !oneRanking.ranks);
+
+    const colNumber = target_artefacts[0].artefacts.map(x => x?.artefact?.artefact_type === "yan" ? x?.artefact?.artefact_data.length : 1).reduce((a, b) => (a + b));
+
+    const artefactNumber = target_artefacts[0].artefacts[0].artefact?.artefact_type === "yan" ? target_artefacts[0].artefacts[0].artefact?.artefact_data.length : 1;
 
     return (
         <table className="large-table rank_table">
@@ -216,7 +222,7 @@ function OneRankListTable({ phase_id, judges, head_judge, oneRanking, treshold }
                         <th />
                     }
                     <th />
-                    <th colSpan={all_judges.length}>Judges Rankings</th>
+                    <th colSpan={all_judges.length * artefactNumber}>Judges Rankings</th>
                     {first_target_rank.ranking_type === "rpss" &&
                         <>
                             <th />
@@ -233,7 +239,9 @@ function OneRankListTable({ phase_id, judges, head_judge, oneRanking, treshold }
                     }
                     <th>Target</th>
                     {judgeDataQueries.map((judgeQuery, index) => (
-                        <JudgeHeadCell judgeId={all_judges[index]} judgeData={judgeQuery.data as Dancer} isHead={index === judges.dancers.length} />
+                        <th colSpan={artefactNumber}>
+                            <JudgeHeadCell judgeId={all_judges[index]} judgeData={judgeQuery.data as Dancer} isHead={index === judges.dancers.length} />
+                        </th>
                     ))}
                     {first_target_rank.ranking_type === "rpss" &&
                         <>
@@ -248,7 +256,7 @@ function OneRankListTable({ phase_id, judges, head_judge, oneRanking, treshold }
                     return (
                         <tr key={index}
                             className={cx(`${index % 2 === 0 ? 'even-row' : 'odd-row'}`,
-                                target_rank.rank === treshold ? "ranking_treshold" : ""
+                                index === (treshold ?? 0) - 1 ? "ranking_treshold" : ""
                             )}
                         >
                             <RankRow
