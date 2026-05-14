@@ -235,7 +235,7 @@ test('create event', async ({ page }) => {
   // cofngiuration heats
   await page.getByRole('link', { name: `Prelims ${randomCompetitionName}` }).click();
   await page.getByRole('link', { name: 'Phase', exact: true }).hover();
-  await page.getByRole('link', { name: 'Poules', exact: true  }).click();
+  await page.getByRole('link', { name: 'Poules', exact: true }).click();
   await page.getByRole('button', { name: 'Insérer les dossards dans la Poule 0' }).click();
   await page.getByText('✅ Dossards insérés dans la Poule 0 !').click();
   await page.locator('input[name="min_number_of_targets"]').click();
@@ -299,7 +299,7 @@ test('create event', async ({ page }) => {
   await expect(page.getByText('✅ Phase "Finals" avec')).toContainText("mis à jour avec succès.");
 
   await page.getByRole('link', { name: 'Phase', exact: true }).hover();
-  await page.getByRole('link', { name: 'Poules', exact: true  }).click();
+  await page.getByRole('link', { name: 'Poules', exact: true }).click();
   await page.getByRole('link', { name: 'Appairage' }).click();
 
   await page.locator('select[name="target.role"]').click();
@@ -319,7 +319,7 @@ test('create event', async ({ page }) => {
   await page.getByRole('button', { name: 'Enregistrer les nouveaux' }).nth(1).click();
 
   await page.getByRole('link', { name: 'Phase', exact: true }).hover();
-  await page.getByRole('link', { name: 'Poules', exact: true  }).click();
+  await page.getByRole('link', { name: 'Poules', exact: true }).click();
   await page.locator('input[name="min_number_of_targets"]').click();
   await page.locator('input[name="min_number_of_targets"]').fill('1');
   await page.locator('input[name="max_number_of_targets"]').click();
@@ -332,6 +332,7 @@ test('create event', async ({ page }) => {
 
   await page.getByRole('link', { name: 'Phase', exact: true }).hover();
   await page.getByRole('link', { name: 'Classement' }).click();
+  await page.getByRole('heading', {name : 'Mode Admin'}).hover(); // required when following step is hidden by dropdown menu
   await page.getByRole('row').nth(1).getByRole('link', { name: dancer_array[0].first_name }).click();
   await expect(page.getByText('Number of unique ranks')).toBeVisible();
   await page.getByRole('spinbutton').click();
@@ -341,18 +342,17 @@ test('create event', async ({ page }) => {
 
   await page.getByRole('link', { name: 'Phase', exact: true }).hover();
   await page.getByRole('link', { name: 'Classement' }).click();
-  await page.getByRole('row').nth(1).getByRole('link', { name: dancer_array[1].first_name + " " + dancer_array[1].last_name, exact: true }).click();
+  await page.getByRole('heading', {name : 'Mode Admin'}).hover(); // required when following step is hidden by dropdown menu
+  await page.getByRole('link', { name: dancer_array[1].first_name + " " + dancer_array[1].last_name, exact: true }).click();
   await expect(page.getByText('Number of unique ranks')).toBeVisible();
   await page.getByRole('spinbutton').click();
   await page.getByRole('spinbutton').fill('1');
   await page.getByRole('button', { name: 'Mettre à jour les artefacts' }).click();
   await expect(page.getByRole('table').first()).toHaveText('Number of unique ranks1');
 
-  await page.getByRole('link', { name: 'Phase', exact: true }).hover();
-  await page.getByRole('link', { name: 'Classement' }).click();
-
   await page.getByRole('link', { name: 'Competition', exact: true }).click();
   await page.getByRole('link', { name: 'Résultats/Promotions' }).click();
+  await page.getByRole('heading', {name : 'Mode Admin'}).hover(); // required when following step is hidden by dropdown menu
   await page.getByRole('button', { name: 'Calculer les promotions' }).click();
   await expect(page.getByRole('cell', { name: '1ème' })).toHaveCount(2);
   //await expect(page.getByRole('cell', { name: dancer_array[0].first_name })).toHaveCount(1);
