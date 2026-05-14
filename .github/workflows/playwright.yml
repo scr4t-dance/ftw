@@ -36,6 +36,9 @@ jobs:
             hashFiles('src/frontend/package-lock.json')
             }}
 
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libev-dev
+
       - name: Configure project
         run: make ci
         env:
