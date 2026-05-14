@@ -5,6 +5,7 @@ import { type DancerId } from "@hookgen/model";
 import { getGetApiDancerIdQueryOptions } from '@hookgen/dancer/dancer';
 import { DancerPageComponent } from '@routes/dancer/DancerComponents';
 import { dehydrate, QueryClient } from '@tanstack/react-query';
+import { NavLink, type UIMatch } from 'react-router';
 
 export async function loader({ params }: Route.LoaderArgs) {
 
@@ -29,5 +30,10 @@ function DancerPage({params}: Route.ComponentProps) {
 export default DancerPage;
 
 export const handle = {
-  breadcrumb: () => "Dancer"
+  breadcrumb: (match: UIMatch) =>
+    <div className="main-nav">
+      <span>
+        <NavLink to={match.pathname}>Dancer</NavLink>
+      </span>
+    </div>
 };

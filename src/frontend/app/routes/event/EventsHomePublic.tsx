@@ -1,6 +1,6 @@
 import type { Route } from "./+types/EventsHomePublic";
 
-import { Outlet } from "react-router";
+import { NavLink, Outlet, type UIMatch } from "react-router";
 
 export default function EventsHome({}: Route.ComponentProps) {
 
@@ -14,5 +14,10 @@ export default function EventsHome({}: Route.ComponentProps) {
 }
 
 export const handle = {
-  breadcrumb: () => "Events"
+  breadcrumb: (match: UIMatch) =>
+    <div className="main-nav">
+      <span>
+        <NavLink to={match.pathname}>Event</NavLink>
+      </span>
+    </div>
 };

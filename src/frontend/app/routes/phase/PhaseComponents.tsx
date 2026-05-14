@@ -192,57 +192,12 @@ export function PhasePageNavigationComponent({ id_phase, id_competition }: { id_
     const { data: phase_data, isSuccess: isSuccessPhase } = useGetApiPhaseId(id_phase)
     const { data: competition_data, isSuccess: isSuccessComp } = useGetApiCompId(id_competition)
 
-    if (!isSuccessPhase) return <div>Chargement Phase</div>;
-    if (!isSuccessComp) return <div>Chargement Competition</div>;
-
-    //const url = `/events/${loaderData.id_event}/competitions/${loaderData.id_competition}/phases/${loaderData.id_phase}`;
-    const url = '';
+    if (!isSuccessPhase) return <h1>Chargement Phase</h1>;
+    if (!isSuccessComp) return <h1>Chargement Competition</h1>;
 
     return (
         <>
             <h1>Phase {phase_data?.round} {competition_data?.name}</h1>
-            <ol className="no-print">
-                <li>
-                    <Link to={`${url}edit_judges`}>
-                        Modifier les Juges
-                    </Link>
-                </li>
-                <li>
-                    <Link to={`${url}judges`}>
-                        Juges
-                    </Link>
-                </li>
-                <li>
-                    <Link to={`${url}pairings`}>
-                        Appairage
-                    </Link>
-                </li>
-                <li>
-                    <Link to={`${url}edit`}>
-                        Modifier les paramètres de la Phase
-                    </Link>
-                </li>
-                <li>
-                    <Link to={`${url}heats`}>
-                        Poules
-                    </Link>
-                </li>
-                <li>
-                    <Link to={`${url}artefacts`}>
-                        Scoring pour juges
-                    </Link>
-                </li>
-                <li>
-                    <Link to={`${url}artefacts/?for=scorer`}>
-                        Espace Scoreur
-                    </Link>
-                </li>
-                <li>
-                    <Link to={`${url}ranks`}>
-                        Classement
-                    </Link>
-                </li>
-            </ol>
         </>
     );
 }

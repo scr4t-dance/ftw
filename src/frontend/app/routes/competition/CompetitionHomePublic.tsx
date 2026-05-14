@@ -1,7 +1,7 @@
 import type { Route } from "./+types/CompetitionHomePublic"
 
 import React from 'react';
-import { Outlet } from "react-router";
+import { NavLink, Outlet, type UIMatch } from "react-router";
 
 
 export default function CompetitionHome({ }: Route.ComponentProps) {
@@ -10,5 +10,10 @@ export default function CompetitionHome({ }: Route.ComponentProps) {
 }
 
 export const handle = {
-  breadcrumb: () => "Competition"
+  breadcrumb: (match: UIMatch) =>
+    <div className="main-nav">
+      <span>
+        <NavLink to={match.pathname}>Competition</NavLink>
+      </span>
+    </div>
 };

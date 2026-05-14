@@ -1,7 +1,7 @@
 import type { Route } from './+types/PhasePageHome';
 
 import React from 'react';
-import { Outlet } from "react-router";
+import { NavLink, Outlet, type UIMatch } from "react-router";
 import { dehydrate, QueryClient } from '@tanstack/react-query';
 import { getGetApiEventIdQueryOptions } from '@hookgen/event/event';
 import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
@@ -24,7 +24,7 @@ export async function loader({ params }: Route.LoaderArgs) {
 }
 
 
-function PhasePageHome({params}: Route.ComponentProps) {
+function PhasePageHome({ params }: Route.ComponentProps) {
 
     const id_event = Number(params.id_event) as EventId;
     const id_competition = Number(params.id_competition) as CompetitionId;
@@ -41,5 +41,54 @@ function PhasePageHome({params}: Route.ComponentProps) {
 export default PhasePageHome;
 
 export const handle = {
-    breadcrumb: () => "Phase"
+    breadcrumb: (match: UIMatch) =>
+        <div className="main-nav">
+            <span>
+                <NavLink to={match.pathname}>Phase</NavLink>
+            </span>
+            <div className="sub-nav">
+                <ol>
+                    <li>
+                        <NavLink to={`${match.pathname}/edit_judges`}>
+                            Modifier les Juges
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink to={`${match.pathname}/judges`}>
+                            Juges
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink to={`${match.pathname}/pairings`}>
+                            Appairage
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink to={`${match.pathname}/edit`}>
+                            Modifier les paramètres de la Phase
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink to={`${match.pathname}/heats`}>
+                            Poules
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink to={`${match.pathname}/artefacts`}>
+                            Scoring pour juges
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink to={`${match.pathname}/artefacts/?for=scorer`}>
+                            Espace Scoreur
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink to={`${match.pathname}/ranks`}>
+                            Classement
+                        </NavLink>
+                    </li>
+                </ol>
+            </div>
+        </div>
 };

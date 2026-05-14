@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link, Outlet } from "react-router";
+import { Link, NavLink, Outlet, type UIMatch } from "react-router";
 
 
 import type { Route } from './+types/BibEventHomeAdmin';
@@ -17,5 +17,10 @@ function BibEventHomeAdmin({}: Route.ComponentProps) {
 export default BibEventHomeAdmin;
 
 export const handle = {
-  breadcrumb: () => "Bibs"
+  breadcrumb: (match: UIMatch) =>
+    <div className="main-nav">
+      <span>
+        <NavLink to={match.pathname}>Bibs</NavLink>
+      </span>
+    </div>
 };

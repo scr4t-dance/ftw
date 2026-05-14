@@ -6,6 +6,8 @@ import { ArtefactFormRoute } from '@routes/artefact/ArtefactFormComponents';
 import { dehydrate, QueryClient } from '@tanstack/react-query';
 import { getGetApiCompIdBibsQueryOptions } from '~/hookgen/bib/bib';
 import { getGetApiPhaseIdArtefactJudgeIdJudgeQueryOptions } from '~/hookgen/artefact/artefact';
+import type { UIMatch } from 'react-router';
+import { NavLink } from 'react-router';
 
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -37,5 +39,10 @@ export default function ArtefactForm({ params }: Route.ComponentProps) {
 }
 
 export const handle = {
-  breadcrumb: () => "Artefact"
+  breadcrumb: (match: UIMatch) =>
+    <div className="main-nav">
+      <span>
+        <NavLink to={match.pathname}>Artefact</NavLink>
+      </span>
+    </div>
 };

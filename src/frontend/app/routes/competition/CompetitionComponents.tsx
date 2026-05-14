@@ -188,7 +188,6 @@ export function CompetitionDetailsComponent({ id_competition, isAdmin }: { id_co
       {isAdmin &&
         <>
           <h1>Compétition {competition?.name}</h1>
-          <CompetitionNavigation url={url} />
           <p>Type : {competition?.kind}</p>
           <p>Catégorie : {competition?.category}</p>
           <PhaseList id_competition={id_competition} competition_data={competition as Competition} phase_list={phase_list as PhaseIdList} />
