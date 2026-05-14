@@ -43,6 +43,8 @@ conf-npm:
 
 configure: conf-opam conf-npm
 
+ci : conf-npm # ocaml already handled by github action
+
 src/frontend/app/hookgen/hookgen.sentinel hookgen: src/openapi.json
 	cd src/hookgen && ./node_modules/.bin/orval --config ./orval.config.js
 	touch src/frontend/app/hookgen/hookgen.sentinel
