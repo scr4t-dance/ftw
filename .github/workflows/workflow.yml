@@ -12,22 +12,7 @@ permissions: read-all
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-
-    permissions:
-      contents: read
-
-    strategy:
-      fail-fast: false
-
-      matrix:
-        os:
-          - ubuntu-latest
-        ocaml-compiler:
-          - 5.0.0
-
-    env:
-      OPAMYES: "true"
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout tree
@@ -36,24 +21,8 @@ jobs:
       - name: Set-up OCaml
         uses: ocaml/setup-ocaml@v3
         with:
-          ocaml-compiler: ${{ matrix.ocaml-compiler }}
+          ocaml-compiler: 5.0.0
           dune-cache: true
-          cache-prefix: v2-${{ matrix.os }}-${{ matrix.ocaml-compiler }}
-
-      #
-      # Cache the opam switch
-      #
-      - name: Cache opam
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.opam
-          key: >
-            opam-${{ runner.os }}-${{ matrix.ocaml-compiler }}-${{
-            hashFiles('**/*.opam', '**/opam.locked', '**/dune-project')
-            }}
-          restore-keys: |
-            opam-${{ runner.os }}-${{ matrix.ocaml-compiler }}-
 
       - name: Set-up node
         uses: actions/setup-node@v6
@@ -64,9 +33,6 @@ jobs:
             src/frontend/package-lock.json
             src/hookgen/package-lock.json
 
-      #
-      # Cache Playwright browsers
-      #
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
@@ -76,9 +42,6 @@ jobs:
             hashFiles('src/frontend/package-lock.json')
             }}
 
-      #
-      # Install dependencies once
-      #
       - name: Configure project
         run: make configure
 
