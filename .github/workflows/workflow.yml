@@ -43,10 +43,11 @@ jobs:
             }}
 
       - name: Install system dependencies
+        # required to set OPAMASSUMEDEPEXTS: true
         run: sudo apt-get update && sudo apt-get install -y libev-dev
 
       - name: Configure project
-        run: make ci
+        run: make configure
         env:
           OPAMASSUMEDEPEXTS: true
 

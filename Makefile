@@ -34,7 +34,7 @@ build: backend
 ####################
 
 conf-opam:
-	opam install . --deps-only --with-test --with-doc --locked
+	opam install . --deps-only --with-test --with-doc
 
 conf-npm:
 	cd src/frontend && npm ci
