@@ -4,7 +4,7 @@ import React from 'react';
 import { getApiEventId } from '@hookgen/event/event';
 
 import { type EventId } from "@hookgen/model";
-import { Outlet } from "react-router";
+import { NavLink, Outlet, type UIMatch } from "react-router";
 
 // export async function loader({ params }: Route.LoaderArgs) {
 //     let id_event_number = Number(params.id_event) as EventId;
@@ -21,5 +21,10 @@ export default function EventCompetitionsHome({ }: Route.ComponentProps) {
 }
 
 export const handle = {
-  breadcrumb: () => "Competitions"
+  breadcrumb: (match: UIMatch) =>
+    <div className="main-nav">
+      <span>
+        <NavLink to={match.pathname}>Competition</NavLink>
+      </span>
+    </div>
 };

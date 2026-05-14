@@ -1,16 +1,19 @@
-import { Link, useMatches } from "react-router";
+import { Link, useMatches, type UIMatch } from "react-router";
+
+
+type BreadcrumbHandle = {
+  breadcrumb: (match: UIMatch) => React.ReactNode;
+};
+
 
 export default function Breadcrumbs() {
 
     const matches = useMatches();
 
     const crumbs = matches
-        .filter((match) => match.handle?.breadcrumb)
+        .filter((match) => (match.handle as BreadcrumbHandle)?.breadcrumb,)
         .map((match) => {
-            const crumb =
-                typeof match.handle.breadcrumb === "function"
-                    ? match.handle.breadcrumb(match.params)
-                    : match.handle.breadcrumb;
+            const crumb = (match.handle as BreadcrumbHandle).breadcrumb(match);
 
             return { id: match.id, pathname: match.pathname, crumb };
         });
@@ -19,8 +22,8 @@ export default function Breadcrumbs() {
         <>
             <nav className="breadcrumbs">
                 {crumbs.map((c, i) => (
-                    <span key={c.id}>
-                        <Link to={c.pathname}>{c.crumb}</Link>
+                    <span key={i}>
+                        {c.crumb}
                         {i < crumbs.length - 1 && " / "}
                     </span>
                 ))}

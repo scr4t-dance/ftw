@@ -12,6 +12,7 @@ import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
 import { getGetApiEventIdQueryOptions } from '@hookgen/event/event';
 import { getGetApiCompIdBibsQueryOptions } from '@hookgen/bib/bib';
 import { dehydrate, QueryClient } from '@tanstack/react-query';
+import { NavLink, type UIMatch } from 'react-router';
 
 export async function loader({ params }: Route.LoaderArgs) {
 
@@ -40,5 +41,10 @@ export default function BibHomePublic({ params }: Route.ComponentProps) {
 }
 
 export const handle = {
-    breadcrumb: () => "New"
+  breadcrumb: (match: UIMatch) =>
+    <div className="main-nav">
+      <span>
+        <NavLink to={match.pathname}>New</NavLink>
+      </span>
+    </div>
 };

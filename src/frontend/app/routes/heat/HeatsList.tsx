@@ -12,6 +12,7 @@ import { getGetApiCompIdQueryOptions } from '@hookgen/competition/competition';
 import { getGetApiPhaseIdQueryOptions } from '@hookgen/phase/phase';
 import { getGetApiPhaseIdHeatsQueryOptions } from "@hookgen/heat/heat";
 import { getGetApiCompIdBibsQueryOptions } from '@hookgen/bib/bib';
+import { NavLink, type UIMatch } from 'react-router';
 
 export async function loader({ params }: Route.LoaderArgs) {
 
@@ -41,5 +42,10 @@ export default function HeatsList({ params }: Route.ComponentProps) {
 }
 
 export const handle = {
-    breadcrumb: () => "Heats"
+  breadcrumb: (match: UIMatch) =>
+    <div className="main-nav">
+      <span>
+        <NavLink to={match.pathname}>Heats</NavLink>
+      </span>
+    </div>
 };

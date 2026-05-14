@@ -1,5 +1,5 @@
 import PageTitle from "@routes/index/PageTitle";
-import { Outlet } from "react-router";
+import { NavLink, Outlet, type UIMatch } from "react-router";
 
 function DancerHome() {
 
@@ -16,5 +16,10 @@ function DancerHome() {
 export default DancerHome;
 
 export const handle = {
-  breadcrumb: () => "Dancers"
+  breadcrumb: (match: UIMatch) =>
+    <div className="main-nav">
+      <span>
+        <NavLink to={match.pathname}>Dancers</NavLink>
+      </span>
+    </div>
 };

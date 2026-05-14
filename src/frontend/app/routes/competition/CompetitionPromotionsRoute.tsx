@@ -37,7 +37,6 @@ export default function CompetitionPromotions({
     return (
         <>
             <h1>Compétition {competition?.name}</h1>
-            <CompetitionNavigation url={url} />
             <p>Type : {competition?.kind}</p>
             <p>Catégorie : {competition?.category}</p>
             <CompetitionResults id_competition={id_competition}

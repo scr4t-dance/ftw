@@ -1,6 +1,6 @@
 import type { Route } from "./+types/HomeAdmin";
 
-import { Outlet } from "react-router";
+import { NavLink, Outlet, type UIMatch } from "react-router";
 
 import { authMiddleware } from "~/auth.server";
 import Breadcrumbs from "@routes/header/breadcrumbs";
@@ -26,6 +26,31 @@ export default function EventsHomeAdmin({
 }
 
 
+
 export const handle = {
-  breadcrumb: () => "Admin"
+  breadcrumb: (match: UIMatch) =>
+    <div className="main-nav">
+      <span>
+        <NavLink to={match.pathname}>Admin</NavLink>
+      </span>
+      <div className="sub-nav">
+        <ol>
+          <li>
+            <NavLink to={`${match.pathname}/events`}>
+              Events
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to={`${match.pathname}/dancers`}>
+              Dancers
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to={`${match.pathname}/events/1`}>
+              Evénement en cours
+            </NavLink>
+          </li>
+        </ol>
+      </div>
+    </div>
 };

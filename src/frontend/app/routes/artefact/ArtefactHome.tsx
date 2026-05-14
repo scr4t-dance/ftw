@@ -1,12 +1,17 @@
-import { Outlet } from "react-router";
+import { NavLink, Outlet, type UIMatch } from "react-router";
 
 export default function ArtefactHome() {
 
-    return (
-        <Outlet />
-    );
+  return (
+    <Outlet />
+  );
 }
 
 export const handle = {
-  breadcrumb: () => "Artefacts"
+  breadcrumb: (match: UIMatch) =>
+    <span className="main-nav">
+      <span>
+        <NavLink to={match.pathname}>Artefacts</NavLink>
+      </span>
+    </span>
 };

@@ -169,9 +169,6 @@ export function EventDetailsAdminComponent({ id_event }: {id_event: EventId }) {
             <h1>{event?.name}</h1>
             <p>Date de début : {formatDate(event.start_date)}</p>
             <p>Date de fin : {formatDate(event.end_date)}</p>
-            <Link to="competitions/new">Créer une competition</Link>
-            <Link to="competitions">Liste des competitions</Link>
-            <Link to="bibs">Gestion des dossards de toutes les compétitions</Link>
             <EventCompetitionListComponent id_event={id_event} />
         </>
     );

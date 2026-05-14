@@ -34,13 +34,13 @@ body {
 
     --clear_background: #eaf4ff;
 
-    --text-grey:rgb(59, 59, 59);
+    --text-grey: rgb(59, 59, 59);
 
     --button: #617489;
     --button-hover: #4a5c6e;
 
-    --button-grey:#d7d7d7;
-    --button-grey-hover:#c5c5c5;
+    --button-grey: #d7d7d7;
+    --button-grey-hover: #c5c5c5;
 
     --warning-text: #842029;
     --warning-background: #f8d7da;
@@ -101,6 +101,35 @@ h5 {
     max-width: 350px;
     width: 25%;
 }
+
+
+/*=========================================+
+|              Breadcrumbs                 |
++=========================================*/
+
+.main-nav {
+    position: relative;
+    display: inline-block;
+}
+
+.sub-nav {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 130px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    padding: 12px 16px;
+
+
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.main-nav:hover>.sub-nav {
+    display: block;
+}
+
 
 
 /*=========================================+
@@ -204,6 +233,7 @@ ul li {
     width: 50%;
     max-width: 1000px;
 }
+
 .bib-table-column table {
     table-layout: fixed;
 }
@@ -239,7 +269,8 @@ ul li {
     border: none;
 }
 
-.btn a, .btn {
+.btn a,
+.btn {
     text-wrap: wrap;
     color: #4a5c6e;
     text-decoration: none;
@@ -374,6 +405,7 @@ table th {
     .competition_history {
         flex-wrap: wrap;
     }
+
     .competition_history_role {
         width: 100%;
     }

@@ -12,6 +12,7 @@ import { getGetApiCompIdPhasesQueryOptions, getGetApiPhaseIdQueryOptions, useGet
 import { RoundItem, type CompetitionId, type EventId, type Phase, type PhaseId, type PhaseIdList } from '~/hookgen/model';
 import { getGetApiEventIdQueryOptions } from '~/hookgen/event/event';
 import { getGetApiCompIdQueryOptions } from '~/hookgen/competition/competition';
+import { NavLink, type UIMatch } from 'react-router';
 
 const roundOrder: Record<RoundItem, number> = {
     [RoundItem.Prelims]: 0,
@@ -98,5 +99,10 @@ export default function HeatsList({ params }: Route.ComponentProps) {
 }
 
 export const handle = {
-    breadcrumb: () => "Pairings"
+  breadcrumb: (match: UIMatch) =>
+    <div className="main-nav">
+      <span>
+        <NavLink to={match.pathname}>Pairings</NavLink>
+      </span>
+    </div>
 };

@@ -1,6 +1,6 @@
 import type { Route } from "./+types/CompetitionForbiddenPairs"
 
-import { Link } from "react-router";
+import { Link, NavLink } from "react-router";
 
 import { dehydrate, QueryClient } from "@tanstack/react-query";
 
@@ -13,6 +13,7 @@ import { getGetApiEventIdQueryOptions } from "@hookgen/event/event";
 
 
 import { CompetitionDetailsComponent, ForbiddenCouplesFormComponent } from "@routes/competition/CompetitionComponents";
+import type { UIMatch } from "react-router";
 
 export async function loader({ params }: Route.LoaderArgs) {
 
@@ -44,5 +45,10 @@ export default function CompetitionDetailsAdmin({
 }
 
 export const handle = {
-  breadcrumb: () => "Paires Interdites"
+  breadcrumb: (match: UIMatch) =>
+    <div className="main-nav">
+      <span>
+        <NavLink to={match.pathname}>Paires Interdites</NavLink>
+      </span>
+    </div>
 };

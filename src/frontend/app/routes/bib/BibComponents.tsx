@@ -119,7 +119,7 @@ export function BibRowReadOnly({ bib_object, onEdit, onDelete }: BibRowReadOnlyP
     const dancer_list = dancerArrayFromTarget(bib_object.target);
     return (
         <>
-            <td>
+            <td className='inner-vertical-line'>
                 {bib_object.target.target_type}
             </td>
             <td>{bib_object.bib}</td>
@@ -168,7 +168,7 @@ function BibRowEditable({ formObject, onUpdate, onCancel }: BibRowEditableProps)
 
     return (
         <>
-            <td>
+            <td className='inner-vertical-line'>
                 {targetType}
             </td>
 
@@ -432,7 +432,7 @@ export function BibListEventAdmin({ competition_list, competition_data_list, bib
                         <th>Target</th>
                         {competition_list.competitions.map((id_competition, index) => (
                             <>
-                                <th key={id_competition} colSpan={4}>
+                                <th key={id_competition} colSpan={4} className='inner-vertical-line'>
                                     <Link to={`../competitions/${id_competition}`}>{competition_data_list[index].name}</Link>
                                 </th>
                                 <th className="no-print"></th>
@@ -452,7 +452,7 @@ export function BibListEventAdmin({ competition_list, competition_data_list, bib
                                 )).join("|");
 
                             return (
-                                <tr key={bib_key}>
+                                <tr key={bib_key} className={d_index%2===0 ? 'even-row' : 'odd-row'}>
                                     <td>
                                         <DancerCell id_dancer={id_dancer} />
                                     </td>
@@ -463,7 +463,7 @@ export function BibListEventAdmin({ competition_list, competition_data_list, bib
                                         if (bibs[index] === undefined) {
                                             return (
                                                 <>
-                                                    <td key={id_competition} colSpan={4}>
+                                                    <td key={id_competition} colSpan={4} className='inner-vertical-line'>
                                                         <NewTargetBibFormComponent id_competition={id_competition} bibs_list={bibs_list_array[index]} target={target} />
                                                     </td>
                                                     <td className='no-print' />
