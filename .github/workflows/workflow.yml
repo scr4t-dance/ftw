@@ -44,6 +44,8 @@ jobs:
 
       - name: Configure project
         run: make configure
+        env:
+          OPAMASSUMEDEPEXTS: npm
 
       - name: Build
         run: opam exec -- make
