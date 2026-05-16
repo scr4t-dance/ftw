@@ -38,7 +38,7 @@ conf-opam:
 
 conf-npm:
 	cd src/frontend && npm install
-	cd src/frontend && npx playwright install chromium firefox webkit
+	cd src/frontend && npx playwright install --with-deps chromium firefox webkit
 	cd src/hookgen && npm install
 
 configure: conf-opam conf-npm
