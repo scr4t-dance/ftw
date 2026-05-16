@@ -267,6 +267,12 @@ export function BibHeatListComponent({ targets, id_phase, heat_number, otherTarg
     if (!isSuccessPhase) return <tr>No phase found</tr>;
     if (!isSuccessBibs) return <tr>No bibs found</tr>;
 
+
+    const sortedTargets = targets.map(
+        (t) => bibs.bibs.find(b => JSON.stringify(b.target) === JSON.stringify(t))
+    ).filter(b => b !== undefined).sort((b1, b2) => b1.bib - b2.bib).map(b => b.target)
+    ;
+
     return (
         <>
             <table>
@@ -278,7 +284,7 @@ export function BibHeatListComponent({ targets, id_phase, heat_number, otherTarg
                         <th className="no-print">Action</th>
                     </tr>
 
-                    {targets.map((target, index) => (
+                    {sortedTargets.map((target, index) => (
 
                         <tr key={`${defaultHeatTarget.phase_id}-${defaultHeatTarget.heat_number}-${target.target_type}-${dancerArrayFromTarget(target).join("-")}`}
                             className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>
