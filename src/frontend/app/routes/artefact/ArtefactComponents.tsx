@@ -43,6 +43,24 @@ export function ArtefactCell({ htja }: { htja: HeatTargetJudgeArtefact }) {
     );
 }
 
+export function ArtefactScorerCell({ htja, index }: { htja: HeatTargetJudgeArtefact, index: number }) {
+
+    return (
+        <>
+            {htja?.artefact?.artefact_type === "yan" && (
+                htja.artefact.artefact_data.map((yan, i) => (
+                    <td className={(i === 0 ? "inner-vertical-line yan_" + yan : "yan_" + yan).toLowerCase()} width={100/index + "%"}>
+                        {yan}
+                    </td>
+                ))
+            )}
+            {htja?.artefact?.artefact_type === "ranking" && (
+                htja.artefact.artefact_data
+            )}
+        </>
+    );
+}
+
 function ArtefactRow({ htja_array }: { htja_array: HeatTargetJudgeArtefactArray }) {
     const artefacts = htja_array?.artefacts ?? [];
 
@@ -55,19 +73,24 @@ function ArtefactRow({ htja_array }: { htja_array: HeatTargetJudgeArtefactArray 
     const target = artefacts[0].heat_target_judge.target;
     const dancer_list = dancerArrayFromTarget(target);
 
+    const judgeColSpan = artefacts[0].heat_target_judge.description.artefact === "yan" ?
+      artefacts[0].heat_target_judge.description.artefact_data.length : 1;
+
+    const colCount = (htja_array.artefacts.length + 1) * judgeColSpan
+
     return (
         <>
-            <td>
+            <td colSpan={judgeColSpan} width={(100*judgeColSpan/colCount) + "%"}>
                 {dancer_list && dancer_list.map((i) => (
                     <p>
                         <DancerCell id_dancer={i} />
                     </p>
                 ))}
             </td>
-            {htja_array.artefacts.map((htja, index) => (
-                <td className={index === 0 ? "inner-vertical-line" : ""}>
-                    <ArtefactCell htja={htja} />
-                </td>
+            {htja_array.artefacts.map((htja) => (
+                <>
+                    <ArtefactScorerCell htja={htja} index={colCount} />
+                </>
             ))}
         </>
     );
@@ -148,11 +171,15 @@ export function ArtefactTableArrayComponent({ phase_id, judges, head_judge, heat
     //console.log(bib_list[0].target == htjaData[1].artefacts[3].heat_target_judge.target);
     //console.log("judges", judges, "htjaData", htjaData, "target_artefacts all judges", target_artefacts, "bib_list", bib_list);
 
+    const judgeColSpan = target_artefacts[0].artefacts[0].heat_target_judge.description.artefact === "yan" ?
+      target_artefacts[0].artefacts[0].heat_target_judge.description.artefact_data.length : 1;
+
+
     return (
-        <table>
+        <table className='large-table rank_table'>
             <tbody>
                 <tr>
-                    <th>Target</th>
+                    <th colSpan={judgeColSpan}>Target</th>
                     {judgeDataQueries.map((judgeQuery, index) => {
                         const judgeId = all_judges[index];
                         const judgeData = judgeQuery.data;
@@ -160,12 +187,10 @@ export function ArtefactTableArrayComponent({ phase_id, judges, head_judge, heat
                         if (!judgeData) return null;
 
                         return (
-                            <th>
+                            <th colSpan={judgeColSpan}>
                                 {index === judges.dancers.length && "Head "}
                                 <Link to={`${artefactLinkString}/${judgeId}`}>
-                                    {judgeData.first_name}
-                                    <br/>
-                                    {judgeData.last_name}
+                                    {judgeData.first_name + " " + judgeData.last_name}
                                 </Link>
                             </th>
                         );

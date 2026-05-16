@@ -91,13 +91,13 @@ export function dancerArrayFromTarget(t: Target): DancerId[] {
 }
 
 
-export function DancerCell({ id_dancer, link }: { id_dancer: DancerId, link?: boolean }) {
+export function DancerCell({ id_dancer, hideLink }: { id_dancer: DancerId, hideLink?: boolean }) {
 
     const { data: dancer } = useGetApiDancerId(id_dancer);
 
     if (!dancer) return "Loading dancer..."
 
-    if (link ?? true) return (<>{dancer.last_name} {dancer.first_name}</>);
+    if (hideLink ?? true) return (<>{dancer.last_name} {dancer.first_name}</>);
 
     return (
         <>
@@ -133,7 +133,7 @@ export function BibRowReadOnly({ bib_object, onEdit, onDelete }: BibRowReadOnlyP
             <td>
                 {dancer_list && dancer_list.map((i) => (
                     <p key={i}>
-                        <DancerCell id_dancer={i} link={false} />
+                        <DancerCell id_dancer={i} hideLink={false} />
                     </p>
                 ))
                 }

@@ -318,17 +318,17 @@ test('create event', async ({ page }) => {
 
   await page.getByRole('link', { name: 'Classement' }).click();
   await page.getByRole('row').nth(1).getByRole('link', { name: dancer_array[0].first_name }).click();
-  await expect(page.getByText('Number of unique ranks')).toBeVisible();
+  await expect(page.getByRole('table').first()).toHaveText('Number of unique ranks1');
   await page.getByRole('spinbutton').click();
   await page.getByRole('spinbutton').fill('1');
-  await page.getByRole('button', { name: 'Mettre à jour les artefacts' }).click();
+  await page.getByRole('button', { name: 'Mettre à jour les artefacts' }).first().click();
   await expect(page.getByRole('table').first()).toHaveText('Number of unique ranks1');
   await page.getByRole('link', { name: 'Classement' }).click();
   await page.getByRole('row').nth(1).getByRole('link', { name: dancer_array[1].first_name }).click();
-  await expect(page.getByText('Number of unique ranks')).toBeVisible();
+  await expect(page.getByText('Number of unique ranks').first()).toBeVisible();
   await page.getByRole('spinbutton').click();
   await page.getByRole('spinbutton').fill('1');
-  await page.getByRole('button', { name: 'Mettre à jour les artefacts' }).click();
+  await page.getByRole('button', { name: 'Mettre à jour les artefacts' }).first().click();
   await expect(page.getByRole('table').first()).toHaveText('Number of unique ranks1');
   await page.getByRole('link', { name: 'Classement' }).click();
 

@@ -381,7 +381,7 @@ function RankingArtefactFormTable({ artefactData, heat_number, artefactInput, da
                   </p>
                   {dancerArrayFromTarget(field.heat_target_judge.target).map((i) => (
                     <p key={`bib.${index}`}>
-                      <DancerCell id_dancer={i} link={false} />
+                      <DancerCell id_dancer={i} hideLink={false} />
                     </p>
                   ))}
                   <Field
@@ -440,74 +440,75 @@ function YanArtefactFormTable({ artefactData, heat_number, artefactInput, dataBi
   });
 
   return (
+    <>
+      <table>
+        <tbody>
+          <tr>
+            <th>Bib & target</th>
+            {artefact_description.artefact_data.map((criterion, index) => {
+              return (
+                <th key={`yan.${index}`}>
+                  {criterion}
+                </th>
+              );
+            })}
+          </tr>
+          {fields && fields.map((field, index) => (
+            <>
+              {(!isHeatView || (field.heat_target_judge.heat_number === heat_number)) &&
 
-    <table>
-      <tbody>
-        <tr>
-          <th>Bib & target</th>
-          {artefact_description.artefact_data.map((criterion, index) => {
-            return (
-              <th key={`yan.${index}`}>
-                {criterion}
-              </th>
-            );
-          })}
-        </tr>
-        {fields && fields.map((field, index) => (
-          <>
-            {(!isHeatView || (field.heat_target_judge.heat_number === heat_number)) &&
-
-              <tr key={field.id} className={index % 2 === 0 ? "odd-row" : "even-row"}>
-                <td className="table_comp_target">
-                  <div className="row">
-                    <p className="table_comp_bib">
-                      {get_bibs(dataBibs, [field.heat_target_judge.target])[0].map((b) => b.bib)}
-                    </p>
-                    <p className="table_comp_role">(
-                      {field.heat_target_judge.target.target_type == "single" &&
-                        field.heat_target_judge.target.role}
-                      {field.heat_target_judge.target.target_type == "couple" &&
-                        "couple"})
-                    </p>
-                  </div>
-                  <div className="table_comp_dancer_name">
-                    {dancerArrayFromTarget(field.heat_target_judge.target).map((i) => (
-                      <p key={i}>
-                        <DancerCell id_dancer={i} link={false} />
+                <tr key={field.id} className={index % 2 === 0 ? "odd-row" : "even-row"}>
+                  <td className="table_comp_target">
+                    <div className="row">
+                      <p className="table_comp_bib">
+                        {get_bibs(dataBibs, [field.heat_target_judge.target])[0].map((b) => b.bib)}
                       </p>
-                    ))}
-                    <Field
-                      error={get(errors, `artefacts.${index}.artefact.artefact_type.message`)}
-                    >
-                      <input
-                        type='hidden'
-                        {...register(`artefacts.${index}.artefact.artefact_type`
-                        )} />
-                    </Field>
-                  </div>
-                </td>
-                {field.heat_target_judge.description.artefact === "yan" &&
-                  field.heat_target_judge.description.artefact_data.map((_, c_index) => {
-                    return (
-                      <td className="table_comp_res">
-                        {artefactInput &&
-                          <YanNumberInput form_key={`artefacts.${index}.artefact.artefact_data.${c_index}`} />
-                        }
-                        {!artefactInput &&
-                          <YanDropDownInput form_key={`artefacts.${index}.artefact.artefact_data.${c_index}`} />
-                        }
-                      </td>
-                    );
-                  })}
-                {field.heat_target_judge.description.artefact !== "yan" &&
-                  <td>Unexpected artefact type in input</td>
-                }
-              </tr>
-            }
-          </>
-        ))}
-      </tbody>
-    </table>
+                      <p className="table_comp_role">(
+                        {field.heat_target_judge.target.target_type == "single" &&
+                          field.heat_target_judge.target.role}
+                        {field.heat_target_judge.target.target_type == "couple" &&
+                          "couple"})
+                      </p>
+                    </div>
+                    <div className="table_comp_dancer_name">
+                      {dancerArrayFromTarget(field.heat_target_judge.target).map((i) => (
+                        <p key={i}>
+                          <DancerCell id_dancer={i} />
+                        </p>
+                      ))}
+                      <Field
+                        error={get(errors, `artefacts.${index}.artefact.artefact_type.message`)}
+                      >
+                        <input
+                          type='hidden'
+                          {...register(`artefacts.${index}.artefact.artefact_type`
+                          )} />
+                      </Field>
+                    </div>
+                  </td>
+                  {field.heat_target_judge.description.artefact === "yan" &&
+                    field.heat_target_judge.description.artefact_data.map((_, c_index) => {
+                      return (
+                        <td className="table_comp_res">
+                          {artefactInput &&
+                            <YanNumberInput form_key={`artefacts.${index}.artefact.artefact_data.${c_index}`} />
+                          }
+                          {!artefactInput &&
+                            <YanDropDownInput form_key={`artefacts.${index}.artefact.artefact_data.${c_index}`} />
+                          }
+                        </td>
+                      );
+                    })}
+                  {field.heat_target_judge.description.artefact !== "yan" &&
+                    <td>Unexpected artefact type in input</td>
+                  }
+                </tr>
+              }
+            </>
+          ))}
+        </tbody>
+      </table>
+    </>
   );
 }
 
@@ -701,6 +702,18 @@ export function ArtefactFormJudge({ artefactData, dataBibs }: ArtefactFormCompon
     <FormProvider {...formObject}>
       <ArtefactValidCount artefactData={validatedArtefacts} artefactDataToSubmit={currentArtefacts} isDirty={isDirty} />
       <form onSubmit={handleSubmitCallback} className='yan_table' >
+
+        <button type="submit" className="btn" disabled={isSubmitting}>
+          Mettre à jour les artefacts {artefactData.artefacts[0].heat_target_judge.target.target_type === "single" && artefactData.artefacts[0].heat_target_judge.target.role}
+        </button>
+        <button
+          className="btn"
+          type="button"
+          disabled={isSubmitting}
+          onClick={() => reset(artefactData)}>
+          Réinitialiser
+        </button>
+
         {artefact_description.artefact === "yan" && unique_heat_number && unique_heat_number.map((heat_number) => (
           <>
             <h2>Heat {heat_number}</h2>
@@ -744,6 +757,7 @@ export function ArtefactFormJudge({ artefactData, dataBibs }: ArtefactFormCompon
           Réinitialiser
         </button>
 
+      <ArtefactValidCount artefactData={validatedArtefacts} artefactDataToSubmit={currentArtefacts} isDirty={isDirty} />
       </form>
     </FormProvider >
   );
@@ -775,13 +789,38 @@ export function ArtefactFormRoute({ id_phase, id_judge, id_competition }: Artefa
 
   if (!isSuccessBibs) return <div>Chargement...</div>;
 
+  // group artefact by role for head judge
+  type GroupedArtefacts = {
+    [key: string]: HeatTargetJudgeArtefactArray;
+  };
+  const groupedArtefacts = artefactData.artefacts.reduce((acc, htja) => {
+    const category = htja.heat_target_judge.target.target_type === "single" ?
+      htja.heat_target_judge.target.role.toString() : htja.heat_target_judge.target.target_type;
+
+    if (!acc[category]) {
+      acc[category] = { artefacts: [htja] };
+    } else {
+      acc[category].artefacts.push(htja)
+    }
+    return acc;
+  }, {} as GroupedArtefacts)
+
   return (
     <>
-      <h1>Judge {id_judge}</h1>
-      <ArtefactFormScorer
-        artefactData={artefactData}
-        dataBibs={dataBibs}
-      />
+      <h1>Judge <DancerCell id_dancer={id_judge} /></h1>
+      <div className='bib-table-container'>
+        {Object.entries(groupedArtefacts).map(([role, htjaArray]) =>
+          <>
+            <div className='bib-table-column'>
+              <h1>{role}</h1>
+              <ArtefactFormScorer
+                artefactData={htjaArray}
+                dataBibs={dataBibs}
+              />
+            </div>
+          </>
+        )}
+      </div>
     </>
   );
 }
@@ -807,13 +846,39 @@ export function ArtefactFormJudgeRoute({ id_phase, id_judge, id_competition }: A
 
   if (!isSuccessBibs) return <div>Chargement...</div>;
 
+
+  // group artefact by role for head judge
+  type GroupedArtefacts = {
+    [key: string]: HeatTargetJudgeArtefactArray;
+  };
+  const groupedArtefacts = artefactData.artefacts.reduce((acc, htja) => {
+    const category = htja.heat_target_judge.target.target_type === "single" ?
+      htja.heat_target_judge.target.role.toString() : htja.heat_target_judge.target.target_type;
+
+    if (!acc[category]) {
+      acc[category] = { artefacts: [htja] };
+    } else {
+      acc[category].artefacts.push(htja)
+    }
+    return acc;
+  }, {} as GroupedArtefacts)
+
   return (
     <>
-      <h1>Judge {id_judge}</h1>
-      <ArtefactFormJudge
-        artefactData={artefactData}
-        dataBibs={dataBibs}
-      />
+      <h1>Judge <DancerCell id_dancer={id_judge} /></h1>
+      <div className='bib-table-container'>
+        {Object.entries(groupedArtefacts).map(([role, htjaArray]) =>
+          <>
+            <div className='bib-table-column'>
+              <h1>{role}</h1>
+              <ArtefactFormJudge
+                artefactData={htjaArray}
+                dataBibs={dataBibs}
+              />
+            </div>
+          </>
+        )}
+      </div>
     </>
   );
 }
