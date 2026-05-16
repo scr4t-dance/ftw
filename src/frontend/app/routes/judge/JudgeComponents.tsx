@@ -6,8 +6,9 @@ import { Controller, useFieldArray, useFormContext, FormProvider, get, useForm, 
 
 import { Field } from '@routes/index/field';
 import { getGetApiPhaseIdJudgesQueryKey, useGetApiPhaseIdJudges, usePutApiPhaseIdJudges } from '@hookgen/judge/judge';
-import { useGetApiDancerId } from '~/hookgen/dancer/dancer';
+import { useGetApiDancerId, useGetApiDancers } from '~/hookgen/dancer/dancer';
 import { useQueryClient } from '@tanstack/react-query';
+import { DancerComboBoxComponent } from '../dancer/DancerComponents';
 
 function sanitizePanel(data: Panel): SinglePanel | CouplePanel {
   if (data.panel_type === "single") {
@@ -26,7 +27,8 @@ type JudgeListDescriptionKeys = KeysOfType<SinglePanel, DancerIdList> |
   KeysOfType<CouplePanel, DancerIdList>;
 
 interface Props {
-  artefact_description_name: JudgeListDescriptionKeys
+  artefact_description_name: JudgeListDescriptionKeys,
+  dancers: DancerIdList
 }
 
 export function DancerCell({ id_dancer }: { id_dancer: DancerId }) {
@@ -51,7 +53,7 @@ export function DancerCell({ id_dancer }: { id_dancer: DancerId }) {
   )
 }
 
-export function JudgeListFormElement({ artefact_description_name }: Props) {
+export function JudgeListFormElement({ artefact_description_name, dancers }: Props) {
 
   const {
     register,
@@ -88,32 +90,30 @@ export function JudgeListFormElement({ artefact_description_name }: Props) {
         {fields && fields.map((item, index) => (
           <tr key={item.id}>
             <Controller
+              control={control}
               name={`${artefact_description_name}.dancers.${index}`}
               render={({ field }) => (
                 <>
                   <td>
-                    <Field
+                    <DancerComboBoxComponent
+                      label="Head Judge"
                       error={get(errors, `${artefact_description_name}.dancers.${index}.message`)}
-                    >
-                      <input type="number"
-                        value={Number(field.value)}
-                        onChange={(e) => {
-                          field.onChange(Number(e.target.value));
-                        }}
-                      />
-                    </Field>
+                      dancerIdList={dancers}
+                      selectedItem={field.value ?? null}
+                      onChangeItem={(e) => { field.onChange(e ?? defaultValues?.head); }}
+                      prefixArray={dancers.dancers.map(id => id.toString())}
+                    />
                     <button type="button" onClick={() => {
                       remove(index);
                     }}>
                       Delete
                     </button>
-
                   </td>
                   <DancerCell id_dancer={field.value} />
                 </>
-              )}
-              control={control} />
 
+              )}
+            />
           </tr>
         ))}
         <tr>
@@ -134,7 +134,7 @@ export function JudgeListFormElement({ artefact_description_name }: Props) {
 }
 
 
-export function JudgeForm({ id_phase, panel }: { id_phase: PhaseId, panel: Panel }) {
+export function JudgeForm({ id_phase, panel, dancers }: { id_phase: PhaseId, panel: Panel, dancers: DancerIdList }) {
 
   const queryClient = useQueryClient();
   const { mutate: mutateArtefacts } = usePutApiPhaseIdJudges({
@@ -161,7 +161,8 @@ export function JudgeForm({ id_phase, panel }: { id_phase: PhaseId, panel: Panel
     handleSubmit,
     setError,
     watch,
-    formState: { errors } } = formObject;
+    control,
+    formState: { errors, defaultValues } } = formObject;
 
   const onSubmit: SubmitHandler<Panel> = (dataArray) => {
     console.log("submit panel", { id: id_phase, data: dataArray });
@@ -191,30 +192,32 @@ export function JudgeForm({ id_phase, panel }: { id_phase: PhaseId, panel: Panel
           </select>
         </Field>
 
-        <Field
-          label="Head judge"
-          error={get(errors, `head.message`)}
-        >
-          <input
-            type="number" {...register("head",
-              {
-                valueAsNumber: true,
-              }
-            )}
-          />
-        </Field>
+        <Controller
+          control={control}
+          name="head"
+          render={({ field }) => (
+            <DancerComboBoxComponent
+              label="Head Judge"
+              error={errors.head?.message}
+              dancerIdList={dancers}
+              selectedItem={field.value ?? null}
+              onChangeItem={(e) => { field.onChange(e ?? defaultValues?.head); }}
+              prefixArray={dancers.dancers.map(id => id.toString())}
+            />
+          )}
+        />
         {panelType === "single" && (
           <>
             <h3>Followers</h3>
-            <JudgeListFormElement artefact_description_name={"followers"} />
+            <JudgeListFormElement artefact_description_name={"followers"} dancers={dancers} />
             <h3>Leaders</h3>
-            <JudgeListFormElement artefact_description_name={"leaders"} />
+            <JudgeListFormElement artefact_description_name={"leaders"} dancers={dancers} />
           </>
         )}
         {panelType === "couple" && (
           <>
             <h3>Couples</h3>
-            <JudgeListFormElement artefact_description_name={"couples"} />
+            <JudgeListFormElement artefact_description_name={"couples"} dancers={dancers} />
           </>
         )}
 
@@ -245,7 +248,11 @@ export function JudgeFormComponent({ id_phase }: { id_phase: PhaseId }) {
 
   const { data, isLoading, } = useGetApiPhaseIdJudges(id_phase);
 
+  const { data: dancers, isLoading: isLoadingDancers, isSuccess: isSuccessDancers } = useGetApiDancers();
+
   if (isLoading) return <div>Chargement...</div>;
+  if (isLoadingDancers) return <div>Chargement danseureuses...</div>;
+  if (!isSuccessDancers) return <div>Erreur chargement danseureuses...</div>;
 
   const judgePanel: Panel = data ?? { panel_type: "couple", couples: { dancers: [] } };
 
@@ -254,6 +261,7 @@ export function JudgeFormComponent({ id_phase }: { id_phase: PhaseId }) {
       <JudgeForm
         id_phase={id_phase}
         panel={judgePanel}
+        dancers={dancers}
       />
     </>
   );
@@ -306,18 +314,18 @@ export function JudgeList({ panel_data }: { panel_data: Panel }) {
 }
 
 
-export function JudgeListComponent({id_phase} : {id_phase: PhaseId}){
+export function JudgeListComponent({ id_phase }: { id_phase: PhaseId }) {
 
 
-    const {data: panel_data, isLoading, isSuccess} = useGetApiPhaseIdJudges(id_phase);
+  const { data: panel_data, isLoading, isSuccess } = useGetApiPhaseIdJudges(id_phase);
 
-    if(isLoading) return <div>Chargement panel de juge</div>
-    if(!isSuccess) return <div>Erreur chargement panel de juge</div>
+  if (isLoading) return <div>Chargement panel de juge</div>
+  if (!isSuccess) return <div>Erreur chargement panel de juge</div>
 
-    return (
-        <>
-            <JudgeList panel_data={panel_data} />
-        </>
-    );
+  return (
+    <>
+      <JudgeList panel_data={panel_data} />
+    </>
+  );
 
 }

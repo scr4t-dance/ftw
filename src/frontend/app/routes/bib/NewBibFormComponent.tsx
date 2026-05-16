@@ -214,37 +214,35 @@ export function SelectCoupleTargetForm({ formObject, leader_id_list, follower_id
 
   return (
     <>
-      <>
-        <Controller
-          control={control}
-          name={"target.follower"}
-          render={({ field }) => (
-            <DancerComboBoxComponent
-              label="Follower"
-              error={errors.target?.follower?.message}
-              dancerIdList={{ dancers: follower_id_list.map(d => d.id_dancer) } as DancerIdList}
-              selectedItem={field.value}
-              onChangeItem={(e) => { field.onChange(e ?? defaultValues?.target?.follower); }}
-              prefixArray={follower_id_list.map(d => d.prefix)}
-            />
-          )}
-        />
+      <Controller
+        control={control}
+        name={"target.follower"}
+        render={({ field }) => (
+          <DancerComboBoxComponent
+            label="Follower"
+            error={errors.target?.follower?.message}
+            dancerIdList={{ dancers: follower_id_list.map(d => d.id_dancer) } as DancerIdList}
+            selectedItem={field.value}
+            onChangeItem={(e) => { field.onChange(e ?? defaultValues?.target?.follower); }}
+            prefixArray={follower_id_list.map(d => d.prefix)}
+          />
+        )}
+      />
 
-        <Controller
-          control={control}
-          name={"target.leader"}
-          render={({ field }) => (
-            <DancerComboBoxComponent
-              label="Leader"
-              error={errors.target?.leader?.message}
-              dancerIdList={{ dancers: leader_id_list.map(d => d.id_dancer) } as DancerIdList}
-              selectedItem={field.value}
-              onChangeItem={(e) => { field.onChange(e ?? defaultValues?.target?.leader); }}
-              prefixArray={leader_id_list.map(d => d.prefix)}
-            />
-          )}
-        />
-      </>
+      <Controller
+        control={control}
+        name={"target.leader"}
+        render={({ field }) => (
+          <DancerComboBoxComponent
+            label="Leader"
+            error={errors.target?.leader?.message}
+            dancerIdList={{ dancers: leader_id_list.map(d => d.id_dancer) } as DancerIdList}
+            selectedItem={field.value}
+            onChangeItem={(e) => { field.onChange(e ?? defaultValues?.target?.leader); }}
+            prefixArray={leader_id_list.map(d => d.prefix)}
+          />
+        )}
+      />
     </>
   );
 }
