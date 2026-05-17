@@ -39,7 +39,7 @@ export default function ArtefactList({ params }: Route.ComponentProps) {
 
     return (
         <>
-            <ArtefactListComponent id_phase={id_phase} heat_list={heat_list} dataBibs={dataBibs} judgePanel={judgePanel} artefactLinkString={artefactLinkString} />
+            <ArtefactListComponent id_phase={id_phase} heat_list={heat_list} judgePanel={judgePanel} artefactLinkString={artefactLinkString} />
         </>
     );
 }
