@@ -172,13 +172,19 @@ test('create event', async ({ page }) => {
   await page.getByRole('link', { name: 'Accéder à la Phase' }).click();
 
   // add judges to prelims
+
+  const judgeText0 = dancer_array[0].first_name + " " + dancer_array[0].last_name + " " + dancer_0_id;
+  const judgeText1 = dancer_array[1].first_name + " " + dancer_array[1].last_name + " " + dancer_1_id;
   await page.getByRole('link', { name: 'Modifier les Juges' }).click();
   await page.getByRole('button', { name: 'append' }).first().click();
-  await page.getByRole('cell', { name: 'Delete' }).getByRole('spinbutton').click();
-  await page.getByRole('cell', { name: 'Delete' }).getByRole('spinbutton').fill(String(dancer_0_id));
-  await page.getByRole('table').filter({ hasText: 'DancerIDPrénomNomappend' }).getByRole('button').click();
-  await page.getByRole('spinbutton').nth(2).click();
-  await page.getByRole('spinbutton').nth(2).fill(String(dancer_1_id));
+  await page.getByRole('cell', { name: 'Juge followers' }).locator('label').click();
+  await page.getByRole('cell', { name: 'Juge followers' }).locator('label').fill(judgeText0);
+  await page.getByRole('option', { name: judgeText0 }).click();
+
+  await page.getByRole('button', { name: 'append' }).nth(1).click();
+  await page.getByRole('cell', { name: 'Juge leaders' }).locator('label').click();
+  await page.getByRole('cell', { name: 'Juge leaders' }).locator('label').fill(judgeText1);
+  await page.getByRole('option', { name: judgeText1 }).click();
   await page.getByRole('button', { name: 'Mettre à jour les juges' }).click();
   // TODO: check new judges are still visible
   await page.getByRole('link', { name: 'Juges', exact: true }).click();
@@ -203,14 +209,19 @@ test('create event', async ({ page }) => {
 
   // add judges to finals
   await page.getByRole('link', { name: 'Modifier les Juges' }).click();
-  await page.getByRole('combobox').selectOption('couple');
+  await page.locator('select[name="panel_type"]').selectOption('couple');
   await page.getByRole('button', { name: 'append' }).click();
   await page.getByRole('button', { name: 'append' }).click();
-  await page.getByRole('row').nth(1).getByRole('spinbutton').click();
-  await page.getByRole('row').nth(1).getByRole('spinbutton').fill(String(dancer_0_id));
-  await page.getByRole('row').nth(2).getByRole('spinbutton').click();
-  await page.getByRole('row').nth(2).getByRole('spinbutton').fill(String(dancer_1_id));
+
+  await page.getByRole('cell', { name: 'Juge couples' }).locator('label').nth(0).click();
+  await page.getByRole('cell', { name: 'Juge couples' }).locator('label').nth(0).fill(judgeText0);
+  await page.getByRole('option', { name: judgeText0 }).click();
+
+  await page.getByRole('cell', { name: 'Juge couples' }).locator('label').nth(1).click();
+  await page.getByRole('cell', { name: 'Juge couples' }).locator('label').nth(1).fill(judgeText1);
+  await page.getByRole('option', { name: judgeText1 }).click();
   await page.getByRole('button', { name: 'Mettre à jour les juges' }).click();
+
   // TODO: check new judges are still visible
   await page.getByRole('link', { name: 'Juges', exact: true }).click();
   await expect(page.getByRole('link', { name: dancer_array[0].first_name })).toHaveCount(1);
@@ -227,7 +238,7 @@ test('create event', async ({ page }) => {
 
   // cofngiuration heats
   await page.getByRole('link', { name: `Prelims ${randomCompetitionName}` }).click();
-  await page.getByRole('link', { name: 'Poules', exact: true  }).click();
+  await page.getByRole('link', { name: 'Poules', exact: true }).click();
   await page.getByRole('button', { name: 'Insérer les dossards dans la Poule 0' }).click();
   await page.getByText('✅ Dossards insérés dans la Poule 0 !').click();
   await page.locator('input[name="min_number_of_targets"]').click();
@@ -286,7 +297,7 @@ test('create event', async ({ page }) => {
   await page.getByRole('button', { name: 'Mettre à jour la phase' }).click();
   await expect(page.getByText('✅ Phase "Finals" avec')).toContainText("mis à jour avec succès.");
 
-  await page.getByRole('link', { name: 'Poules', exact: true  }).click();
+  await page.getByRole('link', { name: 'Poules', exact: true }).click();
   await page.getByRole('link', { name: 'Appairage' }).click();
 
   await page.locator('select[name="target.role"]').click();
@@ -305,7 +316,7 @@ test('create event', async ({ page }) => {
   await page.locator('select[name="1"]').selectOption(String(dancer_0_id));
   await page.getByRole('button', { name: 'Enregistrer les nouveaux' }).nth(1).click();
 
-  await page.getByRole('link', { name: 'Poules', exact: true  }).click();
+  await page.getByRole('link', { name: 'Poules', exact: true }).click();
   await page.locator('input[name="min_number_of_targets"]').click();
   await page.locator('input[name="min_number_of_targets"]').fill('1');
   await page.locator('input[name="max_number_of_targets"]').click();

@@ -96,7 +96,7 @@ export function JudgeListFormElement({ artefact_description_name, dancers }: Pro
                 <>
                   <td>
                     <DancerComboBoxComponent
-                      label="Head Judge"
+                      label={`Juge ${artefact_description_name}`}
                       error={get(errors, `${artefact_description_name}.dancers.${index}.message`)}
                       dancerIdList={dancers}
                       selectedItem={field.value ?? null}
