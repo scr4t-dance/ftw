@@ -21,11 +21,34 @@ import { useGetApiPhaseId } from '~/hookgen/phase/phase';
 import { useGetApiCompIdBibs } from '~/hookgen/bib/bib';
 import { useGetApiPhaseIdJudges } from '~/hookgen/judge/judge';
 
+// bib target is not equal to heat target for JnJ finals
+interface SortingBibForTarget {
+  target: Target,
+  bib: Bib
+}
+
+function sortHeatByFirstBib(dataBibs: BibList, targets: Target[]): Target[]{
+    const bibsForSorting = get_bibs(dataBibs, targets)
+    .map((bibList) => bibList[0]);
+
+  const sortedArtefacts: Target[] = targets
+      .map((v, i) => ({ target: v, bib: bibsForSorting[i] } as SortingBibForTarget))
+      .sort((sortingBib1, sortingBib2) => sortingBib1.bib.bib - sortingBib2.bib.bib)
+      .map(sortingBib => sortingBib.target)
+  ;
+
+  if(sortedArtefacts.length !== targets.length){
+    throw `sortedArtefacts length is ${sortedArtefacts.length}, expected value is ${targets.length}`
+  }
+
+  return sortedArtefacts;
+}
+
+
 type HeatTargetRowReadOnlyProps = {
     bib_list: Bib[];
     onDelete: () => void
 };
-
 
 export function HeatTargetRowReadOnly({ bib_list, onDelete }: HeatTargetRowReadOnlyProps) {
 
@@ -248,6 +271,7 @@ type BibHeatListComponentProps = {
     otherTargets: Target[],
     defaultTarget: Target
 }
+
 export function BibHeatListComponent({ targets, id_phase, heat_number, otherTargets, defaultTarget }: BibHeatListComponentProps) {
 
 
@@ -267,6 +291,9 @@ export function BibHeatListComponent({ targets, id_phase, heat_number, otherTarg
     if (!isSuccessPhase) return <tr>No phase found</tr>;
     if (!isSuccessBibs) return <tr>No bibs found</tr>;
 
+
+    const sortedTargets = sortHeatByFirstBib(bibs, targets);
+
     return (
         <>
             <table>
@@ -278,7 +305,7 @@ export function BibHeatListComponent({ targets, id_phase, heat_number, otherTarg
                         <th className="no-print">Action</th>
                     </tr>
 
-                    {targets.map((target, index) => (
+                    {sortedTargets.map((target, index) => (
 
                         <tr key={`${defaultHeatTarget.phase_id}-${defaultHeatTarget.heat_number}-${target.target_type}-${dancerArrayFromTarget(target).join("-")}`}
                             className={`${index % 2 === 0 ? 'even-row' : 'odd-row'}`}>

@@ -191,11 +191,12 @@ export function ArtefactTableArrayComponent({ phase_id, judges, head_judge, heat
 type ArtefactListComponentProps = {
     id_phase: PhaseId,
     heat_list: HeatsArray,
+    dataBibs: BibList,
     judgePanel: Panel,
     artefactLinkString: "scorer" | "judge"
 }
 
-export function ArtefactListComponent({ id_phase, heat_list, judgePanel, artefactLinkString }: ArtefactListComponentProps) {
+export function ArtefactListComponent({ id_phase, heat_list, dataBibs, judgePanel, artefactLinkString }: ArtefactListComponentProps) {
 
     const [isHeatView, setHeatView] = useState(false);
 

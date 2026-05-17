@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import type {
   Artefact, ArtefactDescription, ArtefactYans, Bib, BibList, CompetitionId, DancerId,
-  HeatTargetJudgeArtefactArray, PhaseId, Target
+  HeatTargetJudgeArtefact,
+  HeatTargetJudgeArtefactArray, PhaseId
 } from "@hookgen/model";
 import { YanItem } from "@hookgen/model";
 import { useGetApiPhaseId } from "@hookgen/phase/phase";
@@ -55,6 +56,30 @@ function validate_artefacts({ htjaArray, artefact_description }: validateArtefac
   } satisfies HeatTargetJudgeArtefactArray;
 
   return clean_htja_array;
+}
+
+
+interface SortingBib {
+  heatTargetJudgeArtefact: HeatTargetJudgeArtefact,
+  bib: Bib
+}
+
+function sortArtefactsByFirstBib(dataBibs: BibList, artefactData: HeatTargetJudgeArtefactArray): HeatTargetJudgeArtefactArray{
+    const bibsForSorting = get_bibs(dataBibs, artefactData.artefacts.map(htja => htja.heat_target_judge.target))
+    .map((bibList) => bibList[0]);
+
+  const sortedArtefacts: HeatTargetJudgeArtefactArray = {
+    artefacts: artefactData.artefacts
+      .map((v, i) => ({ heatTargetJudgeArtefact: v, bib: bibsForSorting[i] } as SortingBib))
+      .sort((sortingBib1, sortingBib2) => sortingBib1.bib.bib - sortingBib2.bib.bib)
+      .map(sortingBib => sortingBib.heatTargetJudgeArtefact)
+  };
+
+  if(sortedArtefacts.artefacts.length !== artefactData.artefacts.length){
+    throw `sortedArtefacts length is ${sortedArtefacts.artefacts.length}, expected value is ${artefactData.artefacts.length}`
+  }
+
+  return sortedArtefacts;
 }
 
 function RankingInput({ form_key }: { form_key: `artefacts.${number}.artefact.artefact_data` }) {
@@ -775,11 +800,13 @@ export function ArtefactFormRoute({ id_phase, id_judge, id_competition }: Artefa
 
   if (!isSuccessBibs) return <div>Chargement...</div>;
 
+  const sortedArtefacts = sortArtefactsByFirstBib(dataBibs, artefactData);
+
   return (
     <>
       <h1>Judge {id_judge}</h1>
       <ArtefactFormScorer
-        artefactData={artefactData}
+        artefactData={sortedArtefacts}
         dataBibs={dataBibs}
       />
     </>
@@ -807,11 +834,13 @@ export function ArtefactFormJudgeRoute({ id_phase, id_judge, id_competition }: A
 
   if (!isSuccessBibs) return <div>Chargement...</div>;
 
+  const sortedArtefacts = sortArtefactsByFirstBib(dataBibs, artefactData);
+
   return (
     <>
       <h1>Judge {id_judge}</h1>
       <ArtefactFormJudge
-        artefactData={artefactData}
+        artefactData={sortedArtefacts}
         dataBibs={dataBibs}
       />
     </>
