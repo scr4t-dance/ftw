@@ -178,8 +178,6 @@ let admin_panel_progress ~req ~st ~ev =
     admin_comp_list ~req ~st ~ev;
   ]
 
-
-
 let admin_panel_finished ~req ~st ~ev =
   [
     event_infos ev;
@@ -197,6 +195,20 @@ let admin_panel ~req ~st ~ev =
       | Finished -> admin_panel_finished ~req ~st ~ev
       )
    )
+  else if User.check_perms ~req ~st [Bibs_modify {ev}] then
+    (match Ftw.Event.status ev with
+      | Setup -> null []
+      | Registration -> null []
+      | In_progress ->
+        div [class_ "row border-bottom py-3"] [
+          div [class_ "col"] [
+            a
+              [path_attr href Paths.Page.event_distrib (Ftw.Event.id ev)]
+              [txt "Bib Distribution";];
+          ];
+        ]
+      | Finished -> null []
+      )
   else
     null []
 
@@ -239,7 +251,7 @@ let competitions ~req:_ ~st ~ev =
                (* string_attr ~raw:true "data-bs-parent" "#accordionComps" *)] [
             div [class_ "accordion-body"] [
               div [path_attr Hx.get Paths.Htmx.comp_view (Ftw.Competition.id comp);
-                   Hx.swap "innerHTML"; Hx.trigger "revealed";] [
+                   Hx.swap "outerHTML"; Hx.trigger "revealed";] [
                 div [class_ "d-flex justify-content-center"] [
                   div [class_ "spinnner spinner-border"; role `status] [
                     span [class_ "visually-hidden"] [txt "Loading..."]

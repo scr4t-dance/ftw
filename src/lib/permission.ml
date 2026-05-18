@@ -12,6 +12,7 @@ type t =
   (* event permissions *)
   | View_event of { ev : Event.t; }
   | Edit_event of { ev : Event.t; }
+
   | Bibs_view of { ev : Event.t; }
   | Bibs_modify of { ev : Event.t; }
 

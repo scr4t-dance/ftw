@@ -25,9 +25,9 @@ build:
 ######################
 
 reset: build
-	dune exec -- tests/script/script.exe --db tests/origin.sqlite --users tests/users.sqlite
 	cp tests/origin.sqlite tests/test.sqlite
-
+	dune exec -- tests/script/script.exe --db tests/test.sqlite --users tests/users.sqlite
+	
 run: build
 	dune exec -- ftw-server -vv --db=tests/test.sqlite --user-db=tests/users.sqlite
 

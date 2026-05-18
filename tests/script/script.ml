@@ -66,7 +66,11 @@ let exec ~st () =
     create_jj ~st ~ev ~div:Advanced ()
     ~head:97 ~judges_leaders:[134;141;89] ~judges_follows:[61;55;106]
   in
-  ()
+  begin match Ftw.User.find ~st (`Name "clerk") with
+    | Some user ->
+      Ftw.Position.add ~st ~user (Clerk {ev})
+    | None -> assert false
+  end
 
 let () =
   Sys.catch_break true;
