@@ -16,7 +16,9 @@ Distributtion de Dossards
    ![FTW website bib distribution search example](event_view.png)
    ![FTW website bib distribution search example](bib_view.png)
 
-5. Sur la page ouvert, vous pouvez chercher des compétiteurs-trices dans la base de donner du SCR4T.
+5. Sur la page ouverte, vous pouvez chercher des compétiteurs-trices dans la base de donner du SCR4T.
+   Les résultats de la recherche se mettent à jour automatiquement pendant que vous tapez, et la recherche
+   autorise les typos et noms/prénoms partiels.
    Pour chaque compétiteur-trice, et pour chaque compétition, apparait soit:
    - une encart pour indiquer le numéor de dossard (aka "bib" en anglais). Si une personne a déjà un
      numéro de dossard, celui-ci est indiqué dans l'encart, et un bouton est disponible pour éliminer
