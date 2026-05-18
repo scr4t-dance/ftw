@@ -13,6 +13,7 @@ Distributtion de Dossards
    ![FTW website event list](events.png)
    
 4. Sur la page du P4T, cliquer sur le lien "Bib distribution".
+   ![FTW website bib distribution search example](event_view.png)
    ![FTW website bib distribution search example](bib_view.png)
 
 5. Sur la page ouvert, vous pouvez chercher des compétiteurs-trices dans la base de donner du SCR4T.
