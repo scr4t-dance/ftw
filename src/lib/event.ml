@@ -8,6 +8,7 @@ include Ftw_core.Event
 
 type status = Ftw_core.Event.status =
   | Setup
+  | Registration
   | In_progress
   | Finished 
   [@@deriving enum]
@@ -79,6 +80,19 @@ let create ~st ~name ~short_name ~start_date ~end_date ~public ~status : Id.t =
   in
   Logs.debug ~src:State.src (fun k->k "Event created with id %d" id);
   id
+
+let update ~st t =
+  State.insert ~st ~db ~ty:Db.Ty.[ text; text; text; text; int; int; int]
+    {| UPDATE events SET
+        name = ?,
+        short_name = ?,
+        start_date = ?,
+        end_date = ?,
+        public = ?,
+        status = ? WHERE id = ? |}
+    (name t) (short_name t)
+    (Date.to_string (start_date t)) (Date.to_string (end_date t))
+    (if public t then 1 else 0) (status_to_enum (status t)) (id t)
 
 let competitions ~st t =
   State.query_list_where ~st ~db ~p:Id.p ~conv:Competition.conv

@@ -6,24 +6,42 @@ open! Dream_html
 open Dream_html.HTML
 
 
-(* Display helpers *)
-(* ************************************************************************* *)
-
-let display_name comp =
-  match Ftw.Competition.name comp with
-  | "" -> 
-    begin match Ftw.Competition.kind comp, Ftw.Competition.category comp with
-      | Jack_and_Jill, Competitive Novice -> "Jack&Jill - Initié"
-      | Jack_and_Jill, Competitive Intermediate -> "Jack&Jill - Intermediate"
-      | Jack_and_Jill, Competitive Advanced -> "Jack&Jill - Advanced"
-      | Routine, Non_competitive Regular -> "Chorégraphies"
-      | _ -> Format.asprintf "Competition %d" (Ftw.Competition.id comp)
-    end
-  | name -> name
-
-
 (* Admin panel *)
 (* ************************************************************************* *)
+
+let comp_infos ~req ~st ?(judges=false) comp =
+  div [class_ "row py-3"] [
+    h5 [] [txt "Infos"];
+    div [class_ "row"] [
+      div [class_ "col"] [
+        txt "Kind: %s" (Display.kind (Ftw.Competition.kind comp));
+      ];
+      div [class_ "col"] [
+       txt "Category: %s" (Display.category (Ftw.Competition.category comp));
+      ];
+      div [class_ "col"] [
+        txt "Status: %s" (Display.comp_status comp);
+      ];
+    ];
+    if judges then
+      div [class_ "row border-top border-2 my-2 py-2"] (
+        [ h5 [] [txt "Prelims"] ] @ (
+        match Ftw.Competition.round ~st comp Prelims with
+        | None -> []
+        | Some prelims -> Phase.judge_infos ~req ~st ~phase:prelims
+        )
+      )
+    else null [];
+    if judges then
+      div [class_ "row border-top border-2 my-2 py-2"] (
+        [ h5 [] [txt "Finals"] ] @ (
+        match Ftw.Competition.round ~st comp Finals with
+        | None -> []
+        | Some prelims -> Phase.judge_infos ~req ~st ~phase:prelims
+        )
+      )
+    else null [];
+  ]
 
 let count_bibs ~st ~comp =
   let bibs = Ftw.Bib.get_all ~st ~competition:(Ftw.Competition.id comp) in
@@ -37,24 +55,17 @@ let count_bibs ~st ~comp =
   in
   n_leaders, n_followers
 
-let admin_panel_distrib ~req:_ ~st ~ev:_ ~comp =
-  let n_leaders, n_followers = count_bibs ~st ~comp in
-  [
-    div [class_ "row"] [
-      div [class_ "col"] [
-        txt "Leaders : %d" n_leaders;
-      ];
-      div [class_ "col"] [
-        txt "Followers : %d" n_followers;
-      ];
-    ];
-    div [class_ "row px-2 py-2"] [
-      button [ class_ "btn btn-primary mx-3";
-               path_attr Hx.get Paths.Htmx.comp_start (Ftw.Competition.id comp);
-               Hx.confirm "Confirm competition start (after the start, no new bibs may be added)"; ]
-      [txt "Start Competition !"]
-    ];
-  ]
+let htmx_distrib req comp_id =
+  let$ st = State.get req in
+  let comp = Ftw.Competition.get ~st comp_id in
+  let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
+  let$ () = Htmx.ret' ~req ~st ~perms:[Edit_comp {ev;comp}] in
+  match Ftw.Competition.status comp with
+  | Registration ->
+    let comp = Ftw.Competition.Private.with_status Distribution comp in
+    Ftw.Competition.update ~st comp;
+    `Refresh
+  | _ -> assert false
 
 let htmx_start req comp_id =
   let$ st = State.get req in
@@ -85,15 +96,51 @@ let phase_item_status phase =
   | Scoring -> "list-group-item-danger"
   | Finished -> "list-group-item-success"
 
-let admin_panel_progress ~req:_ ~st ~ev:_ ~comp =
+let admin_panel_setup ~req ~st ~ev:_ ~comp =
+  [
+    comp_infos ~judges:true ~req ~st comp;
+  ]
+
+let admin_panel_registration ~req ~st ~ev:_ ~comp =
+  [
+    comp_infos ~req ~st comp;
+    button
+      [ class_ "btn btn-success"; path_attr Hx.get Paths.Htmx.comp_distrib (Ftw.Competition.id comp);
+        Hx.confirm "Ready ?" ]
+      [ txt "Start Bib Distribution !" ];
+  ]
+
+let admin_panel_distrib ~req ~st ~ev:_ ~comp =
+  let n_leaders, n_followers = count_bibs ~st ~comp in
+  [
+    comp_infos ~req ~st comp;
+    div [class_ "row border-top border-2 my-2 py-2"] [
+      h5 [] [txt "Bib Count"];
+      div [class_ "col"] [
+        txt "Leaders : %d" n_leaders;
+      ];
+      div [class_ "col"] [
+        txt "Followers : %d" n_followers;
+      ];
+    ];
+    div [class_ "row px-2 py-2"] [
+      button [ class_ "btn btn-primary mx-3";
+               path_attr Hx.get Paths.Htmx.comp_start (Ftw.Competition.id comp);
+               Hx.confirm "Confirm competition start (after the start, no new bibs may be added)"; ]
+      [txt "Start Competition !"]
+    ];
+  ]
+
+let admin_panel_progress ~req ~st ~ev:_ ~comp =
   let phases = Ftw.Competition.phases ~st comp in
   [
+    comp_infos ~req ~st comp;
     ul [class_ "list-group"] (
       List.map (fun phase ->
         li [class_ "list-group-item %s" (phase_item_status phase)] [
           a
             [path_attr href Paths.Page.phase (Ftw.Phase.id phase)]
-            [txt "%s - %s" (Phase.round_name phase) (Phase.display_status phase)];
+            [txt "%s - %s" (Display.round_name phase) (Display.phase_status phase)];
         ]
       ) phases
     )
@@ -101,11 +148,11 @@ let admin_panel_progress ~req:_ ~st ~ev:_ ~comp =
 
 let admin_panel ~req ~st ~ev ~comp =
   if User.check_perms ~req ~st [Edit_comp {ev;comp}] then
-   div [class_ "row border border-2 rounded mx-3 my-3 p-2"] (
+   div [class_ "row border border-2 rounded mx-3 my-3 p-2 d-print-none"] (
       h4 [] [txt "Admin panel"] ::
       (match Ftw.Competition.status comp with
-      | Setup -> []
-      | Registration -> []
+      | Setup -> admin_panel_setup ~req ~st ~ev ~comp;
+      | Registration -> admin_panel_registration ~req ~st ~ev ~comp
       | Distribution -> admin_panel_distrib ~req ~st ~ev ~comp
       | Progress -> admin_panel_progress ~req ~st ~ev ~comp
       | Finished -> [])
@@ -121,11 +168,14 @@ let page req comp_id =
   let$ st = State.get req in
   let comp = Ftw.Competition.get ~st comp_id in
   let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
-  let$ () = Page.mk' ~req ~st ~root:Event ~title:"Competition" ~perms:[View_comp {ev;comp}] in
+  let$ () =
+    Page.mk' ~req ~st
+      ~root:(Event [Event {ev}; Comp {comp}])
+      ~title:"Competition" ~perms:[View_comp {ev;comp}]
+  in
   [
     admin_panel ~req ~st ~ev ~comp;
     div [class_ "row"] [
-      h4 [] [txt "Current status"];
       div
         [ path_attr Hx.get Paths.Htmx.comp_view (Ftw.Competition.id comp);
           Hx.swap "innerHTML"; Hx.trigger "intersect";]
@@ -228,16 +278,16 @@ let htmx_view req comp_id =
       `Body [
         div
           [ path_attr Hx.get Paths.Htmx.phase_view (Ftw.Phase.id phase);
-            Hx.swap "innerHTML"; Hx.trigger "revealed";]
+            Hx.swap "innerHTML"; Hx.trigger "revealed once";]
           [
             div [class_ "spinnner spinner-border"; role `status] [
               span [class_ "visually-hidden"] [txt "Loading..."]
             ]
           ]
         ]
-      | None ->
-        (* TODO: print the presumptive results and promotions *)
-        `Body [txt "Competition almost finished..."]
+    | None ->
+      (* TODO: print the presumptive results and promotions *)
+      `Body [txt "Competition almost finished..."]
     end 
   | Finished ->
     let$ () = Htmx.ret' ~req ~st ~perms:[View_comp {ev;comp;}] in

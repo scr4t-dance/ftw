@@ -26,6 +26,9 @@ val create : st:State.t ->
   id
 (** Create a new event. *)
 
+val update : st:State.t -> t -> unit
+(** Update an event. *)
+
 val competitions : st:State.t -> t -> Competition.t list
 (** Competitions that belong to an event. *)
 

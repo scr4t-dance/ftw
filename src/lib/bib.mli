@@ -19,7 +19,7 @@ val get_map : st:State.t -> comp:Competition.t -> t TMap.t
 
 val find :
   st:State.t -> comp:Competition.t ->
-  ([ `Single of Dancer.t * Role.t ]) ->
+  (Dancer.t Target.any) ->
   (t * Id.t Target.any) option
 
 val add :

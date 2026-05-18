@@ -18,7 +18,7 @@ let date_to_string d = Format.asprintf "%a" print_date d
 (* ************************************************************************* *)
 
 let create_page req =
-  let$ _st = Page.mk ~req ~root:Event ~title:"Create Event" ~perms:[Create_event] in
+  let$ _st = Page.mk ~req ~root:(Event []) ~title:"Create Event" ~perms:[Create_event] in
   [
       div [class_ "row"] [
         h2 [] [txt "Create Event"];
@@ -84,6 +84,22 @@ let create_post req =
 (* ADMIN panel *)
 (* ************************************************************************* *)
 
+let event_infos ev =
+  div [class_ "row py-3 border-bottom"] [
+    h5 [] [txt "Infos"];
+    div [class_ "row"] [
+      div [class_ "col"] [
+        txt "Name: %s" (Ftw.Event.short_name ev);
+      ];
+      div [class_ "col"] [
+       txt "Public: %b" (Ftw.Event.public ev);
+      ];
+      div [class_ "col"] [
+        txt "Status: %s" (Display.event_status ev);
+      ]
+    ]
+  ]
+
 let comp_item_status comp =
   match Ftw.Competition.status comp with
   | Setup -> "list-group-item-warning"
@@ -101,15 +117,47 @@ let admin_comp_list ~req:_ ~st ~ev =
         li [class_ "list-group-item %s" (comp_item_status comp)] [
           a
             [path_attr href Paths.Page.comp (Ftw.Competition.id comp)]
-            [txt "%s" (Competition.display_name comp)];
+            [txt "%s" (Display.competition_name comp)];
         ]
       ) comps
     )
   ]
 
+let admin_event_reg req event_id =
+  let$st = State.get req in
+  let ev = Ftw.Event.get ~st event_id in
+  let$ () = Htmx.ret' ~req ~st ~perms:[Edit_event{ev}] in
+  let comps = Ftw.Event.competitions ~st ev in
+  (* TODO: assert the status before switching them ? *)
+  let ev = Ftw.Event.Private.with_status Registration ev in
+  let comps = List.map (Ftw.Competition.Private.with_status Registration) comps in
+  let () = Ftw.Event.update ~st ev in
+  let () = List.iter (Ftw.Competition.update ~st) comps in
+  `Refresh
+  
+let admin_event_start req event_id =
+  let$st = State.get req in
+  let ev = Ftw.Event.get ~st event_id in
+  let$ () = Htmx.ret' ~req ~st ~perms:[Edit_event{ev}] in
+  (* TODO: assert the status before switching them ? *)
+  let ev = Ftw.Event.Private.with_status In_progress ev in
+  let () = Ftw.Event.update ~st ev in
+  `Refresh
+
 let admin_panel_setup ~req ~st ~ev =
   [
     (* TODO: add option to create a comp *)
+    event_infos ev;
+    admin_comp_list ~req ~st ~ev;
+    button
+      [ class_ "btn btn-success"; path_attr Hx.get Paths.Htmx.event_reg (Ftw.Event.id ev);
+        Hx.confirm "Ready ?" ]
+      [ txt "Start Registration !" ];
+  ]
+
+let admin_panel_registration ~req ~st ~ev =
+  [
+    event_infos ev;
     admin_comp_list ~req ~st ~ev;
     button
       [ class_ "btn btn-success"; path_attr Hx.get Paths.Htmx.event_start (Ftw.Event.id ev);
@@ -119,7 +167,8 @@ let admin_panel_setup ~req ~st ~ev =
 
 let admin_panel_progress ~req ~st ~ev =
   [
-    div [class_ "row"] [
+    event_infos ev;
+    div [class_ "row border-bottom py-3"] [
       div [class_ "col"] [
         a
           [path_attr href Paths.Page.event_distrib (Ftw.Event.id ev)]
@@ -129,8 +178,11 @@ let admin_panel_progress ~req ~st ~ev =
     admin_comp_list ~req ~st ~ev;
   ]
 
+
+
 let admin_panel_finished ~req ~st ~ev =
   [
+    event_infos ev;
     admin_comp_list ~req ~st ~ev;
   ]
 
@@ -140,6 +192,7 @@ let admin_panel ~req ~st ~ev =
       h4 [] [txt "Admin panel"] ::
       (match Ftw.Event.status ev with
       | Setup -> admin_panel_setup ~req ~st ~ev
+      | Registration -> admin_panel_registration ~req ~st ~ev
       | In_progress -> admin_panel_progress ~req ~st ~ev
       | Finished -> admin_panel_finished ~req ~st ~ev
       )
@@ -179,14 +232,14 @@ let competitions ~req:_ ~st ~ev =
                     string_attr ~raw:true "data-bs-toggle" "collapse";
                     string_attr ~raw:true "data-bs-target" "#comp-%d" i;
                     Aria.controls "comp%d" i; Aria.expanded false] [
-              txt "%s" (Competition.display_name comp)
+              txt "%s" (Display.competition_name comp)
             ];
           ];
           div [id "comp-%d" i; class_ "accordion-collapse collapse";
                (* string_attr ~raw:true "data-bs-parent" "#accordionComps" *)] [
             div [class_ "accordion-body"] [
               div [path_attr Hx.get Paths.Htmx.comp_view (Ftw.Competition.id comp);
-                   Hx.swap "innerHTML"; Hx.trigger "revealed, every 5s";] [
+                   Hx.swap "innerHTML"; Hx.trigger "revealed";] [
                 div [class_ "d-flex justify-content-center"] [
                   div [class_ "spinnner spinner-border"; role `status] [
                     span [class_ "visually-hidden"] [txt "Loading..."]
@@ -203,7 +256,7 @@ let competitions ~req:_ ~st ~ev =
 let page req ev_id =
   let$ st = State.get req in
   let ev = Ftw.Event.get ~st ev_id in
-  let$ () = Page.mk' ~req ~st ~root:Event ~title:"Event" ~perms:[View_event{ev}] in
+  let$ () = Page.mk' ~req ~st ~root:(Event [Event{ev}]) ~title:"Event" ~perms:[View_event{ev}] in
   titles ~req ~st ~ev @ [
       admin_panel ~req ~st ~ev;
       competitions ~req ~st ~ev;
@@ -238,7 +291,7 @@ let distrib_search ~req ~st:_ ~ev =
 let distrib req ev_id =
   let$ st = State.get req in
   let ev = Ftw.Event.get ~st ev_id in
-  let$ () = Page.mk' ~req ~st ~root:Event ~title:"Bib distribution" ~perms:[Bibs_view {ev}] in
+  let$ () = Page.mk' ~req ~st ~root:(Event [Event {ev}; Bibs]) ~title:"Bib distribution" ~perms:[Bibs_view {ev}] in
   [distrib_search ~req ~st ~ev;]
 
 let distrib_form ~req ~st ~comp ~dancer ~role prev =
@@ -253,7 +306,7 @@ let distrib_form ~req ~st ~comp ~dancer ~role prev =
     | _ -> true
   in
   if can_compete then
-    let bib_opt = Ftw.Bib.find ~st ~comp (`Single (dancer, role)) in
+    let bib_opt = Ftw.Bib.find ~st ~comp (Any (Single { target = dancer; role })) in
     let sid =
       Format.asprintf "dancer-%d-%d-%d"
         (Ftw.Dancer.id dancer)
@@ -295,18 +348,20 @@ let distrib_form ~req ~st ~comp ~dancer ~role prev =
       
     ]
   else
-    div [class_ "mb-1"] []
+    div
+      [class_ "mb-1 text-center text-body-tertiary"]
+      [i [class_ "bi bi-slash-circle-fill"] []]
 
 let distrib_of_dancer ~req ~st ~comps dancer =
-  div [class_ "row border border-2 rounded my-2 align-items-center"] [
+  div [class_ "row border border-2 border-black rounded px-2 py-2 my-4 align-items-center"] [
     div [class_ "col"] (
       div [class_ "row py-2"] [
         div [class_ "col"] [txt "%s %s" (Ftw.Dancer.first_name dancer) (Ftw.Dancer.last_name dancer)];
         div [class_ "col"] [txt "L:%s" (Ftw.Divisions.to_string (Ftw.Dancer.as_leader dancer))];
         div [class_ "col"] [txt "F:%s" (Ftw.Divisions.to_string (Ftw.Dancer.as_follower dancer))];
       ] :: List.map (fun comp ->
-        div [class_"row py-2"] [
-          div [class_ "col text-center"] [txt "%s" (Competition.display_name comp)];
+        div [class_"row py-2 border-1 border-top"] [
+          div [class_ "col text-center"] [txt "%s" (Display.competition_name comp)];
           div [class_ "col"] [distrib_form ~req ~st ~comp ~dancer ~role:Leader `Neutral];
           div [class_ "col"] [distrib_form ~req ~st ~comp ~dancer ~role:Follower `Neutral];
         ]
@@ -329,9 +384,12 @@ let distrib_api req ev_id =
       let ev = Ftw.Event.get ~st ev_id in
       let$ () = Htmx.ret' ~req ~st ~perms:[Bibs_view {ev}] in
       if String.length pattern < 2 then
-        `Body [tr [] [td [colspan 2] [txt "type at least 2 letters to search..."]]]
+        `Body [div [class_ "row"] [
+          p [class_ "text-center py-5"] [txt "type at least 2 letters to search..."]]
+        ]
       else
         let comps = Ftw.Event.competitions ~st ev in
+        let comps = List.filter (fun comp -> Ftw.Competition.status comp = Distribution) comps in
         let l = Ftw.Dancer.Fuzzy.search ~st ~pattern in
         let body = List.map (distrib_of_dancer ~req ~st ~comps) l in
         `Body body

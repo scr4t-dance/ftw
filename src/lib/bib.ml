@@ -82,8 +82,9 @@ let get ~st ~competition ~bib =
     end
   | exception Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND -> None
 
-let find ~st ~comp = function
-  | `Single (dancer, role) ->
+let find ~st ~comp target =
+  match (target : _ Target.any) with
+  | Any Single { target = dancer; role; } ->
     begin match
       State.query_one_where ~st ~db ~conv:Id.conv ~p:Db.Ty.[int; int; int]
       {| SELECT bib FROM bibs WHERE competition_id = ? AND dancer_id = ? AND role = ? |}
@@ -96,6 +97,25 @@ let find ~st ~comp = function
         end
       | exception Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND -> None
     end
+  | Any Couple { leader; follower; } ->
+    begin match
+      State.query_list_where ~st ~db ~conv:Id.conv ~p:Db.Ty.[int; int; int; int; int]
+      {| SELECT bib FROM bibs WHERE competition_id = ?
+                                AND ((dancer_id = ? AND role = ?) OR
+                                      (dancer_id = ? AND role = ?))|}
+      (Competition.id comp)
+      (Dancer.id leader) (Role.to_int Leader)
+      (Dancer.id follower) (Role.to_int Follower)
+    with
+      | [b; b'] when b = b' ->
+        begin match get ~st ~competition:(Competition.id comp) ~bib:b with
+          | Some target -> Some (b, target)
+          | None -> assert false
+        end
+      | _ -> None
+      | exception Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND -> None
+    end
+  | Any Trouple _ -> assert false
 
 let get_all ~st ~competition =
   let open Sqlite3_utils.Ty in

@@ -38,7 +38,7 @@ let tr_of_ev ~req ~st ev =
     null []
 
 let page req =
-  let$ st = Page.mk ~req ~root:Event ~title:"Event List" ~perms:[] in
+  let$ st = Page.mk ~req ~root:(Event []) ~title:"Event List" ~perms:[] in
   let ev = Ftw.Event.last ~st in
   [
     div [class_ "row"] [

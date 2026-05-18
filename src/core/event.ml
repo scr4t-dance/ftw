@@ -8,6 +8,7 @@ type id = Id.t
 
 type status =
   | Setup
+  | Registration
   | In_progress
   | Finished
 
@@ -53,6 +54,8 @@ let print_compact fmt t =
 (* ************************************************************************* *)
 
 module Private = struct
+
+  let with_status status t = { t with status }
 
   let mk ~id ~name ~short_name ~start_date ~end_date ~public ~status =
     { id; name; short_name; start_date; end_date; public; status; }

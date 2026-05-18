@@ -31,18 +31,70 @@ let htmx_link ~local : _ format4 =
 (* Header & Menu *)
 (* ************************************************************************* *)
 
-type menu_root =
+type event_path_elt =
+  | Event of { ev : Ftw.Event.t; }
+  | Comp of { comp : Ftw.Competition.t; }
+  | Phase of { phase : Ftw.Phase.t; }
+  | Bibs
+
+type menu_path =
   | Index
-  | Event
+  | Event of event_path_elt list
   | Dancers
   | User
   | Infos
 
 let link_class ~target ~root =
-  if target = root  then "link-primary" else "link-secondary"
+  match target, root with
+  | Index, Index
+  | Event _ , Event _
+  | Dancers, Dancers
+  | User, User
+  | Infos, Infos
+    -> "link-primary"
+  | _ -> "link-secondary"
 
 let active ~target ~root =
   if target = root then "active" else ""
+
+let breadcrumb root =
+  match root with
+  | Event path ->
+    nav [ Aria.label "breadcrumb";
+          class_ "d-flex align-items-center col-md-3 mb-2 mb-md-0"] [
+      ol [class_ "breadcrumb"] (
+        List.map (fun (elt : event_path_elt) ->
+          match elt with
+          | Event { ev; } ->
+            li [class_ "breadcrumb-item"] [
+              a [path_attr href Paths.Page.event (Ftw.Event.id ev)] [
+                txt "%s" (Ftw.Event.name ev);
+              ]
+            ]
+          | Comp { comp; } ->
+            li [class_ "breadcrumb-item"] [
+              a [path_attr href Paths.Page.comp (Ftw.Competition.id comp)] [
+                txt "%s" (Display.competition_name comp);
+              ]
+            ]
+          | Phase { phase; } ->
+            li [class_ "breadcrumb-item"] [
+              a [path_attr href Paths.Page.phase (Ftw.Phase.id phase)] [
+                txt "%s" (Display.round_name phase);
+              ]
+            ]
+          | Bibs ->
+            li [class_ "breadcrumb-item active"] [
+                txt "Bibs";
+            ]
+        ) path
+      )
+    ]     
+  | _ ->
+    nav [ Aria.label "breadcrumb";
+          class_ "d-flex align-items-center col-md-3 mb-2 mb-md-0"] [
+      ol [class_ "breadcrumb"] []
+    ]
 
 let page_header ~root ~req =
   [
@@ -89,16 +141,21 @@ let page_header ~root ~req =
       ];
     ];
     *)
-    div [class_ "container"] [
+    div [class_ "container d-print-none"] [
       header [class_ "d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom"] [
-        a [path_attr href Paths.Page.index; class_ "d-flex align-items-center col-md-3 mb-2 mb-md-0 text-dark text-decoration-none"]
-          [img [class_ "bi me-2"; width "40"; height "40"; role `img; Aria.label "SCR4T"; src "/static/logo.png"]];
+
+        breadcrumb root;
+        
         ul [class_"nav col-12 col-md-auto mb-2 justify-content-center mb-md-0"] [
+          li [] [
+            a [path_attr href Paths.Page.index; class_ "text-dark text-decoration-none"]
+              [img [class_ "bi me-2"; width "40"; height "40"; role `img; Aria.label "SCR4T"; src "/static/logo.png"]]];
           li [] [a [path_attr href Paths.Page.index; class_ "nav-link px-2 %s" (link_class ~target:Index ~root)] [txt "Index"]];
-          li [] [a [path_attr href Paths.Page.events; class_ "nav-link px-2 %s" (link_class ~target:Event ~root)] [txt "Events"]];
+          li [] [a [path_attr href Paths.Page.events; class_ "nav-link px-2 %s" (link_class ~target:(Event []) ~root)] [txt "Events"]];
           li [] [a [path_attr href Paths.Page.dancers; class_ "nav-link px-2 %s" (link_class ~target:Dancers ~root)] [txt "Dancers"]];
           li [] [a [path_attr href Paths.Page.infos; class_ "nav-link px-2 %s" (link_class ~target:Infos ~root)] [txt "Infos"]];
         ];
+        
         div [class_ "col-md-3 text-end"] (
           match User.get req with
           | None ->
@@ -122,7 +179,7 @@ let page_header ~root ~req =
 
 let page_footer = 
   [
-    div [class_ "container"] [
+    div [class_ "container d-print-none"] [
       footer [class_ "d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top"] [
         div [class_"col-md-4 d-flex align-items-center"] [
           (*
@@ -136,7 +193,7 @@ let page_footer =
     ]
   ]
 
-let page_body page_body =
+let page_body _root page_body =
   [
     div [class_ "container"] page_body
   ]
@@ -181,7 +238,7 @@ let mk' ~req ~st ~root ~title:title_text ~perms k =
     body [] [
       div [class_ "container container-xxl"] (
         page_header ~root ~req @
-        page_body actual_body @
+        page_body root actual_body @
         page_footer
       )
     ]

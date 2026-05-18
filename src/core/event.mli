@@ -12,6 +12,7 @@ type t
 
 type status =
   | Setup
+  | Registration
   | In_progress
   | Finished (**)
 (** Event status *)
@@ -57,5 +58,7 @@ module Private : sig
     id:id -> name:string -> short_name:string ->
     start_date:Date.t -> end_date:Date.t ->
       public:bool -> status:status -> t
+
+  val with_status : status -> t -> t
 
 end

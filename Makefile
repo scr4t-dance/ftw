@@ -24,9 +24,12 @@ build:
 # Tests, Docs & misc #
 ######################
 
+reset: build
+	dune exec -- tests/script/script.exe --db tests/origin.sqlite --users tests/users.sqlite
+	cp tests/origin.sqlite tests/test.sqlite
+
 run: build
-	dune exec -- tests/script/script.exe --db tests/db.sqlite --users tests/users.sqlite
-	dune exec -- ftw-server -vv --db=tests/db.sqlite --user-db=tests/users.sqlite
+	dune exec -- ftw-server -vv --db=tests/test.sqlite --user-db=tests/users.sqlite
 
 tests: build
 	@dune runtest \

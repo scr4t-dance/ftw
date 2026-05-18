@@ -23,18 +23,18 @@ let to_string = function
 let to_int = function
   | None -> 0
   | Novice -> 1
-  | Novice_Intermediate -> 2
-  | Intermediate -> 3
-  | Intermediate_Advanced -> 4
-  | Advanced -> 5
+  | Novice_Intermediate -> 3
+  | Intermediate -> 2
+  | Intermediate_Advanced -> 6
+  | Advanced -> 4
 
 let of_int = function
   | 0 -> None
   | 1 -> Novice
-  | 2 -> Novice_Intermediate
-  | 3 -> Intermediate
-  | 4 -> Intermediate_Advanced
-  | 5 -> Advanced
+  | 3 -> Novice_Intermediate
+  | 2 -> Intermediate
+  | 6 -> Intermediate_Advanced
+  | 4 -> Advanced
   | i -> failwith (Format.asprintf "%d is not a valid divisions" i)
 
 let p = Sqlite3_utils.Ty.([int])

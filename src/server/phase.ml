@@ -6,31 +6,58 @@ open! Dream_html
 open! Dream_html.HTML
 
 
-(* Display functions *)
-(* ************************************************************************* *)
-
-let round_to_string round =
-  match (round : Ftw.Round.t) with
-  | Prelims -> "Prelims"
-  | Finals -> "Finals"
-  | Semifinals -> "Semifinals"
-  | Quarterfinals -> "Quarterfinals"
-  | Octofinals -> "Octofinals"
-
-let round_name phase =
-  round_to_string (Ftw.Phase.round phase)
-
-let display_status phase =
-  match Ftw.Phase.status phase with
-  | Inactive -> "Inactive"
-  | Setup -> "Setup"
-  | Progress -> "Progress"
-  | Scoring -> "Scoring"
-  | Finished -> "Finished"
-
-
 (* ADMIN panel *)
 (* ************************************************************************* *)
+
+let judge_link ~st judge =
+  let dancer = Ftw.Dancer.get ~st judge in
+  a
+    [ path_attr href Paths.Page.dancer (Ftw.Dancer.id dancer) ]
+    [ txt "%s %s" (Ftw.Dancer.first_name dancer) (Ftw.Dancer.last_name dancer)]
+
+let judge_list ~req:_ ~st l =
+  ul [class_ "list-group"] (
+    List.map (fun judge ->
+      li [class_ "list-group-item"] [
+        judge_link ~st judge
+      ]
+      ) l
+  )
+
+let judge_infos ~req ~st ~phase =
+  match Ftw.Judge.get ~st ~phase:(Ftw.Phase.id phase) with
+  | Singles { head; leaders; followers; } ->
+    [
+      div [class_ "row"] [
+        div [class_ "row py-3"] [
+          txt "Head Judge artefacts : %s" (Display.artefact_descr (Ftw.Phase.head_judge_artefact_descr phase));
+        ];
+        div [class_ "row"] [
+          div [class_ "col-6"] [
+            judge_list ~req ~st (match head with Some h -> [h] | None -> []);
+          ]
+        ]
+      ];
+      div [class_ "row"] [
+        div [class_ "row py-3"] [
+          txt "Judge artefacts : %s" (Display.artefact_descr (Ftw.Phase.judge_artefact_descr phase));
+        ];
+        div [class_ "row"] [
+          div [class_ "col-6"] [txt "Leaders"; judge_list ~req ~st leaders];
+          div [class_ "col-6"] [txt "Followers"; judge_list ~req ~st followers];
+        ];
+      ]
+    ]
+  | Couples { head = _; couples = _; } ->
+    []
+
+
+let phase_infos ~req ~st ~phase =
+  div [class_ "row py-3 border-bottom"] (
+    [ h5 [] [txt "Infos"] ] @
+    ( judge_infos ~req ~st ~phase ) @
+    []
+  )
 
 let heat_regen_form ~req ~st:_ ~phase =
   form
@@ -96,8 +123,25 @@ let heat_regen_htmx req phase_id =
     end
   | _ -> assert false
 
+let phase_start_htmx req phase_id =
+  let$ st = State.get req in
+  let phase = Ftw.Phase.get ~st phase_id in
+  let comp = Ftw.Competition.get ~st (Ftw.Phase.competition phase) in
+  let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
+  let$ () = Htmx.ret' ~req ~st ~perms:[Edit_phase {ev;comp;phase}] in
+  let heat = Ftw.Heat.get ~st ~phase:phase_id in
+  match heat with
+  | Singles { unallocated = _ :: _; _ }
+  | Couples { unallocated = _ :: _; _ } ->
+    assert false (* TODO: return an error *)
+  | _ -> 
+    let phase = Ftw.Phase.Private.with_status Progress phase in
+    Ftw.Phase.update ~st phase;
+    `Refresh
+
 let admin_panel_setup ~req ~st ~ev:_ ~comp:_ ~phase =
   [
+    phase_infos ~req ~st ~phase;
     heat_regen_form ~req ~st ~phase;
     button
       [ class_ "btn btn-success"; path_attr Hx.get Paths.Htmx.phase_start (Ftw.Phase.id phase);
@@ -105,18 +149,33 @@ let admin_panel_setup ~req ~st ~ev:_ ~comp:_ ~phase =
       [ txt "Start Heats !" ];
   ]
 
-let htmx_start _req _phase_id =
-  assert false
+let admin_panel_progress ~req ~st ~ev:_ ~comp:_ ~phase =
+  [
+    phase_infos ~req ~st ~phase;
+    button
+      [ class_ "btn btn-success"; path_attr Hx.get Paths.Htmx.phase_scoring (Ftw.Phase.id phase);
+        Hx.confirm "Sure ?" ]
+      [ txt "Start Scoring" ];
+  ]
+
+let admin_panel_scoring ~req ~st ~ev:_ ~comp:_ ~phase =
+  [
+    phase_infos ~req ~st ~phase;
+    button
+      [ class_ "btn btn-success"; path_attr Hx.get Paths.Htmx.phase_finish (Ftw.Phase.id phase);
+        Hx.confirm "Sure ?" ]
+      [ txt "Finish phase" ];
+  ]
 
 let admin_panel ~req ~st ~ev ~comp ~phase =
   if User.check_perms ~req ~st [Edit_phase {ev;comp;phase}] then
-   div [class_ "row border border-2 rounded mx-3 my-3 p-2"] (
+   div [class_ "row border border-2 rounded mx-3 my-3 p-2 d-print-none"] (
       h4 [] [txt "Admin panel"] ::
       (match Ftw.Phase.status phase with
       | Inactive -> []
       | Setup -> admin_panel_setup ~req ~st ~ev ~comp ~phase
-      | Progress -> []
-      | Scoring -> []
+      | Progress -> admin_panel_progress ~req ~st ~ev ~comp ~phase
+      | Scoring -> admin_panel_scoring ~req ~st ~ev ~comp ~phase
       | Finished -> []
       )
    )
@@ -132,7 +191,11 @@ let page req phase_id =
   let phase = Ftw.Phase.get ~st phase_id in
   let comp = Ftw.Competition.get ~st (Ftw.Phase.competition phase) in
   let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
-  let$ () = Page.mk' ~req ~st ~root:Event ~title:"Phase" ~perms:[View_phase {ev;comp;phase}] in
+  let$ () =
+    Page.mk' ~req ~st
+      ~root:(Event [Event {ev}; Comp {comp;}; Phase {phase}])
+      ~title:"Phase" ~perms:[View_phase {ev;comp;phase}]
+  in
   [
     admin_panel ~req ~st ~ev ~comp ~phase;
     div [class_ "row"] [
@@ -151,16 +214,20 @@ let page req phase_id =
 (* Htmx view *)
 (* ************************************************************************* *)
 
-let single_heat_table ~req:_ ~st ~bib_map ~role targets =
+let single_heat_table ~req:_ ~st ~bib_map ~role ~passages targets =
   let dancers =
     List.map (fun target_with_id ->
       let target = Ftw.Target.With_id.target target_with_id in
       let Ftw.Target.Single { target = dancer_id; role = _; } = target in
       let dancer = Ftw.Dancer.get ~st dancer_id in
       let bib_opt = Ftw.Bib.TMap.find_opt (Ftw.Target.Any target) bib_map in
-      bib_opt, dancer
+      let passage : Ftw.Heat.passage_kind =
+        try Ftw.Id.Map.find dancer_id passages
+        with Not_found -> Only
+      in
+      bib_opt, passage, dancer
     ) targets
-    |> List.sort (fun (b, _) (b', _) -> CCOrd.option Ftw.Id.compare b b')
+    |> List.sort (fun (b, _, _) (b', _, _) -> CCOrd.option Ftw.Id.compare b b')
   in
   div [class_ "col-6"] [
     h5 [] [txt "%s" (match (role : Ftw.Role.t) with Leader -> "Leader" | Follower -> "Follower")];
@@ -172,13 +239,18 @@ let single_heat_table ~req:_ ~st ~bib_map ~role targets =
           th [] [txt "Last Name"];
         ];
       ] ::
-      (List.map (fun (bib_opt, dancer) ->
+      (List.map (fun (bib_opt, passage, dancer) ->
         match bib_opt with
         | Some bib ->
-          tr [] [
+          let star =
+            match (passage : Ftw.Heat.passage_kind) with
+            | Multiple { nth = 1 } -> "*"
+            | _ -> ""
+          in
+          tr [class_ "%s" (match passage with Multiple {nth} when nth > 1 -> "table-active" | _ -> "")] [
             td [] [txt "#%d" bib];
-            td [] [txt "%s" (Ftw.Dancer.first_name dancer)];
-            td [] [txt "%s" (Ftw.Dancer.last_name dancer)];
+            td [] [txt "%s%s" (Ftw.Dancer.first_name dancer) star];
+            td [] [txt "%s%s" (Ftw.Dancer.last_name dancer) star];
           ]
         | None ->
           tr [] [
@@ -190,8 +262,9 @@ let single_heat_table ~req:_ ~st ~bib_map ~role targets =
     );
   ]
 
-let single_heat_view ~req ~st ~bib_map ~unallocated heats =
-  h4 [class_ "text-center"] [txt "Pools"] ::
+let single_heat_view ~req ~st ~comp ~phase ~bib_map ~unallocated heats =
+  h4 [class_ "text-center"]
+    [txt "%s - %s - Pools" (Display.competition_name comp) (Display.round_name phase)] ::
   (match unallocated with
   | [] -> null []
   | _ :: _ ->
@@ -203,14 +276,20 @@ let single_heat_view ~req ~st ~bib_map ~unallocated heats =
     in
     div [class_ "row py-3 border-bottom"] [
       h4 [class_ "text-center text-danger"] [i [class_ "bi bi-exclamation-circle-fill mx-1"] []; txt "Unallocated"];
-      single_heat_table ~req ~st ~bib_map ~role:Leader leaders;
-      single_heat_table ~req ~st ~bib_map ~role:Follower followers;
+      single_heat_table ~req ~st ~bib_map ~passages:Ftw.Id.Map.empty ~role:Leader leaders;
+      single_heat_table ~req ~st ~bib_map ~passages:Ftw.Id.Map.empty ~role:Follower followers;
     ]) ::
   List.mapi (fun i (heat : Ftw.Heat.singles_one) ->
     div [class_ "row py-3 border-bottom"] [
       h4 [] [txt "Pool %d" (i + 1)];
-      single_heat_table ~req ~st ~bib_map ~role:Leader heat.leaders;
-      single_heat_table ~req ~st ~bib_map ~role:Follower heat.followers;
+      single_heat_table ~req ~st ~bib_map ~passages:heat.passages ~role:Leader heat.leaders;
+      single_heat_table ~req ~st ~bib_map ~passages:heat.passages ~role:Follower heat.followers;
+      (if Ftw.Id.Map.exists (fun _ passage ->
+         match (passage : Ftw.Heat.passage_kind) with
+         | Multiple { nth } when nth <= 1 -> true | _ -> false) heat.passages then
+        p [] [txt "* : dancers that will dance again in a later pool /\
+                       danseurs qui dansent à nouveau dans une future poule"]
+      else null []);
     ]
   ) heats
 
@@ -220,7 +299,7 @@ let heat_view ~req ~st ~comp ~phase =
   match heat with
   | Singles { singles_heats; unallocated; } ->
     let l = Array.to_list singles_heats in
-    single_heat_view ~req ~st ~bib_map ~unallocated l
+    single_heat_view ~req ~st ~comp ~phase ~bib_map ~unallocated l
   | Couples _ ->
     assert false
 
@@ -238,7 +317,7 @@ let htmx_view req phase_id =
     `Body (heat_view ~req ~st ~comp ~phase)
   | Progress ->
     let$ () = Htmx.ret' ~req ~st ~perms:[View_phase {ev;comp;phase}] in
-    `Body [txt "In progress..."]
+    `Body (heat_view ~req ~st ~comp ~phase)
   | Scoring ->
     let$ () = Htmx.ret' ~req ~st ~perms:[View_phase {ev;comp;phase}] in
     `Body [txt "Scoring..."]

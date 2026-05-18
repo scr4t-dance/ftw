@@ -74,10 +74,14 @@ let server (options : Options.server) =
         Dream_html.get Paths.Htmx.phase_view Phase.htmx_view;
         Dream_html.post Paths.Htmx.login Login.post;
         Dream_html.get Paths.Htmx.logout Login.logout;
+        Dream_html.get Paths.Htmx.event_reg Event.admin_event_reg;
+        Dream_html.get Paths.Htmx.event_start Event.admin_event_start;
         Dream_html.post Paths.Htmx.distrib_add Event.distrib_add;
         Dream_html.post Paths.Htmx.distrib_delete Event.distrib_delete;
+        Dream_html.get Paths.Htmx.comp_distrib Competition.htmx_distrib;
         Dream_html.get Paths.Htmx.comp_start Competition.htmx_start;
         Dream_html.post Paths.Htmx.phase_regen Phase.heat_regen_htmx;
+        Dream_html.get Paths.Htmx.phase_start Phase.phase_start_htmx;
 
         Dream_html.post Paths.Post.dancers Dancers.post;
         Dream_html.post Paths.Post.event_create Event.create_post;
