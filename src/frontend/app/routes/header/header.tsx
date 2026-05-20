@@ -1,8 +1,14 @@
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import "./Header.css";
 import logo from "~/assets/logo.png";
 
 export default function Header() {
+
+    const location = useLocation();
+
+    const isAdminPage = location.pathname.includes("admin/");
+    const otherPath = isAdminPage ? location.pathname.replace("admin/", "") : "admin" + location.pathname;
+
     return (
         <header className="no-print">
             <div className="logo">
@@ -19,6 +25,7 @@ export default function Header() {
                     <li><Link to="/rules">Règles</Link></li>
                     <li><Link to="/faq">FAQ</Link></li>
                     <li><Link to="/about">À propos</Link></li>
+                    <li><Link to={otherPath}>{isAdminPage ? "Public" : "Admin"}</Link></li>
                 </ul>
             </nav>
 
