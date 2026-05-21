@@ -14,7 +14,7 @@
     gen containers argon2
     printbox printbox-text
     otoml spelll uutf uunf
-    fuzzy_match.search
+    fuzzy_match.search ubase
     sqlite3 sqlite3_utils
   )
 )

@@ -243,10 +243,11 @@ module Fuzzy = struct
        which will remove the need for the map and most of the inefficiency here.
        the remaining work will mainly be to cache the list of full names in
        the state *)
+    let pattern = Ubase.from_utf8 pattern in
     let all_dancers = list ~st in
     let l =
       List.map (fun d ->
-        Format.asprintf "%s %s"(first_name d) (last_name d), d
+        Format.asprintf "%s %s"(Ubase.from_utf8 @@ first_name d) (Ubase.from_utf8 @@ last_name d), d
       ) all_dancers
     in
     let map = M.of_list l in

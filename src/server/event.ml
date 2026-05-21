@@ -382,13 +382,7 @@ let distrib_of_dancer ~req ~st ~comps dancer =
     );
   ]
 
-let distrib_dancer_add ~req ~st:_ ~ev ~pattern =
-  let first_name, last_name =
-    match String.split_on_char ' ' pattern with
-    | [first_name; last_name] -> first_name, last_name
-    | [name] -> name, name
-    | _ -> "", ""
-  in
+let distrib_dancer_add ~req ~st:_ ~ev ~first_name ~last_name =
   div [class_ "row border border-2 border-black rounded px-2 py-2 my-4 align-items-center"; id "foobar"] [
     div [class_ "col"] [
       div [class_ "row py-2"] [
@@ -415,6 +409,9 @@ let distrib_dancer_add ~req ~st:_ ~ev ~pattern =
     ]
   ]
 
+let distrib_of_attendee ~req ~st ~ev attendee =
+  distrib_dancer_add ~req ~st ~ev ~first_name:(Ftw.Attendees.first_name attendee) ~last_name:(Ftw.Attendees.last_name attendee)
+
 let distrib_search_form =
   let open Form in
   let+ pattern = required string "search" in
@@ -433,16 +430,26 @@ let distrib_api req ev_id =
         `Body [div [class_ "row"] [
           p [class_ "text-center py-5"] [txt "type at least 2 letters to search..."]]
         ]
-      else
+      else begin
         let comps = Ftw.Event.competitions ~st ev in
         let comps = List.filter (fun comp -> Ftw.Competition.status comp = Distribution) comps in
-        begin match Ftw.Dancer.Fuzzy.search ~st ~pattern with
-          | [] ->
-            `Body [distrib_dancer_add ~req ~st ~ev ~pattern]
-          | (_ :: _) as l ->
-            let body = List.map (distrib_of_dancer ~req ~st ~comps) l in
-            `Body body
-        end
+        let dancers = Ftw.Dancer.Fuzzy.search ~st ~pattern in
+        let attendees = Ftw.Attendees.Fuzzy.search ~st ~ev ~pattern in
+        match dancers, attendees with
+        | [], [] ->
+          let first_name, last_name =
+            match String.split_on_char ' ' pattern with
+            | [first_name; last_name] -> first_name, last_name
+            | [name] -> name, name
+            | _ -> "", ""
+          in
+          `Body ([distrib_dancer_add ~req ~st ~ev ~first_name ~last_name])
+        | _ ->
+          `Body (
+            (List.map (distrib_of_dancer ~req ~st ~comps) dancers) @
+            [div [class_ "row border my-3 mx-3"] []] @
+            (List.map (distrib_of_attendee ~req ~st ~ev) attendees))
+      end
     end
   | _ -> assert false (* error *)
 
