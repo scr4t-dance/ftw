@@ -39,25 +39,25 @@ let export_results ~st comp =
 (* ************************************************************************* *)
 
 let all_singles_artefacts ~st ~phase
-    ~judge_artefacts ~head_artefacts (heats : Heat.singles) =
+    ~judge_artefacts ~head_artefacts (heats : Heat.regular) =
   let aux ~judging ~descr judge =
     let aux single =
       let target = Target.With_id.id single in
       let artefact = Artefact.get ~descr ~st ~judge ~target in
       Artefact.Targeted.to_toml { judge; target; artefact; }
     in
-    List.concat_map (fun (heat : Heat.singles_one) ->
+    List.concat_map (fun (heat : Heat.one) ->
         match (judging : Judging.t) with
-        | Head ->
+        | Head { targets = `Singles } ->
           List.map aux heat.leaders @
           List.map aux heat.followers
         | Leaders ->
           List.map aux heat.leaders
         | Followers ->
           List.map aux heat.followers
-        | Couples ->
+        | Couples | Head { targets = `Couples } ->
           assert false
-      ) (Array.to_list heats.singles_heats)
+      ) (heats.unallocated :: Array.to_list heats.heats)
   in
   match Judge.get ~st ~phase with
   | Couples _ -> assert false
@@ -67,24 +67,24 @@ let all_singles_artefacts ~st ~phase
       List.concat_map (aux ~judging:Followers ~descr:judge_artefacts) followers
     ),
     Otoml.array (
-      Option.fold ~none:[] ~some:(aux ~judging:Head ~descr:head_artefacts) head
+      Option.fold ~none:[] ~some:(aux ~judging:(Head { targets = `Singles}) ~descr:head_artefacts) head
     )
 
 let all_couples_artefacts ~st ~phase
-    ~judge_artefacts ~head_artefacts (heats : Heat.couples) =
+    ~judge_artefacts ~head_artefacts (heats : Heat.regular) =
   let aux ~judging ~descr judge =
     let aux couple =
       let target = Target.With_id.id couple in
       let artefact = Artefact.get ~descr ~st ~judge ~target in
       Artefact.Targeted.to_toml { judge; target; artefact; }
     in
-    List.concat_map (fun (heat : Heat.couples_one) ->
+    List.concat_map (fun (heat : Heat.one) ->
         match (judging : Judging.t) with
-        | Head | Couples ->
+        | Head { targets = `Couples } | Couples ->
           List.map aux heat.couples
-        | Leaders | Followers ->
+        | Leaders | Followers | Head { targets = `Singles } ->
           assert false
-      ) (Array.to_list heats.couples_heats)
+      ) (heats.unallocated :: Array.to_list heats.heats)
   in
   match Judge.get ~st ~phase with
   | Couples { couples; head; } ->
@@ -92,7 +92,7 @@ let all_couples_artefacts ~st ~phase
       List.concat_map (aux ~judging:Couples ~descr:judge_artefacts) couples
     ),
     Otoml.array (
-      Option.fold ~none:[] ~some:(aux ~judging:Head ~descr:head_artefacts) head
+      Option.fold ~none:[] ~some:(aux ~judging:(Head { targets = `Couples }) ~descr:head_artefacts) head
     )
   | Singles _ ->
     assert false
@@ -105,15 +105,15 @@ let export_phase ~st phase =
   let heats_toml, judge_artefacts_toml, head_artefacts_toml =
     match judge_panel with
     | Couples _ ->
-      let heats = Heat.get_couples ~st ~phase:(Phase.id phase) in
-      let heats_toml = Heat.couples_to_toml heats in
+      let (Regular heats) = Heat.get ~st ~phase:(Phase.id phase) in
+      let heats_toml = Heat.regular_to_toml heats in
       let judge_artefacts_toml, head_artefacts_toml =
         all_couples_artefacts ~st ~phase:(Phase.id phase) ~judge_artefacts ~head_artefacts heats
       in
       heats_toml, judge_artefacts_toml, head_artefacts_toml
     | Singles _ ->
-      let heats = Heat.get_singles ~st ~phase:(Phase.id phase) in
-      let heats_toml = Heat.singles_to_toml heats in
+      let (Regular heats) = Heat.get ~st ~phase:(Phase.id phase) in
+      let heats_toml = Heat.regular_to_toml heats in
       let judge_artefacts_toml, head_artefacts_toml =
         all_singles_artefacts ~st ~phase:(Phase.id phase) ~judge_artefacts ~head_artefacts heats
       in

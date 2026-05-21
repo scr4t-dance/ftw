@@ -43,6 +43,11 @@ val delete :
   judge:Judge.id ->
   target:Id.t -> unit
 
+val clear :
+    st:State.t ->
+    judge:Judge.id ->
+    phase:Ftw_core.Phase.id -> unit
+
 
 (* Serialization *)
 (* ************************************************************************* *)

@@ -52,4 +52,5 @@ val iteri:
   'a any_ranking ->
   unit
 
+val targets_in_range : 'a any_ranking -> Rank.t -> Rank.t -> 'a list option
 

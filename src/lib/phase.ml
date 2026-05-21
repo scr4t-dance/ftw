@@ -157,8 +157,8 @@ let ranking ~st ~phase =
     with Not_found -> None
   in
   match Heat.get ~st ~phase:(id phase), Judge.get ~st ~phase:(id phase) with
-  | Singles singles, Singles panel ->
-    let _map, leaders, follows = Heat.all_single_judgement_targets singles in
+  | Regular reg, Singles panel ->
+    let _map, leaders, follows = Heat.all_single_judgement_targets reg in
     let leaders =
       Ranking.Algorithm.compute
         ~judges:panel.leaders
@@ -178,8 +178,8 @@ let ranking ~st ~phase =
         ~t:ranking_algorithm
     in
     Any (Singles { leaders; follows; })
-  | Couples couples, Couples panel ->
-    let map = Heat.all_couple_judgement_targets couples in
+  | Regular reg, Couples panel ->
+    let map = Heat.all_couple_judgement_targets reg in
     let targets = Id.Map.bindings map |> List.map fst in
     let couples =
       Ranking.Algorithm.compute
@@ -191,8 +191,6 @@ let ranking ~st ~phase =
         ~t:ranking_algorithm
     in
     Any (Couples { couples; })
-  | _ ->
-    failwith "Incoherence between heats and judge panels"
 
 let map_ranking ~targets ~judges r =
   match r with
@@ -214,3 +212,20 @@ let iteri ~targets ~judges r =
   | Any Couples {couples} ->
     Ranking.Res.iteri ~targets ~judges couples
 
+let targets_in_range any n m =
+  let aux acc (_rank, target) = target :: acc in
+  match any with
+  | Any Singles { leaders; follows; } ->
+    let leaders = Ranking.Res.ranking leaders in
+    let follows = Ranking.Res.ranking follows in
+    begin match Ranking.One.range leaders n m, Ranking.One.range follows n m with
+      | Some leaders, Some follows ->
+        Some (Array.fold_left aux (Array.fold_left aux [] leaders) follows)
+      | _ -> None
+    end
+  | Any Couples { couples } ->
+    let couples = Ranking.Res.ranking couples in
+    begin match Ranking.One.range couples n m with
+      | Some couples -> Some (Array.fold_left aux [] couples)
+      | _ -> None
+    end

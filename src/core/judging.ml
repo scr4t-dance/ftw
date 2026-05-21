@@ -5,9 +5,7 @@
 (* ************************************************************************* *)
 
 type t =
-  | Head
+  | Head of { targets : [`Singles | `Couples ] }
   | Leaders
   | Followers
   | Couples
-
-

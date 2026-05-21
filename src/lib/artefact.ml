@@ -119,7 +119,7 @@ let get ~st ~judge ~target ~descr =
       {| SELECT artefact FROM artefacts WHERE target_id = ? AND judge = ? |}
       target judge
   with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
-    Logs.err ~src:State.src (fun k->
+    Logs.warn ~src:State.src (fun k->
         k "artefact not found for judge:%a, target: %a"
           Id.print judge Id.print target);
     raise Not_found
@@ -136,6 +136,12 @@ let delete ~st ~judge ~target =
           AND target_id = ?
           AND judge = ? |}
     target judge
+
+let clear ~st ~judge ~phase =
+  State.insert ~st ~db ~ty:Db.Ty.[int; int]
+  {| DELETE FROM artefacts WHERE judge = ?
+        AND (target_id IN (SELECT id FROM heats WHERE phase_id = ?))|}
+       judge phase
 
 
 (* Serialization *)

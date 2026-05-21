@@ -57,6 +57,16 @@ val check_divs : t -> bool
 val print_compact : Format.formatter -> t -> unit
 (** Compact printing *)
 
+
+(* Logic *)
+(* ************************************************************************* *)
+
+val round_count : t -> Round.t -> int
+
+val next_round : t -> Round.t option -> Round.t * int
+
+
+
 (* Private functions *)
 (* ************************************************************************* *)
 
@@ -72,5 +82,8 @@ module Private :sig
 
   val with_status : status -> t -> t
   (** Update the status of a competition *)
+
+  val with_n : leaders:int -> followers:int -> t -> t
+  (** Update the number of leaders and followers of a competition. *)
 
 end

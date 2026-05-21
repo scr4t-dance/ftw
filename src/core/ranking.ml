@@ -76,6 +76,25 @@ module One = struct
     in
     { ranks; }
 
+  let tie_cover t r =
+    let i = Rank.to_index r in
+    match t.ranks.(i) with
+    | None -> assert false
+    | Ranked _ -> r, r
+    | Tie { rank; tie; } -> rank, Rank.add rank (Array.length tie - 1)
+
+  let range t n m : _ option =
+    let n', _ = tie_cover t n in 
+    let _, m' = tie_cover t m in
+    if Rank.compare n m > 0 || Rank.compare n' n < 0 || Rank.compare m m' > 0 then None
+    else begin
+      Some (
+        Array.init ((Rank.to_index m) - (Rank.to_index n) + 1) (fun i ->
+          Option.get @@ get t (Rank.of_index (Rank.to_index n + i))
+        )
+      )
+    end
+
   let printbox_matrix ~pp { ranks } =
     let n = Array.length ranks in
     let m = 2 in

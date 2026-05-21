@@ -64,6 +64,7 @@ let server (options : Options.server) =
     Dream_html.get Paths.Page.event_distrib Event.distrib;
     Dream_html.get Paths.Page.comp Competition.page;
     Dream_html.get Paths.Page.phase Phase.page;
+    Dream_html.get Paths.Page.judge_artefacts Artefacts.for_one_judge;
 
     (* API routes *)
     Dream.scope "/"
@@ -82,10 +83,17 @@ let server (options : Options.server) =
         Dream_html.get Paths.Htmx.comp_start Competition.htmx_start;
         Dream_html.post Paths.Htmx.phase_regen Phase.heat_regen_htmx;
         Dream_html.get Paths.Htmx.phase_start Phase.phase_start_htmx;
+        Dream_html.get Paths.Htmx.phase_scoring Phase.phase_score_htmx;
+        Dream_html.get Paths.Htmx.artefacts_view Artefacts.htmx_view;
+        Dream_html.get Paths.Htmx.phase_finish Phase.phase_finish_htmx;
+        
 
         Dream_html.post Paths.Post.dancers Dancers.post;
         Dream_html.post Paths.Post.event_create Event.create_post;
         Dream_html.post Paths.Post.event_distrib Event.distrib_api;
+        Dream_html.post Paths.Htmx.distrib_dancer_add Event.distrib_dancer_add;
+        Dream_html.post Paths.Post.artefacts Artefacts.post_artefacts;
+        Dream_html.post Paths.Htmx.phase_pairing Phase.heat_pair_htmx;
     ];
 
     (* Default routes *)

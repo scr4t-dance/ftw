@@ -25,6 +25,7 @@ module Page = struct
   let%path comp_create = "/create/comp"
   
   let%path phase = "/phase/%d"
+  let%path judge_artefacts = "/phase/%d/artefacts/%d"
 
   let%path login = "/login"
   let%path user = "user"
@@ -41,6 +42,7 @@ module Htmx = struct
 
   let%path event_reg = "/htmx/event/%d/reg"
   let%path event_start = "/htmx/event/%d/start"
+  let%path distrib_dancer_add = "/htmx/event/%d/distrib-add"
 
   let%path comp_view = "/htmx/comp/%d"
   let%path comp_distrib = "/htmx/comp/%d/distrib"
@@ -49,8 +51,12 @@ module Htmx = struct
   let%path phase_view = "/htmx/phase/%d"
   let%path phase_regen = "/htmx/phase/%d/regen"
   let%path phase_start = "/htmx/phase/%d/start"
+  let%path phase_pairing = "/htmx/phase/%d/pair"
+  let%path phase_unpairing = "/htmx/phase/%d/unpair"
   let%path phase_scoring = "/htmx/phase/%d/score"
   let%path phase_finish = "/htmx/phase/%d/finish"
+
+  let%path artefacts_view = "/htmx/phase/%d/artefacts"
 
   let%path distrib_add = "/htmx/distrib/add"
   let%path distrib_delete = "/htmx/distrib/delete"
@@ -61,10 +67,9 @@ end
 
 module Post = struct
 
-  
   let%path dancers = "/dancers"
   let%path event_create = "/create/event"
   let%path event_distrib = "/event/%d/distrib"
-  
+  let%path artefacts = "/artefacts/%d/%d"
   
 end

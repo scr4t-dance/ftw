@@ -25,3 +25,4 @@ type panel =
   | Couples of couples (**)
 (** General type for a panel of judges. *)
 
+val judging : panel -> Dancer.t -> Judging.t option

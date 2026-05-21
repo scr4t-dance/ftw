@@ -10,22 +10,25 @@ include Ftw_core.Judging
 (* ************************************************************************* *)
 
 let to_string = function
-  | Head -> "Head"
+  | Head { targets = _ } -> "Head"
   | Leaders -> "Leaders"
   | Followers -> "Followers"
   | Couples -> "Couples"
+
 
 (* DB interaction *)
 (* ************************************************************************* *)
 
 let to_int = function
-  | Head -> 0
+  | Head { targets = `Singles; } -> 0
+  | Head { targets = `Couples; } -> 4
   | Leaders -> 1
   | Followers -> 2
   | Couples -> 3
 
 let of_int = function
-  | 0 -> Head
+  | 0 -> Head { targets = `Singles }
+  | 4 -> Head { targets = `Couples }
   | 1 -> Leaders
   | 2 -> Followers
   | 3 -> Couples
@@ -40,7 +43,8 @@ let () =
   State.add_init_descr_table ()
     ~table_name:"judging_names" ~to_int
     ~to_descr:to_string ~db:Main ~values:[
-      Head; Couples;
-      Leaders; Followers;
+      Head { targets = `Singles};
+      Head { targets = `Couples};
+      Couples; Leaders; Followers;
     ]
 

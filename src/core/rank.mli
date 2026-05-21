@@ -22,6 +22,10 @@ val to_index : t -> int
 val next : t -> t
 (** Next rank *)
 
+val add : t -> int -> t
+(** Add n places to the given rank. For instance adding [2] to first place
+    makes it 3rd place. *)
+
 
 (* Usual functions *)
 (* ************************************************************************* *)

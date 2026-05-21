@@ -36,6 +36,7 @@ type event_path_elt =
   | Comp of { comp : Ftw.Competition.t; }
   | Phase of { phase : Ftw.Phase.t; }
   | Bibs
+  | Artefacts
 
 type menu_path =
   | Index
@@ -86,6 +87,10 @@ let breadcrumb root =
           | Bibs ->
             li [class_ "breadcrumb-item active"] [
                 txt "Bibs";
+            ]
+          | Artefacts ->
+            li [class_ "breadcrumb-item active"] [
+                txt "Artefacts";
             ]
         ) path
       )

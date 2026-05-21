@@ -278,6 +278,7 @@ let page req ev_id =
 (* DISTRIB page *)
 (* ************************************************************************* *)
 
+
 let distrib_search ~req ~st:_ ~ev =
   div [class_"row"] [
     div [class_ "row"] [
@@ -381,6 +382,39 @@ let distrib_of_dancer ~req ~st ~comps dancer =
     );
   ]
 
+let distrib_dancer_add ~req ~st:_ ~ev ~pattern =
+  let first_name, last_name =
+    match String.split_on_char ' ' pattern with
+    | [first_name; last_name] -> first_name, last_name
+    | [name] -> name, name
+    | _ -> "", ""
+  in
+  div [class_ "row border border-2 border-black rounded px-2 py-2 my-4 align-items-center"; id "foobar"] [
+    div [class_ "col"] [
+      div [class_ "row py-2"] [
+        form [ class_ "row";
+          path_attr Hx.post Paths.Htmx.distrib_dancer_add (Ftw.Event.id ev);
+          Hx.target "#foobar"; Hx.swap "outerHTML";
+        ] [
+          csrf_tag req;
+          div [class_ "col py-1"] [span [class_ "align-middle"] [txt "First Name:"]];
+          div [class_ "col"] [
+            input [ class_ "form-control"; type_ "text"; name "first_name";
+                    placeholder "First Name"; value "%s" first_name];
+          ];
+          div [class_ "col py-1"] [span [class_ "align-middle"] [txt "Last Name:"]];
+          div [class_ "col"] [
+            input [ class_ "form-control"; type_ "text"; name "last_name";
+                    placeholder "Last Name"; value "%s" last_name];
+          ];
+          div [class_ "col"] [
+            button [class_ "btn btn-primary"] [txt "Create Dancer"];
+          ]
+        ]
+      ]
+    ]
+  ]
+
 let distrib_search_form =
   let open Form in
   let+ pattern = required string "search" in
@@ -402,9 +436,13 @@ let distrib_api req ev_id =
       else
         let comps = Ftw.Event.competitions ~st ev in
         let comps = List.filter (fun comp -> Ftw.Competition.status comp = Distribution) comps in
-        let l = Ftw.Dancer.Fuzzy.search ~st ~pattern in
-        let body = List.map (distrib_of_dancer ~req ~st ~comps) l in
-        `Body body
+        begin match Ftw.Dancer.Fuzzy.search ~st ~pattern with
+          | [] ->
+            `Body [distrib_dancer_add ~req ~st ~ev ~pattern]
+          | (_ :: _) as l ->
+            let body = List.map (distrib_of_dancer ~req ~st ~comps) l in
+            `Body body
+        end
     end
   | _ -> assert false (* error *)
 
@@ -461,5 +499,31 @@ let distrib_delete req =
         let dancer = Ftw.Dancer.get ~st dancer_id in
         let () = Ftw.Bib.delete ~st ~competition:comp_id ~bib in
         `Body ([distrib_form ~req ~st ~comp ~dancer ~role `Neutral])
+    end
+  | _ -> assert false
+
+let add_dancer_form =
+  let open Form in
+  let+ first_name = required string "first_name"
+  and+ last_name = required string "last_name"
+  in
+  first_name, last_name
+
+let distrib_dancer_add req ev_id =
+  match%lwt Dream.form req with
+  | `Ok form_result ->
+    begin match Form.validate add_dancer_form form_result with
+      | Error errs ->
+        List.iter (fun (field, msg) ->
+          Logs.err (fun k->k "Error while decoding form field %s: %s" field msg)
+        ) errs;
+        assert false (* internal error, or incorrect api usage from external source *)
+      | Ok (first_name, last_name) ->
+        let$ st = State.get req in
+        let ev = Ftw.Event.get ~st ev_id in
+        let$ () = Htmx.ret' ~req ~st ~perms:[Bibs_modify{ev}] in
+        let comps = Ftw.Event.competitions ~st ev in
+        let dancer = Ftw.Dancer.add () ~st ~first_name ~last_name ~as_leader:None ~as_follower:None in
+        `Body [distrib_of_dancer ~req ~st ~comps dancer]
     end
   | _ -> assert false

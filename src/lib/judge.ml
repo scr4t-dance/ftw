@@ -78,35 +78,39 @@ let parse l =
       singles { acc with leaders = judge_id :: acc.leaders; } r
     | (judge_id, Judging.Followers) :: r ->
       singles { acc with followers = judge_id :: acc.followers; } r
-    | (judge_id, Head) :: r ->
+    | (judge_id, Head { targets = `Singles }) :: r ->
       begin match acc.head with
         | None -> singles { acc with head = Some judge_id; } r
         | Some _ -> failwith "multiple head judges"
       end
-    | (_judge_id, Judging.Couples) :: _ ->
+    | (_judge_id, Judging.Couples) :: _
+    | (_judge_id, Judging.Head { targets = `Couples }) :: _ ->
       failwith "mismatched judging for phase"
   in
   let rec couples acc = function
     | [] -> Couples acc
     | (judge_id, Judging.Couples) :: r ->
       couples { acc with couples = judge_id :: acc.couples; } r
-    | (judge_id, Head) :: r ->
+    | (judge_id, Head { targets = `Couples }) :: r ->
       begin match acc.head with
         | None -> couples { acc with head = Some judge_id; } r
         | Some _ -> failwith "multiple head judges"
       end
     | (_judge_id, Judging.Leaders) :: _
-    | (_judge_id, Judging.Followers) :: _ ->
+    | (_judge_id, Judging.Followers) :: _
+    | (_judge_id, Judging.Head { targets = `Singles }) :: _
+    ->
       failwith "mismatched judging for phase"
   in
-  let rec aux l = function
+  let aux l = function
     (* defaults to single when nothing is provided *)
     | [] -> singles { leaders = []; followers = []; head = None; } []
-    | (_, (Judging.Leaders | Judging.Followers)) :: _ ->
+    | (_, (Judging.Leaders | Judging.Followers)) :: _
+    | (_, Judging.Head { targets = `Singles }) :: _ ->
       singles { leaders = []; followers = []; head = None; } l
-    | (_, Judging.Couples) :: _ ->
+    | (_, Judging.Couples) :: _
+    | (_, Judging.Head { targets = `Couples }) :: _ ->
       couples { couples = []; head = None; } l
-    | (_, Judging.Head) :: r -> aux l r
   in
   aux l l
 
@@ -149,10 +153,10 @@ let set ~st ~phase panel =
     clear ~st ~phase;
     List.iter (set_aux ~st ~phase ~judging:Leaders) leaders;
     List.iter (set_aux ~st ~phase ~judging:Followers) followers;
-    Option.iter (set_aux ~st ~phase ~judging:Head) head
+    Option.iter (set_aux ~st ~phase ~judging:(Head { targets = `Singles; })) head
   | Couples { couples; head; } ->
     check_list "couples" couples;
     clear ~st ~phase;
     List.iter (set_aux ~st ~phase ~judging:Couples) couples;
-    Option.iter (set_aux ~st ~phase ~judging:Head) head
+    Option.iter (set_aux ~st ~phase ~judging:(Head { targets = `Couples })) head
 

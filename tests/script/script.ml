@@ -1,6 +1,6 @@
 
 let criterions : Ftw.Artefact.Descr.yan_criterions =
-  { criterions = ["technique"; "musicality"; "teamwork"] }
+  { criterions = ["tk"; "mu"; "tw"] }
 
 let ranking_algorithm : Ftw.Ranking.Algorithm.t =
   let w : Ftw.Ranking.Yan_weighted.weight = { yes = 3; alt = 2; no = 1; } in
@@ -22,7 +22,7 @@ let create_jj ~st ~ev ~div ~head ~judges_leaders ~judges_follows () =
       (Ftw.Competition.id comp) Prelims
       ~ranking_algorithm
       ~judge_artefact_descr:(Yans criterions)
-      ~head_judge_artefact_descr:(Yans { criterions = [""]})
+      ~head_judge_artefact_descr:(Yans { criterions = ["*"]})
   in
   let () =
     Ftw.Judge.set ~st ~phase:(Ftw.Phase.id prelims) (Singles {

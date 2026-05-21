@@ -75,13 +75,35 @@ let htmx_start req comp_id =
   match Ftw.Competition.status comp with
   | Distribution ->
     let comp = Ftw.Competition.Private.with_status Progress comp in
-    Ftw.Competition.update ~st comp;
-    begin match Ftw.Competition.round ~st comp Prelims with
+    let bibs = Ftw.Bib.get_all ~st ~competition:(Ftw.Competition.id comp) in
+    let targets = List.map snd bibs in
+    (* TODO: handle strictlys *)
+    let n_leaders, n_follows =
+      List.fold_left (fun (n_l, n_f) target ->
+        match (target : _ Ftw.Target.any) with
+        | Any Single { role = Leader; _ } -> (n_l + 1, n_f)
+        | Any Single { role = Follower; _ } -> (n_l, n_f + 1)
+        | _ -> n_l, n_f) (0,0) targets
+    in
+    let comp = Ftw.Competition.Private.with_n ~leaders:n_leaders ~followers:n_follows comp in
+    let n = Ftw.Competition.round_count comp Prelims in
+    let round : Ftw.Round.t =
+      if n <> 0 then Prelims
+      else begin
+        (match Ftw.Competition.round ~st comp Prelims with
+        | Some prelims ->
+          Ftw.Judge.clear ~st ~phase:(Ftw.Phase.id prelims);
+          Ftw.Phase.delete ~st (Ftw.Phase.id prelims)
+        | None -> ());
+        Finals
+      end
+    in
+    begin match Ftw.Competition.round ~st comp round with
       | Some prelims ->
         assert (Ftw.Phase.status prelims = Ftw.Phase.Inactive);
         let prelims = Ftw.Phase.Private.with_status Setup prelims in
-        let bibs = Ftw.Bib.get_all ~st ~competition:(Ftw.Competition.id comp) in
-        Ftw.Heat.init ~st ~phase:(Ftw.Phase.id prelims) (List.map snd bibs);
+        let _ = Ftw.Heat.init ~st ~phase:prelims targets in
+        Ftw.Competition.update ~st comp;
         Ftw.Phase.update ~st prelims;
         `Refresh
       | None -> assert false

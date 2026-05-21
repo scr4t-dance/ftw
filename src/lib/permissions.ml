@@ -1,40 +1,24 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-(* Type defs *)
+
+(* Helpers *)
+(* ************************************************************************* *)
+
+let merge_bool b b' = b || b'
+
+let user_dancer_id = function
+  | None -> assert false
+  | Some user -> User.dancer_id user
+
+
+(* Global permissions *)
 (* ************************************************************************* *)
 
 type global = {
   create_event : bool;
   view_positions : bool;
 }
-
-type event = {
-  view : bool;
-  edit : bool;
-  bibs_view : bool;
-  bibs_modify : bool;
-}
-
-type comp = {
-  view : bool;
-  edit : bool;
-}
-
-type phase = {
-  view : bool;
-  edit : bool;
-}
-
-
-(* Merging helpers *)
-(* ************************************************************************* *)
-
-let merge_bool b b' = b || b'
-
-
-(* Global permissions *)
-(* ************************************************************************* *)
 
 let merge_global (g: global) (g': global) : global = {
   create_event = merge_bool g.create_event g'.create_event;
@@ -57,6 +41,13 @@ let global ~st ?user () =
 
 (* Event permissions *)
 (* ************************************************************************* *)
+
+type event = {
+  view : bool;
+  edit : bool;
+  bibs_view : bool;
+  bibs_modify : bool;
+}
 
 let merge_event (e : event) (e': event) : event = {
   view = merge_bool e.view e'.view;
@@ -111,6 +102,11 @@ let event ~st ?user ~ev () =
 (* Competition permissions *)
 (* ************************************************************************* *)
 
+type comp = {
+  view : bool;
+  edit : bool;
+}
+
 let merge_comp (e : comp) (e': comp) : comp = {
   view = merge_bool e.view e'.view;
   edit = merge_bool e.edit e'.edit;
@@ -163,47 +159,68 @@ let comp ~st ?user ~ev ~comp () =
 (* Phase permissions *)
 (* ************************************************************************* *)
 
+type edit_artefacts =
+  | All
+  | Judges of Dancer.id list
+  | None
+
+type phase = {
+  view : bool;
+  edit : bool;
+  view_artefacts : bool;
+  edit_artefacts : edit_artefacts;
+}
+
+let merge_edit_artefacts e e' =
+  match e, e' with
+  | All, _ | _, All -> All
+  | Judges l, Judges l' -> Judges (l @ l')
+  | None, Judges l | Judges l, None -> Judges l
+  | None, None -> None
+
 let merge_phase (e : phase) (e': phase) : phase = {
   view = merge_bool e.view e'.view;
   edit = merge_bool e.edit e'.edit;
+  view_artefacts = merge_bool e.view_artefacts e'.view_artefacts;
+  edit_artefacts = merge_edit_artefacts e.edit_artefacts e'.edit_artefacts;
 }
 
-let phase_aux ?user:_ ?pos ~ev ~comp ~phase () : phase =
+let phase_aux ?user ?pos ~ev ~comp ~phase () : phase =
   match (pos : Position.t option) with
   (* Admin have all of the rights anyway *)
   | Some Admin ->
-    { view = true; edit = true; }
+    { view = true; edit = true; view_artefacts = true; edit_artefacts = All; }
 
   (* Directors and scorers need all permissions for a given competition.
      But once the event is finished, modifications should not be allowed. *)
   | Some ( Director { ev = e } | Scorer { ev = e }) when Id.equal e (Event.id ev) ->
-    { view = true; edit = true; }
+    { view = true; edit = true; view_artefacts = true; edit_artefacts = All; }
 
   | Some Head_Judge { ev = e; comp = c; }
     when Id.equal e (Event.id ev) && Id.equal c (Competition.id comp) ->
-    { view = true; edit = true; }
+    { view = true; edit = true; view_artefacts = true; edit_artefacts = Judges [user_dancer_id user]; }
 
   | Some Clerk { ev = e } when Id.equal e (Event.id ev) ->
-    { view = true; edit = false; }
+    { view = true; edit = false; view_artefacts = false; edit_artefacts = None; }
 
   | Some Emcee { ev = e; comp = c; }
     when Id.equal e (Event.id ev) && Id.equal c (Competition.id comp) ->
-    { view = true; edit = false; }
+    { view = true; edit = false; view_artefacts = false; edit_artefacts = None; }
 
   | Some Judge { ev = e; comp = c; phase = p; }
     when Id.equal e (Event.id ev) && Id.equal c (Competition.id comp) && Id.equal p (Phase.id phase) ->
-    { view = true; edit = false; }
+    { view = true; edit = false; view_artefacts = true; edit_artefacts = Judges [user_dancer_id user]; }
 
   | Some Mock_Judge { ev = e; comp = c; phase = p; }
     when Id.equal e (Event.id ev) && Id.equal c (Competition.id comp) && Id.equal p (Phase.id phase) ->      
-    { view = true; edit = false; }
+    { view = true; edit = false; view_artefacts = false; edit_artefacts = Judges [user_dancer_id user]; }
 
   | Some Marshaller { ev = e; comp = c; phase = p; }
     when Id.equal e (Event.id ev) && Id.equal c (Competition.id comp) && Id.equal p (Phase.id phase) ->
-    { view = true; edit = false; }
+    { view = true; edit = false; view_artefacts = false; edit_artefacts = None; }
 
   | _ ->
-    { view = false; edit = false; }
+    { view = false; edit = false; view_artefacts = false; edit_artefacts = None; }
 
 let phase ~st ?user ~ev ~comp ~phase () =
   let positions = Position.get_all_for_phase ~st ?user ~ev ~comp ~phase () in

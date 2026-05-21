@@ -40,6 +40,8 @@ module One : sig
 
   val get : 'a t -> Rank.t -> (Rank.t * 'a) option
 
+  val range : 'a t -> Rank.t -> Rank.t -> (Rank.t * 'a) array option
+
 end
 
 module Matrix : sig

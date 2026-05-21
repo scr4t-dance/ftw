@@ -834,7 +834,7 @@ class ftw_2 st ~stable = object(_self)
     let comp = Competition.get ~st (Phase.competition phase) in
     match Competition.kind comp, Phase.round phase with
     | Jack_and_Jill, (Prelims | Octofinals | Quarterfinals | Semifinals) ->
-      let heats = Otoml.find_exn t Heat.singles_of_toml ["heats"] in
+      let heats = Otoml.find_exn t Heat.regular_of_toml ["heats"] in
       let aux ~heat ~role single =
         let new_id =
           Heat.add_single
@@ -843,24 +843,28 @@ class ftw_2 st ~stable = object(_self)
         in
         heat_target_map <- Id.Map.add (Target.With_id.id single) new_id heat_target_map
       in
-      Array.iteri (fun heat (singles_heat : Heat.singles_one) ->
-          List.iter (aux ~heat ~role:Leader) singles_heat.leaders;
-          List.iter (aux ~heat ~role:Follower) singles_heat.followers
-        ) heats.singles_heats
+      let aux heat (one: Heat.one) =
+        List.iter (aux ~heat ~role:Leader) one.leaders;
+        List.iter (aux ~heat ~role:Follower) one.followers
+      in
+      aux 0 heats.unallocated;
+      Array.iteri aux heats.heats
     | Jack_and_Jill, Finals
     | (Routine | Strictly | JJ_Strictly), _ ->
-      let heats = Otoml.find_exn t Heat.couples_of_toml ["heats"] in
-      Array.iteri (fun heat (couples_heat : Heat.couples_one) ->
-          List.iter (fun couple ->
-              let new_id =
-                Heat.add_couple
-                  ~st ~phase:(Phase.id phase) ~heat
-                  ~leader:(Target.Couple.leader (Target.With_id.target couple))
-                  ~follower:(Target.Couple.follower (Target.With_id.target couple))
-              in
-              heat_target_map <- Id.Map.add (Target.With_id.id couple) new_id heat_target_map
-            ) couples_heat.couples
-        ) heats.couples_heats
+      let heats = Otoml.find_exn t Heat.regular_of_toml ["heats"] in
+      let aux heat (couples_heat : Heat.one) =
+        List.iter (fun couple ->
+            let new_id =
+              Heat.add_couple
+                ~st ~phase:(Phase.id phase) ~heat
+                ~leader:(Target.Couple.leader (Target.With_id.target couple))
+                ~follower:(Target.Couple.follower (Target.With_id.target couple))
+            in
+            heat_target_map <- Id.Map.add (Target.With_id.id couple) new_id heat_target_map
+          ) couples_heat.couples
+      in
+      aux 0 heats.unallocated;
+      Array.iteri aux heats.heats
 
   method import_artefacts ~event:_ ~phase t =
     let aux descr field =

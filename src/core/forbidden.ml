@@ -5,7 +5,6 @@
 (* ************************************************************************* *)
 
 type t = {
-  competition : Competition.id;
   dancer1 : Dancer.id;
   dancer2 : Dancer.id;
 }

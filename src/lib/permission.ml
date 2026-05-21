@@ -21,6 +21,8 @@ type t =
 
   | View_phase of { ev : Event.t; comp : Competition.t; phase : Phase.t; }
   | Edit_phase of { ev : Event.t; comp : Competition.t; phase : Phase.t; }
+  | View_artefacts of { ev : Event.t; comp : Competition.t; phase : Phase.t; }
+  | Edit_artefacts of { ev : Event.t; comp : Competition.t; phase : Phase.t; judge : Dancer.t; }
 
 
 (* Convenient functions *)
@@ -46,3 +48,10 @@ let check ~st ?user perm =
 
   | View_phase { ev; comp; phase; } -> (phase_perm ~ev ~comp ~phase).view
   | Edit_phase { ev; comp; phase; } -> (phase_perm ~ev ~comp ~phase).edit
+  | View_artefacts { ev; comp; phase; } -> (phase_perm ~ev ~comp ~phase).view_artefacts
+  | Edit_artefacts { ev; comp; phase; judge; } ->
+    begin match (phase_perm ~ev ~comp ~phase).edit_artefacts with
+      | All -> true
+      | Judges l -> List.exists (Id.equal (Dancer.id judge)) l
+      | None -> false
+    end

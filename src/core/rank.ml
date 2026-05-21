@@ -42,3 +42,4 @@ let of_index i = i + 1
 
 (* rank increase *)
 let next r = r + 1
+let add r i = r + i
