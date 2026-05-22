@@ -63,8 +63,7 @@ let round_count t round =
   | High_low _ when 11 <= n_max && n_max <= 20 ->
     begin match (round : Round.t) with
       | Prelims -> -1
-      | Semifinals -> 5
-      | Finals -> 3
+      | Finals -> 6
       | _ -> 0
     end
   | High_low _ when 21 <= n_max && n_max <= 30 ->
@@ -82,7 +81,9 @@ let round_count t round =
     end
 
   (* Jack and Jills *)
-  | Jack_and_Jill when n_max <= 10 ->
+  (* WARNING/TODO: temporary workaround to allow straight to finals
+    for advanced at P4T 2026, revert and find a better long-term solution *)
+  | Jack_and_Jill when n_max <= 15 ->
     begin match (round : Round.t) with
       | Finals -> -1
       | _ -> 0

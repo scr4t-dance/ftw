@@ -31,7 +31,11 @@ Distributtion de Dossards
    (et que le bouton "save" s'est transformé en "delete"), le dossard est enregistré et tout est bon !
    ![FTW website bib given](bib_success.png)
 
-7. Si jamais le numéro de dossard rentré existe déjà (**pour la même compétition**), alors une erreur
+7. Si lea personne n'est pas encore dans la base de donnée du SCR4T (mais est inscrite à l'évent), un encart apparait à la fin de la liste pour "créer"
+lea danseur/danseuse. Il suffit de cliquer sur "Create Dancer", puis de suivre
+les instructions de l'étape 6.
+
+8. Si jamais le numéro de dossard rentré existe déjà (**pour la même compétition**), alors une erreur
    est montrée
    ![FTW website bib error](bib_duplicate.png)
 
