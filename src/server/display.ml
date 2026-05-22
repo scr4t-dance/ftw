@@ -13,6 +13,20 @@ let rank r =
   let i = Ftw.Rank.rank r in
   Format.asprintf "%d" i
 
+let division d =
+  match (d : Ftw.Division.t) with
+  | Novice -> "Initié"
+  | Intermediate -> "Inter"
+  | Advanced -> "Avancé"
+
+let divisions d =
+  match (d : Ftw.Divisions.t) with
+  | None | Novice -> "Initié"
+  | Novice_Intermediate -> "Initié/Inter"
+  | Intermediate -> "Inter"
+  | Intermediate_Advanced -> "Inter/Avancé"
+  | Advanced -> "Avancé"  
+
 
 let target target =
   match (target : _ Ftw.Target.any) with

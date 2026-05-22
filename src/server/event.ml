@@ -376,8 +376,8 @@ let distrib_of_dancer ~req ~st ~comps dancer =
     div [class_ "col"] (
       div [class_ "row py-2"] [
         div [class_ "col"] [txt "%s %s" (Ftw.Dancer.first_name dancer) (Ftw.Dancer.last_name dancer)];
-        div [class_ "col"] [txt "L:%s" (Ftw.Divisions.to_string (Ftw.Dancer.as_leader dancer))];
-        div [class_ "col"] [txt "F:%s" (Ftw.Divisions.to_string (Ftw.Dancer.as_follower dancer))];
+        div [class_ "col"] [txt "Leader: %s" (Display.divisions (Ftw.Dancer.as_leader dancer))];
+        div [class_ "col"] [txt "Follower: %s" (Display.divisions (Ftw.Dancer.as_follower dancer))];
       ] :: List.map (fun comp ->
         div [class_"row py-2 border-1 border-top"] [
           div [class_ "col text-center"] [txt "%s" (Display.competition_name comp)];

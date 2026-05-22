@@ -587,12 +587,12 @@ let counter_view ~st:_ ~comp ~phase ~judge = function
           class_ "col btn btn-secondary mx-2";
           path_attr href Paths.Page.judge_artefacts_styled
             (Ftw.Phase.id phase) (Ftw.Dancer.id judge) "nums";
-        ] [txt "3/2/1"];
+        ] [txt "1/2/3"];
         a [
           class_ "col btn btn-secondary mx-2";
           path_attr href Paths.Page.judge_artefacts_styled
             (Ftw.Phase.id phase) (Ftw.Dancer.id judge) "radio";
-        ] [txt "Yes/Alt/No"];
+        ] [txt "No/Alt/Yes"];
       ];
       div [class_ "row"] (List.map (fun (criterion, c) ->
         div [class_ "col"] [

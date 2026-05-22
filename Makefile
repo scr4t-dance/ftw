@@ -33,6 +33,12 @@ reset: build
 run: build
 	dune exec -- ftw-server -vv --db=tests/test.sqlite --user-db=tests/users.sqlite
 
+demo: build
+	dune exec -- ftw-server -vv --db=tests/demo.sqlite --user-db=tests/demo.users.sqlite
+
+jj: build
+	dune exec -- ftw-server -vv --db=tests/jj.sqlite --user-db=tests/jj.users.sqlite
+
 tests: build
 	@dune runtest \
 		|| (echo -e "\n\e[01;31m!!! TESTS FAILED !!!\e[0m\n-> run 'make promote' to update the tests result files\nRun 'make openapi' if tests fail"; \
