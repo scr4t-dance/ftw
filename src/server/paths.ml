@@ -25,7 +25,9 @@ module Page = struct
   let%path comp_create = "/create/comp"
   
   let%path phase = "/phase/%d"
+
   let%path judge_artefacts = "/phase/%d/artefacts/%d"
+  let%path judge_artefacts_styled = "/phase/%d/artefacts/%d?style=%s"
 
   let%path login = "/login"
   let%path user = "user"

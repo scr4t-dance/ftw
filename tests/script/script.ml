@@ -123,18 +123,18 @@ let exec ~st () =
   let corbet = mk ~st ~dancer:91 ~username:"corbet" ~pwd:"" in
   let valentine = mk ~st ~dancer:86 ~username:"titine" ~pwd:"" in
   let romain = mk ~st ~dancer:79 ~username:"romain" ~pwd:"" in
-  let bivas = mk ~st ~dancer:40 ~username:"bivas" ~pwd:"" in
+  let bivas = mk ~st ~dancer:40 ~username:"irenebivas" ~pwd:"Fusion4Temps" in
   let berton = mk ~st ~dancer:94 ~username:"berton" ~pwd:"" in
-  let antoine = mk ~st ~dancer:141 ~username:"antoine" ~pwd:"" in
+  let antoine = mk ~st ~dancer:141 ~username:"antoine" ~pwd:"ADLD" in
   let filam = mk ~st ~dancer:89 ~username:"filam" ~pwd:"" in
   let gaelle = mk ~st ~dancer:61 ~username:"gaelle" ~pwd:"" in
   let gaby = mk ~st ~dancer:55 ~username:"gaby" ~pwd:"" in
   let bourda = mk ~st ~dancer:109 ~username:"alice" ~pwd:"" in
   let lisa = mk ~st ~dancer:183 ~username:"lisa" ~pwd:"" in
-  let alexis = mk ~st ~dancer:66 ~username:"alexis" ~pwd:"" in
+  let alexis = mk ~st ~dancer:66 ~username:"Aled" ~pwd:"vHyu45jbN" in
   let eva = mk ~st ~dancer:156 ~username:"eva" ~pwd:"" in
   let pm = mk ~st ~dancer:105 ~username:"pm" ~pwd:"" in
-  let amandine = mk ~st ~dancer:62 ~username:"amandine" ~pwd:"" in
+  let amandine = mk ~st ~dancer:62 ~username:"amandine" ~pwd:"amandine99" in
 
   (* Evnet & Comps *)
   let ev =

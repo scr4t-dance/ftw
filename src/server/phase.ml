@@ -544,7 +544,7 @@ let heat_table_couples ~req:_ ~st ~bib_map targets =
     ) targets
     |> List.sort (fun (b, _, _, _) (b', _, _, _) -> CCOrd.option Ftw.Id.compare b b')
   in
-  div [class_ "col-6"] [
+  div [class_ "col-12"] [
     h5 [] [txt "Couples"];
     table [class_ "table table-hover"] (
       thead [] [

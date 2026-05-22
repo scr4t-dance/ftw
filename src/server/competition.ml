@@ -243,6 +243,7 @@ let bibs_view ~st ~comp =
     ) ([], [], []) bibs
   in
   div [class_ "row"] [
+    h3 [] [txt "Bibs"];
     (match leaders, follows with
     | [], [] -> null []
     | _, _ ->

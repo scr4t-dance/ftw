@@ -94,7 +94,19 @@ let yan_weighted_row ~req:_ ~st ~comp ~matrix ~i ~judge_criterions ~judge_weight
     (* Bib *)
     td [] [
       match Ftw.Bib.find ~st ~comp target with
-      | None -> txt "?"
+      | None ->
+        begin match target with
+        | Any Couple { leader; follower; } ->
+          begin match
+            Ftw.Bib.find ~st ~comp (Any (Single { target = leader; role = Leader; })),
+            Ftw.Bib.find ~st ~comp (Any (Single { target = follower; role = Follower; }))
+           with
+            | Some (lbib, _), Some (fbib, _) ->
+              txt "#%d / #%d" lbib fbib
+            | _ -> txt "?"
+          end
+        | _ -> txt "?"
+        end
       | Some (bib, _) -> txt "#%d" bib
     ] ::
     (* Dancer/target *)
@@ -356,20 +368,6 @@ let input_yan_num ~counter ~style ~target_id ~criterion ~yan =
   match style with
   | `Radio ->
     div [class_ "btn-group d-block"; role `group ] [
-      input [ type_ "radio"; class_ "btn-check"; value "3";
-              name "%d-%s" target_id criterion;
-              id "%d-%s-yes" target_id criterion;
-              (match yan with Some Ftw.Artefact.Yes -> checked | _ -> null_)];
-      label
-        [class_ "btn btn-outline-success"; for_ "%d-%s-yes" target_id criterion]
-        [txt "Yes"];
-      input [ type_ "radio"; class_ "btn-check"; value "2";
-              name "%d-%s" target_id criterion;
-              id "%d-%s-alt" target_id criterion;
-              (match yan with Some Ftw.Artefact.Alt -> checked | _ -> null_)];
-      label
-        [class_ "btn btn-outline-warning"; for_ "%d-%s-alt" target_id criterion]
-        [txt "Alt"];
       input [ type_ "radio"; class_ "btn-check"; value "1";
               name "%d-%s" target_id criterion;
               id "%d-%s-no" target_id criterion;
@@ -377,6 +375,20 @@ let input_yan_num ~counter ~style ~target_id ~criterion ~yan =
       label
         [class_ "btn btn-outline-danger"; for_ "%d-%s-no" target_id criterion]
         [txt "No"];
+      input [ type_ "radio"; class_ "btn-check"; value "2";
+              name "%d-%s" target_id criterion;
+              id "%d-%s-alt" target_id criterion;
+              (match yan with Some Ftw.Artefact.Alt -> checked | _ -> null_)];
+      label
+        [class_ "btn btn-outline-warning"; for_ "%d-%s-alt" target_id criterion]
+        [txt "Alt"];
+      input [ type_ "radio"; class_ "btn-check"; value "3";
+              name "%d-%s" target_id criterion;
+              id "%d-%s-yes" target_id criterion;
+              (match yan with Some Ftw.Artefact.Yes -> checked | _ -> null_)];
+      label
+        [class_ "btn btn-outline-success"; for_ "%d-%s-yes" target_id criterion]
+        [txt "Yes"];
     ]
   | `Nums ->
     input [
@@ -417,8 +429,9 @@ let cols ~req ~counter ~phase ~judge ~judging ~st ~target_id =
     in
     let style =
       match Dream.query req "style" with
+      | Some "nums" -> `Nums
       | Some "radio" -> `Radio
-      | _ -> `Nums
+      | _ -> `Radio
     in
     List.map2 (fun criterion yan ->
       td
@@ -562,12 +575,25 @@ let heat_view ~req ~st ~comp ~phase ~judge =
           [txt "Save Artefacts"] ]
       )
 
-let counter_view ~st:_ ~comp ~phase = function
+let counter_view ~st:_ ~comp ~phase ~judge = function
   | Other -> null []
   | Yans l ->
     let _, n_yes = Ftw.Competition.next_round comp (Some (Ftw.Phase.round phase)) in
-    div [class_ "row border rounded mx-2 my-2"] [
+
+    div [class_ "row border rounded mx-2 my-2 px-2 py-2"] [
       h6 [] [txt "Summary"];
+      div [class_ "row align-center px-3 py-1"] [
+        a [
+          class_ "col btn btn-secondary mx-2";
+          path_attr href Paths.Page.judge_artefacts_styled
+            (Ftw.Phase.id phase) (Ftw.Dancer.id judge) "nums";
+        ] [txt "3/2/1"];
+        a [
+          class_ "col btn btn-secondary mx-2";
+          path_attr href Paths.Page.judge_artefacts_styled
+            (Ftw.Phase.id phase) (Ftw.Dancer.id judge) "radio";
+        ] [txt "Yes/Alt/No"];
+      ];
       div [class_ "row"] (List.map (fun (criterion, c) ->
         div [class_ "col"] [
           txt "%s :" criterion;
@@ -606,7 +632,7 @@ let for_one_judge req phase_id judge_id =
     h4
       [class_ "text-center"]
       [txt "Artefacts - %s %s" (Ftw.Dancer.first_name judge) (Ftw.Dancer.last_name judge)];
-    counter_view ~st ~comp ~phase counter;
+    counter_view ~st ~comp ~phase ~judge counter;
     heats_views
   ]
 
