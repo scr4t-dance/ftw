@@ -314,8 +314,14 @@ let distrib_form ~req ~st ~comp ~dancer ~role prev =
     | Follower -> Ftw.Dancer.as_follower dancer
   in
   let can_compete =
-    match Ftw.Competition.category comp with
-    | Competitive div -> Ftw.Divisions.includes div dancer_divs
+    match Ftw.Competition.kind comp, Ftw.Competition.category comp with
+    | Jack_and_Jill, Competitive div -> Ftw.Divisions.includes div dancer_divs
+    | High_low { high; }, _ ->
+      if Ftw.Role.equal role high then
+        Ftw.Divisions.includes Intermediate dancer_divs ||
+        Ftw.Divisions.includes Advanced dancer_divs
+      else
+        Ftw.Divisions.includes Novice dancer_divs
     | _ -> true
   in
   if can_compete then
@@ -530,6 +536,7 @@ let distrib_dancer_add req ev_id =
         let ev = Ftw.Event.get ~st ev_id in
         let$ () = Htmx.ret' ~req ~st ~perms:[Bibs_modify{ev}] in
         let comps = Ftw.Event.competitions ~st ev in
+        let comps = List.filter (fun comp -> Ftw.Competition.status comp = Distribution) comps in
         let dancer = Ftw.Dancer.add () ~st ~first_name ~last_name ~as_leader:None ~as_follower:None in
         `Body [distrib_of_dancer ~req ~st ~comps dancer]
     end

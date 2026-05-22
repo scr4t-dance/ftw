@@ -12,6 +12,10 @@ type t =
 (* Usual functions *)
 (* ************************************************************************* *)
 
+let print fmt = function
+  | Leader -> Format.fprintf fmt "Leader"
+  | Follower -> Format.fprintf fmt "Follower"
+
 let print_compact fmt = function
   | Leader -> Format.fprintf fmt "L"
   | Follower -> Format.fprintf fmt "F"

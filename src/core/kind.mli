@@ -10,13 +10,15 @@ type t =
   | Strictly        (** Strictly:
                         inscription by couples, they stay together
                         throughout the competition. *)
-  | JJ_Strictly     (** Jack&Jill Open-style:
-                        individual inscription, random pairings in prelims,
-                        the same pairings are kept throughout all the
-                        competition. *)
+  
   | Jack_and_Jill   (** Regular jack&Jill:
                         individual inscription, random pairing regenerated
                         at each phase. *)
+  | High_low of { high : Role.t; }
+    (** Jack&Jill Open-style:
+        individual inscription, random pairings in prelims,
+        the same pairings are kept throughout all the
+        competition. *)
 (** Type for the kind of competitions. *)
 
 

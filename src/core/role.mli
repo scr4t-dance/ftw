@@ -18,6 +18,9 @@ val equal : t -> t -> bool
 val compare : t -> t -> int
 (** Comparison function. *)
 
+val print : Format.formatter -> t -> unit
+(** Normal printing function. *)
+
 val print_compact : Format.formatter -> t -> unit
 (** Compact printing. *)
 

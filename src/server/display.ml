@@ -68,8 +68,9 @@ let kind k =
   match (k : Ftw.Kind.t) with
   | Routine -> "Routine"
   | Strictly -> "Strictly"
-  | JJ_Strictly -> "JJ_Strictly"
   | Jack_and_Jill -> "J&J"
+  | High_low { high = Leader; } -> "HiLo(Leader)"
+  | High_low { high = Follower; } -> "HiLo(Follower)"
 
 let category c =
   match (c : Ftw.Category.t) with

@@ -54,6 +54,34 @@ let round_count t round =
   let n_f = n_follows t in
   let n_max = max n_l n_f in
   match kind t with
+  (* High-Lows *)
+  | High_low _ when n_max <= 10 ->
+    begin match (round : Round.t) with
+      | Finals -> -1
+      | _ -> 0
+    end
+  | High_low _ when 11 <= n_max && n_max <= 20 ->
+    begin match (round : Round.t) with
+      | Prelims -> -1
+      | Semifinals -> 5
+      | Finals -> 3
+      | _ -> 0
+    end
+  | High_low _ when 21 <= n_max && n_max <= 30 ->
+    begin match (round : Round.t) with
+      | Prelims -> -1
+      | Finals -> 8
+      | _ -> 0
+    end
+  | High_low _ when 31 <= n_max ->
+    begin match (round : Round.t) with
+      | Prelims -> -1
+      | Semifinals -> 16
+      | Finals -> 10
+      | _ -> 0
+    end
+
+  (* Jack and Jills *)
   | Jack_and_Jill when n_max <= 10 ->
     begin match (round : Round.t) with
       | Finals -> -1

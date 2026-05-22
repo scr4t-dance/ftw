@@ -118,10 +118,17 @@ let heat_regen_htmx req phase_id =
       let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
       let$ () = Htmx.ret' ~req ~st ~perms:[Edit_phase {ev;comp;phase}] in
       let heat = Ftw.Heat.get ~st ~phase:(Ftw.Phase.id phase) in
-      begin match Ftw.Competition.kind comp with
-        | Jack_and_Jill ->
+      begin match Ftw.Competition.kind comp, Ftw.Phase.round phase with
+        | Jack_and_Jill, _ ->
           let forbidden_pairs = Ftw.Forbidden.get ~st ~event:(Ftw.Event.id ev) in
           Ftw.Heat.regen_singles ~tries:1000 ~st ~phase:(Ftw.Phase.id phase) ~forbidden_pairs ~min ~max ~early ~late heat;
+          `Trigger "PhaseViewUpdate"
+        | High_low _, Prelims ->
+          let forbidden_pairs = Ftw.Forbidden.get ~st ~event:(Ftw.Event.id ev) in
+          Ftw.Heat.regen_singles ~tries:1000 ~st ~phase:(Ftw.Phase.id phase) ~forbidden_pairs ~min ~max ~early ~late heat;
+          `Trigger "PhaseViewUpdate"
+        | High_low _, _ ->
+          Ftw.Heat.regen_couples ~tries:1000 ~st ~phase:(Ftw.Phase.id phase) ~min ~max ~early ~late heat;
           `Trigger "PhaseViewUpdate"
         | _ ->
           assert false
@@ -408,7 +415,7 @@ let admin_panel_progress ~req ~st ~ev:_ ~comp ~phase =
     phase_infos ~req ~st ~phase;
     (match Ftw.Competition.kind comp, Ftw.Phase.round phase with
       | Jack_and_Jill, Finals
-      | JJ_Strictly, Prelims ->
+      | High_low _, Prelims ->
         heat_pairing_form ~req ~st ~comp ~phase
       | _ -> null []
     );
@@ -651,4 +658,13 @@ let htmx_view req phase_id =
         ]
   | Finished ->
     let$ () = Htmx.ret' ~req ~st ~perms:[View_phase {ev;comp;phase}] in
-    `Body [txt "Finished"]
+    `Body [
+        div
+          [ path_attr Hx.get Paths.Htmx.artefacts_view (Ftw.Phase.id phase);
+            Hx.swap "innerHTML"; Hx.trigger "revealed once";]
+          [
+            div [class_ "spinnner spinner-border"; role `status] [
+              span [class_ "visually-hidden"] [txt "Loading..."]
+            ]
+          ]
+        ]

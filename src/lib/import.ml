@@ -1,5 +1,4 @@
 
-
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
 open Ftw_core.Misc.Result
@@ -643,7 +642,7 @@ class ftw_1 st = object(self)
       self#import_couples_artefacts ~event ~phase t;
       self#log_ranking (self#compute_ranking ~phase)
     (* TODO: check coherence between rankings and results *)
-    | (Routine | Strictly | JJ_Strictly), _ ->
+    | (Routine | Strictly | High_low _), _ ->
       Logs.warn ~src (fun k->k "Artefacts import not implemented yet for non-J&J")
 
 
@@ -820,7 +819,7 @@ class ftw_2 st ~stable = object(_self)
     match Competition.kind comp, Phase.round phase, panel with
     | Jack_and_Jill, (Prelims | Octofinals | Quarterfinals | Semifinals), Singles _
     | Jack_and_Jill, Finals, Couples _
-    | (Routine | Strictly | JJ_Strictly), _, Couples _ ->
+    | (Routine | Strictly | High_low _), _, Couples _ ->
       Judge.set ~st ~phase:(Phase.id phase) panel
     | _ ->
       Logs.err ~src (fun k->k "Incoherent judge panel for phase")
@@ -850,7 +849,7 @@ class ftw_2 st ~stable = object(_self)
       aux 0 heats.unallocated;
       Array.iteri aux heats.heats
     | Jack_and_Jill, Finals
-    | (Routine | Strictly | JJ_Strictly), _ ->
+    | (Routine | Strictly | High_low _), _ ->
       let heats = Otoml.find_exn t Heat.regular_of_toml ["heats"] in
       let aux heat (couples_heat : Heat.one) =
         List.iter (fun couple ->

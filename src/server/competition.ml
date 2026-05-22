@@ -213,6 +213,62 @@ let page req comp_id =
 (* Main htmx view *)
 (* ************************************************************************* *)
 
+let bib_table bibs =
+  table [class_ "table"] [
+    thead [] [
+      tr [] [
+        td [] [txt "#"];
+        td [] [txt "Target"];
+      ]
+    ];
+    tbody [] (List.map (fun (bib, target) ->
+      tr [] [
+        td [] [txt "#%d" bib];
+        td [] [txt "%s" (Display.target target)]
+      ]
+      ) bibs);
+  ]
+
+let bibs_view ~st ~comp =
+  let bibs = Ftw.Bib.get_all ~st ~competition:(Ftw.Competition.id comp) in
+  let bibs = List.sort (fun (b, _) (b', _) -> Ftw.Id.compare b' b) bibs in
+  let leaders, follows, couples =
+    List.fold_left (fun (l, f, c) (bib, target) ->
+      let target = Ftw.Target.map_any ~f:(Ftw.Dancer.get ~st) target in
+      match target with
+      | Any Single { role = Leader; _ } -> (bib, target) :: l, f, c
+      | Any Single { role = Follower; _ } -> l, (bib, target) :: f, c
+      | Any Couple _ -> l, f, (bib, target) :: c
+      | Any _ -> assert false
+    ) ([], [], []) bibs
+  in
+  div [class_ "row"] [
+    (match leaders, follows with
+    | [], [] -> null []
+    | _, _ ->
+      div [class_ "row"] [
+        div [class_ "col"] [
+          h5 [] [txt "Leaders"];
+          bib_table leaders;
+        ];
+        div [class_ "col"] [
+          h5 [] [txt "Followers"];
+          bib_table follows;
+        ];
+      ]
+    );
+    (match couples with 
+    | [] -> null []
+    | _ ->
+      div [class_ "row"] [
+        div [class_ "col"] [
+          h5 [] [txt "Couples"];
+          bib_table couples;
+        ]
+      ]
+    );
+  ]
+
 let target_row ~st ?rank ~target () =
   match (target : _ Ftw.Target.any) with
   | Any Couple { leader; follower; } ->
@@ -276,17 +332,7 @@ let htmx_view req comp_id =
     `Body [txt "Registration in progress..."]
   | Distribution ->
     let$ () = Htmx.ret' ~req ~st ~perms:[View_comp {ev;comp;}] in
-    let n_leaders, n_followers = count_bibs ~st ~comp in
-    `Body [
-        div [class_ "row"] [
-          div [class_ "col"] [
-            txt "Leaders : %d" n_leaders;
-          ];
-          div [class_ "col"] [
-            txt "Followers : %d" n_followers;
-          ];
-        ];
-      ]
+    `Body [bibs_view ~st ~comp]
   | Progress ->
     let$ () = Htmx.ret' ~req ~st ~perms:[View_comp {ev;comp;}] in
     let phases = Ftw.Competition.phases ~st comp in
