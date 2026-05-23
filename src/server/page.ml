@@ -200,13 +200,14 @@ let page_footer =
 
 let page_body _root page_body =
   [
-    div [class_ "container"] page_body
+    div [class_ "container mx-1 my-1"] page_body
   ]
 
 (* Base Page template *)
 (* ************************************************************************* *)
 
 let mk' ~req ~st ~root ~title:title_text ~perms k =
+  let _ = (root : menu_path) in
   let local = true in
   let status, actual_body =
     if (User.check_perms ~req ~st perms)

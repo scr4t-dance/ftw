@@ -23,6 +23,14 @@ let comp_infos ~req ~st ?(judges=false) comp =
         txt "Status: %s" (Display.comp_status comp);
       ];
     ];
+    div [class_ "row"] [
+      div [class_ "col"] [
+        txt "Leaders: %d" (Ftw.Competition.n_leaders comp);
+      ];
+      div [class_ "col"] [
+        txt "Followers: %d" (Ftw.Competition.n_follows comp);
+      ];
+    ];
     if judges then
       div [class_ "row border-top border-2 my-2 py-2"] (
         [ h5 [] [txt "Prelims"] ] @ (

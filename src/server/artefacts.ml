@@ -84,7 +84,8 @@ let yan_weighted_row ~req:_ ~st ~comp ~matrix ~i ~judge_criterions ~judge_weight
     (* Rank *)
     td [] [match (ranked : _ Ftw.Ranking.One.ranked) with
       | None -> txt ""
-      | Ranked { rank; target = _; } -> txt "%s" (Display.rank rank)
+      | Ranked { rank; target = _; } ->
+        txt "%s" (Display.rank rank)
       | Tie { rank; tie = _; } ->
         if (Ftw.Rank.equal rank (Ftw.Rank.of_index i)) then
           txt "%s" (Display.rank rank)
@@ -189,9 +190,13 @@ let rpss_headers ~judges ~phase ~n =
       th [] [txt "Leader"] ::
       th [] [txt "Follower"] ::
       (List.map (fun (judge, head) ->
-        td [] [a
-          [class_ "btn btn-secondary"; path_attr href Paths.Page.judge_artefacts (Ftw.Phase.id phase) (Ftw.Dancer.id judge)]
-          [txt "%s%s" (Ftw.Dancer.first_name judge) (if head then "*" else "")]]
+        td [] [
+          a
+            [class_ ""; path_attr href Paths.Page.judge_artefacts (Ftw.Phase.id phase) (Ftw.Dancer.id judge)]
+            [txt "%s%s" (Ftw.Dancer.first_name judge) (if head then "*" else "")];
+        ]
+
+
         ) judges)
       @ (List.init n (fun i ->
         th [] [txt "1-%d" (i + 1)]
@@ -212,7 +217,8 @@ let rpss_row ~req:_ ~st ~comp ~phase:_ ~matrix ~i =
     (* Rank *)
     td [] [match (ranked : _ Ftw.Ranking.One.ranked) with
       | None -> txt ""
-      | Ranked { rank; target = _; } -> txt "%s" (Display.rank rank)
+      | Ranked { rank; target = _; } ->
+        txt "%s" (Display.rank rank)
       | Tie { rank; tie = _; } ->
         if (Ftw.Rank.equal rank (Ftw.Rank.of_index i)) then
           txt "%s" (Display.rank rank)
