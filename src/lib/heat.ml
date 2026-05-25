@@ -275,9 +275,9 @@ let regen_singles ~min ~max leaders_set followers_set =
       let a = Array.sub leaders 0 m in
       Array.append leaders a, followers
     end else if n_leaders > n_followers then begin
-      let m = n_leaders - n_followers in
-      let a = Array.sub followers 0 m in
-      leaders, Array.append followers a
+      let _m = n_leaders - n_followers in
+      let a = Array.concat [followers; followers; followers] in
+      leaders, Array.sub a 0 n_leaders
     end else begin
       assert (n_leaders = n_followers);
       leaders, followers

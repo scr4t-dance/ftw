@@ -192,7 +192,7 @@ let rpss_headers ~judges ~phase ~n =
       (List.map (fun (judge, head) ->
         td [] [
           a
-            [class_ ""; path_attr href Paths.Page.judge_artefacts (Ftw.Phase.id phase) (Ftw.Dancer.id judge)]
+            [class_ "btn btn-secondary"; path_attr href Paths.Page.judge_artefacts (Ftw.Phase.id phase) (Ftw.Dancer.id judge)]
             [txt "%s%s" (Ftw.Dancer.first_name judge) (if head then "*" else "")];
         ]
 
