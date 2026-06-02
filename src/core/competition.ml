@@ -121,7 +121,19 @@ let round_count t round =
       | Finals -> 14
       | _ -> 0
     end
-  | _ -> 0
+
+  | Strictly ->
+    begin match (round : Round.t) with
+      | Prelims -> -1
+      | Semifinals -> 12
+      | Finals -> 6
+      | _ -> 0
+    end
+  | _ ->
+    begin match (round : Round.t) with
+      | Finals -> -1
+      | _ -> 0
+    end
 
 let rec next_round t round_opt =
   let aux r =

@@ -130,6 +130,9 @@ let heat_regen_htmx req phase_id =
         | High_low _, _ ->
           Ftw.Heat.regen_couples ~tries:1000 ~st ~phase:(Ftw.Phase.id phase) ~min ~max ~early ~late heat;
           `Trigger "PhaseViewUpdate"
+        | Strictly, _ ->
+          Ftw.Heat.regen_couples ~tries:100 ~st ~phase:(Ftw.Phase.id phase) ~min ~max ~early ~late heat;
+          `Trigger "PhaseViewUpdate"
         | _ ->
           assert false
       end
@@ -535,8 +538,15 @@ let heat_table_couples ~req:_ ~st ~bib_map targets =
       let target = Ftw.Target.With_id.target target_with_id in
       let Ftw.Target.Couple { leader; follower; } = target in
 
-      let leader_bib_opt = Ftw.Bib.TMap.find_opt (Ftw.Target.Any (Single { target = leader; role = Leader; })) bib_map in
-      let follower_bib_opt = Ftw.Bib.TMap.find_opt (Ftw.Target.Any (Single { target = follower; role = Follower; })) bib_map in
+      let leader_bib_opt, follower_bib_opt =
+        match Ftw.Bib.TMap.find_opt (Any target) bib_map with
+        | None ->
+          let leader_bib_opt = Ftw.Bib.TMap.find_opt (Ftw.Target.Any (Single { target = leader; role = Leader; })) bib_map in
+          let follower_bib_opt = Ftw.Bib.TMap.find_opt (Ftw.Target.Any (Single { target = follower; role = Follower; })) bib_map in
+          leader_bib_opt, follower_bib_opt
+        | Some _bib as bib_opt ->
+          bib_opt, bib_opt
+        in
 
       let leader = Ftw.Dancer.get ~st leader in
       let follower = Ftw.Dancer.get ~st follower in
