@@ -175,6 +175,8 @@ let exec ~st () =
   let _eva = mk ~st ~dancer:156 ~username:"eva" ~pwd:"insta" in
   let _pm = mk ~st ~dancer:105 ~username:"pm" ~pwd:"ouragan" in
   let _amandine = mk ~st ~dancer:62 ~username:"amandine" ~pwd:"amandine99" in
+  let _lucille = mk ~st ~dancer:108 ~username:"lucille" ~pwd:"" in
+  let _aurelien = mk ~st ~dancer:128 ~username:"aurélien" ~pwd:"" in
 
   (* Event & Comps *)
   let ev =
@@ -189,12 +191,12 @@ let exec ~st () =
   let novice =
     create_strictly ()
       ~st ~ev ~name:"Strictly Initiés"
-      ~head:lea ~judges:[_alix]
+      ~head:_lucille ~judges:[_eva; _pbk; _mathilde; _aurelien]
   in
   let inter =
     create_strictly ()
       ~st ~ev ~name:"Strictly Inters"
-      ~head:lea ~judges:[_alix]
+      ~head:_lucille ~judges:[_eva; _romain; _abella; _antoine]
   in
   let () =
     let index = Ftw.Dancer.Index.mk ~st in
