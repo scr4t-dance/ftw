@@ -150,7 +150,7 @@ let exec ~st () =
 
   let clerk = Ftw.User.create ~st ~email:"" ~username:"clerk" ~pwd:"p4tp4t" ~dancer_id:90 in
 
-  let lea = mk ~st ~dancer:5 ~username:"lea" ~pwd:"aleatoire" in
+  let _lea = mk ~st ~dancer:5 ~username:"lea" ~pwd:"aleatoire" in
   let _riri = mk ~st ~dancer:97 ~username:"riri" ~pwd:"hello" in
   let _dom = mk ~st ~dancer:134 ~username:"dom" ~pwd:"there" in
   let _pbk = mk ~st ~dancer:53 ~username:"pbk" ~pwd:"papa" in
