@@ -58,6 +58,7 @@ let count_bibs ~st ~comp =
       match (target : _ Ftw.Target.any) with
       | Any Single { target = _; role = Leader; } -> (n_l + 1, n_f)
       | Any Single { target = _; role = Follower; } -> (n_l, n_f + 1)
+      | Any Couple _ -> (n_l + 1, n_f + 1)
       | _ -> Logs.err (fun k->k "unexpected target !"); n_l, n_f
     ) (0,0) bibs
   in
@@ -91,6 +92,7 @@ let htmx_start req comp_id =
         match (target : _ Ftw.Target.any) with
         | Any Single { role = Leader; _ } -> (n_l + 1, n_f)
         | Any Single { role = Follower; _ } -> (n_l, n_f + 1)
+        | Any Couple _ -> (n_l + 1, n_f + 1)
         | _ -> n_l, n_f) (0,0) targets
     in
     let comp = Ftw.Competition.Private.with_n ~leaders:n_leaders ~followers:n_follows comp in

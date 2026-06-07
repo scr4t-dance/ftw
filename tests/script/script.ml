@@ -16,8 +16,9 @@ let criterions : Ftw.Artefact.Descr.yan_criterions =
 
 let ranking_algorithm : Ftw.Ranking.Algorithm.t =
   let w : Ftw.Ranking.Yan_weighted.weight = { yes = 3; alt = 2; no = 1; } in
+  let w' : Ftw.Ranking.Yan_weighted.weight = { yes = 4; alt = 2; no = 1; } in
   Yan_weighted {
-    weights = [ w; w; w];
+    weights = [ w'; w; w];
     head_weights = [ w ];
   }
 

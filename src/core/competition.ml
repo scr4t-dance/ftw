@@ -122,11 +122,16 @@ let round_count t round =
       | _ -> 0
     end
 
-  | Strictly ->
+  | Strictly when n_max <= 8 ->
+    begin match (round : Round.t) with
+      | Finals -> -1
+      | _ -> 0
+    end
+
+  | Strictly when 8 < n_max ->
     begin match (round : Round.t) with
       | Prelims -> -1
-      | Semifinals -> 12
-      | Finals -> 6
+      | Finals -> 8
       | _ -> 0
     end
   | _ ->
