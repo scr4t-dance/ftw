@@ -10,8 +10,8 @@ Fixes for Spooky
 * Changes
   + Heat generation: put bigger heats in the middle (keep first heats lighter for judges, and keep last heats with free spots for fixes)
 
-
 * Features
+  + Finish full DB import to have a full scr4t DB
   + Select number of people in a heat, and heats thresholds at begining of comp
   + Thresholds and bonus:
     - Show thresholds (for next phase, but also points) in the ranking view
@@ -27,3 +27,10 @@ Fixes for Spooky
     - create user
     - change passwd
     - add/give/remove positions
+
+
+Others
+======
+
+* Features
+  + Add position for SCR4T social media manager (read access to results of comps, but no write access)
