@@ -318,10 +318,11 @@ class virtual importer (st : State.t) = object(self)
                 end
           | _ -> ()
         end;
-        (* actually record the results and compute adequate promotions *)
-        Results.add ~st r;
+        (* compute adequate promotions *)
         Results.promotion ~st ~event:(Event.get ~st event) ~comp r
-        |> List.iter (Promotion.record ~st)
+        |> List.iter (Promotion.record ~st);
+        (* add the results **after** computing promotions *)
+        Results.add ~st r;
       ) l
 
   (* === competitions === *)
