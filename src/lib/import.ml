@@ -288,7 +288,9 @@ class virtual importer (st : State.t) = object(self)
       match Competition.round ~st comp Finals with
       | None -> None
       | Some phase ->
-        match Phase.ranking ~st ~phase with
+        let ranking = Phase.ranking ~st ~phase in
+        self#log_ranking ranking;
+        match ranking with
         | Any Singles _ -> failwith "singles ranking for a finals is not allowed"
         | Any Couples { couples; } ->
           Some (Ranking.Res.ranking @@ dancer_ranking_res ~st couples)
