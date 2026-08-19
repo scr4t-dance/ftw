@@ -21,6 +21,7 @@ depends: [
   "fmt"
   "uunf"
   "uutf"
+  "ubase"
   "jsont"
   "bytesrw"
   "fuzzy_match"

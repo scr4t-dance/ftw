@@ -16,7 +16,7 @@
  (depends
    sqlite3 sqlite3_utils
    containers gen spelll otoml
-   bos fpath logs fmt uunf uutf
+   bos fpath logs fmt uunf uutf ubase
    jsont bytesrw fuzzy_match
    printbox printbox-text))
 
