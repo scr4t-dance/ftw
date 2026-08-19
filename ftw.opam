@@ -24,6 +24,7 @@ depends: [
   "ubase"
   "jsont"
   "bytesrw"
+  "argon2"
   "fuzzy_match" {>= "v0.17.0"}
   "printbox"
   "printbox-text"
