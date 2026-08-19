@@ -25,4 +25,6 @@ type panel =
   | Couples of couples (**)
 (** General type for a panel of judges. *)
 
+val print : Format.formatter -> panel -> unit
+
 val judging : panel -> Dancer.t -> Judging.t option

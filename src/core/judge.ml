@@ -21,6 +21,22 @@ type panel =
   | Singles of singles
   | Couples of couples
 
+let print_head fmt = function
+  | None -> ()
+  | Some judge -> Format.fprintf fmt "[%a] " Id.print judge
+
+let print_list fmt l =
+  let pp_sep fmt () = Format.fprintf fmt ", " in
+  Format.pp_print_list ~pp_sep Id.print fmt l
+
+let print fmt = function
+  | Singles { head; leaders; followers; } ->
+    Format.fprintf fmt "%a%a / %a"
+      print_head head print_list leaders print_list followers
+  | Couples { head; couples; } ->
+    Format.fprintf fmt "%a%a"
+      print_head head print_list couples
+
 let judging panel dancer =
   let id = Dancer.id dancer in
   match panel with

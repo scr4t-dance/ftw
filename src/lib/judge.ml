@@ -137,6 +137,7 @@ let set_aux ~st ~phase ~judging judge_id =
     judge_id phase judging
 
 let set ~st ~phase panel =
+  Logs.debug (fun k->k "setting judge panel %a : %a" Id.print phase print panel);
   let check_list judged = function
     | [] -> failwith ("empty list of judges for " ^ judged)
     | _ :: _ -> ()
@@ -145,11 +146,6 @@ let set ~st ~phase panel =
   | Singles { leaders; followers; head; } ->
     check_list "leaders" leaders;
     check_list "followers" followers;
-    Logs.debug ~src:State.src (fun k->
-        k "New panel: %a / %a"
-          (Format.pp_print_list ~pp_sep:Format.pp_print_space Id.print) leaders
-          (Format.pp_print_list ~pp_sep:Format.pp_print_space Id.print) followers
-                              );
     clear ~st ~phase;
     List.iter (set_aux ~st ~phase ~judging:Leaders) leaders;
     List.iter (set_aux ~st ~phase ~judging:Followers) followers;
