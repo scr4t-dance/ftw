@@ -10,7 +10,8 @@ include Ftw_core.Judging
 (* ************************************************************************* *)
 
 let to_string = function
-  | Head { targets = _ } -> "Head"
+  | Head { targets = `Singles } -> "Head(singles)"
+  | Head { targets = `Couples } -> "Head(couples)"
   | Leaders -> "Leaders"
   | Followers -> "Followers"
   | Couples -> "Couples"
