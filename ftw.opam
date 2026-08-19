@@ -24,7 +24,7 @@ depends: [
   "ubase"
   "jsont"
   "bytesrw"
-  "fuzzy_match"
+  "fuzzy_match" {>= "v0.17.0"}
   "printbox"
   "printbox-text"
   "odoc" {with-doc}
