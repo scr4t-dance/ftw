@@ -113,8 +113,8 @@ let auto_promote div upgrade_div : rule =
 let rules =
   Date.Itm.of_list [
     (* Rules for the beginning/transition period:
-       i.e. until the end of 2022 *)
-    Date.mk ~day:1 ~month:1 ~year:2000, [
+       i.e. starting in 2000 (and until the end of 2022) *)
+    Date.mk ~day:01 ~month:01 ~year:2000, [
       (* transition rules *)
       Invited, invited;
       Inter_finalist, inter_finalist;
@@ -132,7 +132,7 @@ let rules =
       Participation, participation;
     ];
 
-    (* Rules until summer 2025 *)
+    (* Rules starting in 2022 (and until 2025) *)
     Date.mk ~day:31 ~month:12 ~year:2022, [
       (* rules for novice points *)
       Points_hard, hard_promote Novice 12 Intermediate;
@@ -148,7 +148,7 @@ let rules =
     ];
 
     (* Rules for the foreseeable future *)
-    Date.mk ~day:01 ~month:01 ~year:2100, [
+    Date.mk ~day:09 ~month:07 ~year:2025, [
       (* rules for novice points *)
       Points_hard, hard_promote Novice 25 Intermediate;
       Points_soft, soft_promote Novice 15 Novice_Intermediate;

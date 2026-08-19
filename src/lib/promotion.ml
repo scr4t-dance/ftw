@@ -71,6 +71,12 @@ let add ~st p =
     (reason_to_int p.reason)
 
 let record ~st p =
+  Logs.debug (fun k->
+      k "PROMOTION: (%a) %a %a, %a -> %a, %a"
+        Id.print p.competition Id.print p.dancer Role.print p.role
+        Divisions.print p.old_divisions Divisions.print p.new_divisions
+        print_reason p.reason
+    );
   Dancer.update_divisions ~st ~dancer:p.dancer ~role:p.role ~divs:p.new_divisions;
   add ~st p;
   ()

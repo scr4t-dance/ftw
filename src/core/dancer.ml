@@ -34,7 +34,7 @@ let print_divs role fmt divs =
   match (divs : Divisions.t) with
   | None -> ()
   | _ ->
-    Format.fprintf fmt "%a:%a" Role.print_compact role Divisions.print divs
+    Format.fprintf fmt "%a:%a " Role.print_compact role Divisions.print divs
 
 let print_opt pp fmt = function
   | None -> ()
@@ -46,7 +46,7 @@ let print fmt t =
     (print_divs Leader) t.as_leader
     (print_divs Follower) t.as_follower
     (match t.as_leader, t.as_follower with
-     | None, None -> "divs:N/A" | _ -> "")
+     | None, None -> "divs:N/A " | _ -> "")
     (print_opt Date.print) t.birthday
     (print_opt Format.pp_print_string) t.email
 
