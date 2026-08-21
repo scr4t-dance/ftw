@@ -178,6 +178,7 @@ module Index = struct
           let l' =
             List.filter_map (fun s ->
                 let s = String.trim s in
+                let s = String.lowercase_ascii s in
                 let s = String.capitalize_ascii s in
                 if s = "" then None else Some s
               ) l'
@@ -233,9 +234,9 @@ end
 (* Fuzzy *)
 (* ************************************************************************* *)
 
-(* quite inefficient, TODO: do it better *)
+(* probably quite inefficient ? TODO: do it better *)
 module Fuzzy = struct
-  
+
   module M = Map.Make(String)
 
   let search ~st ~pattern =
