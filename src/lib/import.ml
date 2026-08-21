@@ -153,9 +153,7 @@ class virtual importer (st : State.t) = object(self)
         | [] -> add ()
         | _ :: _ ->
           let l = List.map (fun d ->
-              let n = Str.edit_distance first_name (Dancer.first_name d) in
-              let m = Str.edit_distance last_name (Dancer.last_name d) in
-              n + m, d
+              Dancer.Index.distance d ~first_name ~last_name, d
             ) suggestions
           in
           begin match l with

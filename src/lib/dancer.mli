@@ -75,6 +75,9 @@ module Index : sig
   (** Lookup in the index. Can return a suggested list of dancers with
       close names to the ones that were given. *)
 
+  val distance : dancer -> first_name:string -> last_name:string -> int
+  (** *)
+
 end
 
 

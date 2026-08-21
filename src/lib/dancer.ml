@@ -229,6 +229,10 @@ module Index = struct
     Logs.debug ~src (fun k->k "Dancer query solved in %.4fs" (t' -. t));
     res
 
+  let distance d ~first_name:first ~last_name:last =
+    Str.edit_distance (prepare_name first) (prepare_name @@ first_name d)
+    + Str.edit_distance (prepare_name last) (prepare_name @@ last_name d)
+
 end
 
 (* Fuzzy *)
