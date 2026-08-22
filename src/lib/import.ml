@@ -600,16 +600,26 @@ class ftw_1 st = object(self)
 
   (* === Finals artefacts === *)
 
-  method import_couples_artefacts ~event ~phase t =
+  method import_couples_artefacts ~split ~event ~phase t =
     let judge_artefact_descr = Phase.judge_artefact_descr phase in
     let head_artefact_descr = Phase.head_judge_artefact_descr phase in
     let phase = Phase.id phase in
-    let split = function
-      | leader :: follower :: ranks ->
-        let leader_id = self#find_id ~bib:(extract_bib' leader) in
-        let follow_id = self#find_id ~bib:(extract_bib' follower) in
-        Some ((leader_id, follow_id), ranks)
-      | _ -> None
+    let split =
+      match split with
+      | `Finals ->
+        (function
+          | leader :: follower :: ranks ->
+            let leader_id = self#find_id ~bib:(extract_bib' leader) in
+            let follow_id = self#find_id ~bib:(extract_bib' follower) in
+            Some ((leader_id, follow_id), ranks)
+          | _ -> None)
+      | `Prelims ->
+        (function
+          | _rank :: leader :: _leader_name :: follower :: _follower_name :: _total :: scores ->
+            let leader_id = self#find_id ~bib:(extract_bib' leader) in
+            let follow_id = self#find_id ~bib:(extract_bib' follower) in
+            Some ((leader_id, follow_id), scores)
+          | _ -> None)
     in
     let judges, artefacts =
       Otoml.find t (
@@ -639,10 +649,14 @@ class ftw_1 st = object(self)
       self#import_singles_artefacts ~event ~phase t;
       self#log_ranking (self#compute_ranking ~phase)
     | Jack_and_Jill, Finals ->
-      self#import_couples_artefacts ~event ~phase t;
+      self#import_couples_artefacts ~split:`Finals ~event ~phase t;
       self#log_ranking (self#compute_ranking ~phase)
-    | High_low _, _ ->
-      self#import_couples_artefacts ~event ~phase t;
+    | High_low _, (Prelims | Octofinals | Quarterfinals | Semifinals) ->
+      self#import_couples_artefacts ~split:`Prelims ~event ~phase t;
+      self#log_ranking (self#compute_ranking ~phase)
+    | High_low _, Finals ->
+      self#import_couples_artefacts ~split:`Finals ~event ~phase t;
+      self#log_ranking (self#compute_ranking ~phase)
     | (Routine | Strictly), _ ->
       Logs.err ~src (fun k->k "Artefacts import not implemented yet for this competition")
 
