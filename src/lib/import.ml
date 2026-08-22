@@ -600,12 +600,12 @@ class ftw_1 st = object(self)
 
   (* === Finals artefacts === *)
 
-  method import_couples_artefacts ~split ~event ~phase t =
+  method import_couples_artefacts ~format ~event ~phase t =
     let judge_artefact_descr = Phase.judge_artefact_descr phase in
     let head_artefact_descr = Phase.head_judge_artefact_descr phase in
     let phase = Phase.id phase in
     let split =
-      match split with
+      match format with
       | `Finals ->
         (function
           | leader :: follower :: ranks ->
@@ -624,7 +624,7 @@ class ftw_1 st = object(self)
     let judges, artefacts =
       Otoml.find t (
         self#parse_judges_and_artefacts
-          ~event ~split ~skip_line:false
+          ~event ~split ~skip_line:(match format with `Finals -> false | `Prelims -> true)
           ~judge_artefact_descr ~head_artefact_descr
       ) ["artefacts"]
     in
@@ -649,13 +649,13 @@ class ftw_1 st = object(self)
       self#import_singles_artefacts ~event ~phase t;
       self#log_ranking (self#compute_ranking ~phase)
     | Jack_and_Jill, Finals ->
-      self#import_couples_artefacts ~split:`Finals ~event ~phase t;
+      self#import_couples_artefacts ~format:`Finals ~event ~phase t;
       self#log_ranking (self#compute_ranking ~phase)
     | High_low _, (Prelims | Octofinals | Quarterfinals | Semifinals) ->
-      self#import_couples_artefacts ~split:`Prelims ~event ~phase t;
+      self#import_couples_artefacts ~format:`Prelims ~event ~phase t;
       self#log_ranking (self#compute_ranking ~phase)
     | High_low _, Finals ->
-      self#import_couples_artefacts ~split:`Finals ~event ~phase t;
+      self#import_couples_artefacts ~format:`Finals ~event ~phase t;
       self#log_ranking (self#compute_ranking ~phase)
     | (Routine | Strictly), _ ->
       Logs.err ~src (fun k->k "Artefacts import not implemented yet for this competition")
