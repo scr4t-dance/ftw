@@ -641,9 +641,10 @@ class ftw_1 st = object(self)
     | Jack_and_Jill, Finals ->
       self#import_couples_artefacts ~event ~phase t;
       self#log_ranking (self#compute_ranking ~phase)
-    (* TODO: check coherence between rankings and results *)
-    | (Routine | Strictly | High_low _), _ ->
-      Logs.warn ~src (fun k->k "Artefacts import not implemented yet for non-J&J")
+    | High_low _, _ ->
+      self#import_couples_artefacts ~event ~phase t;
+    | (Routine | Strictly), _ ->
+      Logs.err ~src (fun k->k "Artefacts import not implemented yet for this competition")
 
 
   (* === competition results === *)
