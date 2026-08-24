@@ -159,7 +159,7 @@ class virtual importer (st : State.t) = object(self)
           begin match l with
             | [dist, dancer] when dist <= max_dist_for_autocorrect ->
               Logs.warn ~src (fun k->
-                  k "Autocorect: %s %s -> %s %s"
+                  k "Autocorrect: %s %s -> %s %s"
                     first_name last_name
                     (Dancer.first_name dancer) (Dancer.last_name dancer));
               dancer
@@ -651,14 +651,12 @@ class ftw_1 st = object(self)
     | Jack_and_Jill, Finals ->
       self#import_couples_artefacts ~format:`Finals ~event ~phase t;
       self#log_ranking (self#compute_ranking ~phase)
-    | High_low _, (Prelims | Octofinals | Quarterfinals | Semifinals) ->
+    | (High_low _ | Routine | Strictly), (Prelims | Octofinals | Quarterfinals | Semifinals) ->
       self#import_couples_artefacts ~format:`Prelims ~event ~phase t;
       self#log_ranking (self#compute_ranking ~phase)
-    | High_low _, Finals ->
+    | (High_low _ | Routine | Strictly), Finals ->
       self#import_couples_artefacts ~format:`Finals ~event ~phase t;
       self#log_ranking (self#compute_ranking ~phase)
-    | (Routine | Strictly), _ ->
-      Logs.err ~src (fun k->k "Artefacts import not implemented yet for this competition")
 
 
   (* === competition results === *)
