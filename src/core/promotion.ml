@@ -188,7 +188,7 @@ let compute_aux ~date ~current_divs ~current_points ~result_category ~(result : 
       | Advanced -> Lazy.force current_points.adv
     in
     let res = new_points + cur_points in
-    Logs.debug (fun k -> k "total points : %a / %d" Division.print div res);
+    Logs.debug (fun k -> k "total points : %a / %d = %d + %d" Division.print div res cur_points new_points);
     res
   in
   let applicable_rules = Date.Itm.find_exn rules date in
