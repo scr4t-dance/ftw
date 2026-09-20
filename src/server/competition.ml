@@ -187,7 +187,7 @@ let admin_panel ~req ~st ~ev ~comp =
       | Registration -> admin_panel_registration ~req ~st ~ev ~comp
       | Distribution -> admin_panel_distrib ~req ~st ~ev ~comp
       | Progress -> admin_panel_progress ~req ~st ~ev ~comp
-      | Finished -> [])
+      | Finished -> admin_panel_progress ~req ~st ~ev ~comp)
    )
   else
     null []

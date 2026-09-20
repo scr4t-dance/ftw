@@ -124,7 +124,7 @@ let admin_comp_list ~req:_ ~st ~ev =
   ]
 
 let admin_event_reg req event_id =
-  let$st = State.get req in
+  let$ st = State.get req in
   let ev = Ftw.Event.get ~st event_id in
   let$ () = Htmx.ret' ~req ~st ~perms:[Edit_event{ev}] in
   let comps = Ftw.Event.competitions ~st ev in
@@ -134,7 +134,7 @@ let admin_event_reg req event_id =
   let () = Ftw.Event.update ~st ev in
   let () = List.iter (Ftw.Competition.update ~st) comps in
   `Refresh
-  
+
 let admin_event_start req event_id =
   let$st = State.get req in
   let ev = Ftw.Event.get ~st event_id in

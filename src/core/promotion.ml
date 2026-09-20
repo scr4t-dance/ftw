@@ -132,7 +132,7 @@ let rules =
       Participation, participation;
     ];
 
-    (* Rules starting in 2022 (and until 2025) *)
+    (* Rules starting in 2023 (and until 2025) *)
     Date.mk ~day:31 ~month:12 ~year:2022, [
       (* rules for novice points *)
       Points_hard, hard_promote Novice 12 Intermediate;
@@ -148,7 +148,7 @@ let rules =
     ];
 
     (* Rules for the foreseeable future *)
-    Date.mk ~day:09 ~month:07 ~year:2025, [
+    Date.mk ~day:01 ~month:07 ~year:2025, [
       (* rules for novice points *)
       Points_hard, hard_promote Novice 25 Intermediate;
       Points_soft, soft_promote Novice 15 Novice_Intermediate;
@@ -187,7 +187,9 @@ let compute_aux ~date ~current_divs ~current_points ~result_category ~(result : 
       | Intermediate -> Lazy.force current_points.inter
       | Advanced -> Lazy.force current_points.adv
     in
-    new_points + cur_points
+    let res = new_points + cur_points in
+    Logs.debug (fun k -> k "total points : %a / %d" Division.print div res);
+    res
   in
   let applicable_rules = Date.Itm.find_exn rules date in
   let applicable_promotions =
@@ -212,28 +214,29 @@ let compute ~get_dancer ~event ~comp ~current_points ~result =
   assert (Id.equal result.Results.competition (Competition.id comp));
   Target.to_list result.target
   |> List.filter_map (fun (p, role) ->
-    let dancer = get_dancer p.Results.dancer in
-  let current_points = current_points (Dancer.id dancer) role in
-  let date = Event.end_date event in
-  let result_category = Competition.category comp in
-  let current_divs =
-    match (role : Role.t) with
-    | Leader -> Dancer.as_leader dancer
-    | Follower -> Dancer.as_follower dancer
-  in
-  let result : Results.o = {
-    dancer = Dancer.id dancer; role; points = p.Results.points; result = result.result;
-    }
-  in
-  match compute_aux ~date ~current_divs ~current_points ~result_category ~result with
-  | None -> None
-  | Some (new_divs, reason) ->
-    let promotion = {
-      competition = Competition.id comp;
-      dancer = Dancer.id dancer; role;
-      old_divisions = current_divs;
-      new_divisions = new_divs;
-      reason;
-    } in
-    Some (promotion)
-  )
+      let dancer = get_dancer p.Results.dancer in
+      Logs.debug (fun k -> k "promotion computation for %a" Dancer.print dancer);
+      let current_points = current_points (Dancer.id dancer) role in
+      let date = Event.end_date event in
+      let result_category = Competition.category comp in
+      let current_divs =
+        match (role : Role.t) with
+        | Leader -> Dancer.as_leader dancer
+        | Follower -> Dancer.as_follower dancer
+      in
+      let result : Results.o = {
+        dancer = Dancer.id dancer; role; points = p.Results.points; result = result.result;
+      }
+      in
+      match compute_aux ~date ~current_divs ~current_points ~result_category ~result with
+      | None -> None
+      | Some (new_divs, reason) ->
+        let promotion = {
+          competition = Competition.id comp;
+          dancer = Dancer.id dancer; role;
+          old_divisions = current_divs;
+          new_divisions = new_divs;
+          reason;
+        } in
+        Some (promotion)
+    )
