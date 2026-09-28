@@ -5,6 +5,13 @@ open Ftw_core.Misc.Result
 
 let src = Logs.Src.create "ftw.import"
 
+(* J *)
+(* ************************************************************************* *)
+
+type t =
+  | Reform of Reform.t
+  | Event of Event.id * Dancer.t list
+
 (* Judges *)
 (* ************************************************************************* *)
 
@@ -363,7 +370,6 @@ class virtual importer (st : State.t) = object(self)
 
   method import_event t =
     let open Otoml in
-    let t = Otoml.find t Otoml.get_value ["event"] in
     let name = find t get_string ["name"] in
     let short_name = Option.value ~default:"" (find_opt t get_string ["short"]) in
     let start_date = find t Date.of_toml ["start_date"] in
@@ -380,7 +386,34 @@ class virtual importer (st : State.t) = object(self)
     let t = find t Otoml.get_value ["comps"] in
     self#import_dancers ~event t;
     self#import_comps ~event t;
-    event
+    Event (event, self#new_dancers)
+
+  (* === reform === *)
+  (* ============== *)
+
+  method import_reform t =
+    let id = Otoml.find t Otoml.get_integer ["id"] in
+    let reform =
+      match id with
+      | 1 -> Reform.First
+      | _ -> failwith (Format.asprintf "not a valid reform id: %d" id)
+    in
+    Reform.apply ~st reform;
+    Reform reform
+
+  (* === file === *)
+  (* ============ *)
+
+  method import t =
+    match Otoml.find_opt t Otoml.get_value ["reform"] with
+    | Some t -> Some (self#import_reform t)
+    | None ->
+      begin match Otoml.find_opt t Otoml.get_value ["event"] with
+        | Some t -> Some (self#import_event t)
+        | None ->
+          Logs.warn (fun k-> k "No data in file ?...");
+          None
+      end
 
 end
 
@@ -912,7 +945,7 @@ end
 (* ************************************************************************* *)
 
 let from_file ~st acc path =
-  let+ prev_ids = acc in
+  let+ prev_contents = acc in
   let start_time = Unix.gettimeofday () in
   Logs.debug ~src (fun k->k "%s : reading input file..." (Filename.basename path));
   let+ t = Otoml.Parser.from_file_result path in
@@ -924,12 +957,11 @@ let from_file ~st acc path =
       | "ftw.2-stable" -> (new ftw_2 st ~stable:true :> importer)
       | _ -> assert false
     in
-    let ev_id = importer#import_event t in
-    let new_dancers = importer#new_dancers in
+    let file_contents = importer#import t in
     let stop_time = Unix.gettimeofday () in
     Logs.info ~src (fun k->k "%s : finished import in %.4fs"
                        (Filename.basename path) (stop_time -. start_time));
-    Ok ((ev_id, new_dancers) :: prev_ids)
+    Ok (file_contents :: prev_contents)
   with exn ->
     let bt = Printexc.get_backtrace () in
     Logs.err ~src (fun k->
@@ -951,3 +983,4 @@ let list_files path =
 
 let import_event ~st path =
   List.fold_left (from_file ~st) (Ok []) (list_files path)
+

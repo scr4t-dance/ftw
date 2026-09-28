@@ -4,6 +4,10 @@
 (* Promotion rules *)
 (* ************************************************************************* *)
 
+type source =
+  | Competition of Competition.id
+  | Reform of Reform.t
+
 type update =
   | No_update
   | Upgrade_to_at_least of Divisions.t
@@ -16,9 +20,10 @@ type reason =
   | Points_soft
   | Points_hard
   | Points_auto
+  | Reform
 
 type t = {
-  competition : Competition.id;
+  source : source;
   dancer : Dancer.id;
   role : Role.t;
   old_divisions : Divisions.t;
@@ -29,6 +34,10 @@ type t = {
 (* Helpers *)
 (* ************************************************************************* *)
 
+let print_source fmt = function
+  | Competition id -> Format.fprintf fmt "comp(%a)" Id.print id
+  | Reform First -> Format.fprintf fmt "reform-1"
+
 let print_reason fmt = function
   | Participation -> Format.fprintf fmt "Participation"
   | Invited -> Format.fprintf fmt "Invited"
@@ -37,6 +46,7 @@ let print_reason fmt = function
   | Points_soft -> Format.fprintf fmt "Soft"
   | Points_hard -> Format.fprintf fmt "Hard"
   | Points_auto -> Format.fprintf fmt "Auto"
+  | Reform -> Format.fprintf fmt "Reform"
 
 
 (* Promotion rules *)
@@ -232,7 +242,7 @@ let compute ~get_dancer ~event ~comp ~current_points ~result =
       | None -> None
       | Some (new_divs, reason) ->
         let promotion = {
-          competition = Competition.id comp;
+          source = Competition (Competition.id comp);
           dancer = Dancer.id dancer; role;
           old_divisions = current_divs;
           new_divisions = new_divs;

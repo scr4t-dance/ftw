@@ -29,6 +29,7 @@ val email : t -> string option
 
 val as_leader : t -> Divisions.t
 val as_follower : t -> Divisions.t
+val as_role : role:Role.t -> t -> Divisions.t
 (** Returns the divisions accessible to the given dancer, as a leader or
     a follower. *)
 

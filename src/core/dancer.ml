@@ -26,6 +26,10 @@ let first_name { first_name; _ } = first_name
 let email { email; _ } = email
 let as_leader { as_leader; _ } = as_leader
 let as_follower { as_follower; _ } = as_follower
+let as_role ~role t =
+  match (role : Role.t) with
+  | Leader -> as_leader t
+  | Follower -> as_follower t
 
 let print_compact fmt t =
   Format.fprintf fmt "%s %s" t.first_name t.last_name

@@ -4,6 +4,10 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
+type source =
+  | Competition of Competition.id
+  | Reform of Reform.t
+
 type update =
   | No_update
   | Upgrade_to_at_least of Divisions.t
@@ -16,9 +20,10 @@ type reason =
   | Points_soft
   | Points_hard
   | Points_auto
+  | Reform
 
 type t = {
-  competition : int;
+  source : source;
   dancer : int;
   role : Role.t;
   old_divisions : Divisions.t;
@@ -28,6 +33,8 @@ type t = {
 
 (* Helpers *)
 (* ************************************************************************* *)
+
+val print_source : Format.formatter -> source -> unit
 
 val print_reason : Format.formatter -> reason -> unit
 

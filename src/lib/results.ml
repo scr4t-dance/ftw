@@ -176,7 +176,7 @@ let all_points ~st ~dancer ~role ~div =
   let open Db.Ty in
   let conv = Conv.mk [nullable int] CCFun.id in
   match (role : Role.t) with
-  | Leader ->  
+  | Leader ->
     CCOption.get_or ~default:0 @@
     State.query_one_where ~st ~db ~conv ~p:[int; int]
       {| SELECT SUM(results.points1)
@@ -184,7 +184,7 @@ let all_points ~st ~dancer ~role ~div =
            WHERE results.dancer1 = ? AND competitions.category = ? |}
       dancer
       (Category.to_int (Competitive div))
-  | Follower ->  
+  | Follower ->
     CCOption.get_or ~default:0 @@
     State.query_one_where ~st ~db ~conv ~p:[int; int]
       {| SELECT SUM(results.points2)
