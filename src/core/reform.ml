@@ -6,11 +6,3 @@
 
 type t =
   | First
-
-let list = [
-  First;
-]
-
-let date = function
-  | First -> Date.mk ~day:09 ~month:07 ~year:2025
-
