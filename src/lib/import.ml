@@ -392,9 +392,12 @@ class virtual importer (st : State.t) = object(self)
         Event.Private.import ~st ~id ~name ~short_name ~start_date ~end_date ~public ~status:Finished;
         id
     in
-    let t = find t Otoml.get_value ["comps"] in
-    self#import_dancers ~event t;
-    self#import_comps ~event t;
+    begin match find_opt t get_value ["comps"] with
+      | Some t ->
+        self#import_dancers ~event t;
+        self#import_comps ~event t
+      | None -> ()
+    end;
     self#import_reform t;
     event
 
