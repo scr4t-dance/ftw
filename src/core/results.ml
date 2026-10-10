@@ -53,12 +53,12 @@ let octofinalist = mk () ~octofinals:Present
 
 let placement (t : t) : Points.placement =
   match t.finals with
-  | Present -> Finals None
-  | Ranked rank -> Finals (Some rank)
+  | Present -> Other
+  | Ranked rank -> Finals rank
   | Not_present ->
     begin match t.semifinals with
-      | Present | Ranked _ -> Semifinals
-      | Not_present -> Other
+      | Ranked rank -> Semifinals rank
+      | Present | Not_present -> Other
     end
 
 (* Points *)
