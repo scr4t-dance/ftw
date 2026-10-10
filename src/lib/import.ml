@@ -681,27 +681,28 @@ class ftw_1 st = object(self)
   (* === competition results === *)
   (* =========================== *)
 
+  method parse_result res =
+    let fail () = raise (Otoml.Type_error ("invalid result: " ^ res)) in
+    if String.length res <= 0 then fail ()
+    else
+      let aux =
+        let s = String.sub res 1 (String.length res - 1) in
+        if s = "" then Results.Present
+        else
+          match int_of_string s with
+          | i -> Results.Ranked (Rank.mk i)
+          | exception Failure _ -> fail ()
+      in
+      match res.[0] with
+      | 'F' -> Results.mk ~finals:aux ()
+      | 'S' -> Results.mk ~semifinals:aux ()
+      | 'Q' -> Results.mk ~quarterfinals:aux ()
+      | 'O' -> Results.mk ~octofinals:aux ()
+      | _ -> fail ()
+
   method parse_results_single_row ~event ~comp ~res ~role ~last_name ~first_name () =
     let dancer = self#find_or_add_dancer ~event ~first_name ~last_name () in
-    let result =
-      let fail () = raise (Otoml.Type_error ("invalid result: " ^ res)) in
-      if String.length res <= 0 then fail ()
-      else
-        let aux =
-          let s = String.sub res 1 (String.length res - 1) in
-          if s = "" then Results.Present
-          else
-            match int_of_string s with
-            | i -> Results.Ranked (Rank.mk i)
-            | exception Failure _ -> fail ()
-        in
-        match res.[0] with
-        | 'F' -> Results.mk ~finals:aux ()
-        | 'S' -> Results.mk ~semifinals:aux ()
-        | 'Q' -> Results.mk ~quarterfinals:aux ()
-        | 'O' -> Results.mk ~octofinals:aux ()
-        | _ -> fail ()
-    in
+    let result = self#parse_result res in
     let p =
       Results.points ~event:(Event.get ~st event) ~comp ~role result
     in
@@ -727,19 +728,7 @@ class ftw_1 st = object(self)
     let follower =
       self#find_or_add_dancer ~event ~first_name:follow_first_name ~last_name:follow_last_name ()
     in
-    let result =
-      match res with
-      | "F" -> Results.finalist
-      | "S" -> Results.semifinalist
-      | "Q" -> Results.quarterfinalist
-      | "E" -> Results.octofinalist
-      | _ ->
-        begin match int_of_string res with
-          | i -> Results.mk ~finals:(Ranked (Rank.mk i)) ()
-          | exception Failure _ ->
-            raise (Otoml.Type_error ("invalid result: " ^ res))
-        end
-    in
+    let result = self#parse_result res in
     let leader_points =
       Results.points ~event:(Event.get ~st event) ~comp ~role:Leader result
     in
@@ -770,7 +759,8 @@ class ftw_1 st = object(self)
       begin match String.split_on_char '\t' (String.trim line1),
             String.split_on_char '\t' (String.trim line2) with
       | res :: "L" :: leader_last_name :: leader_first_name :: _,
-       _res :: "F" :: follow_last_name :: follow_first_name :: _ ->
+        res' :: "F" :: follow_last_name :: follow_first_name :: _
+        when String.equal res res' ->
         let res =
           self#parse_results_couple_row ~event ~comp ~res
                   ~leader_last_name ~leader_first_name
