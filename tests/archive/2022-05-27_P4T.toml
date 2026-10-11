@@ -16,23 +16,23 @@ check_divs = false
 leaders = 15
 follows = 15
 results="""
-1	L	Aron	Vincent	10
-1	F	Martel	Alice	10
+F1	L	Aron	Vincent	10
+F1	F	Martel	Alice	10
 
-2	L	Popineau	Pierre	8
-2	F	Le	Ai-My	8
+F2	L	Popineau	Pierre	8
+F2	F	Le	Ai-My	8
 
-3	L	Le	Huy Hoang	6
-3	F	De Saint Léon	Aliénor	6
+F3	L	Le	Huy Hoang	6
+F3	F	De Saint Léon	Aliénor	6
 
-4	L	Ziakovic	Théo	3
-4	F	Bivas	Irène	3
+F4	L	Ziakovic	Théo	3
+F4	F	Bivas	Irène	3
 
-5	L	Lopez	Yann	3
-5	F	Lefrère	Valentine	3
+F5	L	Lopez	Yann	3
+F5	F	Lefrère	Valentine	3
 
-6	L	Ducros	Charles
-6	F	Desseaux	Albane
+F6	L	Ducros	Charles
+F6	F	Desseaux	Albane
 """
 
 
@@ -104,50 +104,50 @@ leaders = 31
 follows = 34
 results="""
 # Finals
-1	L	Martel	Alice	14
-1	F	Leblanc Sogutçu	Gabrielle	14
+F1	L	Martel	Alice	14
+F1	F	Leblanc Sogutçu	Gabrielle	14
 
-2	L	Bussonati	Orlando	12
-2	F	Daumal 	Ange	12
+F2	L	Bussonati	Orlando	12
+F2	F	Daumal 	Ange	12
 
-3	L	Abbed	Aniss	10
-3	F	Gaglione	Eglantine	10
+F3	L	Abbed	Aniss	10
+F3	F	Gaglione	Eglantine	10
 
-4	L	Bellec	Nicolas	8
-4	F	Guillochon	Romain	8
+F4	L	Bellec	Nicolas	8
+F4	F	Guillochon	Romain	8
 
-5	L	Bivas	Irène	8
-5	F	Sargent-Caillat	Pauline	8
+F5	L	Bivas	Irène	8
+F5	F	Sargent-Caillat	Pauline	8
 
-6	L	Mellet-Leclere	Lucas	6
-6	F	Szilas	Eva	6
+F6	L	Mellet-Leclere	Lucas	6
+F6	F	Szilas	Eva	6
 
-7	L	Manet	Hugo	6
-7	F	Novene	Marie-Lou	6
+F7	L	Manet	Hugo	6
+F7	F	Novene	Marie-Lou	6
 
-8	L	Coso	Amaury	3
-8	F	Nguyen	Romy	3
+F8	L	Coso	Amaury	3
+F8	F	Nguyen	Romy	3
 
-9	L	Régnier	Léo	3
-9	F	Reclus	Anne-Marie	3
+F9	L	Régnier	Léo	3
+F9	F	Reclus	Anne-Marie	3
 
-10	L	Loew walker	Siegfried	3
-10	F	Koeler	Alice	3
+F10	L	Loew walker	Siegfried	3
+F10	F	Koeler	Alice	3
 
 # Semi-finals
-S	L	Camoin	Gabriel	2
-S	L	Renoul	Louise	2
-S	L	Nédélec	Vincent	2
-S	L	Leclerc	Alexis	2
-S	L	Nguyen	Olivier	2
-S	L	Loyer	Lilian	2
+S11	L	Camoin	Gabriel	2
+S12	L	Renoul	Louise	2
+S13	L	Nédélec	Vincent	2
+S14	L	Leclerc	Alexis	2
+S15	L	Nguyen	Olivier	2
+S16	L	Loyer	Lilian	2
 
-S	F	Donatien	Albane	2
-S	F	Law	Thalie	2
-S	F	Leborgne	Amandine	2
-S	F	Penin	Gaelle	2
-S	F	Chauvin	Kitima	2
-S	F	Tandeau	Eléonore	2
+S17	F	Donatien	Albane	2
+S18	F	Law	Thalie	2
+S19	F	Leborgne	Amandine	2
+S20	F	Penin	Gaelle	2
+S21	F	Chauvin	Kitima	2
+S22	F	Tandeau	Eléonore	2
 """
 
 [event.comps.jj_initie.finals]

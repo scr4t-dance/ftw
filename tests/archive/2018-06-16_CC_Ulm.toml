@@ -15,13 +15,13 @@ category = "Regular"
 leaders = 0
 follows = 0
 results = """
-1	L	Laurent	Théo
-1	F	Durand	Céline
+F1	L	Laurent	Théo
+F1	F	Durand	Céline
 
-2	L	Janin	Martin
-2	F	Castro Scherianz	Maria
+F2	L	Janin	Martin
+F2	F	Castro Scherianz	Maria
 
-3	L	Chen	Frédéric
-3	F	Vallerio	Héloise
+F3	L	Chen	Frédéric
+F3	F	Vallerio	Héloise
 """
 

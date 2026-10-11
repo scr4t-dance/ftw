@@ -15,14 +15,14 @@ category = "Regular"
 leaders = 0
 follows = 0
 results = """
-1	L	Duchon-Doris	Cyril
-1	F	Castro Scherianz	Maria
+F1	L	Duchon-Doris	Cyril
+F1	F	Castro Scherianz	Maria
 
-2	L	Morel	Baptiste
-2	F	Rabreaud	Agathe
+F2	L	Morel	Baptiste
+F2	F	Rabreaud	Agathe
 
-3	L	Robin	Paul
-3	F	Hacquin	Anne-Sophie
+F3	L	Robin	Paul
+F3	F	Hacquin	Anne-Sophie
 """
 
 [event.comps.jj_veteran]
@@ -32,14 +32,14 @@ category = "Regular"
 leaders = 0
 follows = 0
 results = """
-1	L	Chen	Frédéric
-1	F	Gadon-Ferreira	Justine
+F1	L	Chen	Frédéric
+F1	F	Gadon-Ferreira	Justine
 
-2	L	Bury	Guillaume
-2	F	Cimelli	Léa
+F2	L	Bury	Guillaume
+F2	F	Cimelli	Léa
 
-3	L	Kavokine	Nikita
-3	F	Debu	Sandra
+F3	L	Kavokine	Nikita
+F3	F	Debu	Sandra
 
 F	L	De Longuemar	Guillaume
 F	L	Lamusse	Olivier

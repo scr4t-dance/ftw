@@ -15,13 +15,13 @@ category = "Regular"
 leaders = 0
 follows = 0
 results = """
-1	L	Kavokine	Nikita
-1	F	Vallerio	Héloise
+F1	L	Kavokine	Nikita
+F1	F	Vallerio	Héloise
 
-2	L	Falconieri	Lorenzo
-2	F	Desseaux	Albane
+F2	L	Falconieri	Lorenzo
+F2	F	Desseaux	Albane
 
-3	L	Lopez	Yann
-3	F	Gadon-Ferreira	Justine
+F3	L	Lopez	Yann
+F3	F	Gadon-Ferreira	Justine
 """
 

@@ -15,12 +15,12 @@ category = "Regular"
 leaders = 0
 follows = 0
 results = """
-1	L	Laurent	Théo
-1	F	Curchod	Hélène
+F1	L	Laurent	Théo
+F1	F	Curchod	Hélène
 
-2	L	Monier	Ludovic
-2	F	Kopecz-Muller	Caroline
+F2	L	Monier	Ludovic
+F2	F	Kopecz-Muller	Caroline
 
-3	L	Lamusse	Olivier
-3	F	Geneste-Samissof	Natacha
+F3	L	Lamusse	Olivier
+F3	F	Geneste-Samissof	Natacha
 """
