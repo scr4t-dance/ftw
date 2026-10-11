@@ -45,7 +45,8 @@ let print_opt pp fmt = function
   | Some x -> Format.fprintf fmt "(%a)" pp x
 
 let print fmt t =
-  Format.fprintf fmt "%s %s %a%a%s%a%a"
+  Format.fprintf fmt "$%a %s %s %a%a%s%a%a"
+    Id.print t.id
     t.first_name t.last_name
     (print_divs Leader) t.as_leader
     (print_divs Follower) t.as_follower

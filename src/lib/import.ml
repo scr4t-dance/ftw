@@ -308,11 +308,17 @@ class virtual importer (st : State.t) = object(self)
                     when Rank.equal rank rank' &&
                         Id.equal l (Dancer.id leader) &&
                         Id.equal f (Dancer.id follower) -> ()
-                  | _ ->
+                  | Some (_, target), target' ->
+                    Logs.err ~src (fun k ->
+                        k "Finals ranking and competition results do not match for rank %a@\n%a@\n%a"
+                          Rank.print rank
+                          (Target.print Dancer.print) target
+                          (Target.print (fun fmt r -> Id.print fmt r.Results.dancer)) target');
+                    assert false
+                  |  _ ->
                     Logs.err ~src (fun k ->
                         k "Finals ranking and competition results do not match for rank %a"
-                          Rank.print rank);
-                    assert false
+                      Rank.print rank)
                 end
           | _ -> ()
         end;
