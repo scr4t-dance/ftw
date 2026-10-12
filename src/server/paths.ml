@@ -20,10 +20,12 @@ module Page = struct
   let%path event_create = "/create/event"
   let%path event = "/event/%d"
   let%path event_distrib = "/event/%d/distrib"
+  let%path event_bibs = "/event/%d/bibs"
 
   let%path comp = "/comp/%d"
   let%path comp_create = "/create/comp"
-  
+  let%path comp_bibs = "/comp/%d/bibs"
+
   let%path phase = "/phase/%d"
 
   let%path judge_artefacts = "/phase/%d/artefacts/%d"
@@ -39,6 +41,7 @@ module Htmx = struct
 
   let%path login = "/htmx/login"
   let%path logout = "/htmx/logout"
+  let%path set_passwd = "/htmx/setpwd"
 
   let events = Dream_html.path "/htmx/events" "/htmx/events?before=%d"
 
@@ -63,8 +66,6 @@ module Htmx = struct
   let%path distrib_add = "/htmx/distrib/add"
   let%path distrib_delete = "/htmx/distrib/delete"
 
-  
-
 end
 
 module Post = struct
@@ -73,5 +74,5 @@ module Post = struct
   let%path event_create = "/create/event"
   let%path event_distrib = "/event/%d/distrib"
   let%path artefacts = "/artefacts/%d/%d"
-  
+
 end

@@ -24,20 +24,20 @@ build:
 # Tests, Docs & misc #
 ######################
 
-reset: build
-	rm tests/users.sqlite
-	cp tests/origin.sqlite tests/test.sqlite
-	dune exec -- tests/script/script.exe --db tests/test.sqlite --users tests/users.sqlite
-	sqlite3 tests/test.sqlite < tests/import.sql
+reset-jj: build
+	rm tests/jj.users.sqlite
+	cp tests/origin.sqlite tests/jj.sqlite
+	dune exec -- tests/script/script.exe --db tests/jj.sqlite --users tests/jj.users.sqlite
+	sqlite3 tests/jj.sqlite < tests/import.sql
 
 run: build
-	dune exec -- ftw-server -vv --db=tests/test.sqlite --user-db=tests/users.sqlite
+	dune exec -- ftw -vv --db=tests/test.sqlite --user-db=tests/users.sqlite
 
 demo: build
-	dune exec -- ftw-server -vv --db=tests/demo.sqlite --user-db=tests/demo.users.sqlite
+	dune exec -- ftw -vv --db=tests/demo.sqlite --user-db=tests/demo.users.sqlite
 
 jj: build
-	dune exec -- ftw-server -vv --db=tests/jj.sqlite --user-db=tests/jj.users.sqlite
+	dune exec -- ftw -vv --db=tests/jj.sqlite --user-db=tests/jj.users.sqlite
 
 tests: build
 	@dune runtest \

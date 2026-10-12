@@ -51,6 +51,18 @@ module Split = struct
     else if n >= min && n <= max then [n]
     else (assert (n < min); raise Exit)
 
+  (* goal: transform a list of sizes (from biggest size to lowest size),
+     so that the big sizes are in the middle and the lowest on the extremity
+     of the result list.
+     NOTE: we're only dealing with small lists here *)
+  let gaussify l =
+    let rec aux = function
+      | [] -> []
+      | [x] -> [x]
+      | x :: y :: r -> x :: (aux r @ [y])
+    in
+    aux (List.rev l)
+
   let rec split_array_aux acc a i = function
     | [] -> assert (i = Array.length a); List.rev acc
     | k :: r ->
@@ -61,6 +73,7 @@ module Split = struct
     let n = Array.length a in
     match split ~min ~max n with
     | l ->
+      let l = gaussify l in
       let l = split_array_aux [] a 0 l in
       Array.of_list l
     | exception Exit ->

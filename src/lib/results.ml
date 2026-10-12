@@ -167,10 +167,13 @@ let find ~st = function
     State.query_list_where ~st ~db ~p:Id.p ~conv
       {| SELECT * FROM results WHERE competition = ? |}
       (Competition.id competition)
-  | `Dancer dancer ->
+  | `Dancer _dancer ->
+    assert false
+      (* TODO: make this code up to date 
     State.query_list_where ~st ~db ~p:Id.p ~conv
       {| SELECT * FROM results WHERE dancer = ? |}
-      (Dancer.id dancer)
+         (Dancer.id dancer)
+         *)
 
 let all_points ~st ~dancer ~role ~div =
   let open Db.Ty in

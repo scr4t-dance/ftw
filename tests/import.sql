@@ -1,1 +1,1 @@
-.import --csv tests/p4t.csv attendees
+.import --csv tests/spooky.csv attendees

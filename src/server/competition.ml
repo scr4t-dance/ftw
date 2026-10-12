@@ -30,6 +30,9 @@ let comp_infos ~req ~st ?(judges=false) comp =
       div [class_ "col"] [
         txt "Followers: %d" (Ftw.Competition.n_follows comp);
       ];
+      div [class_ "col"] [
+        a [path_attr href Paths.Page.comp_bibs (Ftw.Competition.id comp)] [txt "bibs"];
+      ];
     ];
     if judges then
       div [class_ "row border-top border-2 my-2 py-2"] (
@@ -135,7 +138,7 @@ let admin_panel_setup ~req ~st ~ev:_ ~comp =
 
 let admin_panel_registration ~req ~st ~ev:_ ~comp =
   [
-    comp_infos ~req ~st comp;
+    comp_infos ~judges:true ~req ~st comp;
     button
       [ class_ "btn btn-success"; path_attr Hx.get Paths.Htmx.comp_distrib (Ftw.Competition.id comp);
         Hx.confirm "Ready ?" ]
@@ -145,7 +148,7 @@ let admin_panel_registration ~req ~st ~ev:_ ~comp =
 let admin_panel_distrib ~req ~st ~ev:_ ~comp =
   let n_leaders, n_followers = count_bibs ~st ~comp in
   [
-    comp_infos ~req ~st comp;
+    comp_infos ~judges:true ~req ~st comp;
     div [class_ "row border-top border-2 my-2 py-2"] [
       h5 [] [txt "Bib Count"];
       div [class_ "col"] [

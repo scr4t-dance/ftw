@@ -107,10 +107,13 @@ let conv =
     { id; name; email; dancer_id; })
 
 let passwd ~st user_id =
-  try
-    Some (State.query_one_where ~st ~db ~p:Id.p ~conv:Conv.string
-      {| SELECT passwd FROM passwd WHERE user_id = ? |} user_id)
-  with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
+  match
+    State.query_one_where ~st ~db ~p:Id.p ~conv:Conv.string
+      {| SELECT passwd FROM passwd WHERE user_id = ? |} user_id 
+  with
+  | "" -> None
+  | s -> Some s
+  | exception Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
     None
 
 let find ~st = function
@@ -148,19 +151,26 @@ let authentificate ~st ~username ~pwd =
       | Ok false -> `Bad_passwd
       | Error errcode -> `Hash_error (Argon2.ErrorCodes.message errcode)
 
+let set_passwd_aux ~st ~user ~encoded_pwd =
+  State.insert ~st ~db ~ty:Db.Ty.[int; text]
+    {| INSERT OR REPLACE INTO passwd (user_id, passwd, last_set) VALUES (?,?,datetime('now','localtime')) |}
+    (id user) encoded_pwd
+
+let set_passwd ~st ~user ~pwd =
+  if pwd = "" then set_passwd_aux ~st ~user ~encoded_pwd:""
+  else match encode_passwd pwd with
+    | Error _ -> assert false
+    | Ok encoded_pwd -> set_passwd_aux ~st ~user ~encoded_pwd
+
 let create ~st ~username ~email ~pwd ~dancer_id =
-  match encode_passwd pwd with
-  | Error _ ->
-    assert false
-  | Ok encoded_pwd ->
-    State.insert ~st ~db ~ty:Db.Ty.[text; text; int]
-      {| INSERT INTO users (name, email, dancer_id) VALUES (?,?,?) |}
-      username email dancer_id;
-    let user =
-      State.query_one_where ~st ~db ~p:Id.p ~conv
-        {| SELECT * FROM users WHERE dancer_id = ? |} dancer_id
-    in
-    State.insert ~st ~db ~ty:Db.Ty.[int; text]
-      {| INSERT INTO passwd (user_id, passwd, last_set) VALUES (?,?,datetime('now','localtime')) |}
-      (id user) encoded_pwd;
-    user
+  State.insert ~st ~db ~ty:Db.Ty.[text; text; int]
+    {| INSERT INTO users (name, email, dancer_id) VALUES (?,?,?) |}
+    username email dancer_id;
+  let user =
+    State.query_one_where ~st ~db ~p:Id.p ~conv
+      {| SELECT * FROM users WHERE dancer_id = ? |} dancer_id
+  in
+  set_passwd ~st ~user ~pwd;
+  user
+
+

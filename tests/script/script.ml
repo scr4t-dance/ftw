@@ -22,11 +22,11 @@ let ranking_algorithm : Ftw.Ranking.Algorithm.t =
     head_weights = [ w ];
   }
 
-let _create_jj ~st ~ev ~div ~head ~judges_leaders ~judges_follows () =
+let create_jj ~st ~ev ~div ~head ~judges_leaders ~judges_follows () =
   let comp =
     Ftw.Competition.create ()
       ~st ~event_id:ev ~name:""
-      ~public:false ~status:Setup
+      ~public:false ~status:Registration
       ~n_leaders:0 ~n_follows:0
       ~kind:Jack_and_Jill ~category:(Competitive div)
   in
@@ -42,6 +42,22 @@ let _create_jj ~st ~ev ~div ~head ~judges_leaders ~judges_follows () =
   let () = List.iter (fun t -> Ftw.Position.add ~st ~user:(user t) (Judge {ev; comp = Ftw.Competition.id comp; phase = Ftw.Phase.id prelims; })) judges_follows in
   let () =
     Ftw.Judge.set ~st ~phase:(Ftw.Phase.id prelims) (Singles {
+      head = Some (dancer head);
+      leaders = List.map dancer judges_leaders;
+      followers = List.map dancer judges_follows;
+    })
+  in
+  let semis =
+    Ftw.Phase.create ~st ~status:Inactive
+      (Ftw.Competition.id comp) Semifinals
+      ~ranking_algorithm
+      ~judge_artefact_descr:(Yans criterions)
+      ~head_judge_artefact_descr:(Yans { criterions = ["*"]})
+  in
+  let () = List.iter (fun t -> Ftw.Position.add ~st ~user:(user t) (Judge {ev; comp = Ftw.Competition.id comp; phase = Ftw.Phase.id semis; })) judges_leaders in
+  let () = List.iter (fun t -> Ftw.Position.add ~st ~user:(user t) (Judge {ev; comp = Ftw.Competition.id comp; phase = Ftw.Phase.id semis; })) judges_follows in
+  let () =
+    Ftw.Judge.set ~st ~phase:(Ftw.Phase.id semis) (Singles {
       head = Some (dancer head);
       leaders = List.map dancer judges_leaders;
       followers = List.map dancer judges_follows;
@@ -64,7 +80,7 @@ let _create_jj ~st ~ev ~div ~head ~judges_leaders ~judges_follows () =
   in
   ()
 
-let create_strictly ~st ~ev ~name ~head ~judges () =
+let _create_strictly ~st ~ev ~name ~head ~judges () =
   let comp =
     Ftw.Competition.create ()
       ~st ~event_id:ev ~name
@@ -146,59 +162,58 @@ let _create_all_in ~st ~ev ~head ~judges ~high () =
 
 let exec ~st () =
   (* People *)
-  let admin = Ftw.User.create ~st ~email:"" ~username:"admin" ~pwd:"passwd" ~dancer_id:22 in
+  let admin = Ftw.User.create ~st ~email:"" ~username:"admin" ~pwd:"passwd" ~dancer_id:19 in
   let () = Ftw.Position.add ~st ~user:admin Admin in
 
-  let clerk = Ftw.User.create ~st ~email:"" ~username:"clerk" ~pwd:"p4tp4t" ~dancer_id:90 in
+  let clerk = Ftw.User.create ~st ~email:"" ~username:"clerk" ~pwd:"spooky" ~dancer_id:119 in
 
-  let _lea = mk ~st ~dancer:5 ~username:"lea" ~pwd:"aleatoire" in
-  let _riri = mk ~st ~dancer:97 ~username:"riri" ~pwd:"hello" in
-  let _dom = mk ~st ~dancer:134 ~username:"dom" ~pwd:"there" in
-  let _pbk = mk ~st ~dancer:53 ~username:"pbk" ~pwd:"papa" in
-  let _abella = mk ~st ~dancer:51 ~username:"alexandra" ~pwd:"abcd" in
-  let _hoang = mk ~st ~dancer:54 ~username:"hoang" ~pwd:"efgh" in
-  let _mathilde = mk ~st ~dancer:52 ~username:"mathilde" ~pwd:"maman" in
-  let _alix = mk ~st ~dancer:180 ~username:"alix" ~pwd:"jazz" in
-  let _camille = mk ~st ~dancer:106 ~username:"camille" ~pwd:"supremeleader" in
-  let _popi = mk ~st ~dancer:58 ~username:"popi" ~pwd:"uniqlo" in
-  let _corbet = mk ~st ~dancer:91 ~username:"corbet" ~pwd:"p4t" in
-  let _valentine = mk ~st ~dancer:86 ~username:"titine" ~pwd:"titine" in
-  let _romain = mk ~st ~dancer:79 ~username:"romain" ~pwd:"costard" in
-  let _bivas = mk ~st ~dancer:40 ~username:"irenebivas" ~pwd:"Fusion4Temps" in
-  let _berton = mk ~st ~dancer:94 ~username:"berton" ~pwd:"papillon" in
-  let _antoine = mk ~st ~dancer:141 ~username:"antoine" ~pwd:"ADLD" in
-  let _filam = mk ~st ~dancer:89 ~username:"filam" ~pwd:"eventail" in
-  let _gaelle = mk ~st ~dancer:61 ~username:"gaelle" ~pwd:"moto" in
-  let _gaby = mk ~st ~dancer:55 ~username:"gaby" ~pwd:"kibele" in
-  let _bourda = mk ~st ~dancer:109 ~username:"alice" ~pwd:"aliceaussi" in
-  let _lisa = mk ~st ~dancer:183 ~username:"lisa" ~pwd:"coucou" in
-  let _alexis = mk ~st ~dancer:66 ~username:"Aled" ~pwd:"vHyu45jbN" in
-  let _eva = mk ~st ~dancer:156 ~username:"eva" ~pwd:"insta" in
-  let _pm = mk ~st ~dancer:105 ~username:"pm" ~pwd:"ouragan" in
-  let _amandine = mk ~st ~dancer:62 ~username:"amandine" ~pwd:"amandine99" in
-  let _lucille = mk ~st ~dancer:108 ~username:"lucille" ~pwd:"" in
-  let _aurelien = mk ~st ~dancer:128 ~username:"aurélien" ~pwd:"" in
+  let _lea = mk ~st ~dancer:2 ~username:"lea" ~pwd:"aleatoire" in
+  let _bivas = mk ~st ~dancer:47 ~username:"bivas" ~pwd:"suisse" in
+  let _riri = mk ~st ~dancer:158 ~username:"riri" ~pwd:"" in
+  let _mathilde = mk ~st ~dancer:50 ~username:"mathilde" ~pwd:"maman" in
+  let _marianne = mk ~st ~dancer:160 ~username:"marianne" ~pwd:"" in
+  let _gaelle = mk ~st ~dancer:117 ~username:"gaelle" ~pwd:"moto" in
+  let _popi = mk ~st ~dancer:58 ~username:"popi" ~pwd:"qlo" in
+  let _alexis = mk ~st ~dancer:98 ~username:"alexis" ~pwd:"bridgerton" in
+  let _pm = mk ~st ~dancer:66 ~username:"pm" ~pwd:"" in
+  let _antoine = mk ~st ~dancer:214 ~username:"antoine" ~pwd:"deladanse" in
+  let _alix = mk ~st ~dancer:332 ~username:"alix" ~pwd:"jazz" in
+  let _corbet = mk ~st ~dancer:144 ~username:"corbet" ~pwd:"" in
+  let _lisa = mk ~st ~dancer:348 ~username:"lisa" ~pwd:"" in
+  let _filam = mk ~st ~dancer:59 ~username:"filam" ~pwd:"" in
+  let _pbk = mk ~st ~dancer:49 ~username:"pbk" ~pwd:"papa" in
+  let _dom = mk ~st ~dancer:166 ~username:"dom" ~pwd:"" in
 
   (* Event & Comps *)
   let ev =
-    Ftw.Event.create ~st ~name:"Strictly 4 You" ~short_name:"s4y"
-      ~start_date:(Ftw.Date.mk ~day:6 ~month:6 ~year:2026)
-      ~end_date:(Ftw.Date.mk ~day:6 ~month:6 ~year:2026)
+    Ftw.Event.create ~st ~name:"Spooky 4 Temps" ~short_name:"spooky"
+      ~start_date:(Ftw.Date.mk ~day:16 ~month:10 ~year:2026)
+      ~end_date:(Ftw.Date.mk ~day:18 ~month:10 ~year:2026)
       ~public:false ~status:In_progress
   in
 
   let () = Ftw.Position.add ~st ~user:clerk (Clerk {ev}) in
 
-  let novice =
-    create_strictly ()
-      ~st ~ev ~name:"Strictly Initiés"
-      ~head:_lucille ~judges:[_eva; _pbk; _mathilde; _aurelien]
+  let _novice =
+    create_jj ()
+      ~st ~ev ~div:Novice ~head:_bivas
+      ~judges_leaders:[_gaelle;_popi;_alexis;_antoine]
+      ~judges_follows:[_lea;_mathilde;_marianne;_pm]
   in
-  let inter =
-    create_strictly ()
-      ~st ~ev ~name:"Strictly Inters"
-      ~head:_lucille ~judges:[_eva; _romain; _abella; _antoine]
+  let _inter =
+    create_jj ()
+      ~st ~ev ~div:Intermediate ~head:_bivas
+      ~judges_leaders:[_lea;_corbet;_alexis]
+      ~judges_follows:[_mathilde;_alix;_popi]
   in
+  let _adv =
+    create_jj ()
+      ~st ~ev ~div:Advanced ~head:_riri
+      ~judges_leaders:[_filam;_pbk;_dom]
+      ~judges_follows:[_lisa;_marianne;_gaelle]
+  in
+
+  (*
   let () =
     let index = Ftw.Dancer.Index.mk ~st in
     let find_dancer ~first_name ~last_name =
@@ -224,6 +239,9 @@ let exec ~st () =
       | _ -> assert false
       )
   in
+
+  *)
+
   ()
 
 let () =

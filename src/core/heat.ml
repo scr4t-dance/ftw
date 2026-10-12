@@ -25,4 +25,4 @@ type regular = {
 type t =
   | Regular of regular
   (* in the future add other kind of pools for fun comps, e.g. steal/switch *)
-  
+

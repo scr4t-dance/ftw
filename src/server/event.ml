@@ -174,6 +174,11 @@ let admin_panel_progress ~req ~st ~ev =
           [path_attr href Paths.Page.event_distrib (Ftw.Event.id ev)]
           [txt "Bib Distribution";];
       ];
+      div [class_ "col"] [
+        a
+          [path_attr href Paths.Page.event_bibs (Ftw.Event.id ev)]
+          [txt "Bib List";];
+      ];
     ];
     admin_comp_list ~req ~st ~ev;
   ]
@@ -296,7 +301,7 @@ let distrib_search ~req ~st:_ ~ev =
     ];
     div [class_ "row"] [
       div [class_ "col container"; id "search-results"] [
-        
+
       ]
     ]
   ]
@@ -364,7 +369,6 @@ let distrib_form ~req ~st ~comp ~dancer ~role prev =
               | `Bad (_, msg) -> div [class_ "invalid-feedback"] [txt "%s" msg]
             );
       ];
-      
     ]
   else
     div
@@ -375,14 +379,14 @@ let distrib_of_dancer ~req ~st ~comps dancer =
   div [class_ "row border border-2 border-black rounded px-2 py-2 my-4 align-items-center"] [
     div [class_ "col"] (
       div [class_ "row py-2"] [
-        div [class_ "col"] [txt "%s %s" (Ftw.Dancer.first_name dancer) (Ftw.Dancer.last_name dancer)];
-        div [class_ "col"] [txt "Leader: %s" (Display.divisions (Ftw.Dancer.as_leader dancer))];
-        div [class_ "col"] [txt "Follower: %s" (Display.divisions (Ftw.Dancer.as_follower dancer))];
+        div [class_ "col text-start"] [txt "Leader: %s" (Display.divisions (Ftw.Dancer.as_leader dancer))];
+        div [class_ "col text-center"] [txt "%s %s" (Ftw.Dancer.first_name dancer) (Ftw.Dancer.last_name dancer)];
+        div [class_ "col text-end"] [txt "Follower: %s" (Display.divisions (Ftw.Dancer.as_follower dancer))];
       ] :: List.map (fun comp ->
         div [class_"row py-2 border-1 border-top"] [
+          div [class_ "col text-start"] [distrib_form ~req ~st ~comp ~dancer ~role:Leader `Neutral];
           div [class_ "col text-center"] [txt "%s" (Display.competition_name comp)];
-          div [class_ "col"] [distrib_form ~req ~st ~comp ~dancer ~role:Leader `Neutral];
-          div [class_ "col"] [distrib_form ~req ~st ~comp ~dancer ~role:Follower `Neutral];
+          div [class_ "col text-end"] [distrib_form ~req ~st ~comp ~dancer ~role:Follower `Neutral];
         ]
         ) comps
     );

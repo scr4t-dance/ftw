@@ -39,7 +39,7 @@ val update_divisions :
   st:State.t -> dancer:id -> role:Role.t -> divs:Divisions.t -> unit
 (** Update divisions for a dancer. *)
 
-val for_all : st:State.t -> f:(t -> unit) -> unit
+val iter : st:State.t -> f:(t -> unit) -> unit
 (** Iterate over all dancers. *)
 
 val list : st:State.t -> t list

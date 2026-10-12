@@ -504,7 +504,7 @@ let heat_table_couples ~req:_ ~st ~bib_map ~col_headers ~cols targets =
         | Some _bib as bib_opt ->
           bib_opt, bib_opt
       in
-      
+
       let leader = Ftw.Dancer.get ~st leader in
       let follower = Ftw.Dancer.get ~st follower in
       target_id, leader_bib_opt, leader, follower_bib_opt, follower

@@ -83,7 +83,7 @@ let round_count t round =
   (* Jack and Jills *)
   (* WARNING/TODO: temporary workaround to allow straight to finals
     for advanced at P4T 2026, revert and find a better long-term solution *)
-  | Jack_and_Jill when n_max <= 15 ->
+  | Jack_and_Jill when n_max <= 10 ->
     begin match (round : Round.t) with
       | Finals -> -1
       | _ -> 0

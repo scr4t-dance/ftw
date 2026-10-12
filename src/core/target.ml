@@ -45,7 +45,7 @@ module Ord(T : Set.OrderedType) :
       | Any Trouple { target1 = t1; target2 = t2; target3 = t3; },
         Any Trouple { target1 = t1'; target2 = t2'; target3 = t3'; } ->
         CCOrd.(T.compare t1 t1' <?> (T.compare, t2, t2') <?> (T.compare, t3, t3'))
-      
+
       | Any Single _, Any (Couple _ | Trouple _) -> -1
       | Any (Couple _ | Trouple _), Any Single _ -> 1
 

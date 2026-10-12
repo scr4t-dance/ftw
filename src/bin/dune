@@ -1,0 +1,15 @@
+
+; main server binary
+(executable
+  (name         main)
+  (public_name  ftw)
+  (package      ftw)
+  (preprocess
+    (pps lwt_ppx dream-html.ppx)
+  )
+  (libraries
+     ftw ftw_core ftw_api ftw_server
+     fmt fmt.cli logs logs.cli logs.fmt
+     cmdliner containers dune-site
+  )
+)

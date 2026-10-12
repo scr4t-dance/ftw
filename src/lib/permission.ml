@@ -8,6 +8,7 @@ type t =
   (* global permission *)
   | Create_event
   | View_positions
+  | Set_password of { user : User.t; }
 
   (* event permissions *)
   | View_event of { ev : Event.t; }
@@ -37,6 +38,11 @@ let check ~st ?user perm =
 
   | Create_event -> (global ()).create_event
   | View_positions -> (global ()).view_positions
+  | Set_password { user } ->
+    begin match (global ()).set_password with
+      | All -> true
+      | Users l -> List.exists (Id.equal (User.id user)) l
+    end
 
   | View_event {ev } -> (event ~ev).view
   | Edit_event { ev } -> (event ~ev).edit

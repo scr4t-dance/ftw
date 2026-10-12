@@ -65,7 +65,7 @@ let get ~st id =
   with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
     raise Not_found
 
-let for_all ~st ~f =
+let iter ~st ~f =
   State.query_all ~st ~db ~f ~conv
     {| SELECT * FROM dancers ORDER BY id |}
 
@@ -199,7 +199,7 @@ module Index = struct
   let mk ~st =
     Logs.debug ~src (fun k->k "Creating dancer Index...");
     let i = ref Str.Index.empty in
-    for_all ~st ~f:(fun dancer -> i := add dancer !i);
+    iter ~st ~f:(fun dancer -> i := add dancer !i);
     Logs.debug ~src (fun k->k "Finished Index creation");
     !i
 

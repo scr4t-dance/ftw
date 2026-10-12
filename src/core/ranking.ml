@@ -572,8 +572,41 @@ module RPSS = struct
       Matrix.segments matrix ~start ~stop ~cmp:(cmp_head ~k)
         ~f:(set_ranks ~matrix)
 
+  let check_one_judge_ranking ~matrix ~j =
+    let n = Matrix.length matrix in
+    let r = Array.make n 0 in
+    for i = 0 to n - 1 do
+      match Matrix.artefact matrix ~i ~j with
+      | Some Rank rank ->
+        let o = Rank.to_index rank in
+        r.(o) <- r.(o) + 1
+      | _ -> ()
+    done;
+    try
+      Array.iteri (fun idx k ->
+          if k = 0 then (
+            Logs.err ~src (fun k->k "Missing rank %a" Rank.print (Rank.of_index idx));
+            raise Exit)
+          else if k > 1 then (
+            Logs.err ~src (fun k->k "Duplicate rank %a" Rank.print (Rank.of_index idx));
+            raise Exit)
+        else ()
+        ) r;
+      true
+    with Exit -> false
+
+  let check_all_judge_rankings ~matrix =
+    try
+      for j = 0 to Matrix.width matrix - 1 do
+        if not (check_one_judge_ranking ~matrix ~j) then raise Exit
+      done;
+      true
+    with Exit -> false
+
   let rank ~conf:() matrix =
     if Matrix.missing_artefacts matrix <> 0 then
+      Status.Impossible
+    else if not (check_all_judge_rankings ~matrix) then
       Status.Impossible
     else begin
       let n = Matrix.length matrix in

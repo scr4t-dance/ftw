@@ -32,7 +32,7 @@ let apply1 ~st () =
       end
     | _ -> ()
   in
-  Dancer.for_all ~st ~f:(fun d ->
+  Dancer.iter ~st ~f:(fun d ->
       apply_aux d Leader;
       apply_aux d Follower;
       ()

@@ -62,7 +62,9 @@ let server (options : Options.server) =
     Dream_html.get Paths.Page.event Event.page;
     Dream_html.get Paths.Page.event_create Event.create_page;
     Dream_html.get Paths.Page.event_distrib Event.distrib;
+    Dream_html.get Paths.Page.event_bibs Bibs.ev_page;
     Dream_html.get Paths.Page.comp Competition.page;
+    Dream_html.get Paths.Page.comp_bibs Bibs.comp_page;
     Dream_html.get Paths.Page.phase Phase.page;
     Dream_html.get Paths.Page.judge_artefacts Artefacts.for_one_judge;
 
@@ -75,6 +77,7 @@ let server (options : Options.server) =
         Dream_html.get Paths.Htmx.phase_view Phase.htmx_view;
         Dream_html.post Paths.Htmx.login Login.post;
         Dream_html.get Paths.Htmx.logout Login.logout;
+        Dream_html.post Paths.Htmx.set_passwd Dancer.htmx_set_passwd;
         Dream_html.get Paths.Htmx.event_reg Event.admin_event_reg;
         Dream_html.get Paths.Htmx.event_start Event.admin_event_start;
         Dream_html.post Paths.Htmx.distrib_add Event.distrib_add;
@@ -86,7 +89,6 @@ let server (options : Options.server) =
         Dream_html.get Paths.Htmx.phase_scoring Phase.phase_score_htmx;
         Dream_html.get Paths.Htmx.artefacts_view Artefacts.htmx_view;
         Dream_html.get Paths.Htmx.phase_finish Phase.phase_finish_htmx;
-        
 
         Dream_html.post Paths.Post.dancers Dancers.post;
         Dream_html.post Paths.Post.event_create Event.create_post;
@@ -100,104 +102,3 @@ let server (options : Options.server) =
     Dream.get "/" (fun req -> Dream_html.(redirect req (path_attr HTML.href Paths.Page.index)));
     Dream.get "/**" (Dream.static ~loader "");
   ]
-
-
-(* DB init *)
-(* ************************************************************************* *)
-
-let init (options : Options.init) =
-  let st =
-    Ftw.State.mk ~init:true
-      ~main_path:options.main_db_path
-      ~user_path:options.user_db_path
-  in
-  Ftw.State.atomically ~st
-    ~f:(fun st ->
-        match options.dancer_file with
-        | None ->
-          Logs.warn ~src (fun k->k "No dancer list provided")
-        | Some file ->
-          Ftw.Import.import_dancers ~st file
-      )
-
-(* Event Import *)
-(* ************************************************************************* *)
-
-let import (options : Options.import) =
-  let st =
-    Ftw.State.mk ~init:(not options.db_no_init)
-    ~main_path:options.main_db_path
-    ~user_path:options.user_db_path
-  in
-  Ftw.State.atomically ~st
-    ~f:(fun st ->
-        match Ftw.Import.import_event ~st options.ev_path with
-        | Ok _ev_ids -> ()
-        | Error msg ->
-          Logs.err ~src (fun k->k "Import failed: %s" msg);
-          raise Exit
-      )
-
-(* Event Export *)
-(* ************************************************************************* *)
-
-let export (options : Options.export) =
-  let st =
-    Ftw.State.mk ~init:(not options.db_no_init)
-      ~main_path:options.main_db_path
-      ~user_path:options.user_db_path
-  in
-  Ftw.State.atomically ~st ~f:(fun st ->
-    match Ftw.Export.export_event
-            ~st options.out_path options.ev_id with
-    | Ok _ -> ()
-    | Error () -> raise Exit
-  )
-
-(* Set admin endpoint *)
-(* ************************************************************************* *)
-
-let set_admin (options: Options.set_admin) =
-  let st =
-    Ftw.State.mk ~init:(not options.db_no_init)
-      ~main_path:options.main_db_path
-      ~user_path:options.user_db_path
-  in
-  Ftw.State.atomically ~st ~f:(fun st ->
-    let user =
-      Ftw.User.create ~st
-        ~username:options.username
-        ~email:options.email
-        ~pwd:options.pwd
-        ~dancer_id:options.dancer_id
-    in
-    Ftw.Position.add ~st ~user Admin
-  )
-
-(* Main entrypoint *)
-(* ************************************************************************* *)
-
-let () =
-  (* Parse CLI options *)
-  let info = Cmdliner.Cmd.info ~version:"dev" "ftw" in
-  let cmd =
-    let open Cmdliner in
-    Cmd.group ~default:Options.server info [
-      Cmd.v (Cmd.info "init") Options.init;
-      Cmd.v (Cmd.info "import") Options.import;
-      Cmd.v (Cmd.info "export") Options.export;
-      Cmd.v (Cmd.info "set-admin") Options.set_admin;
-    ]
-  in
-  match Cmdliner.Cmd.eval_value cmd with
-  (* Errors *)
-  | Error `Parse -> exit Cmdliner.Cmd.Exit.cli_error
-  | Error (`Term | `Exn) -> exit Cmdliner.Cmd.Exit.internal_error
-  (* Help / Version *)
-  | Ok (`Help | `Version) -> exit 0
-  (* Options parsed, run the code *)
-  | Ok `Ok Options.Server options -> server options
-  | Ok `Ok Options.Init options -> init options
-  | Ok `Ok Options.Import options -> import options
-  | Ok `Ok Options.Export options -> export options
-  | Ok `Ok Options.Set_admin options -> set_admin options

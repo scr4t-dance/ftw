@@ -68,7 +68,21 @@ let post req =
     | Error _errs -> assert false (* internal error, or incorrect api usage from external source *)
     | Ok pattern ->
       if String.length pattern < 2 then
-        `Body [tr [] [td [colspan 2] [txt "type at least 2 letters to search..."]]]
+        (* `Body [tr [] [td [colspan 2] [txt "type at least 2 letters to search..."]]] *)
+        let l =
+          Ftw.Dancer.list ~st
+          |> List.filter (fun d ->
+              match Ftw.Dancer.as_leader d, Ftw.Dancer.as_follower d with
+              | None, None -> false
+              | _ -> true
+            )
+          |> List.sort (fun d d' ->
+              CCOrd.(string (Ftw.Dancer.last_name d) (Ftw.Dancer.last_name d')
+                     <?> (string, Ftw.Dancer.first_name d, Ftw.Dancer.first_name d'))
+            )
+        in
+        let body = List.map tr_of_dancer l in
+        `Body body
       else
         let l = Ftw.Dancer.Fuzzy.search ~st ~pattern in
         let body = List.map tr_of_dancer l in

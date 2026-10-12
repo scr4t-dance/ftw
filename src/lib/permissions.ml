@@ -15,22 +15,34 @@ let user_dancer_id = function
 (* Global permissions *)
 (* ************************************************************************* *)
 
+type set_password =
+  | All
+  | Users of User.id list
+
 type global = {
   create_event : bool;
   view_positions : bool;
+  set_password : set_password;
 }
+
+let merge_set_password s s' =
+  match s, s' with
+  | All, _ | _, All -> All
+  | Users l, Users l' -> Users (l @ l')
 
 let merge_global (g: global) (g': global) : global = {
   create_event = merge_bool g.create_event g'.create_event;
   view_positions = merge_bool g.view_positions g'.view_positions;
+  set_password = merge_set_password g.set_password g'.set_password;
 }
 
-let global_aux ?user:_ ?pos () : global =
+let global_aux ?user ?pos () : global =
   match (pos : Position.t option) with
   | Some Admin ->
-    { create_event = true; view_positions = true;}
+    { create_event = true; view_positions = true; set_password = All; }
   | _ ->
-    { create_event = false; view_positions = false;}
+    { create_event = false; view_positions = false;
+      set_password = Users (match user with None -> [] | Some user -> [User.id user]); }
 
 let global ~st ?user () =
   let positions = Position.get_global ~st ?user () in

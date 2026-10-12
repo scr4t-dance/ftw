@@ -373,21 +373,7 @@ let phase_finish_htmx req phase_id =
   | Finals -> assert false
   | _ ->
     let next_round, n = Ftw.Competition.next_round comp (Some (Ftw.Phase.round phase)) in
-    let next_phase =
-      match next_round with
-      | Finals -> Option.get @@ Ftw.Competition.round ~st comp Finals
-      | _ ->
-        let next_phase =
-          Ftw.Phase.create
-            ~st (Ftw.Competition.id comp) next_round ~status:Setup 
-            ~ranking_algorithm:(Ftw.Phase.ranking_algorithm phase)
-            ~judge_artefact_descr:(Ftw.Phase.judge_artefact_descr phase)
-            ~head_judge_artefact_descr:(Ftw.Phase.head_judge_artefact_descr phase)
-        in
-        let panel = Ftw.Judge.get ~st ~phase:(Ftw.Phase.id phase) in
-        Ftw.Judge.set ~st ~phase:(Ftw.Phase.id next_phase) panel;
-        next_phase
-    in
+    let next_phase = Option.get @@ Ftw.Competition.round ~st comp next_round in
     let ranking = Ftw.Phase.ranking ~st ~phase in
     begin match Ftw.Phase.targets_in_range ranking (Ftw.Rank.mk 1) (Ftw.Rank.mk n) with
     | None -> assert false
