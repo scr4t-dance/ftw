@@ -53,6 +53,51 @@ let user_management ~req ~st ~dancer =
     end else
       null []
 
+(* Promotions *)
+(* ************************************************************************* *)
+
+let promotions ~req:_ ~st ~dancer =
+  let l =
+    Ftw.Promotion.find ~st (`Dancer dancer)
+    |> List.map (fun p ->
+        let ev = Ftw.Event.get ~st (Ftw.Promotion.event p) in
+        let comp =
+          Option.map (Ftw.Competition.get ~st) (Ftw.Promotion.comp p)
+        in
+        ev, comp, p
+      )
+    |> List.sort (fun (ev, _, _) (ev', _, _) ->
+        Ftw.Date.compare (Ftw.Event.start_date ev') (Ftw.Event.start_date ev)
+      )
+  in
+  table [class_ "table"] [
+    tbody [] (List.map (fun (ev, comp, promotion) ->
+        tr [] [
+          td [] [txt "%s"
+                   (Display.date (Ftw.Event.end_date ev))];
+          td [] [txt "%s -> %s"
+                   (Display.divisions (Ftw.Promotion.old_divs promotion))
+                   (Display.divisions (Ftw.Promotion.new_divs promotion))];
+          td [] [match Ftw.Promotion.reason promotion with
+                | Participation -> txt "Première participation à une compétition"
+                | Invited -> txt "Invitation à une compétition qualifiante"
+                | Qualifying_finalist -> txt "Finaliste d'une compétition qualifiante"
+                | Inter_finalist -> txt "Finaliste en Inter (cf période de transition)"
+                | Points_soft -> txt "Points (seuil doux)"
+                | Points_hard -> txt "Points (seuil dur)"
+                | Points_auto -> txt "Points (auto)"
+                | Reform -> txt "Réforme"
+            ];
+          td [] [match comp with
+              | None -> null []
+              | Some comp -> txt "%s" (Display.competition_name comp)
+            ];
+          td [] [txt "%s" (Ftw.Event.name ev)];
+        ]
+      ) l);
+  ]
+
+
 (* Positions *)
 (* ************************************************************************* *)
 
@@ -120,6 +165,7 @@ let page req dancer_id =
       ];
     user_management ~req ~st ~dancer;
     comp_results ~req ~st ~dancer;
+    promotions ~req ~st ~dancer;
     positions ~req ~st ~dancer;
   ]
 

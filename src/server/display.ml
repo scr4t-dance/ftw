@@ -9,6 +9,10 @@ open! Dream_html.HTML
 (* Generic *)
 (* ************************************************************************* *)
 
+let date d =
+  Format.asprintf "%20d/%20d/%d"
+    (Ftw.Date.day d) (Ftw.Date.month d) (Ftw.Date.year d)
+
 let rank r =
   let i = Ftw.Rank.rank r in
   Format.asprintf "%d" i

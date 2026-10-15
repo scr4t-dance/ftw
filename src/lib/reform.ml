@@ -11,7 +11,7 @@ include Ftw_core.Reform
 
 (* TODO: implement a DSL to make these user-defined and configurable *)
 
-let apply1 ~st () =
+let apply1 ~st ~event =
   let apply_aux dancer role =
     let id = Dancer.id dancer in
     let divs = Dancer.as_role ~role dancer in
@@ -22,7 +22,8 @@ let apply1 ~st () =
       if inter_points <= 0 && 12 <= novice_points && novice_points <= 14 then begin
         let new_divs : Divisions.t = Novice_Intermediate in
         let p : Promotion.t = {
-          source = Reform First;
+          event = event;
+          competition = None;
           dancer = id; role;
           old_divisions = divs;
           new_divisions = new_divs;
@@ -38,7 +39,7 @@ let apply1 ~st () =
       ()
     )
 
-let apply ~st t =
+let apply ~st ~event t =
   match t with
-  | First -> apply1 ~st ()
+  | First -> apply1 ~st ~event
 

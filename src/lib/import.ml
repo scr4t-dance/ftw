@@ -367,7 +367,7 @@ class virtual importer (st : State.t) = object(self)
   (* === reform === *)
   (* ============== *)
 
-  method import_reform t =
+  method import_reform t event =
     match Otoml.find_opt t Otoml.get_value ["reform"] with
     | None -> ()
     | Some t ->
@@ -377,7 +377,7 @@ class virtual importer (st : State.t) = object(self)
         | 1 -> First
         | _ -> failwith (Format.asprintf "not a correct reform id: %d" reform_id)
       in
-      Reform.apply ~st reform
+      Reform.apply ~st ~event reform
 
   (* === event === *)
   (* ============= *)
@@ -404,7 +404,7 @@ class virtual importer (st : State.t) = object(self)
         self#import_comps ~event t
       | None -> ()
     end;
-    self#import_reform t;
+    self#import_reform t event;
     event
 
 end

@@ -10,4 +10,5 @@ val record : st:State.t -> t -> unit
 (** Record/add a promotion in the state, as well as update the division of the
     concerned dancer. *)
 
+val find : st:State.t -> [ `Dancer of Dancer.t ] -> t list
 

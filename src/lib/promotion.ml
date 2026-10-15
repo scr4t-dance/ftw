@@ -6,19 +6,6 @@
 
 include Ftw_core.Promotion
 
-(* Source encoding *)
-(* ************************************************************************* *)
-
-let source_to_int src =
-  match (src : source) with
-  | Competition id -> id * 10
-  | Reform First -> 1
-
-let source_of_int i : source =
-  match i with
-  | 1 -> Reform First
-  | i -> Competition (i / 10)
-
 
 (* Reason encoding *)
 (* ************************************************************************* *)
@@ -54,32 +41,34 @@ let () =
   State.add_init ~name:"promotions" (fun st ->
       State.exec ~st ~db {|
         CREATE TABLE IF NOT EXISTS promotions (
-          source INTEGER,
+          event INTEGER references events(id),
+          comp INTEGER,
           dancer INTEGER REFERENCES dancers(id),
           role INTEGER,
           old_divs INTEGER REFERENCES divisions_names(id),
           new_divs INTEGER REFERENCES divisions_names(id),
           reason INTEGER,
-          PRIMARY KEY (source, dancer, role)
+          PRIMARY KEY (event, comp, dancer, role)
         )
       |})
 
-let _conv =
-  Conv.mk Db.Ty.[int; int; int; int; int; int]
-    (fun source dancer role old_divisions new_divisions reason ->
+let conv =
+  Conv.mk Db.Ty.[int; int; int; int; int; int; int]
+    (fun event comp dancer role old_divisions new_divisions reason ->
+       let competition = if comp = 0 then None else Some comp in
        let role = Role.of_int role in
        let old_divisions = Divisions.of_int old_divisions in
        let new_divisions = Divisions.of_int new_divisions in
        let reason = reason_of_int reason in
-       let source = source_of_int source in
-       { source; dancer; role; old_divisions; new_divisions; reason; })
+       { event; competition; dancer; role; old_divisions; new_divisions; reason; })
 
 let add ~st p =
-  State.insert ~st ~db ~ty:Db.Ty.[int; int; int; int; int; int]
+  State.insert ~st ~db ~ty:Db.Ty.[int; int; int; int; int; int; int]
     {| INSERT INTO promotions
-       (source, dancer, role, old_divs, new_divs, reason)
-      VALUES (?,?,?,?,?,?) |}
-    (source_to_int p.source)
+       (event, comp, dancer, role, old_divs, new_divs, reason)
+      VALUES (?,?,?,?,?,?,?) |}
+    p.event
+    (match p.competition with None -> 0 | Some id -> id)
     p.dancer
     (Role.to_int p.role)
     (Divisions.to_int p.old_divisions)
@@ -88,12 +77,20 @@ let add ~st p =
 
 let record ~st p =
   Logs.debug (fun k->
-      k "PROMOTION: (%a) %a %a, %a -> %a, %a"
-        print_source p.source Id.print p.dancer Role.print p.role
+      k "PROMOTION: (%d-%d) %a %a, %a -> %a, %a"
+        p.event (match p.competition with None -> 0 | Some id -> id)
+        Id.print p.dancer Role.print p.role
         Divisions.print p.old_divisions Divisions.print p.new_divisions
         print_reason p.reason
     );
   Dancer.update_divisions ~st ~dancer:p.dancer ~role:p.role ~divs:p.new_divisions;
   add ~st p;
   ()
+
+let find ~st = function
+  | `Dancer dancer ->
+    State.query_list_where ~st ~db ~conv ~p:Id.p
+      {|SELECT * FROM promotions WHERE dancer = ?|} (Dancer.id dancer)
+
+
 

@@ -4,10 +4,6 @@
 (* Type definitions *)
 (* ************************************************************************* *)
 
-type source =
-  | Competition of Competition.id
-  | Reform of Reform.t
-
 type update =
   | No_update
   | Upgrade_to_at_least of Divisions.t
@@ -23,7 +19,8 @@ type reason =
   | Reform
 
 type t = {
-  source : source;
+  event : Event.id;
+  competition : Competition.id option;
   dancer : int;
   role : Role.t;
   old_divisions : Divisions.t;
@@ -31,10 +28,20 @@ type t = {
   reason : reason;
 }
 
-(* Helpers *)
+(* Accessors *)
 (* ************************************************************************* *)
 
-val print_source : Format.formatter -> source -> unit
+val event : t -> Event.id
+val comp : t -> Competition.id option
+val dancer : t -> Dancer.id
+val role : t -> Role.t
+val old_divs : t -> Divisions.t
+val new_divs : t -> Divisions.t
+val reason : t -> reason
+
+
+(* Helpers *)
+(* ************************************************************************* *)
 
 val print_reason : Format.formatter -> reason -> unit
 
