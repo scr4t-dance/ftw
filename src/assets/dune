@@ -1,7 +1,7 @@
 
 (install
-  (package ftw-server)
-  (section (site (ftw-server assets)))
+  (package ftw-bin)
+  (section (site (ftw-bin assets)))
   (files
     (index.html as index.html)
     (logo.png as static/logo.png)

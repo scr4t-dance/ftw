@@ -3,7 +3,7 @@
 (executable
   (name         main)
   (public_name  ftw)
-  (package      ftw)
+  (package      ftw-bin)
   (preprocess
     (pps lwt_ppx dream-html.ppx)
   )

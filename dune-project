@@ -31,7 +31,7 @@
    jsont))
 
 (package
- (name ftw-server)
+ (name ftw-bin)
  (sites (share assets))
  (synopsis "Web server for the FTW scoring system")
  (description "TODO")
