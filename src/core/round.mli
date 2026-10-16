@@ -36,6 +36,9 @@ module Map : Map.S with type key = t
 (* Interesting functions *)
 (* ************************************************************************* *)
 
+val all : t list
+(** List of all rounds *)
+
 val next : t -> t option
 (** Get next round *)
 

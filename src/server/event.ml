@@ -103,7 +103,7 @@ let event_infos ev =
 let comp_item_status comp =
   match Ftw.Competition.status comp with
   | Setup -> "list-group-item-warning"
-  | Registration 
+  | Registration
   | Distribution
   | Progress -> "list-group-item-primary"
   | Finished -> "list-group-item-success"
@@ -215,7 +215,7 @@ let admin_panel ~req ~st ~ev =
       | Finished -> null []
       )
   else
-    null []
+    txt "no perms"
 
 
 (* MAIN page *)
@@ -270,6 +270,86 @@ let competitions ~req:_ ~st ~ev =
     );
   ]
 
+let promotions ~req ~st ~ev =
+  let promotions =
+    match Ftw.Event.status ev with
+    | Finished -> Some (Ftw.Promotion.find ~st (`Event ev))
+    | _ ->
+      if User.check_perms ~req ~st [Edit_event{ev}] then begin
+        let comps = Ftw.Event.competitions ~st ev in
+        let l = CCList.flat_map (fun comp -> Ftw.Results.promotions_for_comp ~st ~event:ev ~comp) comps in
+        Some l
+      end else None
+  in
+  match promotions with
+  | None -> null []
+  | Some l ->
+    let cmp p p' =
+      let open CCOrd in
+      Ftw.Divisions.compare
+        (Ftw.Divisions.normalize (Ftw.Promotion.old_divs p))
+        (Ftw.Divisions.normalize (Ftw.Promotion.old_divs p'))
+      <?> (Ftw.Divisions.compare,
+           Ftw.Divisions.normalize @@ Ftw.Promotion.new_divs p,
+           Ftw.Divisions.normalize @@ Ftw.Promotion.new_divs p')
+      <?> (Ftw.Role.compare, Ftw.Promotion.role p, Ftw.Promotion.role p')
+    in
+    let eq p p' = cmp p p' = 0 in
+    let promotions =
+      l
+      |> List.filter (fun p ->
+          (Ftw.Promotion.old_divs p <> Novice  &&
+           Ftw.Promotion.old_divs p <> None) ||
+          (Ftw.Promotion.new_divs p <> Novice &&
+           Ftw.Promotion.new_divs p <> None))
+      |> List.sort cmp
+      |> CCList.group_succ ~eq
+    in
+    div [class_ "row p-3 my-3"] [
+      div [class_ "col"] [
+        table [class_ "table"] [
+          tbody [] (CCList.flat_map (fun l ->
+              List.map (fun promotion ->
+                  let style =
+                    if Ftw.Division.equal
+                        (Ftw.Divisions.highest_div (Ftw.Promotion.old_divs promotion))
+                        (Ftw.Divisions.highest_div (Ftw.Promotion.new_divs promotion))
+                    then
+                      "table-secondary"
+                    else
+                      "table-primary"
+                  in
+                  let dancer = Ftw.Dancer.get ~st (Ftw.Promotion.dancer promotion) in
+                  tr [class_ "%s" style] [
+                    td [] [txt "%s -> %s"
+                             (Display.divisions (Ftw.Promotion.old_divs promotion))
+                             (Display.divisions (Ftw.Promotion.new_divs promotion))];
+                    td [] [txt "%s"(Display.role (Ftw.Promotion.role promotion))];
+                    td [] [txt "%s %s" (Ftw.Dancer.first_name dancer) (Ftw.Dancer.last_name dancer)];
+                    td [] [match Ftw.Promotion.reason promotion with
+                        | Participation -> txt "Première participation à une compétition"
+                        | Invited -> txt "Invitation à une compétition qualifiante"
+                        | Qualifying_finalist -> txt "Finaliste d'une compétition qualifiante"
+                        | Inter_finalist -> txt "Finaliste en Inter (cf période de transition)"
+                        | Points_soft -> txt "Points (seuil doux)"
+                        | Points_hard -> txt "Points (seuil dur)"
+                        | Points_auto -> txt "Points (auto)"
+                        | Reform -> txt "Réforme"
+                      ];
+                    td [] [match (Ftw.Promotion.comp promotion) with
+                        | None -> null []
+                        | Some comp ->
+                          let comp = Ftw.Competition.get ~st comp in
+                          txt "%s" (Display.competition_name comp)
+                      ];
+                  ]
+                ) l
+            ) promotions
+            )
+        ]
+      ]
+    ]
+
 let page req ev_id =
   let$ st = State.get req in
   let ev = Ftw.Event.get ~st ev_id in
@@ -277,6 +357,7 @@ let page req ev_id =
   titles ~req ~st ~ev @ [
       admin_panel ~req ~st ~ev;
       competitions ~req ~st ~ev;
+      promotions ~req ~st ~ev;
   ]
 
 

@@ -24,7 +24,7 @@ val add : st:State.t -> r -> unit
 val find :
   st:State.t -> [
     | `Dancer of Dancer.t
-    | `Competition of Competition.t
+    | `Competition of Ftw_core.Competition.t
   ] -> r list
 (** Find the list of results for a given competition or dancer. *)
 
@@ -41,3 +41,10 @@ val promotion :
   event:Ftw_core.Event.t ->
   comp:Ftw_core.Competition.t ->
   r -> Promotion.t list
+
+val promotions_for_comp :
+  st:State.t ->
+  event:Ftw_core.Event.t ->
+  comp:Ftw_core.Competition.t ->
+  Promotion.t list
+

@@ -166,7 +166,7 @@ let find ~st = function
   | `Competition competition ->
     State.query_list_where ~st ~db ~p:Id.p ~conv
       {| SELECT * FROM results WHERE competition = ? |}
-      (Competition.id competition)
+      (Ftw_core.Competition.id competition)
   | `Dancer _dancer ->
     assert false
       (* TODO: make this code up to date 
@@ -204,4 +204,75 @@ let promotion ~st ~event ~comp result =
     adv = lazy (all_points ~st ~dancer:dancer_id ~role ~div:Advanced);
   } in
   Promotion.compute ~get_dancer ~event ~comp ~current_points ~result
+
+let for_comp ~st comp =
+  let map = ref Id.Map.empty in
+  let update dancer role ~f =
+    let as_leader, as_follow =
+      match Id.Map.find dancer !map with
+      | exception Not_found ->
+        let as_leader = Ftw_core.Results.empty in
+        let as_follow = Ftw_core.Results.empty in
+        as_leader, as_follow
+      | res -> res
+    in
+    let as_leader, as_follow =
+      match (role : Role.t) with
+      | Leader -> f as_leader, as_follow
+      | Follower -> as_leader, f as_follow
+    in
+    map := Id.Map.add dancer (as_leader, as_follow) !map
+  in
+  let add_one_ranking ranking round =
+    Ranking.One.iter ranking ~f:(fun rank target ->
+        match (target : _ Target.any) with
+        | Any Single { target = dancer; role; } ->
+          update dancer role ~f:(Ftw_core.Results.extend round (Ranked rank))
+        | Any Couple { leader; follower; } ->
+          update leader Leader ~f:(Ftw_core.Results.extend round (Ranked rank));
+          update follower Follower ~f:(Ftw_core.Results.extend round (Ranked rank))
+        | Any Trouple _ -> ()
+      )
+  in
+  let add_round r =
+    match Competition.round ~st comp r with
+    | None -> ()
+    | Some phase ->
+      let ranking =
+        Phase.ranking ~st ~phase
+        |> Phase.map_ranking
+          ~judges:(fun dancer_id ->
+              Target.(Any (Single { role = Leader; target = dancer_id; })))
+          ~targets:(fun heat_target_id ->
+              Heat.get_one ~st heat_target_id)
+      in
+      begin match ranking with
+        | Any Singles { leaders; follows; } ->
+          add_one_ranking (Ranking.Res.ranking leaders) r;
+          add_one_ranking (Ranking.Res.ranking follows) r
+        | Any Couples { couples; } ->
+          add_one_ranking (Ranking.Res.ranking couples) r
+      end
+  in
+  List.iter add_round Round.all;
+  !map
+
+let promotions_for_comp ~st ~event ~comp =
+  let aux dancer result role acc =
+    let p = points ~event ~comp ~role result in
+    let target =
+      Target.(Any (Single { role; target = { dancer; points = p; };}))
+    in
+    let r = {
+      competition = Ftw_core.Competition.id comp;
+      result; target;
+    }
+    in
+    let new_promotions = promotion ~st ~event ~comp r in
+    new_promotions @ acc
+  in
+  Id.Map.fold (fun dancer_id (as_leader, as_follow) acc ->
+      aux dancer_id as_leader Leader
+        (aux dancer_id as_follow Follower acc)
+    ) (for_comp ~st comp) []
 

@@ -33,6 +33,10 @@ let to_string = function
 let print fmt t =
   Format.fprintf fmt "%s" (to_string t)
 
+let normalize = function
+  | None -> Novice
+  | t -> t
+
 let includes div t =
   match (div : Division.t) with
   | Novice ->
@@ -50,4 +54,11 @@ let includes div t =
       | Intermediate_Advanced | Advanced -> true
       | _ -> false
     end
+
+let highest_div = function
+  | None | Novice -> Division.Novice
+  | Novice_Intermediate
+  | Intermediate -> Division.Intermediate
+  | Intermediate_Advanced
+  | Advanced -> Division.Advanced
 

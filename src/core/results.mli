@@ -42,10 +42,13 @@ val mk :
   ?finals:aux ->
   unit -> t
 
+val extend : Round.t -> aux -> t -> t
+
 val finalist : t
 val semifinalist : t
 val quarterfinalist : t
 val octofinalist : t
+val empty : t
 
 val placement : t -> Points.placement
 

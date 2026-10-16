@@ -44,8 +44,18 @@ let mk
     ?(finals=Not_present) () =
   { prelims; octofinals; quarterfinals; semifinals; finals; }
 
+let extend round aux t =
+  match (round : Round.t) with
+  | Finals -> { t with finals = aux; }
+  | Semifinals -> { t with semifinals = aux; }
+  | Quarterfinals -> { t with quarterfinals = aux; }
+  | Octofinals -> { t with octofinals = aux; }
+  | Prelims -> { t with prelims = aux; }
+
+
 (* Some values *)
 
+let empty = mk ()
 let finalist = mk () ~finals:Present
 let semifinalist = mk () ~semifinals:Present
 let quarterfinalist = mk () ~quarterfinals:Present

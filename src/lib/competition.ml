@@ -99,6 +99,18 @@ let phases ~st comp =
 let round ~st comp round =
   List.find_opt (fun phase -> Round.equal round (Phase.round phase)) (phases ~st comp)
 
+(*
+let individual_rankings ~st comp =
+  let rec aux ((leaders, follows) as acc) r =
+    match round ~st comp r with
+    | None -> acc
+    | Some phase ->
+      begin match ranking with
+        | _ -> assert false
+      end
+  in
+  aux (Ranking.One.empty 0, Ranking.One.empty 0) Finals
+*)
 
 (* Private functions *)
 (* ************************************************************************* *)

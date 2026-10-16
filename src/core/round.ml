@@ -30,6 +30,7 @@ end
 module Set = Set.Make(Aux)
 module Map = Map.Make(Aux)
 
+let all = [Prelims; Octofinals; Quarterfinals; Semifinals; Finals]
 
 let next = function
   | Prelims -> Some Octofinals

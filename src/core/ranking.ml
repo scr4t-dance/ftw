@@ -64,6 +64,13 @@ module One = struct
       done
     end
 
+  let iter ~f ({ ranks; } as t) =
+    for i = 0 to Array.length ranks - 1 do
+      match get t (Rank.of_index i) with
+      | None -> ()
+      | Some (rank, target) -> f rank target
+    done
+
   let map_targets ~f { ranks; } =
     let ranks =
       Array.map (function
@@ -84,7 +91,7 @@ module One = struct
     | Tie { rank; tie; } -> rank, Rank.add rank (Array.length tie - 1)
 
   let range t n m : _ option =
-    let n', _ = tie_cover t n in 
+    let n', _ = tie_cover t n in
     let _, m' = tie_cover t m in
     if Rank.compare n m > 0 || Rank.compare n' n < 0 || Rank.compare m m' > 0 then None
     else begin

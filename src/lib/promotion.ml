@@ -91,6 +91,9 @@ let find ~st = function
   | `Dancer dancer ->
     State.query_list_where ~st ~db ~conv ~p:Id.p
       {|SELECT * FROM promotions WHERE dancer = ?|} (Dancer.id dancer)
+  | `Event event ->
+    State.query_list_where ~st ~db ~conv ~p:Id.p
+      {|SELECT * FROM promotions WHERE event = ?|} (Event.id event)
 
 
 

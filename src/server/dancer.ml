@@ -71,10 +71,21 @@ let promotions ~req:_ ~st ~dancer =
       )
   in
   table [class_ "table"] [
+    thead [] [
+      tr [] [
+        th [] [txt "Date"];
+        th [] [txt "Rôle"];
+        th [] [txt "Evolution"];
+        th [] [txt "Raison"];
+        th [] [txt "Compétition"];
+        th [] [txt "Event"];
+      ];
+    ];
     tbody [] (List.map (fun (ev, comp, promotion) ->
         tr [] [
           td [] [txt "%s"
                    (Display.date (Ftw.Event.end_date ev))];
+          td [] [txt "%s"(Display.role (Ftw.Promotion.role promotion))];
           td [] [txt "%s -> %s"
                    (Display.divisions (Ftw.Promotion.old_divs promotion))
                    (Display.divisions (Ftw.Promotion.new_divs promotion))];

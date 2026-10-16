@@ -10,8 +10,13 @@ open! Dream_html.HTML
 (* ************************************************************************* *)
 
 let date d =
-  Format.asprintf "%20d/%20d/%d"
+  Format.asprintf "%02d/%02d/%d"
     (Ftw.Date.day d) (Ftw.Date.month d) (Ftw.Date.year d)
+
+let role r =
+  match (r : Ftw.Role.t) with
+  | Leader -> "Leader"
+  | Follower -> "Follower"
 
 let rank r =
   let i = Ftw.Rank.rank r in

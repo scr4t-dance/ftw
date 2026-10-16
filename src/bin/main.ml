@@ -94,6 +94,7 @@ let () =
   let cmd =
     let open Cmdliner in
     Cmd.group ~default:Options.server info [
+      Cmd.v (Cmd.info "server") Options.server;
       Cmd.v (Cmd.info "init") Options.init;
       Cmd.v (Cmd.info "import") Options.import;
       Cmd.v (Cmd.info "export") Options.export;

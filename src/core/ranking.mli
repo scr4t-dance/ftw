@@ -38,7 +38,11 @@ module One : sig
 
   val map_targets : f:('a -> 'b) -> 'a t -> 'b t
 
+  val empty : int -> _ t
+
   val get : 'a t -> Rank.t -> (Rank.t * 'a) option
+
+  val iter : f:(Rank.t -> 'a -> unit) -> 'a t -> unit
 
   val range : 'a t -> Rank.t -> Rank.t -> (Rank.t * 'a) array option
 

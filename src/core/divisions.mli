@@ -33,4 +33,7 @@ val print : Format.formatter -> t -> unit
 
 val includes : Division.t -> t -> bool
 
+val normalize : t -> t
+
+val highest_div : t -> Division.t
 
