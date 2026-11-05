@@ -170,7 +170,7 @@ let yan_weighted_infos ~req ~st ~comp ~phase ~matrix
       dancer, head
     )
   in
-  table [class_ "table table-hover"] [
+  table [class_ "table table-hover my-2 py-3"] [
     yan_weighted_headers ~phase ~judges ~judge_criterions ~head_criterions;
     tbody [] (List.init (M.length matrix) (fun i ->
       yan_weighted_row ~req ~st ~comp ~matrix ~i ~judge_criterions ~judge_weights ~head_criterions ~head_weights
@@ -300,8 +300,11 @@ let ranking_view ~req ~st ~comp ~phase =
   let l =
     match ranking with
     | Any Singles { leaders; follows; } ->
-      [with_info ~req ~st ~comp ~phase ~ranking:leaders;
-       with_info ~req ~st ~comp ~phase ~ranking:follows; ]
+      [div [class_ "row"] [
+          div [class_ "col py-2"] [with_info ~req ~st ~comp ~phase ~ranking:leaders];
+          div [class_ "col py-2"] [with_info ~req ~st ~comp ~phase ~ranking:follows];
+        ]
+      ]
     | Any Couples { couples } ->
       [with_info ~req ~st ~comp ~phase ~ranking:couples]
   in

@@ -63,6 +63,7 @@ let server (options : Options.server) =
     Dream_html.get Paths.Page.event_create Event.create_page;
     Dream_html.get Paths.Page.event_distrib Event.distrib;
     Dream_html.get Paths.Page.event_bibs Bibs.ev_page;
+    Dream_html.get Paths.Page.event_promotions Event.promotions_page;
     Dream_html.get Paths.Page.comp Competition.page;
     Dream_html.get Paths.Page.comp_bibs Bibs.comp_page;
     Dream_html.get Paths.Page.phase Phase.page;

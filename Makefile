@@ -27,7 +27,7 @@ build:
 reset-jj: build
 	rm tests/jj.users.sqlite
 	cp tests/origin.sqlite tests/jj.sqlite
-	dune exec -- tests/script/script.exe --db tests/jj.sqlite --users tests/jj.users.sqlite
+	dune exec -- src/tools/setup_comp.exe --db tests/jj.sqlite --users tests/jj.users.sqlite
 	sqlite3 tests/jj.sqlite < tests/import.sql
 
 run: build

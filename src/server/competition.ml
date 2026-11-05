@@ -104,20 +104,25 @@ let htmx_start req comp_id =
       if n <> 0 then Prelims
       else begin
         (match Ftw.Competition.round ~st comp Prelims with
-        | Some prelims ->
-          Ftw.Judge.clear ~st ~phase:(Ftw.Phase.id prelims);
-          Ftw.Phase.delete ~st (Ftw.Phase.id prelims)
+        | Some phase ->
+          Ftw.Judge.clear ~st ~phase:(Ftw.Phase.id phase);
+          Ftw.Phase.delete ~st (Ftw.Phase.id phase)
+        | None -> ());
+        (match Ftw.Competition.round ~st comp Semifinals with
+        | Some phase ->
+          Ftw.Judge.clear ~st ~phase:(Ftw.Phase.id phase);
+          Ftw.Phase.delete ~st (Ftw.Phase.id phase)
         | None -> ());
         Finals
       end
     in
     begin match Ftw.Competition.round ~st comp round with
-      | Some prelims ->
-        assert (Ftw.Phase.status prelims = Ftw.Phase.Inactive);
-        let prelims = Ftw.Phase.Private.with_status Setup prelims in
-        let _ = Ftw.Heat.init ~st ~phase:prelims targets in
+      | Some phase ->
+        assert (Ftw.Phase.status phase = Ftw.Phase.Inactive);
+        let phase = Ftw.Phase.Private.with_status Setup phase in
+        let _ = Ftw.Heat.init ~st ~phase targets in
         Ftw.Competition.update ~st comp;
-        Ftw.Phase.update ~st prelims;
+        Ftw.Phase.update ~st phase;
         `Refresh
       | None -> assert false
     end
@@ -242,6 +247,24 @@ let bib_table bibs =
       ) bibs);
   ]
 
+let bibs_singles bibs =
+  table [class_ "table"] [
+    thead [] [
+      tr [] [
+        td [] [txt "#"];
+        td [] [txt "First Name"];
+        td [] [txt "Last Name"];
+      ]
+    ];
+    tbody [] (List.map (fun (bib, Ftw.Target.Single { target; role = _; }) ->
+      tr [] [
+        td [] [txt "#%d" bib];
+        td [] [txt "%s" (Ftw.Dancer.first_name target)];
+        td [] [txt "%s" (Ftw.Dancer.last_name target)];
+      ]
+      ) bibs);
+  ]
+
 let bibs_view ~st ~comp =
   let bibs = Ftw.Bib.get_all ~st ~competition:(Ftw.Competition.id comp) in
   let bibs = List.sort (fun (b, _) (b', _) -> Ftw.Id.compare b' b) bibs in
@@ -249,8 +272,8 @@ let bibs_view ~st ~comp =
     List.fold_left (fun (l, f, c) (bib, target) ->
       let target = Ftw.Target.map_any ~f:(Ftw.Dancer.get ~st) target in
       match target with
-      | Any Single { role = Leader; _ } -> (bib, target) :: l, f, c
-      | Any Single { role = Follower; _ } -> l, (bib, target) :: f, c
+      | Any (Single { role = Leader; _ } as target) -> (bib, target) :: l, f, c
+      | Any (Single { role = Follower; _ } as target) -> l, (bib, target) :: f, c
       | Any Couple _ -> l, f, (bib, target) :: c
       | Any _ -> assert false
     ) ([], [], []) bibs
@@ -263,11 +286,11 @@ let bibs_view ~st ~comp =
       div [class_ "row"] [
         div [class_ "col"] [
           h5 [] [txt "Leaders"];
-          bib_table leaders;
+          bibs_singles leaders;
         ];
         div [class_ "col"] [
           h5 [] [txt "Followers"];
-          bib_table follows;
+          bibs_singles follows;
         ];
       ]
     );
@@ -370,10 +393,11 @@ let htmx_view req comp_id =
     | None ->
       (* TODO: print the presumptive results and promotions *)
       `Body [txt "Competition almost finished..."]
-    end 
+    end
   | Finished ->
     let$ () = Htmx.ret' ~req ~st ~perms:[View_comp {ev;comp;}] in
     let results = Ftw.Results.find ~st (`Competition comp) in
     let ranking = Ftw.Results.ranking ~comp results in
     let finals_table = table_of_ranking ~st ranking in
     `Body [finals_table]
+

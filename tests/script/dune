@@ -1,9 +1,0 @@
-
-(executable
-  (name script)
-  (libraries ftw fmt fmt.tty))
-
-;(executable
-;  (name dream_secret)
-;  (libraries dream))
-

@@ -262,7 +262,7 @@ let heat_pairing_form ~req ~st ~comp ~phase =
       csrf_tag req ::
       List.mapi (one_heat_pairing_form ~req ~st ~bib_map) (heats.unallocated :: Array.to_list heats.heats)
       @ [
-        div [class_ "row"] [button [class_ "btn btn-primary"; type_ "submit"] [txt "Save pairings"]]
+        div [class_ "row m-3 py-2"] [button [class_ "btn btn-primary"; type_ "submit"] [txt "Save pairings"]]
       ]
     )
 
@@ -387,7 +387,7 @@ let phase_finish_htmx req phase_id =
       (* TODO: redirect toward the new pahse webpage *)
       `Refresh
     end
-  
+
 
 let admin_panel_setup ~req ~st ~ev:_ ~comp:_ ~phase =
   [
@@ -408,10 +408,12 @@ let admin_panel_progress ~req ~st ~ev:_ ~comp ~phase =
         heat_pairing_form ~req ~st ~comp ~phase
       | _ -> null []
     );
-    button
-      [ class_ "btn btn-success"; path_attr Hx.get Paths.Htmx.phase_scoring (Ftw.Phase.id phase);
-        Hx.confirm "Sure ?" ]
-      [ txt "Start Scoring" ];
+    div [class_ "row"] [
+        button
+          [ class_ "btn btn-success m-3"; path_attr Hx.get Paths.Htmx.phase_scoring (Ftw.Phase.id phase);
+            Hx.confirm "Sure ?" ]
+          [ txt "Start Scoring" ];
+    ];
   ]
 
 let admin_panel_scoring ~req ~st ~ev:_ ~comp:_ ~phase =

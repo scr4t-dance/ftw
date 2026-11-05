@@ -170,7 +170,8 @@ module Matrix = struct
     Array.length t.artefacts
 
   let width t =
-    Array.length t.artefacts.(0)
+    Array.length t.judges
+    (* Array.length t.artefacts.(0) *)
 
   let target t ~i =
     t.targets.(i)

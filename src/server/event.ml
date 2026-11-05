@@ -218,26 +218,10 @@ let admin_panel ~req ~st ~ev =
     txt "no perms"
 
 
-(* MAIN page *)
+(* Competitions *)
 (* ************************************************************************* *)
 
-(* Main - Base page *)
-let titles ~req:_ ~st:_ ~ev =
-  let start_date = Ftw.Event.start_date ev in
-  let end_date = Ftw.Event.end_date ev in
-  [
-    h2 [class_ "text-center"] [txt "%s" (Ftw.Event.name ev)];
-    (if Ftw.Date.equal start_date end_date then
-      h6 [class_ "text-end"] [txt "%s" (date_to_string start_date)]
-    else
-      h6
-        [class_ "text-end"]
-        [txt "%s - %s" (date_to_string @@ Ftw.Event.start_date ev)
-                      (date_to_string @@ Ftw.Event.end_date ev)])
-  ]
-
-
-(* Main - Finished page *)
+(* Competitions List *)
 let competitions ~req:_ ~st ~ev =
   let comps = Ftw.Event.competitions ~st ev in
   div [class_ "container"] [
@@ -270,20 +254,13 @@ let competitions ~req:_ ~st ~ev =
     );
   ]
 
-let promotions ~req ~st ~ev =
-  let promotions =
-    match Ftw.Event.status ev with
-    | Finished -> Some (Ftw.Promotion.find ~st (`Event ev))
-    | _ ->
-      if User.check_perms ~req ~st [Edit_event{ev}] then begin
-        let comps = Ftw.Event.competitions ~st ev in
-        let l = CCList.flat_map (fun comp -> Ftw.Results.promotions_for_comp ~st ~event:ev ~comp) comps in
-        Some l
-      end else None
-  in
-  match promotions with
-  | None -> null []
-  | Some l ->
+
+
+
+(* Promotions *)
+(* ************************************************************************* *)
+
+let display_promotions ~req:_ ~st l =
     let cmp p p' =
       let open CCOrd in
       Ftw.Divisions.compare
@@ -317,7 +294,7 @@ let promotions ~req ~st ~ev =
                     then
                       "table-secondary"
                     else
-                      "table-primary"
+                      "table-light"
                   in
                   let dancer = Ftw.Dancer.get ~st (Ftw.Promotion.dancer promotion) in
                   tr [class_ "%s" style] [
@@ -350,6 +327,40 @@ let promotions ~req ~st ~ev =
       ]
     ]
 
+let promotions ~req ~st ~ev =
+  match Ftw.Event.status ev with
+  | Finished ->
+    let l = Ftw.Promotion.find ~st (`Event ev) in
+    display_promotions ~req ~st l
+  | _ ->
+    if User.check_perms ~req ~st [Edit_event{ev}] then begin
+      div [class_ "row m-3 py-3"] [
+        div [class_ "row"] [
+          a [path_attr href Paths.Page.event_promotions (Ftw.Event.id ev)] [txt "promotions !!"]
+        ]
+      ]
+    end else null []
+
+
+
+(* Main - Base page *)
+(* ************************************************************************* *)
+
+let titles ~req:_ ~st:_ ~ev =
+  let start_date = Ftw.Event.start_date ev in
+  let end_date = Ftw.Event.end_date ev in
+  [
+    h2 [class_ "text-center"] [txt "%s" (Ftw.Event.name ev)];
+    (if Ftw.Date.equal start_date end_date then
+      h6 [class_ "text-end"] [txt "%s" (date_to_string start_date)]
+    else
+      h6
+        [class_ "text-end"]
+        [txt "%s - %s" (date_to_string @@ Ftw.Event.start_date ev)
+                      (date_to_string @@ Ftw.Event.end_date ev)])
+  ]
+
+
 let page req ev_id =
   let$ st = State.get req in
   let ev = Ftw.Event.get ~st ev_id in
@@ -359,6 +370,17 @@ let page req ev_id =
       competitions ~req ~st ~ev;
       promotions ~req ~st ~ev;
   ]
+
+let promotions_page req ev_id =
+  let$ st = State.get req in
+  let ev = Ftw.Event.get ~st ev_id in
+  let$ () = Page.mk' ~req ~st ~root:(Event [Event{ev}]) ~title:"Event" ~perms:[Edit_event{ev}] in
+  let comps = Ftw.Event.competitions ~st ev in
+  let l = CCList.flat_map (fun comp -> Ftw.Results.promotions_for_comp ~st ~event:ev ~comp) comps in
+  titles ~req ~st ~ev @ [
+      display_promotions ~req ~st l;
+  ]
+
 
 
 (* DISTRIB page *)

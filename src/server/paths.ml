@@ -21,6 +21,7 @@ module Page = struct
   let%path event = "/event/%d"
   let%path event_distrib = "/event/%d/distrib"
   let%path event_bibs = "/event/%d/bibs"
+  let%path event_promotions = "/event/%d/promotions"
 
   let%path comp = "/comp/%d"
   let%path comp_create = "/create/comp"
