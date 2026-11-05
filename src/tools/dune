@@ -1,0 +1,9 @@
+
+(executable
+  (name setup_comp)
+  (libraries ftw fmt fmt.tty))
+
+(executable
+  (name dream_secret)
+  (libraries dream))
+
