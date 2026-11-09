@@ -1,35 +1,38 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-include module type of Ftw_core.Category
-
-(* Serialization *)
+(* Type definitions *)
 (* ************************************************************************* *)
 
-val to_toml : t -> Otoml.t
-(** Serialization to string for a (mostly) human readable format. *)
+type non_competitive =
+  | Regular
+  | Qualifying
+  | Invited (**)
+(** Non competitive competitions, i.e. does not require or give points, but
+    may grant access to some competititve divisions in some cases related
+    to the creation of the point system. *)
 
-val of_toml : Otoml.t -> t
-(** Deserialization from string
-    @raise Otoml.Type_error *)
+type t =
+  | Competitive of Division.t
+  | Non_competitive of non_competitive (**)
+(** Type for division categories: either competitive (i.e. requires/gives
+    access to points), or non-competitive (with some subdivision of those
+    that mostly makes sense for the creation of the SCR4T point system). *)
 
-
-(* DB interaction *)
+(* Usual functions *)
 (* ************************************************************************* *)
 
-val to_int : t -> int
-(** Conversion to integer. *)
+val print : Format.formatter -> t -> unit
+(** Printing function (note: for debug only). *)
 
-val of_int : int -> t
-(** Conversion from integer.
-    @raise Stdlib.Failure _ if the int is out of range *)
+val equal : t -> t -> bool
+(** Equality function *)
 
-val p : (int -> 'a, 'a) Sqlite3_utils.Ty.t
-(** Sqlite query "type" for identifiers *)
+val compare : t -> t -> int
+(** Comparison function. *)
 
-val conv : t Conv.t
-(** Converter for identifiers *)
+module Set : Set.S with type elt = t
+(** Sets for identifiers *)
 
-
-
-
+module Map : Map.S with type key = t
+(** Maps for identifiers *)

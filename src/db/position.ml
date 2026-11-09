@@ -1,0 +1,155 @@
+
+(* This file is free software, part of FTW. See file "LICENSE" for more information *)
+
+(* Ftw_core import *)
+(* ************************************************************************* *)
+
+type t =
+  | Admin
+  | Director of { ev : Lib.Event.id; }
+  | Scorer of { ev: Lib.Event.id; }
+  | Clerk of { ev : Lib.Event.id; }
+  | Emcee of { ev : Lib.Event.id; comp: Lib.Competition.id; }
+  | Head_Judge of { ev : Lib.Event.id; comp : Lib.Competition.id; }
+  | Judge of { ev: Lib.Event.id; comp : Lib.Competition.id; phase: Lib.Phase.id; }
+  | Mock_Judge of { ev: Lib.Event.id; comp : Lib.Competition.id; phase: Lib.Phase.id; }
+  | Marshaller of { ev: Lib.Event.id; comp : Lib.Competition.id; phase: Lib.Phase.id; }
+
+
+(* Creation and inspection *)
+(* ************************************************************************* *)
+
+let discr = function
+  | Admin -> 0
+  | Director _ -> 1
+  | Scorer _ -> 2
+  | Clerk _ -> 3
+  | Emcee _ -> 4
+  | Head_Judge _ -> 5
+  | Judge _ -> 6
+  | Mock_Judge _ -> 7
+  | Marshaller _ -> 8
+
+let ev = function
+  | Admin -> 0
+  | Director { ev; }
+  | Scorer { ev; }
+  | Clerk { ev; }
+  | Emcee { ev; _ }
+  | Head_Judge { ev; _ }
+  | Judge { ev; _ }
+  | Mock_Judge { ev; _ }
+  | Marshaller { ev; _ } -> ev
+
+let comp = function
+  | Admin
+  | Director _
+  | Scorer _ 
+  | Clerk _ -> 0
+  | Emcee { comp; _ }
+  | Head_Judge { comp; _ }
+  | Judge { comp; _ }
+  | Mock_Judge { comp; _ }
+  | Marshaller { comp; _ } -> comp
+
+let phase = function
+  | Admin
+  | Director _
+  | Scorer _
+  | Clerk _
+  | Emcee _
+  | Head_Judge _ -> 0
+  | Judge { phase; _ }
+  | Mock_Judge { phase; _ }
+  | Marshaller { phase; _ } -> phase
+
+
+
+(* Position sorting *)
+(* ************************************************************************* *)
+
+let admin l =
+  List.mem Admin l
+
+let clerk ~ev l =
+  List.mem (Clerk { ev; }) l
+
+(* DB interaction *)
+(* ************************************************************************* *)
+
+let db = State.Users
+
+let () =
+  State.add_init ~name:"positions" (fun st ->
+    State.exec ~st ~db {|
+      CREATE TABLE IF NOT EXISTS positions (
+        user_id INTEGER REFERENCES users(id),
+        event_id INTEGER,
+        comp_id INTEGER,
+        phase_id INTEGER,
+        position INTEGER)
+  |})
+
+let conv =
+  Conv.mk Db.Ty.[int; int; int; int; int]
+  (fun _user_id ev comp phase d ->
+    match d with
+    | 0 -> Admin
+    | 1 -> Director { ev; }
+    | 2 -> Scorer { ev; }
+    | 3 -> Clerk { ev; }
+    | 4 -> Emcee {ev; comp;}
+    | 5 -> Head_Judge { ev; comp; }
+    | 6 -> Judge { ev; comp; phase; }
+    | 7 -> Judge { ev; comp; phase; }
+    | 8 -> Marshaller { ev; comp; phase; }
+    | _ -> assert false (* TODO: proper error *)
+    )
+
+let add ~st ~user pos =
+  State.insert ~st ~db ~ty:Db.Ty.[int; int; int; int; int]
+  {| INSERT INTO positions (user_id, event_id, comp_id, phase_id, position) VALUES (?,?,?,?,?) |}
+  (User.id user) (ev pos) (comp pos) (phase pos) (discr pos)
+
+let clear_from_event ~st ~user ~ev =
+  State.insert ~st ~db ~ty:Db.Ty.[int; int]
+  {| DELETE FROM positions WHERE user_id = ? AND event_id = ? |}
+  (User.id user) (Lib.Event.id ev)
+
+let (let+) user f =
+  match user with None -> [] | Some user -> f user
+
+let get_all ~st ?user () =
+  let+ user in
+  State.query_list_where ~st ~db ~p:Id.p ~conv
+    {| SELECT * FROM positions WHERE user_id = ? |} (User.id user)
+
+let get_global ~st ?user () =
+  let+ user in
+  State.query_list_where ~st ~db ~p:Id.p ~conv
+  {| SELECT * FROM positions WHERE user_id = ? AND event_id = 0
+                               AND comp_id = 0 AND phase_id = 0 |}
+  (User.id user)
+
+let get_all_for_event ~st ?user ~ev () =
+  let+ user in
+  State.query_list_where ~st ~db ~p:Db.Ty.[int; int] ~conv
+    {| SELECT * FROM positions WHERE user_id = ?
+                                 AND (event_id = ? OR event_id = 0) |}
+    (User.id user) (Lib.Event.id ev)
+
+let get_all_for_comp ~st ?user ~ev ~comp () =
+  let+ user in
+  State.query_list_where ~st ~db ~p:Db.Ty.[int; int; int] ~conv
+    {| SELECT * FROM positions WHERE user_id = ?
+                                AND (comp_id = ? OR (comp_id = 0 AND (event_id = ? OR event_id = 0)))|}
+    (User.id user) (Lib.Competition.id comp) (Lib.Event.id ev)
+
+let get_all_for_phase ~st ?user ~ev ~comp ~phase () =
+  let+ user in
+  State.query_list_where ~st ~db ~p:Db.Ty.[int; int; int; int] ~conv
+    {| SELECT * FROM positions WHERE user_id = ?
+                                AND (phase_id = ? OR (phase_id = 0 AND (comp_id = ? OR (comp_id = 0 AND (event_id = ? OR event_id = 0)))))|}
+    (User.id user) (Lib.Phase.id phase) (Lib.Competition.id comp) (Lib.Event.id ev)
+
+

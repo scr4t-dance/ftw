@@ -33,7 +33,7 @@ type export = {
   db_no_init : bool;
   out_path : string;
   ev_id : int;
-  dancer_export : Ftw.Export.dancer_export;
+  dancer_export : Ftw_db.Export.dancer_export;
 }
 
 type set_admin = {

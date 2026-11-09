@@ -1,26 +1,55 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-include module type of Ftw_core.Rank
-
-(* DB interaction *)
+(* Type definitions *)
 (* ************************************************************************* *)
 
-val p : (int -> 'a, 'a) Sqlite3_utils.Ty.t
-(** Sqlite query "type" for identifiers *)
-
-val conv : t Conv.t
-(** Converter for identifiers *)
+type t
+(** A rank. *)
 
 
-(* Serialization *)
+(* Conversions *)
 (* ************************************************************************* *)
 
-val to_toml : t -> Otoml.t
-(** Serialization to toml. *)
+val mk : int -> t
+val rank : t -> int
+(* Human-readable conversions: the first place is the int [1], and so on ...*)
 
-val of_toml : Otoml.t -> t
-(** Deserialization from toml.
-    @raise Otoml.Type_error *)
+val of_index : int -> t
+val to_index : t -> int
+(* Conversions to/from indexes, where the first rank is [0] *)
 
+val next : t -> t
+(** Next rank *)
+
+val add : t -> int -> t
+(** Add n places to the given rank. For instance adding [2] to first place
+    makes it 3rd place. *)
+
+
+(* Usual functions *)
+(* ************************************************************************* *)
+
+val print : Format.formatter -> t -> unit
+(** Print *)
+
+val equal : t -> t -> bool
+(** Equality function *)
+
+val compare : t -> t -> int
+(** Comparison function. *)
+
+val min : t -> t -> t
+(** Minimum of two ranks, smaller ranks are "better"
+    (i.e. first place is the smallest rank) *)
+
+val max : t -> t -> t
+(** Maximum of two ranks, smaller ranks are "better"
+    (i.e. first place is the smallest rank) *)    
+
+module Set : Set.S with type elt = t
+(** Sets for identifiers *)
+
+module Map : Map.S with type key = t
+(** Maps for identifiers *)
 

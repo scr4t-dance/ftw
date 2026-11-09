@@ -1,12 +1,10 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-include module type of Ftw_core.Forbidden
-
-(* DB interaction *)
+(* Type definitions *)
 (* ************************************************************************* *)
 
-val get : st:State.t -> event:int -> t list
-
-val set : st:State.t -> event:int -> t list -> unit
-
+type t = {
+  dancer1 : Dancer.id;
+  dancer2 : Dancer.id;
+}

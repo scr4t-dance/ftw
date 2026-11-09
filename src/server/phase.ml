@@ -10,10 +10,10 @@ open! Dream_html.HTML
 (* ************************************************************************* *)
 
 let judge_link ~st judge =
-  let dancer = Ftw.Dancer.get ~st judge in
+  let dancer = Db.Dancer.get ~st judge in
   a
-    [ path_attr href Paths.Page.dancer (Ftw.Dancer.id dancer) ]
-    [ txt "%s %s" (Ftw.Dancer.first_name dancer) (Ftw.Dancer.last_name dancer)]
+    [ path_attr href Paths.Page.dancer (Lib.Dancer.id dancer) ]
+    [ txt "%s %s" (Lib.Dancer.first_name dancer) (Lib.Dancer.last_name dancer)]
 
 let judge_list ~req:_ ~st l =
   ul [class_ "list-group"] (
@@ -25,12 +25,12 @@ let judge_list ~req:_ ~st l =
   )
 
 let judge_infos ~req ~st ~phase =
-  match Ftw.Judge.get ~st ~phase:(Ftw.Phase.id phase) with
+  match Db.Judge.get ~st ~phase:(Lib.Phase.id phase) with
   | Singles { head; leaders; followers; } ->
     [
       div [class_ "row"] [
         div [class_ "row py-3"] [
-          txt "Head Judge artefacts : %s" (Display.artefact_descr (Ftw.Phase.head_judge_artefact_descr phase));
+          txt "Head Judge artefacts : %s" (Display.artefact_descr (Lib.Phase.head_judge_artefact_descr phase));
         ];
         div [class_ "row"] [
           div [class_ "col-6"] [
@@ -40,7 +40,7 @@ let judge_infos ~req ~st ~phase =
       ];
       div [class_ "row"] [
         div [class_ "row py-3"] [
-          txt "Judge artefacts : %s" (Display.artefact_descr (Ftw.Phase.judge_artefact_descr phase));
+          txt "Judge artefacts : %s" (Display.artefact_descr (Lib.Phase.judge_artefact_descr phase));
         ];
         div [class_ "row"] [
           div [class_ "col-6"] [txt "Leaders"; judge_list ~req ~st leaders];
@@ -61,7 +61,7 @@ let phase_infos ~req ~st ~phase =
 
 let heat_regen_form ~req ~st:_ ~phase =
   form
-    [path_attr Hx.post Paths.Htmx.phase_regen (Ftw.Phase.id phase); Hx.swap "none"; ]
+    [path_attr Hx.post Paths.Htmx.phase_regen (Lib.Phase.id phase); Hx.swap "none"; ]
     [
       csrf_tag req;
       div [class_ "row py-3 border-top"] [
@@ -113,25 +113,25 @@ let heat_regen_htmx req phase_id =
       assert false (* internal error, or incorrect api usage from external source *)
     | Ok (min, max, early, late) ->
       let$ st = State.get req in
-      let phase = Ftw.Phase.get ~st phase_id in
-      let comp = Ftw.Competition.get ~st (Ftw.Phase.competition phase) in
-      let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
+      let phase = Db.Phase.get ~st phase_id in
+      let comp = Db.Competition.get ~st (Lib.Phase.competition phase) in
+      let ev = Db.Event.get ~st (Lib.Competition.event comp) in
       let$ () = Htmx.ret' ~req ~st ~perms:[Edit_phase {ev;comp;phase}] in
-      let heat = Ftw.Heat.get ~st ~phase:(Ftw.Phase.id phase) in
-      begin match Ftw.Competition.kind comp, Ftw.Phase.round phase with
+      let heat = Db.Heat.get ~st ~phase:(Lib.Phase.id phase) in
+      begin match Lib.Competition.kind comp, Lib.Phase.round phase with
         | Jack_and_Jill, _ ->
-          let forbidden_pairs = Ftw.Forbidden.get ~st ~event:(Ftw.Event.id ev) in
-          Ftw.Heat.regen_singles ~tries:1000 ~st ~phase:(Ftw.Phase.id phase) ~forbidden_pairs ~min ~max ~early ~late heat;
+          let forbidden_pairs = Db.Forbidden.get ~st ~event:(Lib.Event.id ev) in
+          Db.Heat.regen_singles ~tries:1000 ~st ~phase:(Lib.Phase.id phase) ~forbidden_pairs ~min ~max ~early ~late heat;
           `Trigger "PhaseViewUpdate"
         | High_low _, Prelims ->
-          let forbidden_pairs = Ftw.Forbidden.get ~st ~event:(Ftw.Event.id ev) in
-          Ftw.Heat.regen_singles ~tries:1000 ~st ~phase:(Ftw.Phase.id phase) ~forbidden_pairs ~min ~max ~early ~late heat;
+          let forbidden_pairs = Db.Forbidden.get ~st ~event:(Lib.Event.id ev) in
+          Db.Heat.regen_singles ~tries:1000 ~st ~phase:(Lib.Phase.id phase) ~forbidden_pairs ~min ~max ~early ~late heat;
           `Trigger "PhaseViewUpdate"
         | High_low _, _ ->
-          Ftw.Heat.regen_couples ~tries:1000 ~st ~phase:(Ftw.Phase.id phase) ~min ~max ~early ~late heat;
+          Db.Heat.regen_couples ~tries:1000 ~st ~phase:(Lib.Phase.id phase) ~min ~max ~early ~late heat;
           `Trigger "PhaseViewUpdate"
         | Strictly, _ ->
-          Ftw.Heat.regen_couples ~tries:100 ~st ~phase:(Ftw.Phase.id phase) ~min ~max ~early ~late heat;
+          Db.Heat.regen_couples ~tries:100 ~st ~phase:(Lib.Phase.id phase) ~min ~max ~early ~late heat;
           `Trigger "PhaseViewUpdate"
         | _ ->
           assert false
@@ -139,7 +139,7 @@ let heat_regen_htmx req phase_id =
     end
   | _ -> assert false
 
-let one_heat_pairing_form ~req:_ ~st ~bib_map i (heat : Ftw.Heat.one) =
+let one_heat_pairing_form ~req:_ ~st ~bib_map i (heat : Lib.Heat.one) =
   match heat.leaders, heat.followers, heat.couples with
   | [], [], [] -> null []
   | leaders, followers, _ ->
@@ -151,26 +151,26 @@ let one_heat_pairing_form ~req:_ ~st ~bib_map i (heat : Ftw.Heat.one) =
     end else if n_l = 0 then begin
       let leader_options =
         List.map (fun couple_target ->
-          let leader_id = Ftw.Target.With_id.target couple_target |> Ftw.Target.Couple.leader in
-          let leader = Ftw.Dancer.get ~st leader_id in
-          let bib = Option.get @@ Ftw.Bib.TMap.find_opt (Ftw.Target.(Any (Single { target = leader_id; role = Leader }))) bib_map in
+          let leader_id = Lib.Target.With_id.target couple_target |> Lib.Target.Couple.leader in
+          let leader = Db.Dancer.get ~st leader_id in
+          let bib = Option.get @@ Db.Bib.TMap.find_opt (Lib.Target.(Any (Single { target = leader_id; role = Leader }))) bib_map in
           bib, leader_id, leader
           ) heat.couples
-        |> List.sort (fun (b, _, _) (b', _, _) -> Ftw.Id.compare b b')
+        |> List.sort (fun (b, _, _) (b', _, _) -> Lib.Id.compare b b')
         |> List.map (fun (bib, leader_id, leader) ->
-            option [value "%d" leader_id] "#%d - %s %s" bib (Ftw.Dancer.first_name leader) (Ftw.Dancer.last_name leader)) 
+            option [value "%d" leader_id] "#%d - %s %s" bib (Lib.Dancer.first_name leader) (Lib.Dancer.last_name leader)) 
       in
       div [class_ "row"] [
         h5 [] [txt "Heat %d" i];
         table [] (
         List.map (fun follower_target ->
-          let follower_target_id = Ftw.Target.With_id.id follower_target in
-          let follower_target = Ftw.Target.With_id.target follower_target in
-          let follower = Ftw.Dancer.get ~st (Ftw.Target.Single.dancer follower_target) in
-          let bib = Option.get @@ Ftw.Bib.TMap.find_opt (Ftw.Target.Any follower_target) bib_map in
+          let follower_target_id = Lib.Target.With_id.id follower_target in
+          let follower_target = Lib.Target.With_id.target follower_target in
+          let follower = Db.Dancer.get ~st (Lib.Target.Single.dancer follower_target) in
+          let bib = Option.get @@ Db.Bib.TMap.find_opt (Lib.Target.Any follower_target) bib_map in
           bib, follower_target_id, follower
         ) followers
-        |> List.sort (fun (b, _, _) (b', _, _) -> Ftw.Id.compare b b')
+        |> List.sort (fun (b, _, _) (b', _, _) -> Lib.Id.compare b b')
         |> List.map (fun (bib, follower_target_id, follower) ->
           tr [] [
             td [] [
@@ -178,36 +178,36 @@ let one_heat_pairing_form ~req:_ ~st ~bib_map i (heat : Ftw.Heat.one) =
                [class_ "form-select"; name "follower-%d-%d" follower_target_id i;]
                (option [value "0"] "--" :: leader_options)
             ];
-            td [] [txt "#%d - %s %s" bib (Ftw.Dancer.first_name follower) (Ftw.Dancer.last_name follower)];
+            td [] [txt "#%d - %s %s" bib (Lib.Dancer.first_name follower) (Lib.Dancer.last_name follower)];
           ])
         )
       ]
     end else if n_f = 0 then begin
       let follow_options =
         List.map (fun couple_target ->
-          let follower_id = Ftw.Target.With_id.target couple_target |> Ftw.Target.Couple.follower in
-          let follower = Ftw.Dancer.get ~st follower_id in
-          let bib = Option.get @@ Ftw.Bib.TMap.find_opt (Ftw.Target.(Any (Single { target = follower_id; role = Follower }))) bib_map in
+          let follower_id = Lib.Target.With_id.target couple_target |> Lib.Target.Couple.follower in
+          let follower = Db.Dancer.get ~st follower_id in
+          let bib = Option.get @@ Db.Bib.TMap.find_opt (Lib.Target.(Any (Single { target = follower_id; role = Follower }))) bib_map in
           bib, follower_id, follower
           ) heat.couples
-        |> List.sort (fun (b, _, _) (b', _, _) -> Ftw.Id.compare b b')
+        |> List.sort (fun (b, _, _) (b', _, _) -> Lib.Id.compare b b')
         |> List.map (fun (bib, follow_id, follower) ->
-            option [value "%d" follow_id] "#%d - %s %s" bib (Ftw.Dancer.first_name follower) (Ftw.Dancer.last_name follower)) 
+            option [value "%d" follow_id] "#%d - %s %s" bib (Lib.Dancer.first_name follower) (Lib.Dancer.last_name follower)) 
       in
       div [class_ "row"] [
         h5 [] [txt "Heat %d" i];
         table [] (
         List.map (fun leader_target ->
-          let leader_target_id = Ftw.Target.With_id.id leader_target in
-          let leader_target = Ftw.Target.With_id.target leader_target in
-          let leader = Ftw.Dancer.get ~st (Ftw.Target.Single.dancer leader_target) in
-          let bib = Option.get @@ Ftw.Bib.TMap.find_opt (Ftw.Target.Any leader_target) bib_map in
+          let leader_target_id = Lib.Target.With_id.id leader_target in
+          let leader_target = Lib.Target.With_id.target leader_target in
+          let leader = Db.Dancer.get ~st (Lib.Target.Single.dancer leader_target) in
+          let bib = Option.get @@ Db.Bib.TMap.find_opt (Lib.Target.Any leader_target) bib_map in
           bib, leader_target_id, leader
         ) leaders
-        |> List.sort (fun (b, _, _) (b', _, _) -> Ftw.Id.compare b b')
+        |> List.sort (fun (b, _, _) (b', _, _) -> Lib.Id.compare b b')
         |> List.map (fun (bib, leader_target_id, leader) ->
           tr [] [
-            td [] [txt "#%d - %s %s" bib (Ftw.Dancer.first_name leader) (Ftw.Dancer.last_name leader)];
+            td [] [txt "#%d - %s %s" bib (Lib.Dancer.first_name leader) (Lib.Dancer.last_name leader)];
             td [] [
               select 
                [class_ "form-select"; name "leader-%d-%d" leader_target_id i;]
@@ -219,30 +219,30 @@ let one_heat_pairing_form ~req:_ ~st ~bib_map i (heat : Ftw.Heat.one) =
     end else begin
       let follow_options =
         List.map (fun follower_target ->
-          let follow_target_id = Ftw.Target.With_id.id follower_target in
-          let follower_target = Ftw.Target.With_id.target follower_target in
-          let follower = Ftw.Dancer.get ~st (Ftw.Target.Single.dancer follower_target) in
-          let bib = Option.get @@ Ftw.Bib.TMap.find_opt (Ftw.Target.Any follower_target) bib_map in
+          let follow_target_id = Lib.Target.With_id.id follower_target in
+          let follower_target = Lib.Target.With_id.target follower_target in
+          let follower = Db.Dancer.get ~st (Lib.Target.Single.dancer follower_target) in
+          let bib = Option.get @@ Db.Bib.TMap.find_opt (Lib.Target.Any follower_target) bib_map in
           bib, follow_target_id, follower
           ) followers
-        |> List.sort (fun (b, _, _) (b', _, _) -> Ftw.Id.compare b b')
+        |> List.sort (fun (b, _, _) (b', _, _) -> Lib.Id.compare b b')
         |> List.map (fun (bib, follow_target_id, follower) ->
-            option [value "%d" follow_target_id] "#%d - %s %s" bib (Ftw.Dancer.first_name follower) (Ftw.Dancer.last_name follower)) 
+            option [value "%d" follow_target_id] "#%d - %s %s" bib (Lib.Dancer.first_name follower) (Lib.Dancer.last_name follower)) 
       in
       div [class_ "row"] [
         h5 [] [txt "Heat %d" i];
         table [] (
         List.map (fun leader_target ->
-          let leader_target_id = Ftw.Target.With_id.id leader_target in
-          let leader_target = Ftw.Target.With_id.target leader_target in
-          let leader = Ftw.Dancer.get ~st (Ftw.Target.Single.dancer leader_target) in
-          let bib = Option.get @@ Ftw.Bib.TMap.find_opt (Ftw.Target.Any leader_target) bib_map in
+          let leader_target_id = Lib.Target.With_id.id leader_target in
+          let leader_target = Lib.Target.With_id.target leader_target in
+          let leader = Db.Dancer.get ~st (Lib.Target.Single.dancer leader_target) in
+          let bib = Option.get @@ Db.Bib.TMap.find_opt (Lib.Target.Any leader_target) bib_map in
           bib, leader_target_id, leader
         ) leaders
-        |> List.sort (fun (b, _, _) (b', _, _) -> Ftw.Id.compare b b')
+        |> List.sort (fun (b, _, _) (b', _, _) -> Lib.Id.compare b b')
         |> List.map (fun (bib, leader_target_id, leader) ->
           tr [] [
-            td [] [txt "#%d - %s %s" bib (Ftw.Dancer.first_name leader) (Ftw.Dancer.last_name leader)];
+            td [] [txt "#%d - %s %s" bib (Lib.Dancer.first_name leader) (Lib.Dancer.last_name leader)];
             td [] [
               select 
                [class_ "form-select"; name "pair-%d-%d" leader_target_id i;]
@@ -254,10 +254,10 @@ let one_heat_pairing_form ~req:_ ~st ~bib_map i (heat : Ftw.Heat.one) =
     end
 
 let heat_pairing_form ~req ~st ~comp ~phase =
-  let Regular heats = Ftw.Heat.get ~st ~phase:(Ftw.Phase.id phase) in
-  let bib_map = Ftw.Bib.get_map ~st ~comp in
+  let Regular heats = Db.Heat.get ~st ~phase:(Lib.Phase.id phase) in
+  let bib_map = Db.Bib.get_map ~st ~comp in
   form
-    [path_attr Hx.post Paths.Htmx.phase_pairing (Ftw.Phase.id phase); Hx.swap "none"; ]
+    [path_attr Hx.post Paths.Htmx.phase_pairing (Lib.Phase.id phase); Hx.swap "none"; ]
     (
       csrf_tag req ::
       List.mapi (one_heat_pairing_form ~req ~st ~bib_map) (heats.unallocated :: Array.to_list heats.heats)
@@ -267,7 +267,7 @@ let heat_pairing_form ~req ~st ~comp ~phase =
     )
 
 let extract_target_single_dancer_id ~st target_id =
-  match Ftw.Heat.get_one ~st target_id with
+  match Db.Heat.get_one ~st target_id with
   | Any Single { target; role = _; } -> target
   | _ -> assert false
 
@@ -275,9 +275,9 @@ let heat_pair_htmx req phase_id =
   match%lwt Dream.form req with
   | `Ok form_results ->
     let$ st = State.get req in
-    let phase = Ftw.Phase.get ~st phase_id in
-    let comp = Ftw.Competition.get ~st (Ftw.Phase.competition phase) in
-    let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
+    let phase = Db.Phase.get ~st phase_id in
+    let comp = Db.Competition.get ~st (Lib.Phase.competition phase) in
+    let ev = Db.Event.get ~st (Lib.Competition.event comp) in
     let$ () = Htmx.ret' ~req ~st ~perms:[Edit_phase {ev;comp;phase}] in
     List.iter (fun (form_field, form_value) ->
       match String.split_on_char '-' form_field with
@@ -290,11 +290,11 @@ let heat_pair_htmx req phase_id =
           Logs.debug (fun k->k "Pairing %d - %d" leader_target_id follow_target_id);
           let leader = extract_target_single_dancer_id ~st leader_target_id in
           let follower = extract_target_single_dancer_id ~st follow_target_id in
-          Ftw.Heat.delete_one ~st leader_target_id;
-          Ftw.Heat.delete_one ~st follow_target_id;
+          Db.Heat.delete_one ~st leader_target_id;
+          Db.Heat.delete_one ~st follow_target_id;
           let _ =
-            Ftw.Heat.add_couple
-              ~st ~phase:(Ftw.Phase.id phase)
+            Db.Heat.add_couple
+              ~st ~phase:(Lib.Phase.id phase)
               ~heat ~leader ~follower
           in
           ()
@@ -306,10 +306,10 @@ let heat_pair_htmx req phase_id =
         if follower = 0 then ()
         else begin
           let leader = extract_target_single_dancer_id ~st leader_target_id in
-          Ftw.Heat.delete_one ~st leader_target_id;
+          Db.Heat.delete_one ~st leader_target_id;
           let _ =
-            Ftw.Heat.add_couple
-              ~st ~phase:(Ftw.Phase.id phase)
+            Db.Heat.add_couple
+              ~st ~phase:(Lib.Phase.id phase)
               ~heat ~leader ~follower
           in
           ()
@@ -321,10 +321,10 @@ let heat_pair_htmx req phase_id =
         if leader = 0 then ()
         else begin
           let follower = extract_target_single_dancer_id ~st follower_target_id in
-          Ftw.Heat.delete_one ~st follower_target_id;
+          Db.Heat.delete_one ~st follower_target_id;
           let _ =
-            Ftw.Heat.add_couple
-              ~st ~phase:(Ftw.Phase.id phase)
+            Db.Heat.add_couple
+              ~st ~phase:(Lib.Phase.id phase)
               ~heat ~leader ~follower
           in
           ()
@@ -338,52 +338,52 @@ let heat_pair_htmx req phase_id =
 
 let phase_start_htmx req phase_id =
   let$ st = State.get req in
-  let phase = Ftw.Phase.get ~st phase_id in
-  let comp = Ftw.Competition.get ~st (Ftw.Phase.competition phase) in
-  let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
+  let phase = Db.Phase.get ~st phase_id in
+  let comp = Db.Competition.get ~st (Lib.Phase.competition phase) in
+  let ev = Db.Event.get ~st (Lib.Competition.event comp) in
   let$ () = Htmx.ret' ~req ~st ~perms:[Edit_phase {ev;comp;phase}] in
-  let heat = Ftw.Heat.get ~st ~phase:phase_id in
+  let heat = Db.Heat.get ~st ~phase:phase_id in
   match heat with
   | Regular { unallocated = { leaders = _ :: _ ; _ }; _ }
   | Regular { unallocated = { followers = _ :: _ ; _ }; _ }
   | Regular { unallocated = { couples = _ :: _ ; _ }; _ } ->
     assert false (* TODO: return an error *)
   | _ -> 
-    let phase = Ftw.Phase.Private.with_status Progress phase in
-    Ftw.Phase.update ~st phase;
+    let phase = Lib.Phase.Private.with_status Progress phase in
+    Db.Phase.update ~st phase;
     `Refresh
 
 let phase_score_htmx req phase_id =
   let$ st = State.get req in
-  let phase = Ftw.Phase.get ~st phase_id in
-  let comp = Ftw.Competition.get ~st (Ftw.Phase.competition phase) in
-  let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
+  let phase = Db.Phase.get ~st phase_id in
+  let comp = Db.Competition.get ~st (Lib.Phase.competition phase) in
+  let ev = Db.Event.get ~st (Lib.Competition.event comp) in
   let$ () = Htmx.ret' ~req ~st ~perms:[Edit_phase {ev;comp;phase}] in
-  let phase = Ftw.Phase.Private.with_status Scoring phase in
-  Ftw.Phase.update ~st phase;
+  let phase = Lib.Phase.Private.with_status Scoring phase in
+  Db.Phase.update ~st phase;
   `Refresh
 
 let phase_finish_htmx req phase_id =
   let$ st = State.get req in
-  let phase = Ftw.Phase.get ~st phase_id in
-  let comp = Ftw.Competition.get ~st (Ftw.Phase.competition phase) in
-  let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
+  let phase = Db.Phase.get ~st phase_id in
+  let comp = Db.Competition.get ~st (Lib.Phase.competition phase) in
+  let ev = Db.Event.get ~st (Lib.Competition.event comp) in
   let$ () = Htmx.ret' ~req ~st ~perms:[Edit_comp {ev;comp}] in
-  match Ftw.Phase.round phase with
+  match Lib.Phase.round phase with
   | Finals -> assert false
   | _ ->
-    let next_round, n = Ftw.Competition.next_round comp (Some (Ftw.Phase.round phase)) in
-    let next_phase = Option.get @@ Ftw.Competition.round ~st comp next_round in
-    let ranking = Ftw.Phase.ranking ~st ~phase in
-    begin match Ftw.Phase.targets_in_range ranking (Ftw.Rank.mk 1) (Ftw.Rank.mk n) with
+    let next_round, n = Lib.Competition.next_round comp (Some (Lib.Phase.round phase)) in
+    let next_phase = Option.get @@ Db.Competition.round ~st comp next_round in
+    let ranking = Db.Phase.ranking ~st ~phase in
+    begin match Db.Phase.targets_in_range ranking (Lib.Rank.mk 1) (Lib.Rank.mk n) with
     | None -> assert false
     | Some promoted_target_ids ->
-      let promoted_targets = List.map (Ftw.Heat.get_one ~st) promoted_target_ids in
-      let _ = Ftw.Heat.init ~st ~phase:next_phase promoted_targets in
-      let next_phase = Ftw.Phase.Private.with_status Setup next_phase in
-      let phase = Ftw.Phase.Private.with_status Finished phase in
-      Ftw.Phase.update ~st next_phase;
-      Ftw.Phase.update ~st phase;
+      let promoted_targets = List.map (Db.Heat.get_one ~st) promoted_target_ids in
+      let _ = Db.Heat.init ~st ~phase:next_phase promoted_targets in
+      let next_phase = Lib.Phase.Private.with_status Setup next_phase in
+      let phase = Lib.Phase.Private.with_status Finished phase in
+      Db.Phase.update ~st next_phase;
+      Db.Phase.update ~st phase;
       (* TODO: redirect toward the new pahse webpage *)
       `Refresh
     end
@@ -394,7 +394,7 @@ let admin_panel_setup ~req ~st ~ev:_ ~comp:_ ~phase =
     phase_infos ~req ~st ~phase;
     heat_regen_form ~req ~st ~phase;
     button
-      [ class_ "btn btn-success"; path_attr Hx.get Paths.Htmx.phase_start (Ftw.Phase.id phase);
+      [ class_ "btn btn-success"; path_attr Hx.get Paths.Htmx.phase_start (Lib.Phase.id phase);
         Hx.confirm "Ready ?" ]
       [ txt "Start Heats !" ];
   ]
@@ -402,7 +402,7 @@ let admin_panel_setup ~req ~st ~ev:_ ~comp:_ ~phase =
 let admin_panel_progress ~req ~st ~ev:_ ~comp ~phase =
   [
     phase_infos ~req ~st ~phase;
-    (match Ftw.Competition.kind comp, Ftw.Phase.round phase with
+    (match Lib.Competition.kind comp, Lib.Phase.round phase with
       | Jack_and_Jill, Finals
       | High_low _, Prelims ->
         heat_pairing_form ~req ~st ~comp ~phase
@@ -410,7 +410,7 @@ let admin_panel_progress ~req ~st ~ev:_ ~comp ~phase =
     );
     div [class_ "row"] [
         button
-          [ class_ "btn btn-success m-3"; path_attr Hx.get Paths.Htmx.phase_scoring (Ftw.Phase.id phase);
+          [ class_ "btn btn-success m-3"; path_attr Hx.get Paths.Htmx.phase_scoring (Lib.Phase.id phase);
             Hx.confirm "Sure ?" ]
           [ txt "Start Scoring" ];
     ];
@@ -420,7 +420,7 @@ let admin_panel_scoring ~req ~st ~ev:_ ~comp:_ ~phase =
   [
     phase_infos ~req ~st ~phase;
     button
-      [ class_ "btn btn-success"; path_attr Hx.get Paths.Htmx.phase_finish (Ftw.Phase.id phase);
+      [ class_ "btn btn-success"; path_attr Hx.get Paths.Htmx.phase_finish (Lib.Phase.id phase);
         Hx.confirm "Sure ?" ]
       [ txt "Finish phase" ];
   ]
@@ -429,7 +429,7 @@ let admin_panel ~req ~st ~ev ~comp ~phase =
   if User.check_perms ~req ~st [Edit_phase {ev;comp;phase}] then
    div [class_ "row border border-2 rounded mx-3 my-3 p-2 d-print-none"] (
       h4 [] [txt "Admin panel"] ::
-      (match Ftw.Phase.status phase with
+      (match Lib.Phase.status phase with
       | Inactive -> []
       | Setup -> admin_panel_setup ~req ~st ~ev ~comp ~phase
       | Progress -> admin_panel_progress ~req ~st ~ev ~comp ~phase
@@ -446,9 +446,9 @@ let admin_panel ~req ~st ~ev ~comp ~phase =
 
 let page req phase_id =
   let$ st = State.get req in
-  let phase = Ftw.Phase.get ~st phase_id in
-  let comp = Ftw.Competition.get ~st (Ftw.Phase.competition phase) in
-  let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
+  let phase = Db.Phase.get ~st phase_id in
+  let comp = Db.Competition.get ~st (Lib.Phase.competition phase) in
+  let ev = Db.Event.get ~st (Lib.Competition.event comp) in
   let$ () =
     Page.mk' ~req ~st
       ~root:(Event [Event {ev}; Comp {comp;}; Phase {phase}])
@@ -458,7 +458,7 @@ let page req phase_id =
     admin_panel ~req ~st ~ev ~comp ~phase;
     div [class_ "row"] [
       div
-        [ path_attr Hx.get Paths.Htmx.phase_view (Ftw.Phase.id phase);
+        [ path_attr Hx.get Paths.Htmx.phase_view (Lib.Phase.id phase);
           Hx.swap "innerHTML"; Hx.trigger "intersect, PhaseViewUpdate from:body";]
         [
           div [class_ "spinnner spinner-border"; role `status] [
@@ -475,20 +475,20 @@ let page req phase_id =
 let heat_table_singles ~req:_ ~st ~bib_map ~role ~passages targets =
   let dancers =
     List.map (fun target_with_id ->
-      let target = Ftw.Target.With_id.target target_with_id in
-      let Ftw.Target.Single { target = dancer_id; role = _; } = target in
-      let dancer = Ftw.Dancer.get ~st dancer_id in
-      let bib_opt = Ftw.Bib.TMap.find_opt (Ftw.Target.Any target) bib_map in
-      let passage : Ftw.Heat.passage_kind =
-        try Ftw.Id.Map.find dancer_id passages
+      let target = Lib.Target.With_id.target target_with_id in
+      let Lib.Target.Single { target = dancer_id; role = _; } = target in
+      let dancer = Db.Dancer.get ~st dancer_id in
+      let bib_opt = Db.Bib.TMap.find_opt (Lib.Target.Any target) bib_map in
+      let passage : Lib.Heat.passage_kind =
+        try Lib.Id.Map.find dancer_id passages
         with Not_found -> Only
       in
       bib_opt, passage, dancer
     ) targets
-    |> List.sort (fun (b, _, _) (b', _, _) -> CCOrd.option Ftw.Id.compare b b')
+    |> List.sort (fun (b, _, _) (b', _, _) -> CCOrd.option Lib.Id.compare b b')
   in
   div [class_ "col-6"] [
-    h5 [] [txt "%s" (match (role : Ftw.Role.t) with Leader -> "Leader" | Follower -> "Follower")];
+    h5 [] [txt "%s" (match (role : Lib.Role.t) with Leader -> "Leader" | Follower -> "Follower")];
     table [class_ "table table-hover"] (
       thead [] [
         tr [] [
@@ -501,20 +501,20 @@ let heat_table_singles ~req:_ ~st ~bib_map ~role ~passages targets =
         match bib_opt with
         | Some bib ->
           let star =
-            match (passage : Ftw.Heat.passage_kind) with
+            match (passage : Lib.Heat.passage_kind) with
             | Multiple { nth = 1 } -> "*"
             | _ -> ""
           in
           tr [class_ "%s" (match passage with Multiple {nth} when nth > 1 -> "table-active" | _ -> "")] [
             td [] [txt "#%d" bib];
-            td [] [txt "%s%s" (Ftw.Dancer.first_name dancer) star];
-            td [] [txt "%s%s" (Ftw.Dancer.last_name dancer) star];
+            td [] [txt "%s%s" (Lib.Dancer.first_name dancer) star];
+            td [] [txt "%s%s" (Lib.Dancer.last_name dancer) star];
           ]
         | None ->
           tr [] [
             td
               [colspan 3; class_ "text-danger"]
-              [txt "Missing bib for %s %s" (Ftw.Dancer.first_name dancer) (Ftw.Dancer.last_name dancer)]
+              [txt "Missing bib for %s %s" (Lib.Dancer.first_name dancer) (Lib.Dancer.last_name dancer)]
           ]
         ) dancers)
     );
@@ -523,24 +523,24 @@ let heat_table_singles ~req:_ ~st ~bib_map ~role ~passages targets =
 let heat_table_couples ~req:_ ~st ~bib_map targets =
   let couples =
     List.map (fun target_with_id ->
-      let target = Ftw.Target.With_id.target target_with_id in
-      let Ftw.Target.Couple { leader; follower; } = target in
+      let target = Lib.Target.With_id.target target_with_id in
+      let Lib.Target.Couple { leader; follower; } = target in
 
       let leader_bib_opt, follower_bib_opt =
-        match Ftw.Bib.TMap.find_opt (Any target) bib_map with
+        match Db.Bib.TMap.find_opt (Any target) bib_map with
         | None ->
-          let leader_bib_opt = Ftw.Bib.TMap.find_opt (Ftw.Target.Any (Single { target = leader; role = Leader; })) bib_map in
-          let follower_bib_opt = Ftw.Bib.TMap.find_opt (Ftw.Target.Any (Single { target = follower; role = Follower; })) bib_map in
+          let leader_bib_opt = Db.Bib.TMap.find_opt (Lib.Target.Any (Single { target = leader; role = Leader; })) bib_map in
+          let follower_bib_opt = Db.Bib.TMap.find_opt (Lib.Target.Any (Single { target = follower; role = Follower; })) bib_map in
           leader_bib_opt, follower_bib_opt
         | Some _bib as bib_opt ->
           bib_opt, bib_opt
         in
 
-      let leader = Ftw.Dancer.get ~st leader in
-      let follower = Ftw.Dancer.get ~st follower in
+      let leader = Db.Dancer.get ~st leader in
+      let follower = Db.Dancer.get ~st follower in
       leader_bib_opt, leader, follower_bib_opt, follower
     ) targets
-    |> List.sort (fun (b, _, _, _) (b', _, _, _) -> CCOrd.option Ftw.Id.compare b b')
+    |> List.sort (fun (b, _, _, _) (b', _, _, _) -> CCOrd.option Lib.Id.compare b b')
   in
   div [class_ "col-12"] [
     h5 [] [txt "Couples"];
@@ -558,24 +558,24 @@ let heat_table_couples ~req:_ ~st ~bib_map targets =
         | Some lbib, Some fbib ->
           tr [] [
             td [] [txt "#%d" lbib];
-            td [] [txt "%s %s" (Ftw.Dancer.first_name leader) (Ftw.Dancer.last_name leader)];
+            td [] [txt "%s %s" (Lib.Dancer.first_name leader) (Lib.Dancer.last_name leader)];
             td [] [txt "#%d" fbib];
-            td [] [txt "%s %s" (Ftw.Dancer.first_name follower) (Ftw.Dancer.last_name follower)];
+            td [] [txt "%s %s" (Lib.Dancer.first_name follower) (Lib.Dancer.last_name follower)];
           ]
         | _ ->
           tr [] [
             td
               [colspan 3; class_ "text-danger"]
               [txt "Missing bib for %s %s & %s %s"
-                (Ftw.Dancer.first_name leader) (Ftw.Dancer.last_name leader)
-                (Ftw.Dancer.first_name follower) (Ftw.Dancer.last_name follower)]
+                (Lib.Dancer.first_name leader) (Lib.Dancer.last_name leader)
+                (Lib.Dancer.first_name follower) (Lib.Dancer.last_name follower)]
           ]
         ) couples)
     );
   ]
 
 
-let one_heat_view ~req ~st ~bib_map ~i (heat : Ftw.Heat.one) =
+let one_heat_view ~req ~st ~bib_map ~i (heat : Lib.Heat.one) =
   match heat.leaders, heat.followers, heat.couples with
   | [], [], [] -> null []
   | _ ->
@@ -604,8 +604,8 @@ let one_heat_view ~req ~st ~bib_map ~i (heat : Ftw.Heat.one) =
           ]
       );
 
-      (if Ftw.Id.Map.exists (fun _ passage ->
-          match (passage : Ftw.Heat.passage_kind) with
+      (if Lib.Id.Map.exists (fun _ passage ->
+          match (passage : Lib.Heat.passage_kind) with
           | Multiple { nth } when nth <= 1 -> true | _ -> false) heat.passages then
         p [] [txt "* : dancers that will dance again in a later pool /\
                         danseurs qui dansent à nouveau dans une future poule"]
@@ -615,13 +615,13 @@ let one_heat_view ~req ~st ~bib_map ~i (heat : Ftw.Heat.one) =
 let regular_heat_view ~req ~st ~comp ~phase ~bib_map ~unallocated heats =
   h4 [class_ "text-center"]
     [txt "%s - %s - Heats" (Display.competition_name comp) (Display.round_name phase)] ::
-  List.mapi (fun i (heat : Ftw.Heat.one) ->
+  List.mapi (fun i (heat : Lib.Heat.one) ->
     one_heat_view ~req ~st ~bib_map ~i heat
   ) (unallocated :: heats)
 
 let heat_view ~req ~st ~comp ~phase =
-  let bib_map = Ftw.Bib.get_map ~st ~comp in
-  let heat = Ftw.Heat.get ~st ~phase:(Ftw.Phase.id phase) in
+  let bib_map = Db.Bib.get_map ~st ~comp in
+  let heat = Db.Heat.get ~st ~phase:(Lib.Phase.id phase) in
   match heat with
   | Regular { heats; unallocated; } ->
     let l = Array.to_list heats in
@@ -629,10 +629,10 @@ let heat_view ~req ~st ~comp ~phase =
 
 let htmx_view req phase_id =
   let$ st = State.get req in
-  let phase = Ftw.Phase.get ~st phase_id in
-  let comp = Ftw.Competition.get ~st (Ftw.Phase.competition phase) in
-  let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
-  match Ftw.Phase.status phase with
+  let phase = Db.Phase.get ~st phase_id in
+  let comp = Db.Competition.get ~st (Lib.Phase.competition phase) in
+  let ev = Db.Event.get ~st (Lib.Competition.event comp) in
+  match Lib.Phase.status phase with
   | Inactive ->
     let$ () = Htmx.ret' ~req ~st ~perms:[View_phase {ev;comp;phase}] in
     `Body [txt "Inactive"]
@@ -646,7 +646,7 @@ let htmx_view req phase_id =
     let$ () = Htmx.ret' ~req ~st ~perms:[View_phase {ev;comp;phase}] in
     `Body [
         div
-          [ path_attr Hx.get Paths.Htmx.artefacts_view (Ftw.Phase.id phase);
+          [ path_attr Hx.get Paths.Htmx.artefacts_view (Lib.Phase.id phase);
             Hx.swap "innerHTML"; Hx.trigger "revealed once";]
           [
             div [class_ "spinnner spinner-border"; role `status] [
@@ -658,7 +658,7 @@ let htmx_view req phase_id =
     let$ () = Htmx.ret' ~req ~st ~perms:[View_phase {ev;comp;phase}] in
     `Body [
         div
-          [ path_attr Hx.get Paths.Htmx.artefacts_view (Ftw.Phase.id phase);
+          [ path_attr Hx.get Paths.Htmx.artefacts_view (Lib.Phase.id phase);
             Hx.swap "innerHTML"; Hx.trigger "revealed once";]
           [
             div [class_ "spinnner spinner-border"; role `status] [

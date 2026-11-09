@@ -9,7 +9,7 @@
 
   ; deps
   (libraries
-     ftw ftw_core ftw_api
+     ftw_lib ftw_db ftw_api
      dream dream-html dream-htmx
      fmt fmt.cli logs logs.cli logs.fmt
      cmdliner containers jsont jsont.bytesrw

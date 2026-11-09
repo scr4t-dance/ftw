@@ -10,8 +10,8 @@ open! Dream_html.HTML
 
 let comp_page req comp_id =
   let$ st = State.get req in
-  let comp = Ftw.Competition.get ~st comp_id in
-  let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
+  let comp = Db.Competition.get ~st comp_id in
+  let ev = Db.Event.get ~st (Lib.Competition.event comp) in
   let$ () =
     Page.mk' ~req ~st
       ~root:(Event [Event {ev}; Comp {comp}])
@@ -21,13 +21,13 @@ let comp_page req comp_id =
 
 let ev_page req ev_id =
   let$ st = State.get req in
-  let ev = Ftw.Event.get ~st ev_id in
+  let ev = Db.Event.get ~st ev_id in
   let$ () =
     Page.mk' ~req ~st
       ~root:(Event [Event {ev}])
       ~title:"Bibs" ~perms:[Edit_event {ev}]
   in
-  let comps = Ftw.Event.competitions ~st ev in
+  let comps = Db.Event.competitions ~st ev in
   List.flatten @@ List.map (fun comp ->
       [h3 [] [txt "%s" (Display.competition_name comp)];
        Competition.bibs_view ~st ~comp]

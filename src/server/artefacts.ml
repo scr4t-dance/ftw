@@ -5,7 +5,7 @@ open! Syntax
 open! Dream_html
 open! Dream_html.HTML
 
-module M = Ftw.Ranking.Matrix
+module M = Lib.Ranking.Matrix
 
 
 (* Helpers *)
@@ -52,8 +52,8 @@ let yan_weighted_headers ~phase ~judges ~judge_criterions ~head_criterions =
         th
           [colspan (if head then 1 else 3); class_ "text-center border-start border-end border-dark"]
           [a
-            [class_ "btn btn-secondary"; path_attr href Paths.Page.judge_artefacts (Ftw.Phase.id phase) (Ftw.Dancer.id dancer)]
-            [txt "%s%s" (Ftw.Dancer.first_name dancer) (if head then "*" else "")]
+            [class_ "btn btn-secondary"; path_attr href Paths.Page.judge_artefacts (Lib.Phase.id phase) (Lib.Dancer.id dancer)]
+            [txt "%s%s" (Lib.Dancer.first_name dancer) (if head then "*" else "")]
           ]
         ) judges)
       );
@@ -77,30 +77,30 @@ let yan_weighted_headers ~phase ~judges ~judge_criterions ~head_criterions =
       )]
 
 let yan_weighted_row ~req:_ ~st ~comp ~matrix ~i ~judge_criterions ~judge_weights ~head_criterions ~head_weights =
-  let target = Ftw.Heat.get_one ~st (M.target  matrix ~i) in
-  let target = Ftw.Target.map_any ~f:(Ftw.Dancer.get ~st) target in
+  let target = Db.Heat.get_one ~st (M.target  matrix ~i) in
+  let target = Lib.Target.map_any ~f:(Db.Dancer.get ~st) target in
   let ranked = (M.ranks matrix).ranks.(i) in
   tr [] (
     (* Rank *)
-    td [] [match (ranked : _ Ftw.Ranking.One.ranked) with
+    td [] [match (ranked : _ Lib.Ranking.One.ranked) with
       | None -> txt ""
       | Ranked { rank; target = _; } ->
         txt "%s" (Display.rank rank)
       | Tie { rank; tie = _; } ->
-        if (Ftw.Rank.equal rank (Ftw.Rank.of_index i)) then
+        if (Lib.Rank.equal rank (Lib.Rank.of_index i)) then
           txt "%s" (Display.rank rank)
         else
           txt ""
     ] ::
     (* Bib *)
     td [] [
-      match Ftw.Bib.find ~st ~comp target with
+      match Db.Bib.find ~st ~comp target with
       | None ->
         begin match target with
         | Any Couple { leader; follower; } ->
           begin match
-            Ftw.Bib.find ~st ~comp (Any (Single { target = leader; role = Leader; })),
-            Ftw.Bib.find ~st ~comp (Any (Single { target = follower; role = Follower; }))
+            Db.Bib.find ~st ~comp (Any (Single { target = leader; role = Leader; })),
+            Db.Bib.find ~st ~comp (Any (Single { target = follower; role = Follower; }))
            with
             | Some (lbib, _), Some (fbib, _) ->
               txt "#%d / #%d" lbib fbib
@@ -114,7 +114,7 @@ let yan_weighted_row ~req:_ ~st ~comp ~matrix ~i ~judge_criterions ~judge_weight
     td [] [txt "%s" (Display.target target)] ::
     (* Total score *)
     td [] [
-      let Ftw.Ranking.Yan_weighted.{ judges; head; bonus } = M.get ~i matrix in
+      let Lib.Ranking.Yan_weighted.{ judges; head; bonus } = M.get ~i matrix in
       if bonus = 0 then
         txt "%d / %d" judges head
       else
@@ -135,16 +135,16 @@ let yan_weighted_row ~req:_ ~st ~comp ~matrix ~i ~judge_criterions ~judge_weight
             | `Only -> "border-start border-end"
           in
           let color =
-            match (yan : Ftw.Artefact.yan) with
+            match (yan : Lib.Artefact.yan) with
             | Yes -> "table-success"
             | Alt -> "table-warning"
             | No -> "table-danger"
           in
           let score =
-            match (yan : Ftw.Artefact.yan) with
-            | Yes -> weights.Ftw.Ranking.Yan_weighted.yes
-            | Alt -> weights.Ftw.Ranking.Yan_weighted.alt
-            | No -> weights.Ftw.Ranking.Yan_weighted.no
+            match (yan : Lib.Artefact.yan) with
+            | Yes -> weights.Lib.Ranking.Yan_weighted.yes
+            | Alt -> weights.Lib.Ranking.Yan_weighted.alt
+            | No -> weights.Lib.Ranking.Yan_weighted.no
           in
           [
             td [class_ "text-center border-dark %s %s" color borders]
@@ -166,7 +166,7 @@ let yan_weighted_infos ~req ~st ~comp ~phase ~matrix
     List.init (M.width matrix) (fun j ->
       let head = M.is_head matrix ~j in
       let judge_id = M.judge matrix ~j in
-      let dancer = Ftw.Dancer.get ~st judge_id in
+      let dancer = Db.Dancer.get ~st judge_id in
       dancer, head
     )
   in
@@ -192,8 +192,8 @@ let rpss_headers ~judges ~phase ~n =
       (List.map (fun (judge, head) ->
         td [] [
           a
-            [class_ "btn btn-secondary"; path_attr href Paths.Page.judge_artefacts (Ftw.Phase.id phase) (Ftw.Dancer.id judge)]
-            [txt "%s%s" (Ftw.Dancer.first_name judge) (if head then "*" else "")];
+            [class_ "btn btn-secondary"; path_attr href Paths.Page.judge_artefacts (Lib.Phase.id phase) (Lib.Dancer.id judge)]
+            [txt "%s%s" (Lib.Dancer.first_name judge) (if head then "*" else "")];
         ]
 
 
@@ -205,43 +205,43 @@ let rpss_headers ~judges ~phase ~n =
   ]
 
 let rpss_row ~req:_ ~st ~comp ~phase:_ ~matrix ~i =
-  let target = Ftw.Heat.get_one ~st (M.target matrix ~i) in
+  let target = Db.Heat.get_one ~st (M.target matrix ~i) in
   let leader, follower =
-    match Ftw.Target.map_any ~f:(Ftw.Dancer.get ~st) target with
+    match Lib.Target.map_any ~f:(Db.Dancer.get ~st) target with
     | Any Couple { leader; follower; } -> leader, follower
     | _ -> assert false
   in
   let ranked = (M.ranks matrix).ranks.(i) in
-  let cells : Ftw.Ranking.RPSS.acc = M.get matrix ~i in
+  let cells : Lib.Ranking.RPSS.acc = M.get matrix ~i in
   tr [] (
     (* Rank *)
-    td [] [match (ranked : _ Ftw.Ranking.One.ranked) with
+    td [] [match (ranked : _ Lib.Ranking.One.ranked) with
       | None -> txt ""
       | Ranked { rank; target = _; } ->
         txt "%s" (Display.rank rank)
       | Tie { rank; tie = _; } ->
-        if (Ftw.Rank.equal rank (Ftw.Rank.of_index i)) then
+        if (Lib.Rank.equal rank (Lib.Rank.of_index i)) then
           txt "%s" (Display.rank rank)
         else
           txt ""
     ] ::
     (* Leader *)
     td [] [
-      let target = Ftw.Target.(Any (Single { target = leader; role = Leader; })) in
-      match Ftw.Bib.find ~st ~comp target with
+      let target = Lib.Target.(Any (Single { target = leader; role = Leader; })) in
+      match Db.Bib.find ~st ~comp target with
       | None -> txt "???"
-      | Some (bib, _) -> txt "#%d %s %s" bib (Ftw.Dancer.first_name leader) (Ftw.Dancer.last_name leader)
+      | Some (bib, _) -> txt "#%d %s %s" bib (Lib.Dancer.first_name leader) (Lib.Dancer.last_name leader)
     ] ::
     (* Follower *)
     td [] [
-      let target = Ftw.Target.(Any (Single { target = follower; role = Follower; })) in
-      match Ftw.Bib.find ~st ~comp target with
+      let target = Lib.Target.(Any (Single { target = follower; role = Follower; })) in
+      match Db.Bib.find ~st ~comp target with
       | None -> txt "???"
-      | Some (bib, _) -> txt "#%d %s %s" bib (Ftw.Dancer.first_name follower) (Ftw.Dancer.last_name follower)
+      | Some (bib, _) -> txt "#%d %s %s" bib (Lib.Dancer.first_name follower) (Lib.Dancer.last_name follower)
     ] ::
     (List.init (M.width matrix) (fun j ->
       match M.artefact matrix ~i ~j with
-      | Some Rank r -> td [] [txt "%d" (Ftw.Rank.rank r)]
+      | Some Rank r -> td [] [txt "%d" (Lib.Rank.rank r)]
       | _ -> td [class_ "table-dark"] []
     )) @
     (List.init (M.length matrix) (fun k ->
@@ -262,7 +262,7 @@ let rpss_info ~req ~st ~comp ~phase ~matrix =
     List.init (M.width matrix) (fun j ->
       let head = M.is_head matrix ~j in
       let judge_id = M.judge matrix ~j in
-      let dancer = Ftw.Dancer.get ~st judge_id in
+      let dancer = Db.Dancer.get ~st judge_id in
       dancer, head
     )
   in
@@ -274,29 +274,29 @@ let rpss_info ~req ~st ~comp ~phase ~matrix =
   ]
 
 let with_info ~req ~st ~comp ~phase ~ranking =
-  match Ftw.Ranking.Res.info ranking with
+  match Lib.Ranking.Res.info ranking with
   | RPSS matrix ->
     rpss_info ~req ~st ~comp ~phase ~matrix
   | Yan_weighted matrix ->
     let judge_criterions =
-      match Ftw.Phase.judge_artefact_descr phase with
+      match Lib.Phase.judge_artefact_descr phase with
       | Yans { criterions } -> criterions
       | _ -> assert false
     in
     let head_criterions =
-      match Ftw.Phase.head_judge_artefact_descr phase with
+      match Lib.Phase.head_judge_artefact_descr phase with
       | Yans { criterions } -> criterions
       | _ -> assert false
     in
     let judge_weights, head_weights =
-      match Ftw.Phase.ranking_algorithm phase with
+      match Lib.Phase.ranking_algorithm phase with
       | Yan_weighted { weights; head_weights; } -> weights, head_weights
       | _ -> assert false
   in
   yan_weighted_infos ~req ~st ~comp ~phase ~matrix ~judge_criterions ~judge_weights ~head_criterions ~head_weights
 
 let ranking_view ~req ~st ~comp ~phase =
-  let ranking = Ftw.Phase.ranking ~st ~phase in
+  let ranking = Db.Phase.ranking ~st ~phase in
   let l =
     match ranking with
     | Any Singles { leaders; follows; } ->
@@ -312,9 +312,9 @@ let ranking_view ~req ~st ~comp ~phase =
 
 let htmx_view req phase_id =
   let$ st = State.get req in
-  let phase = Ftw.Phase.get ~st phase_id in
-  let comp = Ftw.Competition.get ~st (Ftw.Phase.competition phase) in
-  let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
+  let phase = Db.Phase.get ~st phase_id in
+  let comp = Db.Competition.get ~st (Lib.Phase.competition phase) in
+  let ev = Db.Event.get ~st (Lib.Competition.event comp) in
   let$ () = Htmx.ret' ~req ~st ~perms:[View_artefacts {ev;comp;phase}] in
   `Body [ranking_view ~req ~st ~comp ~phase]
 
@@ -334,20 +334,20 @@ type counter =
 
 let counter ~judging ~phase =
   let artefact_descr =
-    match (judging : Ftw.Judging.t) with
-    | Head _ -> Ftw.Phase.head_judge_artefact_descr phase
-    | _ -> Ftw.Phase.judge_artefact_descr phase
+    match (judging : Lib.Judging.t) with
+    | Head _ -> Lib.Phase.head_judge_artefact_descr phase
+    | _ -> Lib.Phase.judge_artefact_descr phase
   in
-  match (artefact_descr: Ftw.Artefact.Descr.t) with
+  match (artefact_descr: Lib.Artefact.Descr.t) with
   | Ranking -> Other
   | Yans { criterions } ->
     Yans (List.map (fun criterion -> criterion, { yes = 0; alt = 0; no = 0 }) criterions)
 
 let col_headers ~st:_ ~judging ~phase =
   let artefact_descr =
-    match (judging : Ftw.Judging.t) with
-    | Head _ -> Ftw.Phase.head_judge_artefact_descr phase
-    | _ -> Ftw.Phase.judge_artefact_descr phase
+    match (judging : Lib.Judging.t) with
+    | Head _ -> Lib.Phase.head_judge_artefact_descr phase
+    | _ -> Lib.Phase.judge_artefact_descr phase
   in
   match artefact_descr with
   | Ranking -> [td [] [txt "ranking"]]
@@ -358,18 +358,18 @@ let input_rank ~target_id ~rank =
     class_ "form-control"; type_ "number"; min "1"; name "%d" target_id;
     (match rank with
     | None -> placeholder "rank"
-    | Some r -> value "%d" (Ftw.Rank.rank r))
+    | Some r -> value "%d" (Lib.Rank.rank r))
   ]
 
 let input_yan_num ~counter ~style ~target_id ~criterion ~yan =
   begin match counter, yan with
-    | Yans l, Some Ftw.Artefact.Yes ->
+    | Yans l, Some Lib.Artefact.Yes ->
       let c = List.assoc criterion l in
       c.yes <- c.yes + 1
-    | Yans l, Some Ftw.Artefact.Alt ->
+    | Yans l, Some Lib.Artefact.Alt ->
       let c = List.assoc criterion l in
       c.alt <- c.alt + 1
-    | Yans l, Some Ftw.Artefact.No ->
+    | Yans l, Some Lib.Artefact.No ->
       let c = List.assoc criterion l in
       c.no <- c.no + 1
     | _ -> ()
@@ -380,21 +380,21 @@ let input_yan_num ~counter ~style ~target_id ~criterion ~yan =
       input [ type_ "radio"; class_ "btn-check"; value "1";
               name "%d-%s" target_id criterion;
               id "%d-%s-no" target_id criterion;
-              (match yan with None | Some Ftw.Artefact.No -> checked | _ -> null_) ];
+              (match yan with None | Some Lib.Artefact.No -> checked | _ -> null_) ];
       label
         [class_ "btn btn-outline-danger"; for_ "%d-%s-no" target_id criterion]
         [txt "No"];
       input [ type_ "radio"; class_ "btn-check"; value "2";
               name "%d-%s" target_id criterion;
               id "%d-%s-alt" target_id criterion;
-              (match yan with Some Ftw.Artefact.Alt -> checked | _ -> null_)];
+              (match yan with Some Lib.Artefact.Alt -> checked | _ -> null_)];
       label
         [class_ "btn btn-outline-warning"; for_ "%d-%s-alt" target_id criterion]
         [txt "Alt"];
       input [ type_ "radio"; class_ "btn-check"; value "3";
               name "%d-%s" target_id criterion;
               id "%d-%s-yes" target_id criterion;
-              (match yan with Some Ftw.Artefact.Yes -> checked | _ -> null_)];
+              (match yan with Some Lib.Artefact.Yes -> checked | _ -> null_)];
       label
         [class_ "btn btn-outline-success"; for_ "%d-%s-yes" target_id criterion]
         [txt "Yes"];
@@ -406,20 +406,20 @@ let input_yan_num ~counter ~style ~target_id ~criterion ~yan =
       name "%d-%s" target_id criterion;
       (match yan with
       | None -> null_
-      | Some Ftw.Artefact.Yes -> value "3"
-      | Some Ftw.Artefact.Alt -> value "2"
-      | Some Ftw.Artefact.No -> value "1"
+      | Some Lib.Artefact.Yes -> value "3"
+      | Some Lib.Artefact.Alt -> value "2"
+      | Some Lib.Artefact.No -> value "1"
       )
     ]
 
 let cols ~req ~counter ~phase ~judge ~judging ~st ~target_id =
   let descr =
-    match (judging : Ftw.Judging.t) with
-    | Head _ -> Ftw.Phase.head_judge_artefact_descr phase
-    | _ -> Ftw.Phase.judge_artefact_descr phase
+    match (judging : Lib.Judging.t) with
+    | Head _ -> Lib.Phase.head_judge_artefact_descr phase
+    | _ -> Lib.Phase.judge_artefact_descr phase
   in
   let artefact =
-    try Some (Ftw.Artefact.get ~st ~descr ~judge:(Ftw.Dancer.id judge) ~target:target_id)
+    try Some (Db.Artefact.get ~st ~descr ~judge:(Lib.Dancer.id judge) ~target:target_id)
     with Not_found -> None
   in
   match descr with
@@ -451,21 +451,21 @@ let cols ~req ~counter ~phase ~judge ~judging ~st ~target_id =
 let heat_table_singles ~req:_ ~st ~bib_map ~role ~passages ~col_headers ~cols targets =
   let dancers =
     List.map (fun target_with_id ->
-      let target_id = Ftw.Target.With_id.id target_with_id in
-      let target = Ftw.Target.With_id.target target_with_id in
-      let Ftw.Target.Single { target = dancer_id; role = _; } = target in
-      let dancer = Ftw.Dancer.get ~st dancer_id in
-      let bib_opt = Ftw.Bib.TMap.find_opt (Ftw.Target.Any target) bib_map in
-      let passage : Ftw.Heat.passage_kind =
-        try Ftw.Id.Map.find dancer_id passages
+      let target_id = Lib.Target.With_id.id target_with_id in
+      let target = Lib.Target.With_id.target target_with_id in
+      let Lib.Target.Single { target = dancer_id; role = _; } = target in
+      let dancer = Db.Dancer.get ~st dancer_id in
+      let bib_opt = Db.Bib.TMap.find_opt (Lib.Target.Any target) bib_map in
+      let passage : Lib.Heat.passage_kind =
+        try Lib.Id.Map.find dancer_id passages
         with Not_found -> Only
       in
       target_id, bib_opt, passage, dancer
     ) targets
-    |> List.sort (fun (_, b, _, _) (_, b', _, _) -> CCOrd.option Ftw.Id.compare b b')
+    |> List.sort (fun (_, b, _, _) (_, b', _, _) -> CCOrd.option Lib.Id.compare b b')
   in
   div [class_ "col"] [
-    h5 [] [txt "%s" (match (role : Ftw.Role.t) with Leader -> "Leader" | Follower -> "Follower")];
+    h5 [] [txt "%s" (match (role : Lib.Role.t) with Leader -> "Leader" | Follower -> "Follower")];
     table [class_ "table table-hover"] (
       thead [] [
         tr [] ([
@@ -475,17 +475,17 @@ let heat_table_singles ~req:_ ~st ~bib_map ~role ~passages ~col_headers ~cols ta
       ] ::
       (List.map (fun (target_id, bib_opt, passage, dancer) ->
         match passage, bib_opt with
-        | Ftw.Heat.Multiple { nth }, _ when nth > 1 -> null []
+        | Lib.Heat.Multiple { nth }, _ when nth > 1 -> null []
         | _,  Some bib ->
           tr [] ([
             td [] [txt "#%d" bib];
-            td [] [txt "%s %s" (Ftw.Dancer.first_name dancer) (Ftw.Dancer.last_name dancer)];
+            td [] [txt "%s %s" (Lib.Dancer.first_name dancer) (Lib.Dancer.last_name dancer)];
           ] @ cols ~st ~target_id)
         | _, None ->
           tr [] [
             td
               [colspan (2 + List.length col_headers); class_ "text-danger"]
-              [txt "Missing bib for %s %s" (Ftw.Dancer.first_name dancer) (Ftw.Dancer.last_name dancer)]
+              [txt "Missing bib for %s %s" (Lib.Dancer.first_name dancer) (Lib.Dancer.last_name dancer)]
           ]
         ) dancers)
     );
@@ -494,25 +494,25 @@ let heat_table_singles ~req:_ ~st ~bib_map ~role ~passages ~col_headers ~cols ta
 let heat_table_couples ~req:_ ~st ~bib_map ~col_headers ~cols targets =
   let dancers =
     List.map (fun target_with_id ->
-      let target_id = Ftw.Target.With_id.id target_with_id in
-      let target = Ftw.Target.With_id.target target_with_id in
-      let Ftw.Target.Couple { leader; follower } = target in
+      let target_id = Lib.Target.With_id.id target_with_id in
+      let target = Lib.Target.With_id.target target_with_id in
+      let Lib.Target.Couple { leader; follower } = target in
 
       let leader_bib_opt, follower_bib_opt =
-        match Ftw.Bib.TMap.find_opt (Any target) bib_map with
+        match Db.Bib.TMap.find_opt (Any target) bib_map with
         | None ->
-          let leader_bib_opt = Ftw.Bib.TMap.find_opt (Ftw.Target.Any (Single { target = leader; role = Leader; })) bib_map in
-          let follower_bib_opt = Ftw.Bib.TMap.find_opt (Ftw.Target.Any (Single { target = follower; role = Follower; })) bib_map in
+          let leader_bib_opt = Db.Bib.TMap.find_opt (Lib.Target.Any (Single { target = leader; role = Leader; })) bib_map in
+          let follower_bib_opt = Db.Bib.TMap.find_opt (Lib.Target.Any (Single { target = follower; role = Follower; })) bib_map in
           leader_bib_opt, follower_bib_opt
         | Some _bib as bib_opt ->
           bib_opt, bib_opt
       in
 
-      let leader = Ftw.Dancer.get ~st leader in
-      let follower = Ftw.Dancer.get ~st follower in
+      let leader = Db.Dancer.get ~st leader in
+      let follower = Db.Dancer.get ~st follower in
       target_id, leader_bib_opt, leader, follower_bib_opt, follower
     ) targets
-    |> List.sort (fun (_, b, _, _, _) (_, b', _, _, _) -> CCOrd.option Ftw.Id.compare b b')
+    |> List.sort (fun (_, b, _, _, _) (_, b', _, _, _) -> CCOrd.option Lib.Id.compare b b')
   in
   div [class_ "col"] [
     h5 [] [txt "Couples"];
@@ -530,29 +530,29 @@ let heat_table_couples ~req:_ ~st ~bib_map ~col_headers ~cols targets =
         | Some lbib, Some fbib ->
           tr [] ([
             td [] [txt "#%d" lbib];
-            td [] [txt "%s %s" (Ftw.Dancer.first_name leader) (Ftw.Dancer.last_name leader)];
+            td [] [txt "%s %s" (Lib.Dancer.first_name leader) (Lib.Dancer.last_name leader)];
             td [] [txt "#%d" fbib];
-            td [] [txt "%s %s" (Ftw.Dancer.first_name follower) (Ftw.Dancer.last_name follower)];
+            td [] [txt "%s %s" (Lib.Dancer.first_name follower) (Lib.Dancer.last_name follower)];
           ] @ cols ~st ~target_id)
         | _ ->
           tr [] [
             td
               [colspan (2 + List.length col_headers); class_ "text-danger"]
               [txt "Missing bib for %s %s & %s %s"
-                    (Ftw.Dancer.first_name leader) (Ftw.Dancer.last_name leader)
-                    (Ftw.Dancer.first_name follower) (Ftw.Dancer.last_name follower) ]
+                    (Lib.Dancer.first_name leader) (Lib.Dancer.last_name leader)
+                    (Lib.Dancer.first_name follower) (Lib.Dancer.last_name follower) ]
           ]
         ) dancers)
     );
   ]
 
-let one_heat_view ~req ~st ~judging ~bib_map ~col_headers ~cols ~i (heat : Ftw.Heat.one) =
+let one_heat_view ~req ~st ~judging ~bib_map ~col_headers ~cols ~i (heat : Lib.Heat.one) =
   match heat.leaders, heat.followers, heat.couples with
   | [], [], [] -> null []
   | _ ->
     div [class_ "row py-3 border-bottom"] (
         h4 [] [if i = 0 then txt "Unallocated" else txt "Heat %d" i] :: (
-        (match (judging : Ftw.Judging.t) with
+        (match (judging : Lib.Judging.t) with
           | Leaders ->
             [heat_table_singles ~req ~st ~bib_map ~passages:heat.passages ~col_headers ~cols ~role:Leader heat.leaders]
           | Followers ->
@@ -565,15 +565,15 @@ let one_heat_view ~req ~st ~judging ~bib_map ~col_headers ~cols ~i (heat : Ftw.H
         )))
 
 let regular_heat_view ~req ~st ~judging ~bib_map ~unallocated ~col_headers ~cols heats =
-  List.mapi (fun i (heat : Ftw.Heat.one) ->
+  List.mapi (fun i (heat : Lib.Heat.one) ->
     one_heat_view ~req ~st ~judging ~bib_map ~col_headers ~cols ~i heat
   ) (unallocated :: heats)
 
 let heat_view ~req ~st ~comp ~phase ~judge =
-  let bib_map = Ftw.Bib.get_map ~st ~comp in
-  let heat = Ftw.Heat.get ~st ~phase:(Ftw.Phase.id phase) in
-  let panel = Ftw.Judge.get ~st ~phase:(Ftw.Phase.id phase) in
-  match Ftw.Judge.judging panel judge with
+  let bib_map = Db.Bib.get_map ~st ~comp in
+  let heat = Db.Heat.get ~st ~phase:(Lib.Phase.id phase) in
+  let panel = Db.Judge.get ~st ~phase:(Lib.Phase.id phase) in
+  match Lib.Judge.judging panel judge with
   | None -> Other, null [] (* TODO: error *)
   | Some judging ->
     let counter = counter ~judging ~phase in
@@ -583,7 +583,7 @@ let heat_view ~req ~st ~comp ~phase ~judge =
     | Regular { heats; unallocated; } ->
       let l = Array.to_list heats in
       counter,
-      form [method_ `POST; path_attr action Paths.Post.artefacts (Ftw.Phase.id phase) (Ftw.Dancer.id judge)] (
+      form [method_ `POST; path_attr action Paths.Post.artefacts (Lib.Phase.id phase) (Lib.Dancer.id judge)] (
         csrf_tag req ::
         regular_heat_view ~req ~st ~judging ~bib_map ~unallocated ~col_headers ~cols l @
         [button
@@ -594,7 +594,7 @@ let heat_view ~req ~st ~comp ~phase ~judge =
 let counter_view ~st:_ ~comp ~phase ~judge = function
   | Other -> null []
   | Yans l ->
-    let _, n_yes = Ftw.Competition.next_round comp (Some (Ftw.Phase.round phase)) in
+    let _, n_yes = Lib.Competition.next_round comp (Some (Lib.Phase.round phase)) in
 
     div [class_ "row border rounded mx-2 my-2 px-2 py-2"] [
       h6 [] [txt "Summary"];
@@ -602,12 +602,12 @@ let counter_view ~st:_ ~comp ~phase ~judge = function
         a [
           class_ "col btn btn-secondary mx-2";
           path_attr href Paths.Page.judge_artefacts_styled
-            (Ftw.Phase.id phase) (Ftw.Dancer.id judge) "nums";
+            (Lib.Phase.id phase) (Lib.Dancer.id judge) "nums";
         ] [txt "1/2/3"];
         a [
           class_ "col btn btn-secondary mx-2";
           path_attr href Paths.Page.judge_artefacts_styled
-            (Ftw.Phase.id phase) (Ftw.Dancer.id judge) "radio";
+            (Lib.Phase.id phase) (Lib.Dancer.id judge) "radio";
         ] [txt "No/Alt/Yes"];
       ];
       div [class_ "row"] (List.map (fun (criterion, c) ->
@@ -635,10 +635,10 @@ let counter_view ~st:_ ~comp ~phase ~judge = function
 
 let for_one_judge req phase_id judge_id =
   let$ st = State.get req in
-  let phase = Ftw.Phase.get ~st phase_id in
-  let comp = Ftw.Competition.get ~st (Ftw.Phase.competition phase) in
-  let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
-  let judge = Ftw.Dancer.get ~st judge_id in
+  let phase = Db.Phase.get ~st phase_id in
+  let comp = Db.Competition.get ~st (Lib.Phase.competition phase) in
+  let ev = Db.Event.get ~st (Lib.Competition.event comp) in
+  let judge = Db.Dancer.get ~st judge_id in
   let$ () =
     Page.mk' ~req ~st ~title:"Artefacts"
       ~root:(Event [Event{ev};Comp{comp};Phase{phase};Artefacts])
@@ -647,7 +647,7 @@ let for_one_judge req phase_id judge_id =
   let counter, heats_views = heat_view ~req ~st ~comp ~phase ~judge in [
     h4
       [class_ "text-center"]
-      [txt "Artefacts - %s %s" (Ftw.Dancer.first_name judge) (Ftw.Dancer.last_name judge)];
+      [txt "Artefacts - %s %s" (Lib.Dancer.first_name judge) (Lib.Dancer.last_name judge)];
     counter_view ~st ~comp ~phase ~judge counter;
     heats_views
   ]
@@ -656,9 +656,9 @@ let for_one_judge req phase_id judge_id =
 (* ************************************************************************* *)
 
 let form_decode_yan = function
-  | "1" -> Some Ftw.Artefact.No
-  | "2" -> Some Ftw.Artefact.Alt
-  | "3" -> Some Ftw.Artefact.Yes
+  | "1" -> Some Lib.Artefact.No
+  | "2" -> Some Lib.Artefact.Alt
+  | "3" -> Some Lib.Artefact.Yes
   | _ -> None
 
 let split_form_name s =
@@ -676,7 +676,7 @@ and parse_yans_target ~res ~criterions ~target ~acc = function
     | [] -> parse_yan_record ~res ~criterions ~target ~acc []
     | ((s, v) :: r) as l ->
       let target', criterion = split_form_name s in
-      if Ftw.Id.equal target target' then
+      if Lib.Id.equal target target' then
         parse_yans_target
         ~res ~criterions ~target
         ~acc:((criterion, form_decode_yan v) :: acc) r
@@ -687,7 +687,7 @@ and parse_yan_record ~res ~criterions ~target ~acc l =
   let yan_list = Option.bind (CCOption.sequence_l yan_opt_list) CCOption.sequence_l in
   let res =
     match yan_list with
-    | Some yan_list -> (target, Ftw.Artefact.Yans yan_list) :: res
+    | Some yan_list -> (target, Lib.Artefact.Yans yan_list) :: res
     | None -> res
   in
   parse_yans ~res ~criterions l
@@ -696,37 +696,37 @@ let rec parse_ranks ~res = function
   | [] -> res
   | (target, rank) :: r ->
     let target_id = int_of_string target in
-    let rank = Ftw.Artefact.Rank (Ftw.Rank.mk (int_of_string rank)) in
+    let rank = Lib.Artefact.Rank (Lib.Rank.mk (int_of_string rank)) in
     let res = (target_id, rank) :: res in
     parse_ranks ~res r
 
 let parse_form_results ~st ~phase ~judge form_results =
-  let panel = Ftw.Judge.get ~st ~phase:(Ftw.Phase.id phase) in
-  let judging = Ftw.Judge.judging panel judge in
-  let heat = Ftw.Heat.get ~st ~phase:(Ftw.Phase.id phase) in
+  let panel = Db.Judge.get ~st ~phase:(Lib.Phase.id phase) in
+  let judging = Lib.Judge.judging panel judge in
+  let heat = Db.Heat.get ~st ~phase:(Lib.Phase.id phase) in
   let l = 
     match heat with 
     | Regular reg ->
       let dancers =
         match judging with
         | Some Leaders ->
-          let _map, leaders, _followers = Ftw.Heat.all_single_judgement_targets reg in
+          let _map, leaders, _followers = Db.Heat.all_single_judgement_targets reg in
           leaders
         | Some Followers ->
-          let _map, _leaders, followers = Ftw.Heat.all_single_judgement_targets reg in
+          let _map, _leaders, followers = Db.Heat.all_single_judgement_targets reg in
           followers
         | Some Head { targets = `Singles } ->
-          let _map, leaders, followers = Ftw.Heat.all_single_judgement_targets reg in
+          let _map, leaders, followers = Db.Heat.all_single_judgement_targets reg in
           leaders @ followers
         | Some Couples | Some Head { targets = `Couples } ->
-          let map = Ftw.Heat.all_couple_judgement_targets reg in
-          List.map fst (Ftw.Id.Map.bindings map)
+          let map = Db.Heat.all_couple_judgement_targets reg in
+          List.map fst (Lib.Id.Map.bindings map)
         | None -> assert false
       in
       let artefact_descr =
         match judging with
-        | Some Head _ -> Ftw.Phase.head_judge_artefact_descr phase
-        | _ -> Ftw.Phase.judge_artefact_descr phase
+        | Some Head _ -> Lib.Phase.head_judge_artefact_descr phase
+        | _ -> Lib.Phase.judge_artefact_descr phase
       in
       begin match artefact_descr with
         | Ranking ->
@@ -747,16 +747,16 @@ let parse_form_results ~st ~phase ~judge form_results =
 
 let post_artefacts req phase_id judge_id =
   let$ st = State.get req in
-  let phase = Ftw.Phase.get ~st phase_id in
-  let comp = Ftw.Competition.get ~st (Ftw.Phase.competition phase) in
-  let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
-  let judge = Ftw.Dancer.get ~st judge_id in
+  let phase = Db.Phase.get ~st phase_id in
+  let comp = Db.Competition.get ~st (Lib.Phase.competition phase) in
+  let ev = Db.Event.get ~st (Lib.Competition.event comp) in
+  let judge = Db.Dancer.get ~st judge_id in
   match%lwt Dream.form req with
   | `Ok form_results ->
     if User.check_perms ~req ~st [Edit_artefacts {ev;comp;phase;judge}] then
       let l = parse_form_results ~st ~phase ~judge form_results in
-      Ftw.Artefact.clear ~st ~phase:phase_id ~judge:judge_id;
-      List.iter (fun (target, artefact) -> Ftw.Artefact.set ~st ~judge:judge_id ~target artefact) l;
+      Db.Artefact.clear ~st ~phase:phase_id ~judge:judge_id;
+      List.iter (fun (target, artefact) -> Db.Artefact.set ~st ~judge:judge_id ~target artefact) l;
       Dream.redirect req Paths.(render @@ apply Page.judge_artefacts phase_id judge_id)
     else
       assert false

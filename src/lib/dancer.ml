@@ -1,264 +1,68 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-(* Ftw_core import *)
+(* Type definitions *)
 (* ************************************************************************* *)
 
-include Ftw_core.Dancer
+type id = Id.t
 
-(* Serialization *)
+type t = {
+  id : id;
+  birthday : Date.t option;
+  last_name : string;
+  first_name : string;
+  email : string option;
+  as_leader : Divisions.t;
+  as_follower : Divisions.t;
+}
+
+(* Accessors *)
 (* ************************************************************************* *)
 
-let to_toml d =
-  []
-  |> Misc.Toml.add "id" Id.to_toml (id d)
-  |> Misc.Toml.add "last_name" Otoml.string (last_name d)
-  |> Misc.Toml.add "first_name" Otoml.string (first_name d)
-  |> Misc.Toml.add_opt "dob" Date.to_toml (birthday d)
-  |> Misc.Toml.add_opt "email" Otoml.string (email d)
-  |> Otoml.inline_table
-
-let of_toml t =
-  let id = Otoml.find t Id.of_toml ["id"] in
-  let last_name = Otoml.find t Otoml.get_string ["last_name"] in
-  let first_name = Otoml.find t Otoml.get_string ["first_name"] in
-  let birthday = Otoml.find_opt t Date.of_toml ["dob"] in
-  let email = Otoml.find_opt t Otoml.get_string ["email"] in
-  let as_leader : Divisions.t = None in
-  let as_follower : Divisions.t = None in
-  Private.mk ~id ~birthday ~last_name ~first_name ~email ~as_leader ~as_follower
-
-
-(* DB interaction *)
-(* ************************************************************************* *)
-
-let db = State.Main
-
-let () =
-  State.add_init ~name:"dancer" (fun st ->
-      State.exec ~st ~db {|
-        CREATE TABLE IF NOT EXISTS dancers (
-          id INTEGER PRIMARY KEY,
-          birthday TEXT,
-          last_name TEXT,
-          first_name TEXT,
-          email TEXT,
-          as_leader INTEGER REFERENCES divisions_names(id),
-          as_follower INTEGER REFERENCES divisions_names(id)
-        )
-      |})
-
-let conv =
-  Conv.mk
-    Sqlite3_utils.Ty.[int; text; text; text; text; int; int]
-    (fun id birthday last_name first_name email as_leader as_follower ->
-       let birthday = if birthday = "" then None else Some (Date.of_string birthday) in
-       let email = if email = "" then None else Some email in
-       let as_leader = Divisions.of_int as_leader in
-       let as_follower = Divisions.of_int as_follower in
-       Private.mk ~id ~birthday ~last_name ~first_name ~email ~as_leader ~as_follower)
-
-let get ~st id =
-  try
-    State.query_one_where ~st ~db ~p:Id.p ~conv
-      {| SELECT * FROM dancers WHERE id = ? |} id
-  with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
-    raise Not_found
-
-let iter ~st ~f =
-  State.query_all ~st ~db ~f ~conv
-    {| SELECT * FROM dancers ORDER BY id |}
-
-let list ~st =
-  State.query_list ~st ~db ~conv
-    {| SELECT * FROM dancers |}
-
-let add ~st
-    ~first_name ~last_name
-    ?birthday ?email ~as_leader ~as_follower () =
-  let email = Option.value ~default:"" email in
-  let dob = Option.fold ~none:"" ~some:Date.to_string birthday in
-  Logs.debug (fun k->
-      k "@[<hv 2>Adding dancer with@ first: %s / last: %s@ birthday: %s / email : %s@ \
-         leader: %a / follower: %a@]"
-        first_name last_name dob email
-        Divisions.print as_leader Divisions.print as_follower);
-  State.insert ~st ~db ~ty:Db.Ty.[ text; text; text; text; int; int ]
-    {| INSERT INTO dancers
-        (birthday,last_name,first_name,email,as_leader,as_follower)
-        VALUES (?,?,?,?,?,?) |}
-    dob last_name first_name email
-    (Divisions.to_int as_leader) (Divisions.to_int as_follower);
-  (* TODO: try and get the id of the new competition from the insert statement above,
-     rather than using a new query *)
-  State.query_one_where ~st ~db ~p:Db.Ty.[ text; text; text; text; int; int ] ~conv
-    {| SELECT * FROM dancers WHERE birthday = ? AND last_name = ? AND first_name = ?
-                                AND email = ? AND as_leader = ? AND as_follower = ? |}
-    dob last_name first_name email (Divisions.to_int as_leader) (Divisions.to_int as_follower)
-
-let update ~st ~id_dancer ?birthday ~first_name ~last_name ?email ~as_leader ~as_follower () =
-  let email = Option.value ~default:"" email in
-  let dob = Option.fold ~none:"" ~some:Date.to_string birthday in
-  Logs.debug (fun k->
-      k "@[<hv 2>Updating dancer with@ first: %s / last: %s@ birthday: %s / email : %s@ \
-         leader: %a / follower: %a@]"
-        first_name last_name dob email
-        Divisions.print as_leader Divisions.print as_follower);
-  State.insert ~st ~db ~ty:Db.Ty.[ text; text; text; text; int; int; int ]
-    {| UPDATE dancers SET birthday = ?,
-                          last_name = ?, first_name = ?,
-                          email = ?, as_leader = ?, as_follower = ?
-                      WHERE id = ? |}
-    dob last_name first_name email
-    (Divisions.to_int as_leader) (Divisions.to_int as_follower)
-    id_dancer
-
-let update_divisions ~st ~dancer ~role ~divs =
+let id { id; _ } = id
+let birthday { birthday; _ } = birthday
+let last_name { last_name; _ } = last_name
+let first_name { first_name; _ } = first_name
+let email { email; _ } = email
+let as_leader { as_leader; _ } = as_leader
+let as_follower { as_follower; _ } = as_follower
+let as_role ~role t =
   match (role : Role.t) with
-  | Leader ->
-    State.insert ~st ~db ~ty:Db.Ty.[int; int]
-      {| UPDATE dancers SET as_leader = ? WHERE id = ? |}
-      (Divisions.to_int divs) dancer
-  | Follower ->
-    State.insert ~st ~db ~ty:Db.Ty.[int; int]
-      {| UPDATE dancers SET as_follower = ? WHERE id = ? |}
-      (Divisions.to_int divs) dancer
+  | Leader -> as_leader t
+  | Follower -> as_follower t
+
+let print_compact fmt t =
+  Format.fprintf fmt "%s %s" t.first_name t.last_name
+
+let print_divs role fmt divs =
+  match (divs : Divisions.t) with
+  | None -> ()
+  | _ ->
+    Format.fprintf fmt "%a:%a " Role.print_compact role Divisions.print divs
+
+let print_opt pp fmt = function
+  | None -> ()
+  | Some x -> Format.fprintf fmt "(%a)" pp x
+
+let print fmt t =
+  Format.fprintf fmt "$%a %s %s %a%a%s%a%a"
+    Id.print t.id
+    t.first_name t.last_name
+    (print_divs Leader) t.as_leader
+    (print_divs Follower) t.as_follower
+    (match t.as_leader, t.as_follower with
+     | None, None -> "divs:N/A " | _ -> "")
+    (print_opt Date.print) t.birthday
+    (print_opt Format.pp_print_string) t.email
 
 (* Private functions *)
 (* ************************************************************************* *)
 
 module Private = struct
 
-  include Ftw_core.Dancer.Private
-
-  let import ~st ~id:dancer_id
-      ~first_name ~last_name
-      ?birthday ?email ~as_leader ~as_follower () =
-    let email = Option.value ~default:"" email in
-    let dob = Option.fold ~none:"" ~some:Date.to_string birthday in
-    Logs.debug (fun k->
-        k "@[<hv 2>Importing dancer with@ id: %a /@ \
-           first: %s / last: %s@ \
-           birthday: %s / email : %s@ \
-           leader: %a / follower: %a@]"
-          Id.print dancer_id first_name last_name dob email
-          Divisions.print as_leader Divisions.print as_follower);
-    State.insert ~st ~db ~ty:Db.Ty.[ int; text; text; text; text; int; int ]
-      {| INSERT INTO dancers
-        (id, birthday,last_name,first_name,email,as_leader,as_follower)
-        VALUES (?, ?,?,?,?,?,?) |}
-      dancer_id dob last_name first_name email
-      (Divisions.to_int as_leader) (Divisions.to_int as_follower)
-
+  let mk ~id ~last_name ~first_name
+      ~birthday ~email ~as_leader ~as_follower =
+    { id; birthday; last_name; first_name; email; as_leader; as_follower; }
 
 end
 
-(* Indexing *)
-(* ************************************************************************* *)
-
-module Index = struct
-
-  let src = Logs.Src.create "ftw.index"
-
-  type dancer = t
-  type t = dancer Str.Index.t Str.Index.t
-
-  type res =
-    | Found of dancer
-    | Not_found of { suggestions : dancer list; }
-
-  let empty = Str.Index.empty
-
-  let prepare_name name =
-    let l = String.split_on_char ' ' (String.trim name) in
-    let l =
-      List.filter_map (fun s ->
-          let s = String.trim s in
-          let l' = String.split_on_char '-' s in
-          let l' =
-            List.filter_map (fun s ->
-                let s = String.trim s in
-                let s = String.lowercase_ascii s in
-                let s = String.capitalize_ascii s in
-                if s = "" then None else Some s
-              ) l'
-          in
-          let s = String.concat "-" l' in
-          if s = "" then None else Some s
-        ) l
-    in
-    String.concat " " l
-
-  let add dancer index =
-    let first_name = prepare_name (first_name dancer) in
-    let last_name = prepare_name (last_name dancer) in
-    Str.Index.update index last_name ~f:(fun o ->
-        let first_name_index = Option.value ~default:Str.Index.empty o in
-        Str.Index.add first_name_index first_name dancer)
-
-  let mk ~st =
-    Logs.debug ~src (fun k->k "Creating dancer Index...");
-    let i = ref Str.Index.empty in
-    iter ~st ~f:(fun dancer -> i := add dancer !i);
-    Logs.debug ~src (fun k->k "Finished Index creation");
-    !i
-
-  let same_names ~first_name:first ~last_name:last = fun d ->
-    String.equal (first_name d) first &&
-    String.equal (last_name d) last
-
-  let find_aux ?(limit=3) (index: t) ~first_name ~last_name =
-    let s = Str.Index.find ~limit index last_name in
-    let s = Seq.flat_map (fun idx -> Str.Index.find ~limit idx first_name) s in
-    match s () with
-    | Nil ->
-      Not_found { suggestions = []; }
-    | Cons _ ->
-      begin match Seq.find (same_names ~first_name ~last_name) s with
-        | Some d -> Found d
-        | None -> Not_found { suggestions = List.of_seq s; }
-      end
-
-  let find ?limit index ~first_name ~last_name =
-    let first_name = prepare_name first_name in
-    let last_name = prepare_name last_name in
-    Logs.debug ~src (fun k->k "Index query: %s / %s" last_name first_name);
-    let t = Unix.gettimeofday () in
-    let res = find_aux ?limit index ~first_name ~last_name in
-    let t' = Unix.gettimeofday () in
-    Logs.debug ~src (fun k->k "Dancer query solved in %.4fs" (t' -. t));
-    res
-
-  let distance d ~first_name:first ~last_name:last =
-    Str.edit_distance (prepare_name first) (prepare_name @@ first_name d)
-    + Str.edit_distance (prepare_name last) (prepare_name @@ last_name d)
-
-end
-
-(* Fuzzy *)
-(* ************************************************************************* *)
-
-(* probably quite inefficient ? TODO: do it better *)
-module Fuzzy = struct
-
-  module M = Map.Make(String)
-
-  let search ~st ~pattern =
-    (* note that in v0.18 of Fuzzy_search, there is a search_assoc function,
-       which will remove the need for the map and most of the inefficiency here.
-       the remaining work will mainly be to cache the list of full names in
-       the state *)
-    let pattern = Ubase.from_utf8 pattern in
-    let all_dancers = list ~st in
-    let l =
-      List.map (fun d ->
-        Format.asprintf "%s %s"(Ubase.from_utf8 @@ first_name d) (Ubase.from_utf8 @@ last_name d), d
-      ) all_dancers
-    in
-    let map = M.of_list l in
-    let items = List.map fst l in
-    let query = Fuzzy_search.Query.create pattern in
-    let results = Fuzzy_search.search query ~items in
-    List.map (fun full_name -> M.find full_name map) results
-
-end

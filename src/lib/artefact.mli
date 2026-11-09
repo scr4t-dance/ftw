@@ -1,77 +1,51 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-include module type of Ftw_core.Artefact
 
-(* Descriptions *)
+(* Artefact descriptions *)
 (* ************************************************************************* *)
 
-module Descr : sig
+module Descr: sig
 
-  include module type of Ftw_core.Artefact.Descr
-
-  val of_toml : Otoml.t -> t
-
-  val to_toml : t -> Otoml.t
-
-end
-
-(* DB Interaction *)
-(* ************************************************************************* *)
-
-val p : (int -> 'a, 'a) Sqlite3_utils.Ty.t
-(** Sqlite query "type" for identifiers *)
-
-val conv : descr:Descr.t -> t Conv.t
-(** Converter for identifiers *)
-
-val get :
-  st:State.t ->
-  judge:Judge.id ->
-  target:Id.t ->
-  descr:Descr.t ->
-  t
-
-val set :
-  st:State.t ->
-  judge:Judge.id ->
-  target:Id.t ->
-  t -> unit
-
-val delete :
-  st:State.t ->
-  judge:Judge.id ->
-  target:Id.t -> unit
-
-val clear :
-    st:State.t ->
-    judge:Judge.id ->
-    phase:Ftw_core.Phase.id -> unit
-
-
-(* Serialization *)
-(* ************************************************************************* *)
-
-val to_toml : t -> Otoml.t
-(** Serialization to toml. *)
-
-val of_toml : descr:Descr.t -> Otoml.t -> t
-(** Deserialization from toml.
-    @raise Otoml.Type_error *)
-
-module Targeted : sig
-
-  type nonrec t = {
-    judge: Judge.id;
-    target : Id.t;
-    artefact : t;
+  type yan_criterions = {
+    criterions : string list;
   }
 
-  val to_toml : t -> Otoml.t
-  (** Serialization to toml. *)
+  type t =
+    | Ranking
+    | Yans of yan_criterions (**)
+  (** Description of artefact types.*)
 
-  val of_toml : descr:Descr.t -> Otoml.t -> t
-  (** Deserialization from toml.
-      @raise Otoml.Type_error *)
+  val ranking : unit -> t
+  val yans : yan_criterions -> t
+  val mk_criterions : string list -> yan_criterions
+  (** Construction functions *)
+
+  val print : Format.formatter -> t -> unit
+  (** Printing. *)
+
+  val jsont : t Jsont.t
+  (* Jsont type *)
 
 end
+
+(* Artefact type *)
+(* ************************************************************************* *)
+
+type yan =
+  | Yes
+  | Alt
+  | No (**)
+(* Yes/Alt/No *)
+
+type t =
+  | Rank of Rank.t
+  | Yans of yan list
+
+val check : descr:Descr.t -> t -> bool
+(** Check whether an artefact matches a description. *)
+
+val print : Format.formatter -> t -> unit
+
+val printbox : t -> PrintBox.t
+

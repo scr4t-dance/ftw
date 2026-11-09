@@ -1,50 +1,82 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-include module type of Ftw_core.Results
-
-(* Serialization *)
+(* Competition results *)
 (* ************************************************************************* *)
 
-val to_toml : t -> Otoml.t
+type aux =
+  | Not_present | Present
+  | Ranked of Rank.t
 
-val of_toml : Otoml.t -> t
+type t = {
+  prelims : aux;
+  octofinals : aux;
+  quarterfinals : aux;
+  semifinals : aux;
+  finals : aux;
+}
 
-val p_to_toml : p -> Otoml.t
+type o = {
+  dancer : Dancer.id;
+  role : Role.t;
+  points : Points.t;
+  result : t;
+}
 
-val p_of_toml : Otoml.t -> p
+type p = {
+  dancer : Dancer.id;
+  points : Points.t;
+}
 
+type r = {
+  competition : Competition.id;
+  target : p Target.any;
+  result : t;
+}
 
-(* DB interaction *)
-(* ************************************************************************* *)
+val mk :
+  ?prelims:aux ->
+  ?octofinals:aux ->
+  ?quarterfinals:aux ->
+  ?semifinals:aux ->
+  ?finals:aux ->
+  unit -> t
 
-val add : st:State.t -> r -> unit
-(** Add a result row to the DB. *)
+val extend : Round.t -> aux -> t -> t
 
-val find :
-  st:State.t -> [
-    | `Dancer of Dancer.t
-    | `Competition of Ftw_core.Competition.t
-  ] -> r list
-(** Find the list of results for a given competition or dancer. *)
+val finalist : t
+val semifinalist : t
+val quarterfinalist : t
+val octofinalist : t
+val empty : t
 
-val all_points :
-  st:State.t ->
-  dancer:Dancer.id ->
+val placement : t -> Points.placement
+
+val explode : r -> o list
+
+val points :
+  event:Event.t ->
+  comp:Competition.t ->
   role:Role.t ->
-  div:Division.t ->
+  t ->
   int
-(** Find the total number of points for a dancer and role. *)
 
-val promotion :
-  st:State.t ->
-  event:Ftw_core.Event.t ->
-  comp:Ftw_core.Competition.t ->
-  r -> Promotion.t list
 
-val promotions_for_comp :
-  st:State.t ->
-  event:Ftw_core.Event.t ->
-  comp:Ftw_core.Competition.t ->
-  Promotion.t list
+(* Competition ranking *)
+(* ************************************************************************* *)
 
+type presents = {
+  leaders : Dancer.id list;
+  followers : Dancer.id list;
+}
+
+type ranking = {
+  final_ranks : Dancer.id Target.any Ranking.One.t;
+  finalists : presents;
+  semifinalists : presents;
+  quarterfinalists : presents;
+  octofinalists : presents;
+  only_prelims : presents;
+}
+
+val ranking : comp:Competition.t -> r list -> ranking

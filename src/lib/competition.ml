@@ -1,137 +1,173 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-(* Ftw_core import *)
+(* Type definitions *)
 (* ************************************************************************* *)
 
-include Ftw_core.Competition
+type id = Id.t
 
-type status = Ftw_core.Competition.status =
+type status =
  | Setup
  | Registration
  | Distribution
  | Progress
  | Finished
- [@@deriving enum]
+
+type t = {
+  id : id;
+  event : Event.id;
+  status : status;
+  name : string;
+  kind : Kind.t;
+  category : Category.t;
+  n_leaders : int;
+  n_follows : int;
+  check_divs : bool;
+  public : bool;
+}
 
 
-(* DB interaction *)
+(* Common functions *)
 (* ************************************************************************* *)
 
-let db = State.Main
+let id { id; _ } = id
+let event { event; _ } = event
+let status { status; _ } = status
+let public { public; _ } = public
+let name { name; _ } = name
+let kind { kind; _ } = kind
+let category { category; _ } = category
+let n_leaders { n_leaders; _ } = n_leaders
+let n_follows { n_follows; _ } = n_follows
+let check_divs { check_divs; _ } = check_divs
 
-let () =
-  State.add_init ~name:"competition" (fun st ->
-      State.exec ~db ~st {|
-        CREATE TABLE IF NOT EXISTS competitions (
-          id INTEGER PRIMARY KEY,
-          event INTEGER REFERENCES events(id),
-          status INTEGER,
-          public INTEGER,
-          name TEXT,
-          kind INTEGER REFERENCES competition_kinds(id),
-          category INTEGER REFERENCES competition_categories(id),
-          num_leaders INTEGER,
-          num_followers INTEGER,
-          check_divs INTEGER
-        )
-    |})
+let print_compact fmt t =
+  if t.name <> "" then Format.fprintf fmt "%s" t.name
+  else Format.fprintf fmt "%a %a" Kind.print t.kind Category.print t.category
 
-let conv =
-  Conv.mk
-    Sqlite3_utils.Ty.[int; int; int; int; text; int; int; int; int; int; ]
-    (fun id event status public name kind category n_leaders n_follows check_divs ->
-      let status = Option.get @@ status_of_enum status in (* TODO: proper error *)
-      let public = public <> 0 in
-      let check_divs = Bool.of_int check_divs in
-      let kind = Kind.of_int kind in
-      let category = Category.of_int category in
-      Private.mk ~id ~event ~status ~public ~name ~kind ~category ~n_leaders ~n_follows ~check_divs ())
 
-let get ~st id =
-  State.query_one_where ~st ~db ~p:Id.p ~conv
-    {| SELECT * FROM competitions WHERE id = ? |} id
+(* Some logic *)
+(* ************************************************************************* *)
 
-let from_event ~st event_id =
-  State.query_list_where ~st ~db ~p:Id.p ~conv
-    {| SELECT * FROM competitions WHERE event = ? |} event_id
+let round_count t round =
+  let n_l = n_leaders t in
+  let n_f = n_follows t in
+  let n_max = max n_l n_f in
+  match kind t with
+  (* High-Lows *)
+  | High_low _ when n_max <= 10 ->
+    begin match (round : Round.t) with
+      | Finals -> -1
+      | _ -> 0
+    end
+  | High_low _ when 11 <= n_max && n_max <= 20 ->
+    begin match (round : Round.t) with
+      | Prelims -> -1
+      | Finals -> 6
+      | _ -> 0
+    end
+  | High_low _ when 21 <= n_max && n_max <= 30 ->
+    begin match (round : Round.t) with
+      | Prelims -> -1
+      | Finals -> 8
+      | _ -> 0
+    end
+  | High_low _ when 31 <= n_max ->
+    begin match (round : Round.t) with
+      | Prelims -> -1
+      | Semifinals -> 16
+      | Finals -> 10
+      | _ -> 0
+    end
 
-let ids_from_event ~st event_id =
-  State.query_list_where ~st ~db ~p:Id.p ~conv:Id.conv
-    {| SELECT id FROM competitions WHERE event = ? |} event_id
+  (* Jack and Jills *)
+  (* WARNING/TODO: temporary workaround to allow straight to finals
+    for advanced at P4T 2026, revert and find a better long-term solution *)
+  | Jack_and_Jill when n_max <= 10 ->
+    begin match (round : Round.t) with
+      | Finals -> -1
+      | _ -> 0
+    end
+  | Jack_and_Jill when 11 <= n_max && n_max <= 20 ->
+    begin match (round : Round.t) with
+      | Prelims -> -1
+      | Finals -> 5
+      | _ -> 0
+    end
+  | Jack_and_Jill when 21 <= n_max && n_max <= 30 ->
+    begin match (round : Round.t) with
+      | Prelims -> -1
+      | Finals -> 10
+      | _ -> 0
+    end
+  | Jack_and_Jill when 31 <= n_max && n_max <= 45 ->
+    begin match (round : Round.t) with
+      | Prelims -> -1
+      | Semifinals -> 16
+      | Finals -> 10
+      | _ -> 0
+    end
+  | Jack_and_Jill when 46 <= n_max && n_max <= 65 ->
+    begin match (round : Round.t) with
+      | Prelims -> -1
+      | Semifinals -> 24
+      | Finals -> 10
+      | _ -> 0
+    end
+  | Jack_and_Jill when 66 <= n_max ->
+    begin match (round : Round.t) with
+      | Prelims -> -1
+      | Semifinals -> 32
+      | Finals -> 14
+      | _ -> 0
+    end
 
-let create ~st
-    ~event_id ~status ~public ?(check_divs=true)
-    ~name ~kind ~category ~n_leaders ~n_follows
-    () =
-  State.insert ~st ~db ~ty:Db.Ty.[ int; int; int; text; int; int; int; int; int ]
-    {| INSERT INTO competitions
-       (event, status, public, name, kind, category, num_leaders, num_followers,check_divs)
-       VALUES (?,?,?,?,?,?,?,?,?) |}
-    event_id (status_to_enum status) (if public then 1 else 0) name (Kind.to_int kind) (Category.to_int category)
-    n_leaders n_follows (Bool.to_int check_divs);
-  (* TODO: try and get the id of the new competition from the insert statement above,
-     rather than using a new query *)
-  let t =
-    State.query_one_where ~st ~db ~p:Db.Ty.[ int; text; int; int; ] ~conv
-      {| SELECT * FROM competitions WHERE event=? AND name=? AND kind=? AND category=? |}
-      event_id name (Kind.to_int kind) (Category.to_int category)
+  | Strictly when n_max <= 8 ->
+    begin match (round : Round.t) with
+      | Finals -> -1
+      | _ -> 0
+    end
+
+  | Strictly when 8 < n_max ->
+    begin match (round : Round.t) with
+      | Prelims -> -1
+      | Finals -> 8
+      | _ -> 0
+    end
+  | _ ->
+    begin match (round : Round.t) with
+      | Finals -> -1
+      | _ -> 0
+    end
+
+let rec next_round t round_opt =
+  let aux r =
+    let n = round_count t r in
+    if n = 0
+    then next_round t (Some r)
+    else r, n
   in
-  Logs.debug ~src:State.src (fun k->k "Competition created with id %d" (id t));
-  t
+  match round_opt with
+  | None -> aux Prelims
+  | Some Prelims -> aux Octofinals
+  | Some Octofinals -> aux Quarterfinals
+  | Some Quarterfinals -> aux Semifinals
+  | Some Semifinals -> aux Finals
+  | Some Finals -> assert false
 
-let update ~st t =
-  State.insert ~st ~db ~ty:Db.Ty.[ int; int; int; text; int; int; int; int; int; int ]
-    {| UPDATE competitions SET
-       event = ?, status = ?, public = ?, name = ?, kind = ?, category = ?,
-       num_leaders = ?, num_followers = ?, check_divs = ?
-      WHERE id = ? |}
-      (event t) (status_to_enum (status t)) (if public t then 1 else 0)
-      (name t) (Kind.to_int (kind t)) (Category.to_int (category t))
-      (n_leaders t) (n_follows t) (Bool.to_int (check_divs t)) (id t)
-
-let phases ~st comp =
-  Logs.debug (fun k->k "phases : id=%d" (id comp));
-  State.query_list_where ~st ~db ~p:Id.p ~conv:Phase.conv
-    {| SELECT * FROM phases WHERE competition_id = ? |} (id comp)
-  |> List.sort (fun comp1 comp2 -> Round.compare (Phase.round comp1) (Phase.round comp2))
-
-let round ~st comp round =
-  List.find_opt (fun phase -> Round.equal round (Phase.round phase)) (phases ~st comp)
-
-(*
-let individual_rankings ~st comp =
-  let rec aux ((leaders, follows) as acc) r =
-    match round ~st comp r with
-    | None -> acc
-    | Some phase ->
-      begin match ranking with
-        | _ -> assert false
-      end
-  in
-  aux (Ranking.One.empty 0, Ranking.One.empty 0) Finals
-*)
 
 (* Private functions *)
 (* ************************************************************************* *)
 
 module Private = struct
 
-  include Ftw_core.Competition.Private
+  let with_status status t = { t with status; }
 
-  let import ~st ~id:comp_id ~status ~public
-      ~event_id ?(check_divs=true)
-      ~name ~kind ~category
-      ~n_leaders ~n_follows
-      () =
-    let open Db.Ty in
-    State.insert ~st ~db ~ty:[ int; int; int; int; text; int; int; int; int; int ]
-      {| INSERT INTO competitions
-       (id, status, public, event, name, kind, category, num_leaders, num_followers,check_divs)
-       VALUES (?,?,?,?,?,?,?,?,?,?) |}
-      comp_id (status_to_enum status) (if public then 1 else 0) event_id name (Kind.to_int kind) (Category.to_int category)
-      n_leaders n_follows (Bool.to_int check_divs)
+  let with_n ~leaders ~followers t = 
+    { t with n_leaders = leaders; n_follows = followers; }
 
+  let mk ~id ~event ~status ~public ~name ~kind ~category
+      ~n_leaders ~n_follows ?(check_divs = true) () =
+    { id; event; status; public; name; kind; category; n_leaders; n_follows; check_divs; }
 
 end
-

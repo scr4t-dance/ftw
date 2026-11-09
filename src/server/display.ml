@@ -11,25 +11,25 @@ open! Dream_html.HTML
 
 let date d =
   Format.asprintf "%02d/%02d/%d"
-    (Ftw.Date.day d) (Ftw.Date.month d) (Ftw.Date.year d)
+    (Lib.Date.day d) (Lib.Date.month d) (Lib.Date.year d)
 
 let role r =
-  match (r : Ftw.Role.t) with
+  match (r : Lib.Role.t) with
   | Leader -> "Leader"
   | Follower -> "Follower"
 
 let rank r =
-  let i = Ftw.Rank.rank r in
+  let i = Lib.Rank.rank r in
   Format.asprintf "%d" i
 
 let division d =
-  match (d : Ftw.Division.t) with
+  match (d : Lib.Division.t) with
   | Novice -> "Initié"
   | Intermediate -> "Inter"
   | Advanced -> "Avancé"
 
 let divisions d =
-  match (d : Ftw.Divisions.t) with
+  match (d : Lib.Divisions.t) with
   | None | Novice -> "Initié"
   | Novice_Intermediate -> "Initié/Inter"
   | Intermediate -> "Inter"
@@ -38,18 +38,18 @@ let divisions d =
 
 
 let target target =
-  match (target : _ Ftw.Target.any) with
+  match (target : _ Lib.Target.any) with
   | Any Single { target = dancer; role = _; } ->
-    Format.asprintf "%s %s" (Ftw.Dancer.first_name dancer) (Ftw.Dancer.last_name dancer)
+    Format.asprintf "%s %s" (Lib.Dancer.first_name dancer) (Lib.Dancer.last_name dancer)
   | Any Couple { leader; follower } ->
     Format.asprintf "%s %s & %s %s"
-      (Ftw.Dancer.first_name leader) (Ftw.Dancer.last_name leader)
-      (Ftw.Dancer.first_name follower) (Ftw.Dancer.last_name follower)
+      (Lib.Dancer.first_name leader) (Lib.Dancer.last_name leader)
+      (Lib.Dancer.first_name follower) (Lib.Dancer.last_name follower)
   | Any Trouple { target1; target2; target3 } ->
     Format.asprintf "%s %s & %s %s & %s %s"
-      (Ftw.Dancer.first_name target1) (Ftw.Dancer.last_name target1)
-      (Ftw.Dancer.first_name target2) (Ftw.Dancer.last_name target2)
-      (Ftw.Dancer.first_name target3) (Ftw.Dancer.last_name target3)
+      (Lib.Dancer.first_name target1) (Lib.Dancer.last_name target1)
+      (Lib.Dancer.first_name target2) (Lib.Dancer.last_name target2)
+      (Lib.Dancer.first_name target3) (Lib.Dancer.last_name target3)
 
 
 
@@ -57,7 +57,7 @@ let target target =
 (* ************************************************************************* *)
 
 let event_status ev =
-  match Ftw.Event.status ev with
+  match Lib.Event.status ev with
   | Setup -> "Setup"
   | Registration -> "Registration"
   | In_progress -> "In Progress"
@@ -68,7 +68,7 @@ let event_status ev =
 (* ************************************************************************* *)
 
 let comp_status comp =
-  match Ftw.Competition.status comp with
+  match Lib.Competition.status comp with
   | Setup -> "Setup"
   | Registration -> "Registration"
   | Distribution -> "Distribution"
@@ -76,19 +76,19 @@ let comp_status comp =
   | Finished -> "Finished"
 
 let competition_name comp =
-  match Ftw.Competition.name comp with
+  match Lib.Competition.name comp with
   | "" -> 
-    begin match Ftw.Competition.kind comp, Ftw.Competition.category comp with
+    begin match Lib.Competition.kind comp, Lib.Competition.category comp with
       | Jack_and_Jill, Competitive Novice -> "Jack&Jill - Initié"
       | Jack_and_Jill, Competitive Intermediate -> "Jack&Jill - Intermediate"
       | Jack_and_Jill, Competitive Advanced -> "Jack&Jill - Advanced"
       | Routine, Non_competitive Regular -> "Chorégraphies"
-      | _ -> Format.asprintf "Competition %d" (Ftw.Competition.id comp)
+      | _ -> Format.asprintf "Competition %d" (Lib.Competition.id comp)
     end
   | name -> name
 
 let kind k =
-  match (k : Ftw.Kind.t) with
+  match (k : Lib.Kind.t) with
   | Routine -> "Routine"
   | Strictly -> "Strictly"
   | Jack_and_Jill -> "J&J"
@@ -96,7 +96,7 @@ let kind k =
   | High_low { high = Follower; } -> "HiLo(Follower)"
 
 let category c =
-  match (c : Ftw.Category.t) with
+  match (c : Lib.Category.t) with
   | Competitive Novice -> "Initié"
   | Competitive Intermediate -> "Inter"
   | Competitive Advanced -> "Advanced"
@@ -110,7 +110,7 @@ let category c =
 (* ************************************************************************* *)
 
 let round_to_string round =
-  match (round : Ftw.Round.t) with
+  match (round : Lib.Round.t) with
   | Prelims -> "Prelims"
   | Finals -> "Finals"
   | Semifinals -> "Semifinals"
@@ -118,10 +118,10 @@ let round_to_string round =
   | Octofinals -> "Octofinals"
 
 let round_name phase =
-  round_to_string (Ftw.Phase.round phase)
+  round_to_string (Lib.Phase.round phase)
 
 let phase_status phase =
-  match Ftw.Phase.status phase with
+  match Lib.Phase.status phase with
   | Inactive -> "Inactive"
   | Setup -> "Setup"
   | Progress -> "Progress"
@@ -129,7 +129,7 @@ let phase_status phase =
   | Finished -> "Finished"
 
   let artefact_descr descr =
-    match (descr : Ftw.Artefact.Descr.t) with
+    match (descr : Lib.Artefact.Descr.t) with
     | Ranking -> "Ranking"
     | Yans { criterions; } ->
       let pp_sep fmt () = Format.fprintf fmt ", " in

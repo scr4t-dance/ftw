@@ -1,37 +1,31 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-(* Ftw_core import *)
+(* Type definitions *)
 (* ************************************************************************* *)
 
-include Ftw_core.Role
+type t =
+  | Leader
+  | Follower
+[@@deriving compare, equal]
 
-(* DB interaction *)
+(* Usual functions *)
 (* ************************************************************************* *)
 
-let to_int = function
-  | Leader -> 0
-  | Follower -> 1
+let print fmt = function
+  | Leader -> Format.fprintf fmt "Leader"
+  | Follower -> Format.fprintf fmt "Follower"
 
-let of_int = function
-  | 0 -> Leader
-  | 1 -> Follower
-  | d -> failwith (Format.asprintf "%d is not a valid role" d)
+let print_compact fmt = function
+  | Leader -> Format.fprintf fmt "L"
+  | Follower -> Format.fprintf fmt "F"
 
-let p = Sqlite3_utils.Ty.([int])
-let conv = Conv.mk p of_int
+module Aux = struct
+  type nonrec t = t
+  let compare = compare
+end
 
-(* Toml serialization *)
-(* ************************************************************************* *)
-
-let to_toml = function
-  | Leader -> Otoml.string "Leader"
-  | Follower -> Otoml.string "Follower"
-
-let of_toml t =
-  match Otoml.get_string t with
-  | "Leader" -> Leader
-  | "Follower" -> Follower
-  | s -> raise (Otoml.Type_error ("Not a valid role: " ^ s))
+module Set = Set.Make(Aux)
+module Map = Map.Make(Aux)
 
 

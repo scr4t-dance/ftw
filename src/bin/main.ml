@@ -8,17 +8,17 @@ let src = Logs.Src.create "ftw"
 
 let init (options : Options.init) =
   let st =
-    Ftw.State.mk ~init:true
+    Ftw_db.State.mk ~init:true
       ~main_path:options.main_db_path
       ~user_path:options.user_db_path
   in
-  Ftw.State.atomically ~st
+  Ftw_db.State.atomically ~st
     ~f:(fun st ->
         match options.dancer_file with
         | None ->
           Logs.warn ~src (fun k->k "No dancer list provided")
         | Some file ->
-          Ftw.Import.import_dancers ~st file
+          Ftw_db.Import.import_dancers ~st file
       )
 
 (* Event Import *)
@@ -26,13 +26,13 @@ let init (options : Options.init) =
 
 let import (options : Options.import) =
   let st =
-    Ftw.State.mk ~init:(not options.db_no_init)
+    Ftw_db.State.mk ~init:(not options.db_no_init)
     ~main_path:options.main_db_path
     ~user_path:options.user_db_path
   in
-  Ftw.State.atomically ~st
+  Ftw_db.State.atomically ~st
     ~f:(fun st ->
-        match Ftw.Import.import_event ~st options.ev_path with
+        match Ftw_db.Import.import_event ~st options.ev_path with
         | Ok _ev_ids -> ()
         | Error msg ->
           Logs.err ~src (fun k->k "Import failed: %s" msg);
@@ -44,12 +44,12 @@ let import (options : Options.import) =
 
 let export (options : Options.export) =
   let st =
-    Ftw.State.mk ~init:(not options.db_no_init)
+    Ftw_db.State.mk ~init:(not options.db_no_init)
       ~main_path:options.main_db_path
       ~user_path:options.user_db_path
   in
-  Ftw.State.atomically ~st ~f:(fun st ->
-    match Ftw.Export.export_event
+  Ftw_db.State.atomically ~st ~f:(fun st ->
+    match Ftw_db.Export.export_event
             ~st options.out_path options.ev_id with
     | Ok _ -> ()
     | Error () -> raise Exit
@@ -60,19 +60,19 @@ let export (options : Options.export) =
 
 let set_admin (options: Options.set_admin) =
   let st =
-    Ftw.State.mk ~init:(not options.db_no_init)
+    Ftw_db.State.mk ~init:(not options.db_no_init)
       ~main_path:options.main_db_path
       ~user_path:options.user_db_path
   in
-  Ftw.State.atomically ~st ~f:(fun st ->
+  Ftw_db.State.atomically ~st ~f:(fun st ->
     let user =
-      Ftw.User.create ~st
+      Ftw_db.User.create ~st
         ~username:options.username
         ~email:options.email
         ~pwd:options.pwd
         ~dancer_id:options.dancer_id
     in
-    Ftw.Position.add ~st ~user Admin
+    Ftw_db.Position.add ~st ~user Admin
   )
 
 
@@ -80,7 +80,7 @@ let set_admin (options: Options.set_admin) =
 (* ************************************************************************* *)
 
 let snapshot (options: Options.snapshot) =
-  Ftw.Snapshot.make
+  Ftw_db.Snapshot.make
     ~origin_db_path:options.origin_db_path
     ~target_db_path:options.target_db_path
 

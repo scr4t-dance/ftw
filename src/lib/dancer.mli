@@ -1,109 +1,53 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-include module type of Ftw_core.Dancer
-
-
-(* Serialization *)
+(* Type definitions *)
 (* ************************************************************************* *)
 
-val to_toml : t -> Otoml.t
-(** Serialization to toml. Does not include the leader/follower divisions. *)
+type id = Id.t
+(** Alias for ids *)
 
-val of_toml : Otoml.t -> t
-(** Deserialization from toml. Sets the leader/follower divisions to [None].
-    @raise Otoml.Type_error *)
+type t
+(** The type of a dancer. *)
 
 
-(* DB interaction *)
+(* Accessors *)
 (* ************************************************************************* *)
 
-val get : st:State.t -> id -> t
-(** Get a Dancer from the database. *)
+val id : t -> id
+(** Dancer id. *)
 
-val add :
-  st:State.t ->
-  first_name:string -> last_name:string ->
-  ?birthday:Date.t -> ?email:string ->
-  as_leader:Divisions.t -> as_follower:Divisions.t ->
-  unit -> t
-(** Add a dancer, and returns the dancer data saved in the database. *)
+val birthday : t -> Date.t option
+(** Email & Birthday (optional). *)
 
-val update :
-  st:State.t -> id_dancer:id -> ?birthday:Date.t ->
-  first_name:string -> last_name:string -> ?email:string ->
-  as_leader:Divisions.t -> as_follower:Divisions.t -> unit -> unit
-(** Update dancer. *)
+val last_name : t -> string
+val first_name : t -> string
+(** Names of the dancer. *)
 
-val update_divisions :
-  st:State.t -> dancer:id -> role:Role.t -> divs:Divisions.t -> unit
-(** Update divisions for a dancer. *)
+val email : t -> string option
+(** email of the dancer. *)
 
-val iter : st:State.t -> f:(t -> unit) -> unit
-(** Iterate over all dancers. *)
+val as_leader : t -> Divisions.t
+val as_follower : t -> Divisions.t
+val as_role : role:Role.t -> t -> Divisions.t
+(** Returns the divisions accessible to the given dancer, as a leader or
+    a follower. *)
 
-val list : st:State.t -> t list
-(* List of all dancers *)
+val print : Format.formatter -> t -> unit
+(** Compact printing. *)
 
-
-(* Index *)
-(* ************************************************************************* *)
-
-module Index : sig
-
-  type dancer = t
-  (** Alias for the type of dancers. *)
-
-  type t
-  (** The type of indexes *)
-
-  type res =
-    | Found of dancer
-    | Not_found of { suggestions : dancer list; } (**)
-  (** *)
-
-  val empty : t
-  (** The empty index. *)
-
-  val mk : st:State.t -> t
-  (** Create an index from a state. *)
-
-  val add : dancer -> t -> t
-  (** Add a dancer to the index. *)
-
-  val find : ?limit:int -> t -> first_name:string -> last_name:string -> res
-  (** Lookup in the index. Can return a suggested list of dancers with
-      close names to the ones that were given. *)
-
-  val distance : dancer -> first_name:string -> last_name:string -> int
-  (** *)
-
-end
-
-
-(* Index *)
-(* ************************************************************************* *)
-
-module Fuzzy : sig
-
-  val search : st:State.t -> pattern:string -> t list
-
-end
+val print_compact : Format.formatter -> t -> unit
+(** Compact printing. *)
 
 (* Private functions *)
 (* ************************************************************************* *)
 
 module Private : sig
 
-  include module type of Ftw_core.Dancer.Private
-
-  val import :
-    st:State.t -> id:Id.t ->
-    first_name:string -> last_name:string ->
-    ?birthday:Date.t -> ?email:string ->
+  val mk :
+    id:id -> last_name:string -> first_name:string ->
+    birthday:Date.t option -> email:string option ->
     as_leader:Divisions.t -> as_follower:Divisions.t ->
-    unit -> unit
-    (** Import a dancer, including its unique id. May fail if the id is already used. *)
-
+    t
 
 end

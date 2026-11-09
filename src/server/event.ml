@@ -9,7 +9,7 @@ open Dream_html.HTML
 (* move this code to a centralized lsit of display functions *)
 let print_date fmt d =
   Format.fprintf fmt "%02d/%02d/%04d"
-  (Ftw.Date.day d) (Ftw.Date.month d) (Ftw.Date.year d)
+  (Lib.Date.day d) (Lib.Date.month d) (Lib.Date.year d)
 
 let date_to_string d = Format.asprintf "%a" print_date d
 
@@ -49,9 +49,9 @@ let create_page req =
 (* ************************************************************************* *)
 
 let decode_date s =
-  match Ftw.Date.of_string s with
+  match Db.Date.of_string s with
   | date -> Ok date
-  | exception Ftw.Date.Invalid_date _ -> Error "bad date"
+  | exception Lib.Date.Invalid_date _ -> Error "bad date"
 
 let create_form =
   let open Form in
@@ -72,7 +72,7 @@ let create_post req =
       | Error _errs -> assert false
       | Ok (name, short_name, start_date, end_date) ->
         let id =
-          Ftw.Event.create ~st
+          Db.Event.create ~st
             ~name ~short_name ~start_date ~end_date
             ~public:false ~status:Setup
         in
@@ -89,10 +89,10 @@ let event_infos ev =
     h5 [] [txt "Infos"];
     div [class_ "row"] [
       div [class_ "col"] [
-        txt "Name: %s" (Ftw.Event.short_name ev);
+        txt "Name: %s" (Lib.Event.short_name ev);
       ];
       div [class_ "col"] [
-       txt "Public: %b" (Ftw.Event.public ev);
+       txt "Public: %b" (Lib.Event.public ev);
       ];
       div [class_ "col"] [
         txt "Status: %s" (Display.event_status ev);
@@ -101,7 +101,7 @@ let event_infos ev =
   ]
 
 let comp_item_status comp =
-  match Ftw.Competition.status comp with
+  match Lib.Competition.status comp with
   | Setup -> "list-group-item-warning"
   | Registration
   | Distribution
@@ -109,14 +109,14 @@ let comp_item_status comp =
   | Finished -> "list-group-item-success"
 
 let admin_comp_list ~req:_ ~st ~ev =
-  let comps = Ftw.Event.competitions ~st ev in
+  let comps = Db.Event.competitions ~st ev in
   div [class_ "row py-3 border-bottom"] [
     h5 [] [txt "Competitions"];
     ul [class_ "list-group"] (
       List.map (fun comp ->
         li [class_ "list-group-item %s" (comp_item_status comp)] [
           a
-            [path_attr href Paths.Page.comp (Ftw.Competition.id comp)]
+            [path_attr href Paths.Page.comp (Lib.Competition.id comp)]
             [txt "%s" (Display.competition_name comp)];
         ]
       ) comps
@@ -125,23 +125,23 @@ let admin_comp_list ~req:_ ~st ~ev =
 
 let admin_event_reg req event_id =
   let$ st = State.get req in
-  let ev = Ftw.Event.get ~st event_id in
+  let ev = Db.Event.get ~st event_id in
   let$ () = Htmx.ret' ~req ~st ~perms:[Edit_event{ev}] in
-  let comps = Ftw.Event.competitions ~st ev in
+  let comps = Db.Event.competitions ~st ev in
   (* TODO: assert the status before switching them ? *)
-  let ev = Ftw.Event.Private.with_status Registration ev in
-  let comps = List.map (Ftw.Competition.Private.with_status Registration) comps in
-  let () = Ftw.Event.update ~st ev in
-  let () = List.iter (Ftw.Competition.update ~st) comps in
+  let ev = Lib.Event.Private.with_status Registration ev in
+  let comps = List.map (Lib.Competition.Private.with_status Registration) comps in
+  let () = Db.Event.update ~st ev in
+  let () = List.iter (Db.Competition.update ~st) comps in
   `Refresh
 
 let admin_event_start req event_id =
   let$st = State.get req in
-  let ev = Ftw.Event.get ~st event_id in
+  let ev = Db.Event.get ~st event_id in
   let$ () = Htmx.ret' ~req ~st ~perms:[Edit_event{ev}] in
   (* TODO: assert the status before switching them ? *)
-  let ev = Ftw.Event.Private.with_status In_progress ev in
-  let () = Ftw.Event.update ~st ev in
+  let ev = Lib.Event.Private.with_status In_progress ev in
+  let () = Db.Event.update ~st ev in
   `Refresh
 
 let admin_panel_setup ~req ~st ~ev =
@@ -150,7 +150,7 @@ let admin_panel_setup ~req ~st ~ev =
     event_infos ev;
     admin_comp_list ~req ~st ~ev;
     button
-      [ class_ "btn btn-success"; path_attr Hx.get Paths.Htmx.event_reg (Ftw.Event.id ev);
+      [ class_ "btn btn-success"; path_attr Hx.get Paths.Htmx.event_reg (Lib.Event.id ev);
         Hx.confirm "Ready ?" ]
       [ txt "Start Registration !" ];
   ]
@@ -160,7 +160,7 @@ let admin_panel_registration ~req ~st ~ev =
     event_infos ev;
     admin_comp_list ~req ~st ~ev;
     button
-      [ class_ "btn btn-success"; path_attr Hx.get Paths.Htmx.event_start (Ftw.Event.id ev);
+      [ class_ "btn btn-success"; path_attr Hx.get Paths.Htmx.event_start (Lib.Event.id ev);
         Hx.confirm "Ready ?" ]
       [ txt "Start Event !" ];
   ]
@@ -171,12 +171,12 @@ let admin_panel_progress ~req ~st ~ev =
     div [class_ "row border-bottom py-3"] [
       div [class_ "col"] [
         a
-          [path_attr href Paths.Page.event_distrib (Ftw.Event.id ev)]
+          [path_attr href Paths.Page.event_distrib (Lib.Event.id ev)]
           [txt "Bib Distribution";];
       ];
       div [class_ "col"] [
         a
-          [path_attr href Paths.Page.event_bibs (Ftw.Event.id ev)]
+          [path_attr href Paths.Page.event_bibs (Lib.Event.id ev)]
           [txt "Bib List";];
       ];
     ];
@@ -193,7 +193,7 @@ let admin_panel ~req ~st ~ev =
   if User.check_perms ~req ~st [Edit_event {ev}] then
    div [class_ "row border border-2 rounded mx-3 my-3 p-2"] (
       h4 [] [txt "Admin panel"] ::
-      (match Ftw.Event.status ev with
+      (match Lib.Event.status ev with
       | Setup -> admin_panel_setup ~req ~st ~ev
       | Registration -> admin_panel_registration ~req ~st ~ev
       | In_progress -> admin_panel_progress ~req ~st ~ev
@@ -201,14 +201,14 @@ let admin_panel ~req ~st ~ev =
       )
    )
   else if User.check_perms ~req ~st [Bibs_modify {ev}] then
-    (match Ftw.Event.status ev with
+    (match Lib.Event.status ev with
       | Setup -> null []
       | Registration -> null []
       | In_progress ->
         div [class_ "row border-bottom py-3"] [
           div [class_ "col"] [
             a
-              [path_attr href Paths.Page.event_distrib (Ftw.Event.id ev)]
+              [path_attr href Paths.Page.event_distrib (Lib.Event.id ev)]
               [txt "Bib Distribution";];
           ];
         ]
@@ -223,7 +223,7 @@ let admin_panel ~req ~st ~ev =
 
 (* Competitions List *)
 let competitions ~req:_ ~st ~ev =
-  let comps = Ftw.Event.competitions ~st ev in
+  let comps = Db.Event.competitions ~st ev in
   div [class_ "container"] [
     div [class_ "accordion"; id "accordionComps"] (
       List.mapi (fun i comp ->
@@ -239,7 +239,7 @@ let competitions ~req:_ ~st ~ev =
           div [id "comp-%d" i; class_ "accordion-collapse collapse";
                (* string_attr ~raw:true "data-bs-parent" "#accordionComps" *)] [
             div [class_ "accordion-body"] [
-              div [path_attr Hx.get Paths.Htmx.comp_view (Ftw.Competition.id comp);
+              div [path_attr Hx.get Paths.Htmx.comp_view (Lib.Competition.id comp);
                    Hx.swap "outerHTML"; Hx.trigger "revealed";] [
                 div [class_ "d-flex justify-content-center"] [
                   div [class_ "spinnner spinner-border"; role `status] [
@@ -263,22 +263,22 @@ let competitions ~req:_ ~st ~ev =
 let display_promotions ~req:_ ~st l =
     let cmp p p' =
       let open CCOrd in
-      Ftw.Divisions.compare
-        (Ftw.Divisions.normalize (Ftw.Promotion.old_divs p))
-        (Ftw.Divisions.normalize (Ftw.Promotion.old_divs p'))
-      <?> (Ftw.Divisions.compare,
-           Ftw.Divisions.normalize @@ Ftw.Promotion.new_divs p,
-           Ftw.Divisions.normalize @@ Ftw.Promotion.new_divs p')
-      <?> (Ftw.Role.compare, Ftw.Promotion.role p, Ftw.Promotion.role p')
+      Lib.Divisions.compare
+        (Lib.Divisions.normalize (Lib.Promotion.old_divs p))
+        (Lib.Divisions.normalize (Lib.Promotion.old_divs p'))
+      <?> (Lib.Divisions.compare,
+           Lib.Divisions.normalize @@ Lib.Promotion.new_divs p,
+           Lib.Divisions.normalize @@ Lib.Promotion.new_divs p')
+      <?> (Lib.Role.compare, Lib.Promotion.role p, Lib.Promotion.role p')
     in
     let eq p p' = cmp p p' = 0 in
     let promotions =
       l
       |> List.filter (fun p ->
-          (Ftw.Promotion.old_divs p <> Novice  &&
-           Ftw.Promotion.old_divs p <> None) ||
-          (Ftw.Promotion.new_divs p <> Novice &&
-           Ftw.Promotion.new_divs p <> None))
+          (Lib.Promotion.old_divs p <> Novice  &&
+           Lib.Promotion.old_divs p <> None) ||
+          (Lib.Promotion.new_divs p <> Novice &&
+           Lib.Promotion.new_divs p <> None))
       |> List.sort cmp
       |> CCList.group_succ ~eq
     in
@@ -288,22 +288,22 @@ let display_promotions ~req:_ ~st l =
           tbody [] (CCList.flat_map (fun l ->
               List.map (fun promotion ->
                   let style =
-                    if Ftw.Division.equal
-                        (Ftw.Divisions.highest_div (Ftw.Promotion.old_divs promotion))
-                        (Ftw.Divisions.highest_div (Ftw.Promotion.new_divs promotion))
+                    if Lib.Division.equal
+                        (Lib.Divisions.highest_div (Lib.Promotion.old_divs promotion))
+                        (Lib.Divisions.highest_div (Lib.Promotion.new_divs promotion))
                     then
                       "table-secondary"
                     else
                       "table-light"
                   in
-                  let dancer = Ftw.Dancer.get ~st (Ftw.Promotion.dancer promotion) in
+                  let dancer = Db.Dancer.get ~st (Lib.Promotion.dancer promotion) in
                   tr [class_ "%s" style] [
                     td [] [txt "%s -> %s"
-                             (Display.divisions (Ftw.Promotion.old_divs promotion))
-                             (Display.divisions (Ftw.Promotion.new_divs promotion))];
-                    td [] [txt "%s"(Display.role (Ftw.Promotion.role promotion))];
-                    td [] [txt "%s %s" (Ftw.Dancer.first_name dancer) (Ftw.Dancer.last_name dancer)];
-                    td [] [match Ftw.Promotion.reason promotion with
+                             (Display.divisions (Lib.Promotion.old_divs promotion))
+                             (Display.divisions (Lib.Promotion.new_divs promotion))];
+                    td [] [txt "%s"(Display.role (Lib.Promotion.role promotion))];
+                    td [] [txt "%s %s" (Lib.Dancer.first_name dancer) (Lib.Dancer.last_name dancer)];
+                    td [] [match Lib.Promotion.reason promotion with
                         | Participation -> txt "Première participation à une compétition"
                         | Invited -> txt "Invitation à une compétition qualifiante"
                         | Qualifying_finalist -> txt "Finaliste d'une compétition qualifiante"
@@ -313,10 +313,10 @@ let display_promotions ~req:_ ~st l =
                         | Points_auto -> txt "Points (auto)"
                         | Reform -> txt "Réforme"
                       ];
-                    td [] [match (Ftw.Promotion.comp promotion) with
+                    td [] [match (Lib.Promotion.comp promotion) with
                         | None -> null []
                         | Some comp ->
-                          let comp = Ftw.Competition.get ~st comp in
+                          let comp = Db.Competition.get ~st comp in
                           txt "%s" (Display.competition_name comp)
                       ];
                   ]
@@ -328,15 +328,15 @@ let display_promotions ~req:_ ~st l =
     ]
 
 let promotions ~req ~st ~ev =
-  match Ftw.Event.status ev with
+  match Lib.Event.status ev with
   | Finished ->
-    let l = Ftw.Promotion.find ~st (`Event ev) in
+    let l = Db.Promotion.find ~st (`Event ev) in
     display_promotions ~req ~st l
   | _ ->
     if User.check_perms ~req ~st [Edit_event{ev}] then begin
       div [class_ "row m-3 py-3"] [
         div [class_ "row"] [
-          a [path_attr href Paths.Page.event_promotions (Ftw.Event.id ev)] [txt "promotions !!"]
+          a [path_attr href Paths.Page.event_promotions (Lib.Event.id ev)] [txt "promotions !!"]
         ]
       ]
     end else null []
@@ -347,23 +347,23 @@ let promotions ~req ~st ~ev =
 (* ************************************************************************* *)
 
 let titles ~req:_ ~st:_ ~ev =
-  let start_date = Ftw.Event.start_date ev in
-  let end_date = Ftw.Event.end_date ev in
+  let start_date = Lib.Event.start_date ev in
+  let end_date = Lib.Event.end_date ev in
   [
-    h2 [class_ "text-center"] [txt "%s" (Ftw.Event.name ev)];
-    (if Ftw.Date.equal start_date end_date then
+    h2 [class_ "text-center"] [txt "%s" (Lib.Event.name ev)];
+    (if Lib.Date.equal start_date end_date then
       h6 [class_ "text-end"] [txt "%s" (date_to_string start_date)]
     else
       h6
         [class_ "text-end"]
-        [txt "%s - %s" (date_to_string @@ Ftw.Event.start_date ev)
-                      (date_to_string @@ Ftw.Event.end_date ev)])
+        [txt "%s - %s" (date_to_string @@ Lib.Event.start_date ev)
+                      (date_to_string @@ Lib.Event.end_date ev)])
   ]
 
 
 let page req ev_id =
   let$ st = State.get req in
-  let ev = Ftw.Event.get ~st ev_id in
+  let ev = Db.Event.get ~st ev_id in
   let$ () = Page.mk' ~req ~st ~root:(Event [Event{ev}]) ~title:"Event" ~perms:[View_event{ev}] in
   titles ~req ~st ~ev @ [
       admin_panel ~req ~st ~ev;
@@ -373,10 +373,10 @@ let page req ev_id =
 
 let promotions_page req ev_id =
   let$ st = State.get req in
-  let ev = Ftw.Event.get ~st ev_id in
+  let ev = Db.Event.get ~st ev_id in
   let$ () = Page.mk' ~req ~st ~root:(Event [Event{ev}]) ~title:"Event" ~perms:[Edit_event{ev}] in
-  let comps = Ftw.Event.competitions ~st ev in
-  let l = CCList.flat_map (fun comp -> Ftw.Results.promotions_for_comp ~st ~event:ev ~comp) comps in
+  let comps = Db.Event.competitions ~st ev in
+  let l = CCList.flat_map (fun comp -> Db.Results.promotions_for_comp ~st ~event:ev ~comp) comps in
   titles ~req ~st ~ev @ [
       display_promotions ~req ~st l;
   ]
@@ -397,7 +397,7 @@ let distrib_search ~req ~st:_ ~ev =
       csrf_tag req;
       input [
         class_ "form-control"; type_ "search"; name "search"; placeholder "search a dancer"; autocomplete `off;
-        path_attr Hx.post Paths.Post.event_distrib (Ftw.Event.id ev);
+        path_attr Hx.post Paths.Post.event_distrib (Lib.Event.id ev);
         Hx.trigger "input changed delay:300ms, keyup[key=='Enter'], load";
         Hx.target "#search-results"; Hx.indicator "#search-spinner";
       ];
@@ -411,40 +411,40 @@ let distrib_search ~req ~st:_ ~ev =
 
 let distrib req ev_id =
   let$ st = State.get req in
-  let ev = Ftw.Event.get ~st ev_id in
+  let ev = Db.Event.get ~st ev_id in
   let$ () = Page.mk' ~req ~st ~root:(Event [Event {ev}; Bibs]) ~title:"Bib distribution" ~perms:[Bibs_view {ev}] in
   [distrib_search ~req ~st ~ev;]
 
 let distrib_form ~req ~st ~comp ~dancer ~role prev =
   let dancer_divs =
-    match (role : Ftw.Role.t) with
-    | Leader -> Ftw.Dancer.as_leader dancer
-    | Follower -> Ftw.Dancer.as_follower dancer
+    match (role : Lib.Role.t) with
+    | Leader -> Lib.Dancer.as_leader dancer
+    | Follower -> Lib.Dancer.as_follower dancer
   in
   let can_compete =
-    match Ftw.Competition.kind comp, Ftw.Competition.category comp with
-    | Jack_and_Jill, Competitive div -> Ftw.Divisions.includes div dancer_divs
+    match Lib.Competition.kind comp, Lib.Competition.category comp with
+    | Jack_and_Jill, Competitive div -> Lib.Divisions.includes div dancer_divs
     | High_low { high; }, _ ->
-      if Ftw.Role.equal role high then
-        Ftw.Divisions.includes Intermediate dancer_divs ||
-        Ftw.Divisions.includes Advanced dancer_divs
+      if Lib.Role.equal role high then
+        Lib.Divisions.includes Intermediate dancer_divs ||
+        Lib.Divisions.includes Advanced dancer_divs
       else
-        Ftw.Divisions.includes Novice dancer_divs
+        Lib.Divisions.includes Novice dancer_divs
     | _ -> true
   in
   if can_compete then
-    let bib_opt = Ftw.Bib.find ~st ~comp (Any (Single { target = dancer; role })) in
+    let bib_opt = Db.Bib.find ~st ~comp (Any (Single { target = dancer; role })) in
     let sid =
       Format.asprintf "dancer-%d-%d-%d"
-        (Ftw.Dancer.id dancer)
-        (Ftw.Competition.id comp)
-        (Ftw.Role.to_int role)
+        (Lib.Dancer.id dancer)
+        (Lib.Competition.id comp)
+        (Db.Role.to_int role)
     in
     let spinner_id =
       Format.asprintf "spinner-%d-%d-%d"
-        (Ftw.Dancer.id dancer)
-        (Ftw.Competition.id comp)
-        (Ftw.Role.to_int role)
+        (Lib.Dancer.id dancer)
+        (Lib.Competition.id comp)
+        (Db.Role.to_int role)
     in
     form
       [ path_attr Hx.post (match bib_opt with None -> Paths.Htmx.distrib_add | Some _ -> Paths.Htmx.distrib_delete);
@@ -452,9 +452,9 @@ let distrib_form ~req ~st ~comp ~dancer ~role prev =
         (match bib_opt with None -> null_ | Some (bib,_) -> Hx.confirm "Are you sure you want to delete bib #%d ?" bib); ]
       [
         csrf_tag req;
-        input [type_ "hidden"; name "comp"; value "%d" (Ftw.Competition.id comp)];
-        input [type_ "hidden"; name "dancer"; value "%d" (Ftw.Dancer.id dancer)];
-        input [type_ "hidden"; name "role"; value "%s" (match (role : Ftw.Role.t) with Leader -> "Leader" | Follower -> "Follower")];
+        input [type_ "hidden"; name "comp"; value "%d" (Lib.Competition.id comp)];
+        input [type_ "hidden"; name "dancer"; value "%d" (Lib.Dancer.id dancer)];
+        input [type_ "hidden"; name "role"; value "%s" (match (role : Lib.Role.t) with Leader -> "Leader" | Follower -> "Follower")];
         div [class_ "input-group mb-1 %s" (match prev with `Neutral -> "" | `Bad _ | `Good -> "has-validation")] [
           span [class_ "input-group-text"; id "%s" sid] [txt "#"];
           input [ type_ "text"; name "bib"; Aria.describedby "%s" sid;
@@ -482,9 +482,9 @@ let distrib_of_dancer ~req ~st ~comps dancer =
   div [class_ "row border border-2 border-black rounded px-2 py-2 my-4 align-items-center"] [
     div [class_ "col"] (
       div [class_ "row py-2"] [
-        div [class_ "col text-start"] [txt "Leader: %s" (Display.divisions (Ftw.Dancer.as_leader dancer))];
-        div [class_ "col text-center"] [txt "%s %s" (Ftw.Dancer.first_name dancer) (Ftw.Dancer.last_name dancer)];
-        div [class_ "col text-end"] [txt "Follower: %s" (Display.divisions (Ftw.Dancer.as_follower dancer))];
+        div [class_ "col text-start"] [txt "Leader: %s" (Display.divisions (Lib.Dancer.as_leader dancer))];
+        div [class_ "col text-center"] [txt "%s %s" (Lib.Dancer.first_name dancer) (Lib.Dancer.last_name dancer)];
+        div [class_ "col text-end"] [txt "Follower: %s" (Display.divisions (Lib.Dancer.as_follower dancer))];
       ] :: List.map (fun comp ->
         div [class_"row py-2 border-1 border-top"] [
           div [class_ "col text-start"] [distrib_form ~req ~st ~comp ~dancer ~role:Leader `Neutral];
@@ -500,7 +500,7 @@ let distrib_dancer_add ~req ~st:_ ~ev ~first_name ~last_name =
     div [class_ "col"] [
       div [class_ "row py-2"] [
         form [ class_ "row";
-          path_attr Hx.post Paths.Htmx.distrib_dancer_add (Ftw.Event.id ev);
+          path_attr Hx.post Paths.Htmx.distrib_dancer_add (Lib.Event.id ev);
           Hx.target "#foobar"; Hx.swap "outerHTML";
         ] [
           csrf_tag req;
@@ -523,7 +523,7 @@ let distrib_dancer_add ~req ~st:_ ~ev ~first_name ~last_name =
   ]
 
 let distrib_of_attendee ~req ~st ~ev attendee =
-  distrib_dancer_add ~req ~st ~ev ~first_name:(Ftw.Attendees.first_name attendee) ~last_name:(Ftw.Attendees.last_name attendee)
+  distrib_dancer_add ~req ~st ~ev ~first_name:(Db.Attendees.first_name attendee) ~last_name:(Db.Attendees.last_name attendee)
 
 let distrib_search_form =
   let open Form in
@@ -537,17 +537,17 @@ let distrib_api req ev_id =
     | Error _errs -> assert false (* internal error, or incorrect api usage from external source *)
     | Ok pattern ->
       let$ st = State.get req in
-      let ev = Ftw.Event.get ~st ev_id in
+      let ev = Db.Event.get ~st ev_id in
       let$ () = Htmx.ret' ~req ~st ~perms:[Bibs_view {ev}] in
       if String.length pattern < 2 then
         `Body [div [class_ "row"] [
           p [class_ "text-center py-5"] [txt "type at least 2 letters to search..."]]
         ]
       else begin
-        let comps = Ftw.Event.competitions ~st ev in
-        let comps = List.filter (fun comp -> Ftw.Competition.status comp = Distribution) comps in
-        let dancers = Ftw.Dancer.Fuzzy.search ~st ~pattern in
-        let attendees = Ftw.Attendees.Fuzzy.search ~st ~ev ~pattern in
+        let comps = Db.Event.competitions ~st ev in
+        let comps = List.filter (fun comp -> Lib.Competition.status comp = Distribution) comps in
+        let dancers = Db.Dancer.Fuzzy.search ~st ~pattern in
+        let attendees = Db.Attendees.Fuzzy.search ~st ~ev ~pattern in
         match dancers, attendees with
         | [], [] ->
           let first_name, last_name =
@@ -567,8 +567,8 @@ let distrib_api req ev_id =
   | _ -> assert false (* error *)
 
 let decode_role = function
-    | "Leader" -> Ok Ftw.Role.Leader
-    | "Follower" -> Ok Ftw.Role.Follower
+    | "Leader" -> Ok Lib.Role.Leader
+    | "Follower" -> Ok Lib.Role.Follower
     | _ -> Error "bad role"
 
 let distrib_modify_form =
@@ -587,14 +587,14 @@ let distrib_add req =
       | Error _errs -> assert false (* internal error, or incorrect api usage from external source *)
       | Ok (comp_id, dancer_id, role, bib) ->
         let$ st = State.get req in
-        let comp = Ftw.Competition.get ~st comp_id in
-        let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
+        let comp = Db.Competition.get ~st comp_id in
+        let ev = Db.Event.get ~st (Lib.Competition.event comp) in
         let$ () = Htmx.ret' ~req ~st ~perms:[Bibs_modify {ev}] in
-        let dancer = Ftw.Dancer.get ~st dancer_id in
-        begin match Ftw.Bib.get ~st ~competition:comp_id ~bib with
+        let dancer = Db.Dancer.get ~st dancer_id in
+        begin match Db.Bib.get ~st ~competition:comp_id ~bib with
         | None ->
-          let target = Ftw.Target.(Any (Single { target = dancer_id; role; })) in
-          let () = Ftw.Bib.add ~st ~competition:comp_id ~bib ~target in
+          let target = Lib.Target.(Any (Single { target = dancer_id; role; })) in
+          let () = Db.Bib.add ~st ~competition:comp_id ~bib ~target in
           `Body ([distrib_form ~req ~st ~comp ~dancer ~role `Good])
         | Some _target ->
           `Body ([distrib_form ~req ~st ~comp ~dancer ~role (`Bad (bib, "bib already taken !"))])
@@ -613,11 +613,11 @@ let distrib_delete req =
         assert false (* internal error, or incorrect api usage from external source *)
       | Ok (comp_id, dancer_id, role, bib) ->
         let$ st = State.get req in
-        let comp = Ftw.Competition.get ~st comp_id in
-        let ev = Ftw.Event.get ~st (Ftw.Competition.event comp) in
+        let comp = Db.Competition.get ~st comp_id in
+        let ev = Db.Event.get ~st (Lib.Competition.event comp) in
         let$ () = Htmx.ret' ~req ~st ~perms:[Bibs_modify {ev}] in
-        let dancer = Ftw.Dancer.get ~st dancer_id in
-        let () = Ftw.Bib.delete ~st ~competition:comp_id ~bib in
+        let dancer = Db.Dancer.get ~st dancer_id in
+        let () = Db.Bib.delete ~st ~competition:comp_id ~bib in
         `Body ([distrib_form ~req ~st ~comp ~dancer ~role `Neutral])
     end
   | _ -> assert false
@@ -640,11 +640,11 @@ let distrib_dancer_add req ev_id =
         assert false (* internal error, or incorrect api usage from external source *)
       | Ok (first_name, last_name) ->
         let$ st = State.get req in
-        let ev = Ftw.Event.get ~st ev_id in
+        let ev = Db.Event.get ~st ev_id in
         let$ () = Htmx.ret' ~req ~st ~perms:[Bibs_modify{ev}] in
-        let comps = Ftw.Event.competitions ~st ev in
-        let comps = List.filter (fun comp -> Ftw.Competition.status comp = Distribution) comps in
-        let dancer = Ftw.Dancer.add () ~st ~first_name ~last_name ~as_leader:None ~as_follower:None in
+        let comps = Db.Event.competitions ~st ev in
+        let comps = List.filter (fun comp -> Lib.Competition.status comp = Distribution) comps in
+        let dancer = Db.Dancer.add () ~st ~first_name ~last_name ~as_leader:None ~as_follower:None in
         `Body [distrib_of_dancer ~req ~st ~comps dancer]
     end
   | _ -> assert false

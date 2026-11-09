@@ -1,16 +1,22 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-include module type of Ftw_core.Points
-
-
-(* Serialization *)
+(* Point attribution *)
 (* ************************************************************************* *)
 
-val to_toml : t -> Otoml.t
-(** Serialization to toml. *)
+type t = int
+(** Points are integers; points should always be positive. *)
 
-val of_toml : Otoml.t -> t
-(** Deserialization from toml.
-    @raise Otoml.Type_error *)
+type placement =
+  | Finals of Rank.t
+  | Semifinals of Rank.t
+  | Other (**)
+(** Placements that can give rise to a point attribution. *)
+
+val max : t -> t -> t
+(** max of two points total *)
+
+val find : date:Date.t -> n:int -> placement:placement -> t
+(** Returns the points gained for the given placement at the given date,
+    for a competition with [n] people registered in a role. *)
 

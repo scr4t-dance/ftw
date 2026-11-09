@@ -1,33 +1,30 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-include module type of Ftw_core.Judge
-
-
-(* Serialization *)
+(* Type definitions *)
 (* ************************************************************************* *)
 
-val singles_to_toml : singles -> Otoml.t
+type id = Id.t
+(** Alias for ids *)
 
-val singles_of_toml : Otoml.t -> singles
+type singles = {
+  leaders : Dancer.id list;
+  followers : Dancer.id list;
+  head : Dancer.id option;
+}
+(** Judge Panel for a phase with individual scoring. *)
 
-val couples_to_toml : couples -> Otoml.t
+type couples = {
+  couples : Dancer.id list;
+  head : Dancer.id option;
+}
+(** Judge panel for a phase with couple scoring. *)
 
-val couples_of_toml : Otoml.t -> couples
+type panel =
+  | Singles of singles
+  | Couples of couples (**)
+(** General type for a panel of judges. *)
 
-val panel_to_toml : panel -> Otoml.t
+val print : Format.formatter -> panel -> unit
 
-val panel_of_toml : Otoml.t -> panel
-
-(* DB interaction *)
-(* ************************************************************************* *)
-
-val clear : st:State.t -> phase:Id.t -> unit
-(** Clear the judge panel for the given phase *)
-
-val get : st:State.t -> phase:Id.t -> panel
-(** Get the Judge panel for a given phase. *)
-
-val set : st:State.t -> phase:Id.t -> panel -> unit
-(** Set the judges for a phase. *)
-
+val judging : panel -> Dancer.t -> Judging.t option

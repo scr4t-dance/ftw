@@ -1,47 +1,72 @@
 
+(* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-(* Bitwise manipulations *)
+(* Result monadic operators *)
 (* ************************************************************************* *)
 
-module Bit : sig
+module Opt : sig
 
-  val set : index:int -> int -> int
-  (** Set the bit at the given [index]. *)
+  val (let+) : 'a option -> ('a -> 'b option) -> 'b option
 
-  val is_set : index:int -> int -> bool
-  (** Tests whether bit at [index] is set. *)
+end
+
+module Result : sig
+
+  val (let+) : ('a, 'b) result -> ('a -> ('c, 'b) result) -> ('c, 'b) result
+
+end
+
+(* Lists *)
+(* ************************************************************************* *)
+
+module Lists : sig
+
+  val all_the_same : eq:('a -> 'a -> bool) -> 'a list -> 'a option
+  (** Returns [true] if all the elements of the list are equal
+      according to the equality function given. *)
+
+end
+
+(* Lists *)
+(* ************************************************************************* *)
+
+module Matrix : sig
+
+  val (++) : 'a array array -> 'a array array -> 'a array array
+  (** Concatenates two matrix with the same number of lines. *)
 
 end
 
 
-(* Toml helpers *)
-(* ************************************************************************* *)
+module Split : sig
+  val split_aux : min:int -> max:int -> int -> int -> int list
+  val split : min:int -> max:int -> int -> int list
 
-module Toml : sig
+  val split_array_aux :
+    'a array list ->
+    'a array ->
+    int ->
+    int list ->
+    'a array list
 
-  val add :
-    string -> ('a -> Otoml.t) -> 'a ->
-    (string * Otoml.t) list -> (string * Otoml.t) list
-
-  val add_opt :
-    string -> ('a -> Otoml.t) -> 'a option ->
-    (string * Otoml.t) list -> (string * Otoml.t) list
-
+  val split_array :
+    min:int -> max:int -> 'a array -> 'a array array
 end
 
 
-(* Json helpers *)
-(* ************************************************************************* *)
+module Randomizer : sig
+  val factor : int
+  val swap : 'a array -> int -> int -> unit
 
-module Json : sig
+  type subst = int array
 
-  exception Encoding_error of string
-  exception Decoding_error of string
-
-  val of_string_exn : jsont:'a Jsont.t -> string -> 'a
-  val of_string : jsont:'a Jsont.t -> string -> ('a, string) Result.t
-
-  val to_string_exn : jsont:'a Jsont.t -> 'a -> string
-  val to_string : jsont:'a Jsont.t -> 'a -> (string, string) Result.t
-
+  val pp : Format.formatter -> int array -> unit
+  val id : int -> int array
+  val inverse : int array -> int array
+  val apply : int array -> 'a array -> 'a array
+  val randomize_in_place : 'a array -> unit
+  val subst : ?check:(int array -> bool) -> int -> int array
+  val not_id : int array -> bool
+  val all_different : 'a array -> 'a array -> bool
+  val no_fixpoint : int array -> bool
 end

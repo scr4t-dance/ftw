@@ -25,7 +25,7 @@ type export = {
   db_no_init : bool;
   out_path : string;
   ev_id : int;
-  dancer_export : Ftw.Export.dancer_export;
+  dancer_export : Ftw_db.Export.dancer_export;
 }
 
 type set_admin = {
@@ -114,7 +114,7 @@ let dancer_list =
 (* Helper functions *)
 (* ************************************************************************* *)
 
-let dancer_export dancer_list : Ftw.Export.dancer_export =
+let dancer_export dancer_list : Ftw_db.Export.dancer_export =
   match dancer_list with
   | None -> Internal
   | Some dancer_file -> External { dancer_file }

@@ -1,43 +1,23 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-include module type of Ftw_core.Bib
-
-module TMap : Stdlib.Map.S with type key = Id.t Target.any
-
-(* DB interaction *)
+(* Type definitions *)
 (* ************************************************************************* *)
 
-val get : st:State.t -> competition:Competition.id -> bib:t -> Id.t Target.any option
-(** Get the target of a bib, if it exists. *)
+type t = Id.t
+(** Bibs are integers *)
 
-val get_all : st:State.t -> competition:Competition.id -> (t * Id.t Target.any) list
-(** Get all bibs from a competition *)
+(* Usual functions *)
+(* ************************************************************************* *)
 
-val get_map : st:State.t -> comp:Competition.t -> t TMap.t
-(** Get all bibs from a competition, as a map from targets to bibs. *)
+val equal : t -> t -> bool
+(** Equality function *)
 
-val find :
-  st:State.t -> comp:Competition.t ->
-  (Dancer.t Target.any) ->
-  (t * Id.t Target.any) option
+val compare : t -> t -> int
+(** Comparison function. *)
 
-val add :
-  st:State.t -> competition:Competition.id ->
-  target:Id.t Target.any -> bib:t -> unit
-(** Set the bib for a given target in a competition. *)
+module Set : Set.S with type elt = t
+(** Sets for identifiers *)
 
-val delete :
-  st:State.t -> competition:Competition.id ->
-  bib:t -> unit
-(** Update the bib for a given target in a competition. *)
-
-val update :
-  st:State.t -> competition:Competition.id ->
-  old_bib:t ->
-  new_bib:t -> unit
-(** Update the bib for a given target in a competition. *)
-
-
-
-
+module Map : Map.S with type key = t
+(** Maps for identifiers *)

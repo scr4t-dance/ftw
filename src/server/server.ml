@@ -51,6 +51,16 @@ let server (options : Options.server) =
     ~user_path:options.user_db_path
     ~init:(not options.db_no_init)
   @@ User.init
+  @@ Routes.router ()
+    ~api_delay:(float options.api_delay)
+    ~default:[
+      (* Default routes *)
+      Dream.get "/" (fun req -> Dream_html.(redirect req (path_attr HTML.href Paths.Page.index)));
+      Dream.get "/**" (Dream.static ~loader "");
+    ]
+
+
+(*
   @@ Dream.router [
 
     (* Pages *)
@@ -103,3 +113,4 @@ let server (options : Options.server) =
     Dream.get "/" (fun req -> Dream_html.(redirect req (path_attr HTML.href Paths.Page.index)));
     Dream.get "/**" (Dream.static ~loader "");
   ]
+*)

@@ -1,36 +1,52 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-include module type of Ftw_core.Event
-
-(* DB interaction *)
+(* Type definitions *)
 (* ************************************************************************* *)
 
-val last : st:State.t -> t
-(** Last event *)
+type id = Id.t
+(** Ids for events *)
 
-val list : st:State.t -> t list
-(** List all events *)
+type t
+(** Events *)
 
-val list_before : st:State.t -> n:int -> id:id -> t list
-(** List events from one specific year *)
+type status =
+  | Setup
+  | Registration
+  | In_progress
+  | Finished (**)
+(** Event status *)
 
-val get : st:State.t -> id -> t
-(** Get an event from its id.
-    @raise Stdlib.Not_found if the event is not found. *)
 
-val create : st:State.t ->
-  name:string -> short_name:string ->
-  start_date:Date.t -> end_date:Date.t ->
-  public:bool -> status:status ->
-  id
-(** Create a new event. *)
+(* Common functions *)
+(* ************************************************************************* *)
 
-val update : st:State.t -> t -> unit
-(** Update an event. *)
+val id : t -> id
+(** Unique id for the event *)
 
-val competitions : st:State.t -> t -> Competition.t list
-(** Competitions that belong to an event. *)
+val name : t -> string
+(** Name of the event *)
+
+val short_name : t -> string
+(** Short name for the event *)
+
+val start_date : t -> Date.t
+(** Start date of the event *)
+
+val end_date : t -> Date.t
+(** End date of the event. *)
+
+val public : t -> bool
+(** Whether the event is public *)
+
+val status : t -> status
+(** Current status, i.e. is it in progress, etc... *)
+
+val compare : t -> t -> int
+(** Comparison function. Compares the date before *)
+
+val print_compact : Format.formatter -> t -> unit
+(** Compact printing. *)
 
 
 (* Private functions *)
@@ -38,13 +54,11 @@ val competitions : st:State.t -> t -> Competition.t list
 
 module Private : sig
 
-  include module type of Ftw_core.Event.Private
-
-  val import : st:State.t -> id:id ->
-    name:string -> short_name:string ->
+  val mk :
+    id:id -> name:string -> short_name:string ->
     start_date:Date.t -> end_date:Date.t ->
-    public:bool -> status:status ->
-    unit
-  (** Import an event with a fixed id. *)
+      public:bool -> status:status -> t
+
+  val with_status : status -> t -> t
 
 end

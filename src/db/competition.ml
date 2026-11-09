@@ -1,0 +1,135 @@
+
+(* This file is free software, part of FTW. See file "LICENSE" for more information *)
+
+(* Ftw_core import *)
+(* ************************************************************************* *)
+
+open Lib.Competition
+
+type status = Lib.Competition.status =
+ | Setup
+ | Registration
+ | Distribution
+ | Progress
+ | Finished
+ [@@deriving enum]
+
+
+(* DB interaction *)
+(* ************************************************************************* *)
+
+let db = State.Main
+
+let () =
+  State.add_init ~name:"competition" (fun st ->
+      State.exec ~db ~st {|
+        CREATE TABLE IF NOT EXISTS competitions (
+          id INTEGER PRIMARY KEY,
+          event INTEGER REFERENCES events(id),
+          status INTEGER,
+          public INTEGER,
+          name TEXT,
+          kind INTEGER REFERENCES competition_kinds(id),
+          category INTEGER REFERENCES competition_categories(id),
+          num_leaders INTEGER,
+          num_followers INTEGER,
+          check_divs INTEGER
+        )
+    |})
+
+let conv =
+  Conv.mk
+    Sqlite3_utils.Ty.[int; int; int; int; text; int; int; int; int; int; ]
+    (fun id event status public name kind category n_leaders n_follows check_divs ->
+      let status = Option.get @@ status_of_enum status in (* TODO: proper error *)
+      let public = public <> 0 in
+      let check_divs = Bool.of_int check_divs in
+      let kind = Kind.of_int kind in
+      let category = Category.of_int category in
+      Private.mk ~id ~event ~status ~public ~name ~kind ~category ~n_leaders ~n_follows ~check_divs ())
+
+let get ~st id =
+  State.query_one_where ~st ~db ~p:Id.p ~conv
+    {| SELECT * FROM competitions WHERE id = ? |} id
+
+let from_event ~st event_id =
+  State.query_list_where ~st ~db ~p:Id.p ~conv
+    {| SELECT * FROM competitions WHERE event = ? |} event_id
+
+let ids_from_event ~st event_id =
+  State.query_list_where ~st ~db ~p:Id.p ~conv:Id.conv
+    {| SELECT id FROM competitions WHERE event = ? |} event_id
+
+let create ~st
+    ~event_id ~status ~public ?(check_divs=true)
+    ~name ~kind ~category ~n_leaders ~n_follows
+    () =
+  State.insert ~st ~db ~ty:Db.Ty.[ int; int; int; text; int; int; int; int; int ]
+    {| INSERT INTO competitions
+       (event, status, public, name, kind, category, num_leaders, num_followers,check_divs)
+       VALUES (?,?,?,?,?,?,?,?,?) |}
+    event_id (status_to_enum status) (if public then 1 else 0) name (Kind.to_int kind) (Category.to_int category)
+    n_leaders n_follows (Bool.to_int check_divs);
+  (* TODO: try and get the id of the new competition from the insert statement above,
+     rather than using a new query *)
+  let t =
+    State.query_one_where ~st ~db ~p:Db.Ty.[ int; text; int; int; ] ~conv
+      {| SELECT * FROM competitions WHERE event=? AND name=? AND kind=? AND category=? |}
+      event_id name (Kind.to_int kind) (Category.to_int category)
+  in
+  Logs.debug ~src:State.src (fun k->k "Competition created with id %d" (id t));
+  t
+
+let update ~st t =
+  State.insert ~st ~db ~ty:Db.Ty.[ int; int; int; text; int; int; int; int; int; int ]
+    {| UPDATE competitions SET
+       event = ?, status = ?, public = ?, name = ?, kind = ?, category = ?,
+       num_leaders = ?, num_followers = ?, check_divs = ?
+      WHERE id = ? |}
+      (event t) (status_to_enum (status t)) (if public t then 1 else 0)
+      (name t) (Kind.to_int (kind t)) (Category.to_int (category t))
+      (n_leaders t) (n_follows t) (Bool.to_int (check_divs t)) (id t)
+
+let phases ~st comp =
+  Logs.debug (fun k->k "phases : id=%d" (id comp));
+  State.query_list_where ~st ~db ~p:Id.p ~conv:Phase.conv
+    {| SELECT * FROM phases WHERE competition_id = ? |} (id comp)
+  |> List.sort (fun comp1 comp2 -> Lib.Round.compare (Lib.Phase.round comp1) (Lib.Phase.round comp2))
+
+let round ~st comp round =
+  List.find_opt (fun phase -> Lib.Round.equal round (Lib.Phase.round phase)) (phases ~st comp)
+
+(*
+let individual_rankings ~st comp =
+  let rec aux ((leaders, follows) as acc) r =
+    match round ~st comp r with
+    | None -> acc
+    | Some phase ->
+      begin match ranking with
+        | _ -> assert false
+      end
+  in
+  aux (Ranking.One.empty 0, Ranking.One.empty 0) Finals
+*)
+
+(* Private functions *)
+(* ************************************************************************* *)
+
+module Private = struct
+
+  let import ~st ~id:comp_id ~status ~public
+      ~event_id ?(check_divs=true)
+      ~name ~kind ~category
+      ~n_leaders ~n_follows
+      () =
+    let open Db.Ty in
+    State.insert ~st ~db ~ty:[ int; int; int; int; text; int; int; int; int; int ]
+      {| INSERT INTO competitions
+       (id, status, public, event, name, kind, category, num_leaders, num_followers,check_divs)
+       VALUES (?,?,?,?,?,?,?,?,?,?) |}
+      comp_id (status_to_enum status) (if public then 1 else 0) event_id name (Kind.to_int kind) (Category.to_int category)
+      n_leaders n_follows (Bool.to_int check_divs)
+
+
+end
+

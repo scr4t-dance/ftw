@@ -1,40 +1,70 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-include module type of Ftw_core.Competition
-
-
-(* DB read *)
+(* Type definitions *)
 (* ************************************************************************* *)
 
-val conv : t Conv.t
+type id = Id.t
+(** Ids for events *)
 
-val get : st:State.t -> id -> t
-(** Get an event from its id.
-    @raise Stdlib.Not_found if the competition is not found. *)
+type t
+(** Competitions *)
 
-val from_event : st:State.t -> Ftw_core.Event.id -> t list
-(** Get the list of all competitions that belong to a given event. *)
-
-val ids_from_event : st:State.t -> Ftw_core.Event.id -> id list
-(** Get the list of all competitions that belong to a given event. *)
-
-val phases : st:State.t -> t -> Phase.t list
-
-val round : st:State.t -> t -> Round.t -> Phase.t option
+type status =
+ | Setup
+ | Registration
+ | Distribution
+ | Progress
+ | Finished (**)
+(** Competition statuses *)
 
 
-(* DB writes *)
+(* Common functions *)
 (* ************************************************************************* *)
 
-val create :
-  st:State.t -> event_id:Ftw_core.Event.id ->
-  status:status -> public:bool -> ?check_divs:bool ->
-  name:string -> kind:Kind.t -> category:Category.t ->
-  n_leaders:int -> n_follows:int -> unit -> t
-(** Create a new competition *)
+val id : t -> id
+(** Unique id for the competition. *)
 
-val update : st:State.t -> t -> unit
+val status : t -> status
+(** Current status for the competition *)
+
+val public : t -> bool
+(** Whether the competition is public *)
+
+val name : t -> string
+(** Name of the competition *)
+
+val event : t -> Event.id
+(** Parent event for the competition. *)
+
+val kind : t -> Kind.t
+(** Kind of the competition. *)
+
+val category : t -> Category.t
+(** Category for the competition. *)
+
+val n_leaders : t -> int
+val n_follows : t -> int
+(** Number of leaders and follows that participated in the competition.
+    Note that in some cases (mostly for old competitions), this information
+    may be missing and therefore this will return [0]. *)
+
+val check_divs : t -> bool
+(** Should the competition check the divisoin of participants ? This is only
+    set to [false] for old competitions during the introduction of the SCR4T
+    competitive point system. *)
+
+val print_compact : Format.formatter -> t -> unit
+(** Compact printing *)
+
+
+(* Logic *)
+(* ************************************************************************* *)
+
+val round_count : t -> Round.t -> int
+
+val next_round : t -> Round.t option -> Round.t * int
+
 
 
 (* Private functions *)
@@ -42,13 +72,18 @@ val update : st:State.t -> t -> unit
 
 module Private :sig
 
-  include module type of Ftw_core.Competition.Private
-
-  val import :
-    st:State.t -> id:id -> status:status -> public:bool ->
-    event_id:Ftw_core.Event.id -> ?check_divs:bool ->
+  val mk :
+    id:id -> event:Event.id ->
+    status:status -> public:bool ->
     name:string -> kind:Kind.t -> category:Category.t ->
-    n_leaders:int -> n_follows:int -> unit -> unit
-    (** Import a competition (including id). *)
+    n_leaders:int -> n_follows:int ->
+    ?check_divs:bool -> unit -> t
+    (** Raw creation function. *)
+
+  val with_status : status -> t -> t
+  (** Update the status of a competition *)
+
+  val with_n : leaders:int -> followers:int -> t -> t
+  (** Update the number of leaders and followers of a competition. *)
 
 end

@@ -1,56 +1,67 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-include module type of Ftw_core.Phase
-
-(* DB interaction *)
+(* Type definitions *)
 (* ************************************************************************* *)
 
-val conv : t Conv.t
+type id = Id.t
+(** Ids for phases *)
 
-val get : st:State.t -> id -> t
-(** Get an event from its id.
-    @raise Stdlib.Not_found if the phase is not found. *)
+type t
+(** Competitions Phases: competions are made of different rounds (prelims,
+    finals, etc..), and each pair (competition * round) is a phase.
+    This type describe a phase of a competition.
+    Only one phase of a specific round is allowed per competition.
+    The phase is used to define the list of judges, the head judge,
+    table of heats (and artefacts' targets).
+    *)
 
-val create :
-  st:State.t -> Ftw_core.Competition.id -> Round.t -> status:status ->
-  ranking_algorithm:Ranking.Algorithm.t ->
-  judge_artefact_descr:Artefact.Descr.t ->
-  head_judge_artefact_descr:Artefact.Descr.t ->
-  t
-(** Create a new phase *)
+type status =
+  | Inactive
+  | Setup
+  | Progress
+  | Scoring
+  | Finished
 
-val update : st:State.t -> t -> unit
-(** Update the details of a phase. *)
 
-val delete : st:State.t -> id -> unit
-(** Delete a phase.
-    TODO: soft delete ? *)
+(* Accessors *)
+(* ************************************************************************* *)
 
-type ('kind, 'target) ranking =
-  | Singles : {
-      leaders : 'target Ranking.Res.t;
-      follows : 'target Ranking.Res.t;
-    } -> (Target.single, 'target) ranking
-  | Couples : {
-      couples : 'target Ranking.Res.t;
-    } -> (Target.couple, 'target) ranking
+val id : t -> id
+(** Unique id for the phase. *)
 
-type 'target any_ranking = Any : (_, 'target) ranking -> 'target any_ranking
+val competition : t -> Competition.id
+(** Parent competition for the phase. *)
 
-val ranking : st:State.t -> phase:t -> Id.t any_ranking
+val round : t -> Round.t
+(** Round (prelim/semi/final) of the phase *)
 
-val map_ranking:
-  targets:('a -> 'b) ->
-  judges:('a -> 'b) ->
-  'a any_ranking ->
-  'b any_ranking
+val status : t -> status
+(** Phase status *)
 
-val iteri:
-  targets:(Target.id -> 'a -> unit) ->
-  judges:(Target.id -> 'a -> unit) ->
-  'a any_ranking ->
-  unit
+val judge_artefact_descr : t -> Artefact.Descr.t
+(** Type of artefact for judges of the phase *)
 
-val targets_in_range : 'a any_ranking -> Rank.t -> Rank.t -> 'a list option
+val head_judge_artefact_descr : t -> Artefact.Descr.t
+(** Type of artefact for head judge of the phase *)
 
+val ranking_algorithm : t -> Ranking.Algorithm.t
+(** Ranking algorithm of the phase *)
+
+(* Private functions *)
+(* ************************************************************************* *)
+
+module Private : sig
+
+  val mk :
+    id:id ->
+    comp:id ->
+    round:Round.t ->
+    status:status ->
+    judge_artefact_descr:Artefact.Descr.t ->
+    head_judge_artefact_descr:Artefact.Descr.t ->
+    ranking_algorithm:Ranking.Algorithm.t -> t
+
+  val with_status : status -> t -> t
+
+end

@@ -4,16 +4,16 @@
 (* User state in dream *)
 (* ************************************************************************* *)
 
-let field : Ftw.User.t Dream.field =
+let field : Ftw_db.User.t Dream.field =
   Dream.new_field ()
     ~name:"user"
-    ~show_value:(fun user -> Format.asprintf "%a" Ftw.User.print user)
+    ~show_value:(fun user -> Format.asprintf "%a" Ftw_db.User.print user)
 
 let init inner_handler req =
   match Dream.session_field req "user" with
   | None | Some "" -> inner_handler req
   | Some user_serialized ->
-    let user = Ftw.Misc.Json.of_string_exn ~jsont:Ftw.User.jsont user_serialized in
+    let user = Ftw_db.Misc.Json.of_string_exn ~jsont:Ftw_db.User.jsont user_serialized in
     Dream.set_field req field user;
     inner_handler req
 
@@ -23,7 +23,7 @@ let get req =
   | Some user -> Some user
 
 let set req user =
-  let serialized = Ftw.Misc.Json.to_string_exn ~jsont:Ftw.User.jsont user in
+  let serialized = Ftw_db.Misc.Json.to_string_exn ~jsont:Ftw_db.User.jsont user in
   Dream.set_session_field req "user" serialized
 
 let unset req =
@@ -31,4 +31,4 @@ let unset req =
 
 let check_perms ~req ~st perms =
   let user = get req in
-  List.for_all (Ftw.Permission.check ~st ?user) perms
+  List.for_all (Ftw_db.Permission.check ~st ?user) perms

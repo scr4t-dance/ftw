@@ -1,30 +1,44 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-include module type of Ftw_core.Round
-
-(* Serialization *)
+(* Type definitions *)
 (* ************************************************************************* *)
 
-val toml_key : t -> string
-(** Suitable key for toml *)
+type t =
+  | Prelims         (** Prelims: (optional) first round of a competition *)
+  | Octofinals      (** Octofinals: (optional) round before quarterfinals *)
+  | Quarterfinals   (** Quarterfinals: (optional) round before semifinals *)
+  | Semifinals      (** Semifinals: (optinal) round before finals *)
+  | Finals          (** Finals: Last round of any competition. *)
+(** Type for the rounds of competitions, used to order phases.
+    There cannot be two phases with the same round type in a competition. *)
 
 
-(* DB interaction *)
+(* Usual functions *)
 (* ************************************************************************* *)
 
-val to_int : t -> int
-(** Conversion to integer. *)
+val print : Format.formatter -> t -> unit
+(** Printing *)
 
-val of_int : int -> t
-(** Conversion from integer.
-    @raise Stdlib.Failure _ if the int is out of range *)
+val equal : t -> t -> bool
+(** Equality function *)
 
-val p : (int -> 'a, 'a) Sqlite3_utils.Ty.t
-(** Sqlite query "type" for identifiers *)
+val compare : t -> t -> int
+(** Comparison function. *)
 
-val conv : t Conv.t
-(** Converter for identifiers *)
+module Set : Set.S with type elt = t
+(** Sets for identifiers *)
+
+module Map : Map.S with type key = t
+(** Maps for identifiers *)
 
 
+(* Interesting functions *)
+(* ************************************************************************* *)
+
+val all : t list
+(** List of all rounds *)
+
+val next : t -> t option
+(** Get next round *)
 

@@ -1,43 +1,55 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-(* Ftw_core import *)
+(* Type definition *)
 (* ************************************************************************* *)
 
-include Ftw_core.Date
+type t = {
+  day : int;
+  month : int;
+  year : int;
+}
 
-let today () =
-  let tm = Unix.localtime (Unix.time ()) in
-  mk ~day:tm.tm_mday ~month:tm.tm_mon ~year:tm.tm_year
 
-(* DB interactions *)
+(* Helper functions *)
 (* ************************************************************************* *)
 
-exception Invalid_date of string
+let day { day; _ } = day
+let month { month; _ } = month
+let year { year; _ } = year
 
-let to_string { day; month; year; } =
-  Format.asprintf "%04d-%02d-%02d" year month day
+exception Invalid_date of [`Day | `Month]
 
-let of_string s =
-  try
-    let year = int_of_string (String.sub s 0 4) in
-    let month = int_of_string (String.sub s 5 2) in
-    let day = int_of_string (String.sub s 8 2) in
-    mk ~day ~month ~year
-  with Invalid_argument _ ->
-    raise (Invalid_date s)
+let mk ~day ~month ~year =
+  if day <= 0 || day > 31 then raise (Invalid_date `Day);
+  if month <= 0 || month > 12 then raise (Invalid_date `Month);
+  { day; month; year; }
 
-let p = Sqlite3_utils.Ty.([text])
-let conv = Conv.mk p of_string
+let first_day ~year = mk ~day:1 ~month:1 ~year
+let last_day ~year = mk ~day:31 ~month:12 ~year
 
-
-(* Serialization *)
+(* Usual functions *)
 (* ************************************************************************* *)
 
-let to_toml t =
-  Otoml.local_date (to_string t)
+let print fmt { day; month; year; } =
+  Format.fprintf fmt "%02d/%02d/%04d" day month year
 
-let of_toml t =
-  of_string (Otoml.get_local_date t)
+let compare d d' =
+  let open CCOrd in
+  int d.year d'.year
+  <?> (int, d.month, d'.month)
+  <?> (int, d.day, d'.day)
+
+let equal d d' = compare d d' = 0
+
+module Aux = struct
+  type nonrec t = t
+  let print = print
+  let compare = compare
+end
+
+module Set = Set.Make(Aux)
+module Map = Map.Make(Aux)
+module Itm = Interval.Map.Make(Aux)
 
 

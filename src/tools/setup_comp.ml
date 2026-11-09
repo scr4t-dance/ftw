@@ -1,22 +1,25 @@
 
+module Db = Ftw_db
+module Lib = Ftw_lib
+
 type person = {
-  dancer : Ftw.Dancer.id;
-  user : Ftw.User.t;
+  dancer : Lib.Dancer.id;
+  user : Db.User.t;
 }
 
 let dancer t = t.dancer
 let user t = t.user
 
 let mk ~st ~dancer ~username ~pwd =
-  let user = Ftw.User.create ~st ~email:"" ~username ~pwd ~dancer_id:dancer in
+  let user = Db.User.create ~st ~email:"" ~username ~pwd ~dancer_id:dancer in
   { dancer; user; }
 
-let criterions : Ftw.Artefact.Descr.yan_criterions =
+let criterions : Lib.Artefact.Descr.yan_criterions =
   { criterions = ["tk"; "mu"; "tw"] }
 
-let ranking_algorithm : Ftw.Ranking.Algorithm.t =
-  let w : Ftw.Ranking.Yan_weighted.weight = { yes = 3; alt = 2; no = 1; } in
-  let w' : Ftw.Ranking.Yan_weighted.weight = { yes = 3; alt = 2; no = 1; } in
+let ranking_algorithm : Lib.Ranking.Algorithm.t =
+  let w : Lib.Ranking.Yan_weighted.weight = { yes = 3; alt = 2; no = 1; } in
+  let w' : Lib.Ranking.Yan_weighted.weight = { yes = 3; alt = 2; no = 1; } in
   Yan_weighted {
     weights = [ w'; w; w];
     head_weights = [ w ];
@@ -24,56 +27,56 @@ let ranking_algorithm : Ftw.Ranking.Algorithm.t =
 
 let create_jj ~st ~ev ~div ~head ~judges_leaders ~judges_follows () =
   let comp =
-    Ftw.Competition.create ()
+    Db.Competition.create ()
       ~st ~event_id:ev ~name:""
       ~public:false ~status:Registration
       ~n_leaders:0 ~n_follows:0
       ~kind:Jack_and_Jill ~category:(Competitive div)
   in
-  let () = Ftw.Position.add ~st ~user:(user head) (Head_Judge {ev;comp = Ftw.Competition.id comp}) in
+  let () = Db.Position.add ~st ~user:(user head) (Head_Judge {ev;comp = Lib.Competition.id comp}) in
   let prelims =
-    Ftw.Phase.create ~st ~status:Inactive
-      (Ftw.Competition.id comp) Prelims
+    Db.Phase.create ~st ~status:Inactive
+      (Lib.Competition.id comp) Prelims
       ~ranking_algorithm
       ~judge_artefact_descr:(Yans criterions)
       ~head_judge_artefact_descr:(Yans { criterions = ["*"]})
   in
-  let () = List.iter (fun t -> Ftw.Position.add ~st ~user:(user t) (Judge {ev; comp = Ftw.Competition.id comp; phase = Ftw.Phase.id prelims; })) judges_leaders in
-  let () = List.iter (fun t -> Ftw.Position.add ~st ~user:(user t) (Judge {ev; comp = Ftw.Competition.id comp; phase = Ftw.Phase.id prelims; })) judges_follows in
+  let () = List.iter (fun t -> Db.Position.add ~st ~user:(user t) (Judge {ev; comp = Lib.Competition.id comp; phase = Lib.Phase.id prelims; })) judges_leaders in
+  let () = List.iter (fun t -> Db.Position.add ~st ~user:(user t) (Judge {ev; comp = Lib.Competition.id comp; phase = Lib.Phase.id prelims; })) judges_follows in
   let () =
-    Ftw.Judge.set ~st ~phase:(Ftw.Phase.id prelims) (Singles {
+    Db.Judge.set ~st ~phase:(Lib.Phase.id prelims) (Singles {
       head = Some (dancer head);
       leaders = List.map dancer judges_leaders;
       followers = List.map dancer judges_follows;
     })
   in
   let semis =
-    Ftw.Phase.create ~st ~status:Inactive
-      (Ftw.Competition.id comp) Semifinals
+    Db.Phase.create ~st ~status:Inactive
+      (Lib.Competition.id comp) Semifinals
       ~ranking_algorithm
       ~judge_artefact_descr:(Yans criterions)
       ~head_judge_artefact_descr:(Yans { criterions = ["*"]})
   in
-  let () = List.iter (fun t -> Ftw.Position.add ~st ~user:(user t) (Judge {ev; comp = Ftw.Competition.id comp; phase = Ftw.Phase.id semis; })) judges_leaders in
-  let () = List.iter (fun t -> Ftw.Position.add ~st ~user:(user t) (Judge {ev; comp = Ftw.Competition.id comp; phase = Ftw.Phase.id semis; })) judges_follows in
+  let () = List.iter (fun t -> Db.Position.add ~st ~user:(user t) (Judge {ev; comp = Lib.Competition.id comp; phase = Lib.Phase.id semis; })) judges_leaders in
+  let () = List.iter (fun t -> Db.Position.add ~st ~user:(user t) (Judge {ev; comp = Lib.Competition.id comp; phase = Lib.Phase.id semis; })) judges_follows in
   let () =
-    Ftw.Judge.set ~st ~phase:(Ftw.Phase.id semis) (Singles {
+    Db.Judge.set ~st ~phase:(Lib.Phase.id semis) (Singles {
       head = Some (dancer head);
       leaders = List.map dancer judges_leaders;
       followers = List.map dancer judges_follows;
     })
   in
   let finals =
-    Ftw.Phase.create ~st ~status:Inactive
-      (Ftw.Competition.id comp) Finals
+    Db.Phase.create ~st ~status:Inactive
+      (Lib.Competition.id comp) Finals
       ~ranking_algorithm:(RPSS ())
       ~judge_artefact_descr:Ranking
       ~head_judge_artefact_descr:Ranking
   in
-  let () = List.iter (fun t -> Ftw.Position.add ~st ~user:(user t) (Judge {ev; comp = Ftw.Competition.id comp; phase = Ftw.Phase.id finals; })) judges_leaders in
-  let () = List.iter (fun t -> Ftw.Position.add ~st ~user:(user t) (Judge {ev; comp = Ftw.Competition.id comp; phase = Ftw.Phase.id finals; })) judges_follows in
+  let () = List.iter (fun t -> Db.Position.add ~st ~user:(user t) (Judge {ev; comp = Lib.Competition.id comp; phase = Lib.Phase.id finals; })) judges_leaders in
+  let () = List.iter (fun t -> Db.Position.add ~st ~user:(user t) (Judge {ev; comp = Lib.Competition.id comp; phase = Lib.Phase.id finals; })) judges_follows in
   let () =
-    Ftw.Judge.set ~st ~phase:(Ftw.Phase.id finals) (Couples {
+    Db.Judge.set ~st ~phase:(Lib.Phase.id finals) (Couples {
       head = Some (dancer head);
       couples = List.map dancer (judges_leaders @ judges_follows);
     })
@@ -82,37 +85,37 @@ let create_jj ~st ~ev ~div ~head ~judges_leaders ~judges_follows () =
 
 let _create_strictly ~st ~ev ~name ~head ~judges () =
   let comp =
-    Ftw.Competition.create ()
+    Db.Competition.create ()
       ~st ~event_id:ev ~name
       ~public:false ~status:Distribution
       ~n_leaders:0 ~n_follows:0
       ~kind:Strictly ~category:(Non_competitive Regular)
   in
-  let () = Ftw.Position.add ~st ~user:(user head) (Head_Judge {ev;comp = Ftw.Competition.id comp}) in
+  let () = Db.Position.add ~st ~user:(user head) (Head_Judge {ev;comp = Lib.Competition.id comp}) in
   let prelims =
-    Ftw.Phase.create ~st ~status:Inactive
-      (Ftw.Competition.id comp) Prelims
+    Db.Phase.create ~st ~status:Inactive
+      (Lib.Competition.id comp) Prelims
       ~ranking_algorithm
       ~judge_artefact_descr:(Yans criterions)
       ~head_judge_artefact_descr:(Yans { criterions = ["*"]})
   in
-  let () = List.iter (fun t -> Ftw.Position.add ~st ~user:(user t) (Judge {ev; comp = Ftw.Competition.id comp; phase = Ftw.Phase.id prelims; })) judges in
+  let () = List.iter (fun t -> Db.Position.add ~st ~user:(user t) (Judge {ev; comp = Lib.Competition.id comp; phase = Lib.Phase.id prelims; })) judges in
   let () =
-    Ftw.Judge.set ~st ~phase:(Ftw.Phase.id prelims) (Couples {
+    Db.Judge.set ~st ~phase:(Lib.Phase.id prelims) (Couples {
       head = Some (dancer head);
       couples = List.map dancer judges;
     })
   in
   let finals =
-    Ftw.Phase.create ~st ~status:Inactive
-      (Ftw.Competition.id comp) Finals
+    Db.Phase.create ~st ~status:Inactive
+      (Lib.Competition.id comp) Finals
       ~ranking_algorithm:(RPSS ())
       ~judge_artefact_descr:Ranking
       ~head_judge_artefact_descr:Ranking
   in
-  let () = List.iter (fun t -> Ftw.Position.add ~st ~user:(user t) (Judge {ev; comp = Ftw.Competition.id comp; phase = Ftw.Phase.id finals; })) judges in
+  let () = List.iter (fun t -> Db.Position.add ~st ~user:(user t) (Judge {ev; comp = Lib.Competition.id comp; phase = Lib.Phase.id finals; })) judges in
   let () =
-    Ftw.Judge.set ~st ~phase:(Ftw.Phase.id finals) (Couples {
+    Db.Judge.set ~st ~phase:(Lib.Phase.id finals) (Couples {
       head = Some (dancer head);
       couples = List.map dancer judges;
     })
@@ -122,38 +125,38 @@ let _create_strictly ~st ~ev ~name ~head ~judges () =
 
 let _create_all_in ~st ~ev ~head ~judges ~high () =
   let comp =
-    Ftw.Competition.create ()
+    Db.Competition.create ()
       ~st ~event_id:ev
-      ~name:(Format.asprintf "All-In(%a)" Ftw.Role.print high)
+      ~name:(Format.asprintf "All-In(%a)" Lib.Role.print high)
       ~public:false ~status:Setup
       ~n_leaders:0 ~n_follows:0
       ~kind:(High_low { high }) ~category:(Non_competitive Regular)
   in
-  let () = Ftw.Position.add ~st ~user:(user head) (Head_Judge {ev;comp = Ftw.Competition.id comp}) in
+  let () = Db.Position.add ~st ~user:(user head) (Head_Judge {ev;comp = Lib.Competition.id comp}) in
   let prelims =
-    Ftw.Phase.create ~st ~status:Inactive
-      (Ftw.Competition.id comp) Prelims
+    Db.Phase.create ~st ~status:Inactive
+      (Lib.Competition.id comp) Prelims
       ~ranking_algorithm
       ~judge_artefact_descr:(Yans criterions)
       ~head_judge_artefact_descr:(Yans { criterions = ["*"]})
   in
-  let () = List.iter (fun t -> Ftw.Position.add ~st ~user:(user t) (Judge {ev; comp = Ftw.Competition.id comp; phase = Ftw.Phase.id prelims; })) judges in
+  let () = List.iter (fun t -> Db.Position.add ~st ~user:(user t) (Judge {ev; comp = Lib.Competition.id comp; phase = Lib.Phase.id prelims; })) judges in
   let () =
-    Ftw.Judge.set ~st ~phase:(Ftw.Phase.id prelims) (Couples {
+    Db.Judge.set ~st ~phase:(Lib.Phase.id prelims) (Couples {
       head = Some (dancer head);
       couples = List.map dancer judges;
     })
   in
   let finals =
-    Ftw.Phase.create ~st ~status:Inactive
-      (Ftw.Competition.id comp) Finals
+    Db.Phase.create ~st ~status:Inactive
+      (Lib.Competition.id comp) Finals
       ~ranking_algorithm:(RPSS ())
       ~judge_artefact_descr:Ranking
       ~head_judge_artefact_descr:Ranking
   in
-  let () = List.iter (fun t -> Ftw.Position.add ~st ~user:(user t) (Judge {ev; comp = Ftw.Competition.id comp; phase = Ftw.Phase.id finals; })) judges in
+  let () = List.iter (fun t -> Db.Position.add ~st ~user:(user t) (Judge {ev; comp = Lib.Competition.id comp; phase = Lib.Phase.id finals; })) judges in
   let () =
-    Ftw.Judge.set ~st ~phase:(Ftw.Phase.id finals) (Couples {
+    Db.Judge.set ~st ~phase:(Lib.Phase.id finals) (Couples {
       head = Some (dancer head);
       couples = List.map dancer judges;
     })
@@ -162,10 +165,10 @@ let _create_all_in ~st ~ev ~head ~judges ~high () =
 
 let exec ~st () =
   (* People *)
-  let admin = Ftw.User.create ~st ~email:"" ~username:"admin" ~pwd:"passwd" ~dancer_id:19 in
-  let () = Ftw.Position.add ~st ~user:admin Admin in
+  let admin = Db.User.create ~st ~email:"" ~username:"admin" ~pwd:"passwd" ~dancer_id:19 in
+  let () = Db.Position.add ~st ~user:admin Admin in
 
-  let clerk = Ftw.User.create ~st ~email:"" ~username:"clerk" ~pwd:"spooky" ~dancer_id:119 in
+  let clerk = Db.User.create ~st ~email:"" ~username:"clerk" ~pwd:"spooky" ~dancer_id:119 in
 
   let _lea = mk ~st ~dancer:2 ~username:"lea" ~pwd:"aleatoire" in
   let _bivas = mk ~st ~dancer:47 ~username:"bivas" ~pwd:"suisse" in
@@ -186,13 +189,13 @@ let exec ~st () =
 
   (* Event & Comps *)
   let ev =
-    Ftw.Event.create ~st ~name:"Spooky 4 Temps" ~short_name:"spooky"
-      ~start_date:(Ftw.Date.mk ~day:16 ~month:10 ~year:2026)
-      ~end_date:(Ftw.Date.mk ~day:18 ~month:10 ~year:2026)
+    Db.Event.create ~st ~name:"Spooky 4 Temps" ~short_name:"spooky"
+      ~start_date:(Lib.Date.mk ~day:16 ~month:10 ~year:2026)
+      ~end_date:(Lib.Date.mk ~day:18 ~month:10 ~year:2026)
       ~public:false ~status:In_progress
   in
 
-  let () = Ftw.Position.add ~st ~user:clerk (Clerk {ev}) in
+  let () = Db.Position.add ~st ~user:clerk (Clerk {ev}) in
 
   let _novice =
     create_jj ()
@@ -258,6 +261,6 @@ let () =
     "--users", Arg.Set_string user_path, "user db path";
   ] in
   Arg.parse args anon_fun usage_msg;
-  let st = Ftw.State.mk ~init:true ~user_path:!user_path ~main_path:!main_path in
+  let st = Db.State.mk ~init:true ~user_path:!user_path ~main_path:!main_path in
   exec ~st ()
 

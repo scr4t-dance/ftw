@@ -1,28 +1,15 @@
-
 (library
-  (name        ftw)
-  (public_name ftw)
+  (name        ftw_lib)
+  (public_name ftw-lib)
 
   ; ppx
   (preprocess
-   (pps ppx_deriving.enum))
+   (pps ppx_sexp_conv ppx_compare))
 
   ; deps
   (libraries
-    ftw_core
-    unix fmt logs
-    jsont jsont.bytesrw
-    gen containers argon2
+    fmt logs jsont
+    gen containers
     printbox printbox-text
-    otoml spelll uutf uunf
-    fuzzy_match.search ubase
-    sqlite3 sqlite3_utils
   )
 )
-
-; assets as files
-(generate_sites_module
-  (module sites)
-  (sites ftw)
-)
-

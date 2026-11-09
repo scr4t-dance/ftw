@@ -1,20 +1,39 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-include module type of Ftw_core.Divisions
-
-(* DB interaction *)
+(* Type definitions *)
 (* ************************************************************************* *)
 
-val to_int : t -> int
-(** Conversion to integer. *)
+type t =
+  | None
+  | Novice
+  | Novice_Intermediate
+  | Intermediate
+  | Intermediate_Advanced
+  | Advanced (**)
+(** This represents the divisions accessible to a given dancer. Semantically,
+    the [None] and [Novice] divisions are equivalent, but [None] is the
+    initial divisions for dancers that have not yet danced in a role.
+    (e.g. a novice main lead might have [Novice] divisions as leader,
+    but [None] divisions as follower). *)
 
-val of_int : int -> t
-(** Conversion from integer.
-    @raise Stdlib.Failure _ if the int is out of range *)
 
-val p : (int -> 'a, 'a) Sqlite3_utils.Ty.t
-(** Sqlite query "type" for identifiers *)
+(* Usual functions *)
+(* ************************************************************************* *)
 
-val conv : t Conv.t
-(** Converter for identifiers *)
+val equal : t -> t -> bool
+
+val compare : t -> t -> int
+
+val max : t -> t -> t
+
+val to_string : t -> string
+
+val print : Format.formatter -> t -> unit
+
+val includes : Division.t -> t -> bool
+
+val normalize : t -> t
+
+val highest_div : t -> Division.t
+

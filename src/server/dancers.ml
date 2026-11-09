@@ -44,15 +44,15 @@ let page req =
 (* ************************************************************************* *)
 
 let dancer_link ~dancer =
-  a [path_attr href  Paths.Page.dancer (Ftw.Dancer.id dancer);
+  a [path_attr href  Paths.Page.dancer (Lib.Dancer.id dancer);
      class_ "d-block link-secondary link-underline-opacity-0"]
 
 let tr_of_dancer dancer =
   tr [] [
-    td [] [dancer_link ~dancer [txt "%s" (Ftw.Dancer.first_name dancer)]];
-    td [] [dancer_link ~dancer [txt "%s" (Ftw.Dancer.last_name dancer)]];
-    td [] [dancer_link ~dancer [txt "L:%s" (Ftw.Divisions.to_string (Ftw.Dancer.as_leader dancer))]];
-    td [] [dancer_link ~dancer [txt "F:%s" (Ftw.Divisions.to_string (Ftw.Dancer.as_follower dancer))]];
+    td [] [dancer_link ~dancer [txt "%s" (Lib.Dancer.first_name dancer)]];
+    td [] [dancer_link ~dancer [txt "%s" (Lib.Dancer.last_name dancer)]];
+    td [] [dancer_link ~dancer [txt "L:%s" (Lib.Divisions.to_string (Lib.Dancer.as_leader dancer))]];
+    td [] [dancer_link ~dancer [txt "F:%s" (Lib.Divisions.to_string (Lib.Dancer.as_follower dancer))]];
   ]
 
 let search_form =
@@ -70,21 +70,21 @@ let post req =
       if String.length pattern < 2 then
         (* `Body [tr [] [td [colspan 2] [txt "type at least 2 letters to search..."]]] *)
         let l =
-          Ftw.Dancer.list ~st
+          Db.Dancer.list ~st
           |> List.filter (fun d ->
-              match Ftw.Dancer.as_leader d, Ftw.Dancer.as_follower d with
+              match Lib.Dancer.as_leader d, Lib.Dancer.as_follower d with
               | None, None -> false
               | _ -> true
             )
           |> List.sort (fun d d' ->
-              CCOrd.(string (Ftw.Dancer.last_name d) (Ftw.Dancer.last_name d')
-                     <?> (string, Ftw.Dancer.first_name d, Ftw.Dancer.first_name d'))
+              CCOrd.(string (Lib.Dancer.last_name d) (Lib.Dancer.last_name d')
+                     <?> (string, Lib.Dancer.first_name d, Lib.Dancer.first_name d'))
             )
         in
         let body = List.map tr_of_dancer l in
         `Body body
       else
-        let l = Ftw.Dancer.Fuzzy.search ~st ~pattern in
+        let l = Db.Dancer.Fuzzy.search ~st ~pattern in
         let body = List.map tr_of_dancer l in
         `Body body
     end

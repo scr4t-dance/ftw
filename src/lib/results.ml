@@ -1,278 +1,172 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-(* Ftw_core import *)
+(* Competition result *)
 (* ************************************************************************* *)
 
-include Ftw_core.Results
+type aux =
+  | Not_present      (* or unknown *)
+  | Present          (* but rank unknown *)
+  | Ranked of Rank.t (* actual ranks, the list should be non-empty *)
+
+type t = {
+  prelims :       aux;
+  octofinals :    aux;
+  quarterfinals : aux;
+  semifinals :    aux;
+  finals :        aux;
+}
+
+type o = {
+  dancer : Dancer.id;
+  role : Role.t;
+  points : Points.t;
+  result : t;
+}
+
+type p = {
+  dancer : Dancer.id;
+  points : Points.t;
+}
+
+type r = {
+  competition : Competition.id;
+  target : p Target.any;
+  result : t;
+}
 
 
-(* TOML serialization *)
+let mk
+    ?(prelims=Not_present)
+    ?(octofinals=Not_present)
+    ?(quarterfinals=Not_present)
+    ?(semifinals=Not_present)
+    ?(finals=Not_present) () =
+  { prelims; octofinals; quarterfinals; semifinals; finals; }
+
+let extend round aux t =
+  match (round : Round.t) with
+  | Finals -> { t with finals = aux; }
+  | Semifinals -> { t with semifinals = aux; }
+  | Quarterfinals -> { t with quarterfinals = aux; }
+  | Octofinals -> { t with octofinals = aux; }
+  | Prelims -> { t with prelims = aux; }
+
+
+(* Some values *)
+
+let empty = mk ()
+let finalist = mk () ~finals:Present
+let semifinalist = mk () ~semifinals:Present
+let quarterfinalist = mk () ~quarterfinals:Present
+let octofinalist = mk () ~octofinals:Present
+
+let placement (t : t) : Points.placement =
+  match t.finals with
+  | Present -> Other
+  | Ranked rank -> Finals rank
+  | Not_present ->
+    begin match t.semifinals with
+      | Ranked rank -> Semifinals rank
+      | Present | Not_present -> Other
+    end
+
+(* Points *)
 (* ************************************************************************* *)
 
-let p_to_toml p =
-  Otoml.inline_table [
-    "dancer", Id.to_toml p.dancer;
-    "points", Points.to_toml p.points;
-  ]
+let explode r =
+  Target.to_list r.target
+  |> List.map (fun ({ dancer; points }, role) ->
+    { dancer; role; points; result = r.result; }
+  )
 
-let p_of_toml toml =
-  {
-    dancer = Otoml.find_exn toml Id.of_toml ["dancer"];
-    points = Otoml.find_exn toml Points.of_toml ["points"];
-  }
-
-let to_toml t =
-  (* duplicate a bit the functions from `Rank`, but we really want to ensure
-     that we can safely use `0` and that won't be confused with a rank *)
-  let rank_to_toml r = Otoml.integer (Rank.rank r) in
-  let aux name t' acc =
-    match t' with
-    | Not_present -> acc
-    | Present -> (name, Otoml.integer 0) :: acc
-    | Ranked r -> (name, rank_to_toml r) :: acc
-  in
-  []
-  |> aux "prelims" t.prelims
-  |> aux "octofinals" t.octofinals
-  |> aux "quarterfinals" t.quarterfinals
-  |> aux "semifinals" t.semifinals
-  |> aux "finals" t.finals
-  |> Otoml.inline_table
-
-let of_toml t =
-  let aux_of_toml t =
-    match Otoml.get_opt Otoml.get_integer t with
-    | Some 0 -> Present
-    | Some i -> Ranked (Rank.mk i)
-    | None -> raise (Otoml.Type_error "not the result of a phase")
-  in
-  let aux t name =
-    match Otoml.find_opt t aux_of_toml [name] with
-    | None -> Not_present
-    | Some ret -> ret
-  in
-  {
-    prelims = aux t "prelims";
-    octofinals = aux t "octofinals";
-    quarterfinals = aux t "quarterfinals";
-    semifinals = aux t "semifinals";
-    finals = aux t "finals";
-  }
-
-
-(* Int conversion *)
-(* ************************************************************************* *)
-
-let aux_to_int t =
-  match t with
-  | Not_present -> 0
-  | Present -> 255
-  | Ranked r ->
-    let r = Rank.rank r in
-    assert (0 < r && r < 255);
-    r
-
-let aux_of_int i =
-  match i with
-  | 0 -> Not_present
-  | 255 -> Present
-  | r -> Ranked (Rank.mk r)
-
-
-(* DB interaction *)
-(* ************************************************************************* *)
-
-let db = State.Main
-
-let () =
-  State.add_init ~name:"results" (fun st ->
-      State.exec ~st ~db {|
-        CREATE TABLE IF NOT EXISTS results (
-          competition INTEGER REFERENCES competitions(id),
-          prelims INTEGER,
-          octofinals INTEGER,
-          quarterfinals INTEGER,
-          semifinals INTEGER,
-          finals INTEGER,
-          dancer1 INTEGER,
-          points1 INTEGER,
-          dancer2 INTEGER,
-          points2 INTEGER,
-          dancer3 INTEGER,
-          points3 INTEGER
-        )
-      |})
-
-let conv =
-  Conv.mk Db.Ty.[int; int; int; int; int; int; int; int; int; int; int; int]
-    (fun competition prelims octo quarter semi finals d1 p1 d2 p2 d3 p3 ->
-      let target =
-        match d1, d2, d3 with
-        | 0, 0, 0 -> assert false
-        | _, 0, 0 ->
-          let target : p = { dancer = d1; points = p1; } in
-          Target.(Any (Single { target; role = Leader; }))
-        | 0, _, 0 ->
-          let target : p = { dancer = d2; points = p2; } in
-          Target.(Any (Single { target; role = Follower; }))
-        | _, _, 0 ->
-          let leader : p = { dancer = d1; points = p1; } in
-          let follower : p = { dancer = d2; points = p2; } in
-          Target.(Any (Couple { leader; follower }))
-        | _, _, _ ->
-          let target1 : p = { dancer = d1; points = p1; } in
-          let target2 : p = { dancer = d2; points = p2; } in
-          let target3 : p = { dancer = d3; points = p3; } in
-          Target.Any (Trouple {target1; target2; target3; })
-      in
-       let result = {
-         prelims = aux_of_int prelims;
-         octofinals = aux_of_int octo;
-         quarterfinals = aux_of_int quarter;
-         semifinals = aux_of_int semi;
-         finals = aux_of_int finals;
-       }
-       in
-       { competition; target; result; })
-
-let add ~st { competition; target; result; }  =
-  let d1, p1, d2, p2, d3, p3 =
-    match target with
-    | Any Single { target = { dancer; points; }; role = Leader; } ->
-      dancer, points, 0, 0, 0, 0
-    | Any Single { target = { dancer; points; }; role = Follower; } ->
-      0, 0, dancer, points, 0, 0
-    | Any Couple { leader = { dancer = d1; points = p1}; follower = { dancer = d2; points = p2 } } ->
-      d1, p1, d2, p2, 0, 0
-    | Any Trouple { target1 = { dancer = d1; points = p1; };
-                    target2 = { dancer = d2; points = p2; };
-                    target3 = { dancer = d3; points = p3; }} ->
-      d1, p1, d2, p2, d3, p3
-  in
-  State.insert ~st ~db ~ty:Db.Ty.[int; int; int; int; int; int; int; int; int; int; int; int]
-    {| INSERT INTO results
-        (competition,prelims,octofinals,quarterfinals,semifinals,finals,dancer1,points1,dancer2,points2,dancer3,points3)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?) |}
-    competition
-    (aux_to_int result.prelims)
-    (aux_to_int result.octofinals)
-    (aux_to_int result.quarterfinals)
-    (aux_to_int result.semifinals)
-    (aux_to_int result.finals)
-    d1 p1 d2 p2 d3 p3
-
-let find ~st = function
-  | `Competition competition ->
-    State.query_list_where ~st ~db ~p:Id.p ~conv
-      {| SELECT * FROM results WHERE competition = ? |}
-      (Ftw_core.Competition.id competition)
-  | `Dancer _dancer ->
-    assert false
-      (* TODO: make this code up to date 
-    State.query_list_where ~st ~db ~p:Id.p ~conv
-      {| SELECT * FROM results WHERE dancer = ? |}
-         (Dancer.id dancer)
-         *)
-
-let all_points ~st ~dancer ~role ~div =
-  let open Db.Ty in
-  let conv = Conv.mk [nullable int] CCFun.id in
-  match (role : Role.t) with
-  | Leader ->
-    CCOption.get_or ~default:0 @@
-    State.query_one_where ~st ~db ~conv ~p:[int; int]
-      {| SELECT SUM(results.points1)
-           FROM results JOIN competitions ON results.competition=competitions.id
-           WHERE results.dancer1 = ? AND competitions.category = ? |}
-      dancer
-      (Category.to_int (Competitive div))
-  | Follower ->
-    CCOption.get_or ~default:0 @@
-    State.query_one_where ~st ~db ~conv ~p:[int; int]
-      {| SELECT SUM(results.points2)
-           FROM results JOIN competitions ON results.competition=competitions.id
-           WHERE results.dancer2 = ? AND competitions.category = ? |}
-      dancer
-      (Category.to_int (Competitive div))
-
-let promotion ~st ~event ~comp result =
-  let get_dancer id = Dancer.get ~st id in
-  let current_points dancer_id role : Promotion.lazy_points = {
-    novice = lazy (all_points ~st ~dancer:dancer_id ~role ~div:Novice);
-    inter = lazy (all_points ~st ~dancer:dancer_id ~role ~div:Intermediate);
-    adv = lazy (all_points ~st ~dancer:dancer_id ~role ~div:Advanced);
-  } in
-  Promotion.compute ~get_dancer ~event ~comp ~current_points ~result
-
-let for_comp ~st comp =
-  let map = ref Id.Map.empty in
-  let update dancer role ~f =
-    let as_leader, as_follow =
-      match Id.Map.find dancer !map with
-      | exception Not_found ->
-        let as_leader = Ftw_core.Results.empty in
-        let as_follow = Ftw_core.Results.empty in
-        as_leader, as_follow
-      | res -> res
-    in
-    let as_leader, as_follow =
+let points ~event ~comp ~role result =
+  match Competition.category comp with
+  | Non_competitive _ -> 0
+  | Competitive _ ->
+    let date = Event.start_date event in
+    let n =
       match (role : Role.t) with
-      | Leader -> f as_leader, as_follow
-      | Follower -> as_leader, f as_follow
+      | Leader -> Competition.n_leaders comp
+      | Follower -> Competition.n_follows comp
     in
-    map := Id.Map.add dancer (as_leader, as_follow) !map
+    let placement = placement result in
+    Points.find ~date ~n ~placement
+
+
+(* Ordering results *)
+(* ************************************************************************* *)
+
+type presents = {
+  leaders : Dancer.id list;
+  followers : Dancer.id list;
+}
+
+type ranking = {
+  final_ranks : Dancer.id Target.any Ranking.One.t;
+  finalists : presents;
+  semifinalists : presents;
+  quarterfinalists : presents;
+  octofinalists : presents;
+  only_prelims : presents;
+}
+
+let ranking ~comp:_ results =
+  let max_final_rank_index = ref 0 in
+  let final_ranks = Array.make 100 [] in
+  let finalists = ref ([], []) in
+  let semifinalist = ref ([], []) in
+  let quarterfinalists = ref ([], []) in
+  let octofinalists = ref ([], []) in
+  let prelims = ref ([], []) in
+  let add ref r =
+    let l, f = !ref in
+    match r.target with
+    | Any Single { target = { dancer; points = _; }; role = Leader; } ->
+      ref := (dancer :: l, f)
+    | Any Single { target = { dancer; points = _; }; role = Follower; } ->
+      ref := (l, dancer :: f)
+    | Any Couple { leader = { dancer = l'; points = _ };
+                   follower = { dancer = f'; points = _ } } ->
+      ref := (l' :: l, f' :: f)
+    | Any Trouple _ ->
+      assert false
   in
-  let add_one_ranking ranking round =
-    Ranking.One.iter ranking ~f:(fun rank target ->
-        match (target : _ Target.any) with
-        | Any Single { target = dancer; role; } ->
-          update dancer role ~f:(Ftw_core.Results.extend round (Ranked rank))
-        | Any Couple { leader; follower; } ->
-          update leader Leader ~f:(Ftw_core.Results.extend round (Ranked rank));
-          update follower Follower ~f:(Ftw_core.Results.extend round (Ranked rank))
-        | Any Trouple _ -> ()
+  let to_presents ref =
+    let leaders, followers = !ref in
+    { leaders; followers; }
+  in
+  let list_to_ranked i l =
+    let map target = Target.map_any ~f:(fun { dancer = id; points = _ } -> id) target in
+    let rank = Rank.of_index i in
+    match l with
+    | [] -> Ranking.One.None
+    | [r] -> Ranking.One.Ranked { rank; target = map r.target; }
+    | _ :: _ ->
+      Ranking.One.Tie { rank; tie = Array.of_list @@
+      List.map (fun r -> map r.target) l }
+  in
+  List.iter (fun (r : r) -> 
+    match r.result.finals with
+    | Ranked rank ->
+      let i = Rank.to_index rank in
+      max_final_rank_index := max i !max_final_rank_index;
+      final_ranks.(i) <- r :: final_ranks.(i)
+    | Present -> add finalists r
+    | _ -> ()
+    ) results;
+  let ranks =
+    Array.init (!max_final_rank_index + 1) (fun i ->
+      list_to_ranked i (final_ranks.(i))
       )
   in
-  let add_round r =
-    match Competition.round ~st comp r with
-    | None -> ()
-    | Some phase ->
-      let ranking =
-        Phase.ranking ~st ~phase
-        |> Phase.map_ranking
-          ~judges:(fun dancer_id ->
-              Target.(Any (Single { role = Leader; target = dancer_id; })))
-          ~targets:(fun heat_target_id ->
-              Heat.get_one ~st heat_target_id)
-      in
-      begin match ranking with
-        | Any Singles { leaders; follows; } ->
-          add_one_ranking (Ranking.Res.ranking leaders) r;
-          add_one_ranking (Ranking.Res.ranking follows) r
-        | Any Couples { couples; } ->
-          add_one_ranking (Ranking.Res.ranking couples) r
-      end
-  in
-  List.iter add_round Round.all;
-  !map
-
-let promotions_for_comp ~st ~event ~comp =
-  let aux dancer result role acc =
-    let p = points ~event ~comp ~role result in
-    let target =
-      Target.(Any (Single { role; target = { dancer; points = p; };}))
-    in
-    let r = {
-      competition = Ftw_core.Competition.id comp;
-      result; target;
-    }
-    in
-    let new_promotions = promotion ~st ~event ~comp r in
-    new_promotions @ acc
-  in
-  Id.Map.fold (fun dancer_id (as_leader, as_follow) acc ->
-      aux dancer_id as_leader Leader
-        (aux dancer_id as_follow Follower acc)
-    ) (for_comp ~st comp) []
+  {
+    final_ranks = { ranks; };
+    finalists = to_presents finalists;
+    semifinalists = to_presents semifinalist;
+    quarterfinalists = to_presents quarterfinalists;
+    octofinalists = to_presents octofinalists;
+    only_prelims = to_presents prelims;
+  }
+  
 

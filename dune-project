@@ -11,9 +11,13 @@
 
 (package
  (name ftw)
- (synopsis "Library for the FTW scoring and points system")
+ (synopsis "Scoring system for dancing competitions")
  (description "TODO")
  (depends
+   (ftw-lib (= :version))
+   (ftw-db  (= :version))
+   (ftw-api (= :version))
+   (ftw-bin (= :version))
    sqlite3 sqlite3_utils
    containers gen spelll otoml
    bos fpath logs fmt uunf uutf ubase
@@ -22,11 +26,29 @@
    printbox printbox-text))
 
 (package
+ (name ftw-lib)
+ (synopsis "Lib for the FTW scorign system")
+ (description "TODO")
+ (depends
+   base sexplib0
+   jsont))
+
+(package
+ (name ftw-db)
+ (synopsis "Db for the FTW scoring system")
+ (description "TODO")
+ (depends
+   (ftw-lib (= :version))
+   base sexplib0
+   jsont))
+
+(package
  (name ftw-api)
  (synopsis "API definitions for the FTW scoring and points system")
  (description "TODO")
  (depends
-   (ftw (= :version))
+   (ftw-lib (= :version))
+   (ftw-db (= :version))
    base sexplib0
    jsont))
 
@@ -36,8 +58,11 @@
  (synopsis "Web server for the FTW scoring system")
  (description "TODO")
  (depends
-   (ftw (= :version))
+   (ftw-lib (= :version))
+   (ftw-db (= :version))
+   (ftw-api (= :version))
    dream dream-html dream-htmx
    jsont bytesrw fuzzy_match
    (cmdliner (>= 1.3.0))
    logs fmt))
+

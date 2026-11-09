@@ -80,7 +80,7 @@ let post req =
     begin match Form.validate login_form form_result with
     | Error _errs -> assert false (* internal error *)
     | Ok (username, pwd) ->
-      begin match Ftw.User.authentificate ~st ~username ~pwd with
+      begin match Db.User.authentificate ~st ~username ~pwd with
       | `Ok user ->
         `Redirect (
           let%lwt () = User.set req user in

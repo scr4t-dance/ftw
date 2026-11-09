@@ -1,231 +1,49 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-(* Ftw_core import *)
+(* Type definitions *)
 (* ************************************************************************* *)
 
-include Ftw_core.Phase
+type id = Id.t
 
-type status = Ftw_core.Phase.status =
+type status =
   | Inactive
   | Setup
   | Progress
   | Scoring
   | Finished
-[@@deriving enum]
 
+type t = {
+  id : id;
+  competition_id : Competition.id;
+  round : Round.t;
+  status : status;
+  judge_artefact_descr : Artefact.Descr.t;
+  head_judge_artefact_descr : Artefact.Descr.t;
+  ranking_algorithm : Ranking.Algorithm.t;
+}
 
-(* Basic DB interaction *)
+(* Accessors *)
 (* ************************************************************************* *)
 
-let db = State.Main
+let id { id; _ } = id
+let round { round; _ } = round
+let competition { competition_id; _ } = competition_id
+let status { status; _ } = status
+let ranking_algorithm { ranking_algorithm; _ } = ranking_algorithm
+let judge_artefact_descr { judge_artefact_descr; _ } = judge_artefact_descr
+let head_judge_artefact_descr { head_judge_artefact_descr; _ } = head_judge_artefact_descr
 
-let () =
-  State.add_init ~name:"phase" (fun st ->
-      State.exec ~st ~db {|
-        CREATE TABLE IF NOT EXISTS phases (
-          id INTEGER PRIMARY KEY,
-          competition_id INT REFERENCES competitions(id),
-          round INTEGER REFERENCES round_names(id),
-          status INTEGER,
-          judge_artefact_descr TEXT,
-          head_judge_artefact_descr TEXT,
-          ranking_algorithm TEXT,
-          UNIQUE(competition_id, round)
-        )
-      |}
-    )
-
-let conv =
-  Conv.mk
-    Sqlite3_utils.Ty.[int; int; int; int; text; text; text]
-    (fun id comp round status
-      judge_artefact_descr head_judge_artefact_descr ranking_algorithm ->
-      let status = Option.get @@ status_of_enum status in
-      let round = Round.of_int round in
-      let ranking_algorithm =
-        Misc.Json.of_string_exn ranking_algorithm
-          ~jsont:Ranking.Algorithm.jsont
-      in
-      let judge_artefact_descr =
-        Misc.Json.of_string_exn judge_artefact_descr
-          ~jsont:Artefact.Descr.jsont
-      in
-      let head_judge_artefact_descr =
-        Misc.Json.of_string_exn head_judge_artefact_descr
-          ~jsont:Artefact.Descr.jsont
-      in
-      Private.mk
-      ~id ~comp ~round ~status ~ranking_algorithm
-        ~judge_artefact_descr ~head_judge_artefact_descr)
-
-let get ~st id =
-  try
-    State.query_one_where ~st ~db ~conv ~p:Id.p
-      {|SELECT * FROM phases WHERE id=?|} id
-  with Sqlite3_utils.RcError NOTFOUND -> raise Not_found
-
-let create
-    ~st competition_id round ~status
-    ~ranking_algorithm
-    ~judge_artefact_descr
-    ~head_judge_artefact_descr
-  =
-  let round = Round.to_int round in
-  let status = status_to_enum status in
-  let ranking_algorithm =
-    Misc.Json.to_string_exn ranking_algorithm
-      ~jsont:Ranking.Algorithm.jsont
-  in
-  let judge_artefact_descr =
-    Misc.Json.to_string_exn judge_artefact_descr
-      ~jsont:Artefact.Descr.jsont
-  in
-  let head_judge_artefact_descr =
-    Misc.Json.to_string_exn head_judge_artefact_descr
-      ~jsont:Artefact.Descr.jsont
-  in
-  let open Sqlite3_utils.Ty in
-  State.insert ~st ~db ~ty:[int; int; int; text; text; text]
-    {|INSERT INTO phases (competition_id,round,status,judge_artefact_descr,
-                          head_judge_artefact_descr,ranking_algorithm)
-      VALUES (?,?,?,?,?,?)|}
-    competition_id round status
-    judge_artefact_descr
-    head_judge_artefact_descr
-    ranking_algorithm;
-  State.query_one_where ~st ~db ~conv ~p:[int; int]
-    {| SELECT * FROM phases WHERE competition_id=? AND round=? |}
-    competition_id round
-
-let update ~st t =
-  let status = status_to_enum (status t) in
-  let ranking_algorithm =
-    Misc.Json.to_string_exn (ranking_algorithm t)
-      ~jsont:Ranking.Algorithm.jsont
-  in
-  let judge_artefact_descr =
-    Misc.Json.to_string_exn (judge_artefact_descr t)
-      ~jsont:Artefact.Descr.jsont
-  in
-  let head_judge_artefact_descr =
-    Misc.Json.to_string_exn (head_judge_artefact_descr t)
-      ~jsont:Artefact.Descr.jsont
-  in
-  State.insert ~st ~db ~ty:Db.Ty.[int; text; text; text; int]
-    {|
-      UPDATE phases SET
-        status = ?,
-        judge_artefact_descr = ?,
-        head_judge_artefact_descr = ?,
-        ranking_algorithm = ?
-      WHERE id=?
-    |}
-    status
-    judge_artefact_descr head_judge_artefact_descr
-    ranking_algorithm (id t)
-
-let delete ~st id_phase =
-  State.insert ~st ~db ~ty:Db.Ty.[int]
-    {| DELETE FROM phases
-        WHERE id=?|} id_phase
-
-
-(* Phase ranking *)
+(* Private functions *)
 (* ************************************************************************* *)
 
-type ('kind, 'target) ranking =
-  | Singles : {
-      leaders : 'target Ranking.Res.t;
-      follows : 'target Ranking.Res.t;
-    } -> (Target.single, 'target) ranking
-  | Couples : {
-      couples : 'target Ranking.Res.t;
-    } -> (Target.couple, 'target) ranking
+module Private = struct
 
-type 'target any_ranking = Any : (_, 'target) ranking -> 'target any_ranking
+  let with_status status t = { t with status; }
 
-let ranking ~st ~phase =
-  let ranking_algorithm = ranking_algorithm phase in
-  let get_artefact ~head ~judge ~target =
-    let descr =
-      if (Option.equal Id.equal) (Some judge) head
-      then head_judge_artefact_descr phase
-      else judge_artefact_descr phase
-    in
-    try Some (Artefact.get ~st ~judge ~target ~descr)
-    with Not_found -> None
-  in
-  match Heat.get ~st ~phase:(id phase), Judge.get ~st ~phase:(id phase) with
-  | Regular reg, Singles panel ->
-    let _map, leaders, follows = Heat.all_single_judgement_targets reg in
-    let leaders =
-      Ranking.Algorithm.compute
-        ~judges:panel.leaders
-        ~head:panel.head
-        ~targets:leaders
-        ~get_artefact:(get_artefact ~head:panel.head)
-        ~get_bonus:(Bonus.get ~st)
-        ~t:ranking_algorithm
-    in
-    let follows =
-      Ranking.Algorithm.compute
-        ~judges:panel.followers
-        ~head:panel.head
-        ~targets:follows
-        ~get_artefact:(get_artefact ~head:panel.head)
-        ~get_bonus:(Bonus.get ~st)
-        ~t:ranking_algorithm
-    in
-    Any (Singles { leaders; follows; })
-  | Regular reg, Couples panel ->
-    let map = Heat.all_couple_judgement_targets reg in
-    let targets = Id.Map.bindings map |> List.map fst in
-    let couples =
-      Ranking.Algorithm.compute
-        ~judges:panel.couples
-        ~head:panel.head
-        ~targets
-        ~get_artefact:(get_artefact ~head:panel.head)
-        ~get_bonus:(Bonus.get ~st)
-        ~t:ranking_algorithm
-    in
-    Any (Couples { couples; })
+  let mk ~id ~comp ~round ~status
+      ~judge_artefact_descr ~head_judge_artefact_descr ~ranking_algorithm =
+    { id; competition_id = comp; round; status;
+      judge_artefact_descr; head_judge_artefact_descr; ranking_algorithm; }
 
-let map_ranking ~targets ~judges r =
-  match r with
-  | Any Singles {leaders;follows} ->
-    Any (Singles {
-      leaders=Ranking.Res.map ~targets ~judges leaders;
-      follows=Ranking.Res.map ~targets ~judges follows;
-    })
-  | Any Couples {couples} ->
-    Any (Couples {
-      couples=Ranking.Res.map ~targets ~judges couples;
-    })
-
-let iteri ~targets ~judges r =
-  match r with
-  | Any Singles {leaders;follows} ->
-    Ranking.Res.iteri ~targets ~judges leaders;
-    Ranking.Res.iteri ~targets ~judges follows
-  | Any Couples {couples} ->
-    Ranking.Res.iteri ~targets ~judges couples
-
-let targets_in_range any n m =
-  let aux acc (_rank, target) = target :: acc in
-  match any with
-  | Any Singles { leaders; follows; } ->
-    let leaders = Ranking.Res.ranking leaders in
-    let follows = Ranking.Res.ranking follows in
-    begin match Ranking.One.range leaders n m, Ranking.One.range follows n m with
-      | Some leaders, Some follows ->
-        Some (Array.fold_left aux (Array.fold_left aux [] leaders) follows)
-      | _ -> None
-    end
-  | Any Couples { couples } ->
-    let couples = Ranking.Res.ranking couples in
-    begin match Ranking.One.range couples n m with
-      | Some couples -> Some (Array.fold_left aux [] couples)
-      | _ -> None
-    end
+end
