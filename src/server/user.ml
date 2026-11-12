@@ -28,7 +28,3 @@ let set req user =
 
 let unset req =
   Dream.drop_session_field req "user"
-
-let check_perms ~req ~st perms =
-  let user = get req in
-  List.for_all (Ftw_db.Permission.check ~st ?user) perms

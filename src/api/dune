@@ -9,7 +9,7 @@
 
   ; deps
   (libraries
-    ftw_lib
+    ftw_lib ftw_db
     fmt logs jsont
     containers
     sexplib0

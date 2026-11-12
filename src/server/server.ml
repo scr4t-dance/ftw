@@ -23,7 +23,10 @@ let loader _root path req =
     match find_sites_dir path with
     | None ->
       Logs.debug ~src (fun m -> m "Path not found, returning 404");
-      Dream.empty `Not_Found
+      Template.render ~local:true ~root:Index ~title:"404 - Not Found"
+        req `Not_Found [
+        Dream_html.(HTML.(p [] [txt "Not Found !!"]))
+      ]
     | Some dir ->
       Dream.from_filesystem dir path req
 

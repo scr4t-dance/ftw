@@ -7,9 +7,13 @@
 
 ; Generate a test DB using the import feature
 (rule
+  (alias runtest)
   (mode promote)
-  (target db.sqlite)
   (deps (source_tree archive))
-  (action (run ftw import --db=%{target} --verbosity=error archive))
+  (targets demo.sqlite demo-users.sqlite)
+  (action
+    (progn
+      (run ftw import    --db=demo.sqlite --user-db=demo-users.sqlite --verbosity=error archive)
+      (run ftw set-admin --db=demo.sqlite --user-db=demo-users.sqlite --no-init --dancer-id=13 admin passwd)
+  ))
 )
-

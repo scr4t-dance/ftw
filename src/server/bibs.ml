@@ -1,4 +1,4 @@
-
+(*
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
 open Syntax
@@ -32,3 +32,4 @@ let ev_page req ev_id =
       [h3 [] [txt "%s" (Display.competition_name comp)];
        Competition.bibs_view ~st ~comp]
     ) comps
+*)

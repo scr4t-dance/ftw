@@ -1,0 +1,28 @@
+
+;(executable
+;  (name client)
+;  (modes js)
+;  (libraries
+;    ; ftw deps
+;    ftw_lib
+;    ; async / js_of_ocaml stuff
+;    async_kernel async_js js_of_ocaml
+;    ; all of the bonsai deps
+;    core bonsai bonsai.web
+;    virtual_dom
+;    )
+;  (preprocess
+;    (pps
+;      js_of_ocaml-ppx bonsai.ppx_bonsai
+;      ppx_jane ppx_css
+;    )
+;  )
+;)
+;
+;(install
+;  (package ftw)
+;  (section (site (ftw-bin assets)))
+;  (files
+;    (client.bc.js as static/client.bc.js)
+;  )
+;)

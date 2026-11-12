@@ -1,4 +1,4 @@
-
+(*
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
 open! Syntax
@@ -761,3 +761,4 @@ let post_artefacts req phase_id judge_id =
     else
       assert false
   | _ -> assert false
+*)

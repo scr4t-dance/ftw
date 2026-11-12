@@ -1,40 +1,49 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
-open Syntax
-open Dream_html
-open Dream_html.HTML
+open! Html
+open! Syntax
 
-(* API *)
+(* Type *)
 (* ************************************************************************* *)
 
-let ret' ~req ~st ~perms k =
-  if User.check_perms ~req ~st perms then
-    begin match k () with
-    | `Body nodes ->
-      respond @@ concat (null []) nodes
-    | `Trigger htmx_event ->
-      let%lwt response = respond @@ null [] in
-      Dream_htmx.set_trigger htmx_event response;
-      Lwt.return response
-    | `Refresh ->
-      let%lwt response = respond @@ null [] in
-      Dream_htmx.refresh response;
-      Lwt.return response
-    | `Redirect url ->
-      let%lwt url in
-      let%lwt response = respond @@ null [] in
-      Dream_htmx.redirect url response;
-      Lwt.return response
-  end else
-    let body =
-      div [class_ "border border-2 border-danger text-danger"] [
-        i [class_ "bi bi-exclamation-triangle-fill"] [];
-        txt "Unauthorized access";
-      ]
-    in
-    respond body
+type 'a api = [
+  | `Body of Dream_html.node list
+  | `Trigger of string
+  | `Refresh
+  | `Redirect of string Lwt.t
+]
 
-let ret ~req ~perms k =
-  let$ st = State.get req in
-  ret' ~req ~st ~perms (fun () -> k st)
+
+(* Creation *)
+(* ************************************************************************* *)
+
+let mk_get ~path ~query ~render =
+  let[@inline] page req =
+    let[@inline] render = function
+      | Ok `Body data ->
+        respond @@ Dream_html.concat (null []) (render data)
+      | Ok `Trigger htmx_event ->
+        let%lwt response = respond @@ null [] in
+        Dream_htmx.set_trigger htmx_event response;
+        Lwt.return response
+      | Ok `Refresh ->
+        let%lwt response = respond @@ null [] in
+        Dream_htmx.refresh response;
+        Lwt.return response
+      | Ok `Redirect url ->
+        let%lwt url in
+        let%lwt response = respond @@ null [] in
+        Dream_htmx.redirect url response;
+        Lwt.return response
+      | Error Lib.Error.{ ctx = _; descr; } ->
+        let _status, msg = Error.descr_ret descr in
+        respond (p [] [txt "%t" msg])
+    in
+    State.get req @@ fun st ->
+    let user = User.get req in
+    ((query[@inlined hint]) ~render ?user req st)
+  in
+  Routes.mk_api_get path page
+
+

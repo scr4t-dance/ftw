@@ -1,21 +1,25 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+open! Syntax
+
 (* DB interaction *)
 (* ************************************************************************* *)
 
-val last : st:State.t -> Lib.Event.t
-(** Last event *)
+val get :
+  st:State.t -> Lib.Event.id -> Lib.Event.t Syntax.res
+(** Get an event from its id.
+    @raise Stdlib.Not_found if the event is not found. *)
+
+val list_before :
+  st:State.t -> n:int -> Lib.Event.id option -> Lib.Event.id list res
+(** List events from one specific year *)
+
+
+
 
 val list : st:State.t -> Lib.Event.t list
 (** List all events *)
-
-val list_before : st:State.t -> n:int -> id:Lib.Event.id -> Lib.Event.t list
-(** List events from one specific year *)
-
-val get : st:State.t -> Lib.Event.id -> Lib.Event.t
-(** Get an event from its id.
-    @raise Stdlib.Not_found if the event is not found. *)
 
 val create : st:State.t ->
   name:string -> short_name:string ->

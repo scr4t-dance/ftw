@@ -4,29 +4,10 @@
 (* Type defs *)
 (* ************************************************************************* *)
 
-type t =
-  (* global permission *)
-  | Create_event
-  | View_positions
-  | Set_password of { user : User.t; }
-
-  (* event permissions *)
-  | View_event of { ev : Lib.Event.t; }
-  | Edit_event of { ev : Lib.Event.t; }
-
-  | Bibs_view of { ev : Lib.Event.t; }
-  | Bibs_modify of { ev : Lib.Event.t; }
-
-  | View_comp of { ev : Lib.Event.t; comp : Lib.Competition.t; }
-  | Edit_comp of { ev : Lib.Event.t; comp : Lib.Competition.t; }
-
-  | View_phase of { ev : Lib.Event.t; comp : Lib.Competition.t; phase : Lib.Phase.t; }
-  | Edit_phase of { ev : Lib.Event.t; comp : Lib.Competition.t; phase : Lib.Phase.t; }
-  | View_artefacts of { ev : Lib.Event.t; comp : Lib.Competition.t; phase : Lib.Phase.t; }
-  | Edit_artefacts of { ev : Lib.Event.t; comp : Lib.Competition.t; phase : Lib.Phase.t; judge : Lib.Dancer.t; }
+open Lib.Permission
 
 
-(* Convenient functions *)
+(* Checking permission *)
 (* ************************************************************************* *)
 
 let check ~st ?user perm =
@@ -34,14 +15,14 @@ let check ~st ?user perm =
   let event ~ev = Permissions.event ~st ?user ~ev () in
   let competition ~ev ~comp = Permissions.comp ~st ?user ~ev ~comp () in
   let phase_perm ~ev ~comp ~phase = Permissions.phase ~st ?user ~ev ~comp ~phase () in
-  match (perm : t) with
+  match perm with
 
   | Create_event -> (global ()).create_event
   | View_positions -> (global ()).view_positions
   | Set_password { user } ->
     begin match (global ()).set_password with
       | All -> true
-      | Users l -> List.exists (Lib.Id.equal (User.id user)) l
+      | Users l -> List.exists (Lib.Id.equal (Lib.User.id user)) l
     end
 
   | View_event {ev } -> (event ~ev).view

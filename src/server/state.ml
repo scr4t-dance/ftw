@@ -7,7 +7,7 @@
 let field =
   Dream.new_field ()
     ~name:"ftw state"
-    ~show_value:(fun _ -> "<sqlite.db>")
+    ~show_value:(fun _ -> "<FTW API State>")
 
 let init ~init ~main_path ~user_path =
   let state = ref None in
@@ -17,7 +17,7 @@ let init ~init ~main_path ~user_path =
       Dream.set_field request field st;
       inner_handler request
     | None ->
-      let st = Ftw_db.State.mk ~init ~main_path ~user_path in
+      let st = Ftw_api.State.mk ~init ~main_path ~user_path in
       state := Some st;
       Dream.set_field request field st;
       inner_handler request
@@ -25,4 +25,5 @@ let init ~init ~main_path ~user_path =
 let get request callback =
   match Dream.field request field with
   | None -> failwith "no internal db state was found"
-  | Some st -> Ftw_db.State.atomically ~st ~f:callback
+  | Some st -> callback st
+

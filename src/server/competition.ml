@@ -1,4 +1,4 @@
-
+(*
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
 open Syntax
@@ -400,4 +400,4 @@ let htmx_view req comp_id =
     let ranking = Lib.Results.ranking ~comp results in
     let finals_table = table_of_ranking ~st ranking in
     `Body [finals_table]
-
+*)

@@ -8,8 +8,19 @@ type t = Sqlite3.db
 
 module Ty = Sqlite3_utils.Ty
 
+(* Error wrapper *)
+(* ************************************************************************* *)
 
-(* Helper/Wrapper functions *)
+type Lib.Error.descr +=
+  | Not_found
+
+let wrap f () =
+  try f () with
+  | Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
+    Error (Lib.Error.mk Not_found)
+
+
+(* DB access *)
 (* ************************************************************************* *)
 
 let atomically t ~f =
@@ -57,4 +68,5 @@ let query_one_where ~db ~p ~conv sql =
   exec_exn db sql
     ~ty:(p, res, f_conv)
     ~f:(Sqlite3_utils.Cursor.get_one_exn)
+
 

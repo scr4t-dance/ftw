@@ -323,7 +323,7 @@ class virtual importer (st : State.t) = object(self)
           | _ -> ()
         end;
         (* compute adequate promotions *)
-        Results.promotion ~st ~event:(Event.get ~st event) ~comp r
+        Results.promotion ~st ~event:(Result.get_ok @@ Event.get ~st event) ~comp r
         |> List.iter (Promotion.record ~st);
         (* add the results **after** computing promotions *)
         Results.add ~st r;
@@ -710,7 +710,7 @@ class ftw_1 st = object(self)
     let dancer = self#find_or_add_dancer ~event ~first_name ~last_name () in
     let result = self#parse_result res in
     let p =
-      Lib.Results.points ~event:(Event.get ~st event) ~comp ~role result
+      Lib.Results.points ~event:(Result.get_ok @@ Event.get ~st event) ~comp ~role result
     in
     let target =
       Lib.Target.(Any (Single { role;
@@ -736,10 +736,10 @@ class ftw_1 st = object(self)
     in
     let result = self#parse_result res in
     let leader_points =
-      Lib.Results.points ~event:(Event.get ~st event) ~comp ~role:Leader result
+      Lib.Results.points ~event:(Result.get_ok @@ Event.get ~st event) ~comp ~role:Leader result
     in
     let follow_points =
-      Lib.Results.points ~event:(Event.get ~st event) ~comp ~role:Follower result
+      Lib.Results.points ~event:(Result.get_ok @@ Event.get ~st event) ~comp ~role:Follower result
     in
     let target =
       Lib.Target.(Any (Couple {

@@ -12,6 +12,9 @@ all: build
 # Main Build rules #
 ####################
 
+clean:
+	dune clean
+
 conf-opam:
 	opam install . --deps-only --with-test --with-doc
 
@@ -24,20 +27,8 @@ build:
 # Tests, Docs & misc #
 ######################
 
-reset-jj: build
-	rm tests/jj.users.sqlite
-	cp tests/origin.sqlite tests/jj.sqlite
-	dune exec -- src/tools/setup_comp.exe --db tests/jj.sqlite --users tests/jj.users.sqlite
-	sqlite3 tests/jj.sqlite < tests/import.sql
-
 run: build
-	dune exec -- ftw -vv --db=tests/test.sqlite --user-db=tests/users.sqlite
-
-demo: build
-	dune exec -- ftw -vv --db=tests/demo.sqlite --user-db=tests/demo.users.sqlite
-
-jj: build
-	dune exec -- ftw -vv --db=tests/jj.sqlite --user-db=tests/jj.users.sqlite
+	dune exec -- ftw -vv --db=tests/demo.sqlite --user-db=tests/demo-users.sqlite
 
 tests: build
 	@dune runtest \
@@ -46,12 +37,6 @@ tests: build
 
 promote:
 	dune promote
-
-doc:
-	dune build $(FLAGS) @doc
-
-clean:
-	dune clean
 
 ################
 # Helper Rules #

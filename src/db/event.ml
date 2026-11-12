@@ -1,5 +1,7 @@
 
-(* This file is free software, part of FTW. See file "LICENSE" for more information *)
+(* This file is free seftware, part of FTW. See file "LICENSE" for more information *)
+
+open! Syntax
 
 (* Ftw_core import *)
 (* ************************************************************************* *)
@@ -44,24 +46,28 @@ let conv =
        let status = Option.get @@ status_of_enum status in (* TODO: proper error ? *)
        Private.mk ~id ~name ~short_name ~start_date ~end_date ~public ~status)
 
-let last ~st =
-  State.query_one_where ~st ~db ~conv ~p:Db.Ty.[]
-  {| SELECT * from events ORDER BY id DESC LIMIT 1 |}
+let get ~st id =
+  let@? () = __POS__ %> msg "Fetching event with id=%a" Lib.Id.print id in
+  ok @@ State.query_one_where ~st ~db ~p:Id.p ~conv
+    {| SELECT * FROM events WHERE id=? |} id
+
+let list_before ~st ~n = function
+  | None ->
+    let@? () = __POS__ %> msg "Fetching last n=%d events" n in
+    ok @@ State.query_list_where ~st ~db ~conv:Id.conv ~p:Db.Ty.[int]
+      {| SELECT id FROM events ORDER BY start_date DESC LIMIT ?|} n
+  | Some id ->
+    let@? () = __POS__ %> msg "Fetching last n=%d events before id=%a" n Lib.Id.print id in
+    ok @@ State.query_list_where ~st ~db ~conv:Id.conv ~p:Db.Ty.[int; int]
+      {| SELECT id FROM events WHERE id < ? ORDER BY start_date DESC LIMIT ?|} id n
+
+
+
+(* TODO: move this code to the new error handling *)
 
 let list ~st =
   State.query_list ~st ~db ~conv
     {| SELECT * FROM events |}
-
-let list_before ~st ~n ~id =
-  State.query_list_where ~st ~db ~conv ~p:Db.Ty.[int; int]
-  {| SELECT * FROM events WHERE id < ? ORDER BY start_date DESC LIMIT ?|} id n
-
-let get ~st id =
-  try
-    State.query_one_where ~st ~db ~p:Id.p ~conv
-      {| SELECT * FROM events WHERE id=? |} id
-  with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
-    raise Not_found
 
 let create ~st ~name ~short_name ~start_date ~end_date ~public ~status : Lib.Event.id =
   Logs.debug ~src:State.src (fun k->

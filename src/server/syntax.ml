@@ -6,8 +6,10 @@
 
 module Db = Ftw_db
 module Lib = Ftw_lib
+module Api = Ftw_api
 
-(* Monadic operators *)
+(* Import *)
 (* ************************************************************************* *)
 
-let ( let$ ) f x = f x
+include Api.Syntax
+

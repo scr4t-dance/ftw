@@ -2,8 +2,7 @@
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
 open Syntax
-open Dream_html
-open Dream_html.HTML
+open! Html
 
 (* Links to static ressources *)
 (* ************************************************************************* *)
@@ -65,34 +64,34 @@ let breadcrumb root =
           class_ "d-flex align-items-center col-md-3 mb-2 mb-md-0"] [
       ol [class_ "breadcrumb"] (
         List.map (fun (elt : event_path_elt) ->
-          match elt with
-          | Event { ev; } ->
-            li [class_ "breadcrumb-item"] [
-              a [path_attr href Paths.Page.event (Lib.Event.id ev)] [
-                txt "%s" (Lib.Event.name ev);
+            match elt with
+            | Event { ev; } ->
+              li [class_ "breadcrumb-item"] [
+                a [path_attr href Paths.Page.event (Lib.Event.id ev)] [
+                  txt "%s" (Lib.Event.name ev);
+                ]
               ]
-            ]
-          | Comp { comp; } ->
-            li [class_ "breadcrumb-item"] [
-              a [path_attr href Paths.Page.comp (Lib.Competition.id comp)] [
-                txt "%s" (Display.competition_name comp);
+            | Comp { comp; } ->
+              li [class_ "breadcrumb-item"] [
+                a [path_attr href Paths.Page.comp (Lib.Competition.id comp)] [
+                  txt "%s" (Display.competition_name comp);
+                ]
               ]
-            ]
-          | Phase { phase; } ->
-            li [class_ "breadcrumb-item"] [
-              a [path_attr href Paths.Page.phase (Lib.Phase.id phase)] [
-                txt "%s" (Display.round_name phase);
+            | Phase { phase; } ->
+              li [class_ "breadcrumb-item"] [
+                a [path_attr href Paths.Page.phase (Lib.Phase.id phase)] [
+                  txt "%s" (Display.round_name phase);
+                ]
               ]
-            ]
-          | Bibs ->
-            li [class_ "breadcrumb-item active"] [
+            | Bibs ->
+              li [class_ "breadcrumb-item active"] [
                 txt "Bibs";
-            ]
-          | Artefacts ->
-            li [class_ "breadcrumb-item active"] [
+              ]
+            | Artefacts ->
+              li [class_ "breadcrumb-item active"] [
                 txt "Artefacts";
-            ]
-        ) path
+              ]
+          ) path
       )
     ]     
   | _ ->
@@ -150,7 +149,7 @@ let page_header ~root ~req =
       header [class_ "d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom"] [
 
         breadcrumb root;
-        
+
         ul [class_"nav col-12 col-md-auto mb-2 justify-content-center mb-md-0"] [
           li [] [
             a [path_attr href Paths.Page.index; class_ "text-dark text-decoration-none"]
@@ -160,20 +159,20 @@ let page_header ~root ~req =
           li [] [a [path_attr href Paths.Page.dancers; class_ "nav-link px-2 %s" (link_class ~target:Dancers ~root)] [txt "Dancers"]];
           li [] [a [path_attr href Paths.Page.infos; class_ "nav-link px-2 %s" (link_class ~target:Infos ~root)] [txt "Infos"]];
         ];
-        
+
         div [class_ "col-md-3 text-end"] (
           match User.get req with
           | None ->
             [a [path_attr href Paths.Page.login; class_ "btn btn-outline-primary me-2"] [txt "Login"]]
           | Some user -> [
-            i [class_ "bi bi-person-check-fill"] [];
-            span [class_ "mx-2"] [txt "%s" (Db.User.name user)];
-            span [class_ "mx-2"] [
-              button
-                [ class_ "btn btn-outline-danger"; path_attr Hx.get Paths.Htmx.logout]
-                [ txt "logout" ]
-            ];
-          ]
+              i [class_ "bi bi-person-check-fill"] [];
+              span [class_ "mx-2"] [txt "%s" (Db.User.name user)];
+              span [class_ "mx-2"] [
+                button
+                  [ class_ "btn btn-outline-danger"; path_attr Hx.get Paths.Htmx.logout]
+                  [ txt "logout" ]
+              ];
+            ]
         );
       ]
     ]
@@ -237,24 +236,4 @@ let render ~local ~root ~title:title_text req status actual_body =
       )
     ]
   ]
-
-let mk' ~req ~st ~root ~title:title_text ~perms k =
-  let _ = (root : menu_path) in
-  let local = true in
-  let status, actual_body =
-    if (User.check_perms ~req ~st perms)
-    then `OK, k ()
-    else begin
-      let status = `Forbidden in
-      let body = [ txt "You do not have the permission to access this content" ] in
-      status, body
-    end
-  in
-  render ~local ~root ~title:title_text req status actual_body
-
-
-let mk ~req ~root ~title ~perms k =
-  let$ st = State.get req in
-  mk' ~req ~st ~root ~title ~perms (fun () -> k st)
-
 

@@ -183,7 +183,7 @@ let export_comps ~st comps =
 let event_toml ~st ~local event_id =
   Logs.debug ~src (fun k->k "Exporting event %d" event_id);
   let format = if not local then "ftw.2" else assert false (* TODO: add local event export *) in
-  let event = Event.get ~st event_id in
+  let event = Result.get_ok @@ Event.get ~st event_id in
   let comps = Event.competitions ~st event in
   let comp_fields = export_comps ~st comps in
   let id = Otoml.integer (Lib.Event.id event) in
