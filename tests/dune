@@ -8,7 +8,7 @@
 ; Generate a test DB using the import feature
 (rule
   (alias runtest)
-  (mode promote)
+  (mode (promote (until-clean)))
   (deps (source_tree archive))
   (targets demo.sqlite demo-users.sqlite)
   (action
