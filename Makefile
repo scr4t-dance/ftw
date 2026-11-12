@@ -16,7 +16,7 @@ clean:
 	dune clean
 
 conf-opam:
-	test -d "_opam" || opam switch create . -n
+	test -d "_opam" || opam switch create . --empty
 	opam install . --deps-only --with-test --with-doc
 
 conf: conf-opam

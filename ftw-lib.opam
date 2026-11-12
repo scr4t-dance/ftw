@@ -13,6 +13,7 @@ depends: [
   "logs"
   "ppx_compare"
   "jsont"
+  "bytesrw"
   "containers"
   "gen"
   "spelll"

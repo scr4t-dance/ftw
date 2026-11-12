@@ -26,7 +26,8 @@
  (description "TODO")
  (depends
    fmt logs
-   ppx_compare jsont
+   ppx_compare
+   jsont bytesrw
    containers gen spelll otoml
    printbox printbox-text
  ))
