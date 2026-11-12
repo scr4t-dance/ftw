@@ -46,4 +46,4 @@ promote:
 top:
 	dune utop
 
-.PHONY: all conf-opam configure build tests promote doc clean top
+.PHONY: all clean conf-opam conf build run tests promote top
