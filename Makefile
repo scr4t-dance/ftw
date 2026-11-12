@@ -16,9 +16,10 @@ clean:
 	dune clean
 
 conf-opam:
+	test -d "_opam" || opam switch create . -n
 	opam install . --deps-only --with-test --with-doc
 
-configure: conf-opam
+conf: conf-opam
 
 build:
 	dune build $(FLAGS)

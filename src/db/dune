@@ -11,7 +11,6 @@
   (libraries
     ftw_lib
     unix fmt logs
-    jsont jsont.bytesrw
     gen containers argon2
     printbox printbox-text
     otoml spelll uutf uunf

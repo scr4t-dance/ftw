@@ -4,14 +4,21 @@ synopsis: "Lib for the FTW scorign system"
 description: "TODO"
 maintainer: ["Guillaume Bury"]
 authors: ["Guillaume Bury" "Xavier Duquesne"]
-license: "GPLv3"
+license: "GPL-3.0-only"
 homepage: "https://github.com/scr4t-dance/ftw"
 bug-reports: "https://github.com/scr4t-dance/ftw/issues"
 depends: [
   "dune" {>= "3.18"}
-  "base"
-  "sexplib0"
+  "fmt"
+  "logs"
+  "ppx_compare"
   "jsont"
+  "containers"
+  "gen"
+  "spelll"
+  "otoml"
+  "printbox"
+  "printbox-text"
   "odoc" {with-doc}
 ]
 build: [

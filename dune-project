@@ -4,7 +4,7 @@
 (generate_opam_files)
 
 (source (github scr4t-dance/ftw))
-(license GPLv3)
+(license GPL-3.0-only)
 (authors "Guillaume Bury" "Xavier Duquesne")
 (maintainers "Guillaume Bury")
 (maintenance_intent "(latest)")
@@ -18,20 +18,18 @@
    (ftw-db  (= :version))
    (ftw-api (= :version))
    (ftw-bin (= :version))
-   sqlite3 sqlite3_utils
-   containers gen spelll otoml
-   bos fpath logs fmt uunf uutf ubase
-   jsont bytesrw argon2
-   (fuzzy_match (>= v0.17.0))
-   printbox printbox-text))
+ ))
 
 (package
  (name ftw-lib)
  (synopsis "Lib for the FTW scorign system")
  (description "TODO")
  (depends
-   base sexplib0
-   jsont))
+   fmt logs
+   ppx_compare jsont
+   containers gen spelll otoml
+   printbox printbox-text
+ ))
 
 (package
  (name ftw-db)
@@ -39,8 +37,12 @@
  (description "TODO")
  (depends
    (ftw-lib (= :version))
-   base sexplib0
-   jsont))
+   fmt logs
+   containers gen argon2
+   spelll otoml uutf uunf ubase
+   (fuzzy_match (>= v0.17.0))
+   ppx_deriving sqlite3 sqlite3_utils
+ ))
 
 (package
  (name ftw-api)
@@ -48,9 +50,9 @@
  (description "TODO")
  (depends
    (ftw-lib (= :version))
-   (ftw-db (= :version))
-   base sexplib0
-   jsont))
+   (ftw-db  (= :version))
+   fmt logs containers
+ ))
 
 (package
  (name ftw-bin)
@@ -59,10 +61,11 @@
  (description "TODO")
  (depends
    (ftw-lib (= :version))
-   (ftw-db (= :version))
+   (ftw-db  (= :version))
    (ftw-api (= :version))
    dream dream-html dream-htmx
-   jsont bytesrw fuzzy_match
+   fmt logs containers
    (cmdliner (>= 1.3.0))
-   logs fmt))
+   dune-site
+ ))
 

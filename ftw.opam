@@ -4,7 +4,7 @@ synopsis: "Scoring system for dancing competitions"
 description: "TODO"
 maintainer: ["Guillaume Bury"]
 authors: ["Guillaume Bury" "Xavier Duquesne"]
-license: "GPLv3"
+license: "GPL-3.0-only"
 homepage: "https://github.com/scr4t-dance/ftw"
 bug-reports: "https://github.com/scr4t-dance/ftw/issues"
 depends: [
@@ -13,25 +13,6 @@ depends: [
   "ftw-db" {= version}
   "ftw-api" {= version}
   "ftw-bin" {= version}
-  "sqlite3"
-  "sqlite3_utils"
-  "containers"
-  "gen"
-  "spelll"
-  "otoml"
-  "bos"
-  "fpath"
-  "logs"
-  "fmt"
-  "uunf"
-  "uutf"
-  "ubase"
-  "jsont"
-  "bytesrw"
-  "argon2"
-  "fuzzy_match" {>= "v0.17.0"}
-  "printbox"
-  "printbox-text"
   "odoc" {with-doc}
 ]
 build: [

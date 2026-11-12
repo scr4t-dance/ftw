@@ -12,7 +12,7 @@
      ftw_lib ftw_db ftw_api
      dream dream-html dream-htmx
      fmt fmt.cli logs logs.cli logs.fmt
-     cmdliner containers jsont jsont.bytesrw
+     cmdliner containers
      fuzzy_match.search
      dune-site
   )
