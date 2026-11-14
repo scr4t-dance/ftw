@@ -53,9 +53,13 @@ let jsont =
 (* ************************************************************************* *)
 
 let verify_passwd ~encoded ~pwd =
-  Argon2.verify ~encoded ~pwd ~kind:D 
+  Argon2.verify ~encoded ~pwd ~kind:D
 
 let encode_passwd (pwd : string) =
+  (* these parameters have been choosen to have a non-negligible yet
+     acceptable time for hacing (i.e. hashing needs to be slow enough
+     to prevent brute-forcing attacks), but they probably need to be
+     refined with further experimentations. *)
   let hash_len = 32 in
   let t_cost = 2 in
   let m_cost = 65536 in
@@ -82,7 +86,7 @@ let db = State.Users
 
 let () =
   State.add_init ~name:"users" (fun st ->
-    State.exec ~st ~db {|
+      State.exec ~st ~db {|
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY,
         name TEXT UNIQUE,
@@ -91,8 +95,10 @@ let () =
       )
     |})
 
+(* passwords are stored in a separate table to be more easily split /
+   less easily leaked by error *)
 let () =
-    State.add_init ~name:"passwd" (fun st ->
+  State.add_init ~name:"passwd" (fun st ->
       State.exec ~st ~db {|
         CREATE TABLE IF NOT EXISTS passwd (
           user_id INTEGER PRIMARY KEY REFERENCES users(id),
@@ -103,8 +109,8 @@ let () =
 
 let conv =
   Conv.mk Db.Ty.[int; text; text; int]
-  (fun id name email dancer_id ->
-    { id; name; email; dancer_id; })
+    (fun id name email dancer_id ->
+       { id; name; email; dancer_id; })
 
 let passwd ~st user_id =
   match
@@ -119,24 +125,24 @@ let passwd ~st user_id =
 let find ~st = function
   | `Id id ->
     begin try
-      Some (State.query_one_where ~st ~db ~p:Id.p ~conv
-              {| SELECT * FROM users WHERE id = ? |} id)
-    with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
-      None
+        Some (State.query_one_where ~st ~db ~p:Id.p ~conv
+                {| SELECT * FROM users WHERE id = ? |} id)
+      with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
+        None
     end
   | `Name name ->
     begin try
-      Some (State.query_one_where ~st ~db ~p:Db.Ty.[text] ~conv
-              {| SELECT * FROM users WHERE name = ? |} name)
-    with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
-      None
+        Some (State.query_one_where ~st ~db ~p:Db.Ty.[text] ~conv
+                {| SELECT * FROM users WHERE name = ? |} name)
+      with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
+        None
     end
   | `Dancer dancer_id ->
     begin try
-      Some (State.query_one_where ~st ~db ~p:Id.p ~conv
-              {| SELECT * FROM users WHERE dancer_id = ? |} dancer_id)
-    with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
-      None
+        Some (State.query_one_where ~st ~db ~p:Id.p ~conv
+                {| SELECT * FROM users WHERE dancer_id = ? |} dancer_id)
+      with Sqlite3_utils.RcError Sqlite3_utils.Rc.NOTFOUND ->
+        None
     end
 
 let authenticate ~st ~username ~pwd =
@@ -159,7 +165,7 @@ let set_passwd_aux ~st ~user ~encoded_pwd =
 let set_passwd ~st ~user ~pwd =
   if pwd = "" then set_passwd_aux ~st ~user ~encoded_pwd:""
   else match encode_passwd pwd with
-    | Error _ -> assert false
+    | Error _ -> assert false (* TODO: error message *)
     | Ok encoded_pwd -> set_passwd_aux ~st ~user ~encoded_pwd
 
 let create ~st ~username ~email ~pwd ~dancer_id =

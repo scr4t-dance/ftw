@@ -1,6 +1,11 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+(** {1 Events}
+
+    Dance events.
+*)
+
 (* Type definitions *)
 (* ************************************************************************* *)
 
@@ -12,9 +17,17 @@ type t
 
 type status =
   | Setup
+  (** The event is still being created and configured; typically the event has
+      not yet started. *)
   | Registration
+  (** The event has been completely setup and configured; people can register for
+      the competitions in advance. *)
   | In_progress
-  | Finished (**)
+  (** The event is in progress, dancers are dancing and competitions are actively
+      being run. *)
+  | Finished
+  (** The event (and all its competitions) have finished. No further modifications
+      should occur. *)
 (** Event status *)
 
 

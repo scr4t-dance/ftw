@@ -22,6 +22,8 @@ type t = {
   category : Category.t;
   n_leaders : int;
   n_follows : int;
+  (* TODO: replace these to properly count dancers in e.g. competitions with
+     trouples *)
   check_divs : bool;
   public : bool;
 }

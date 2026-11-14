@@ -1,6 +1,12 @@
 
 (* This file is free software, part of FTW. See file "LICENSE" for more information *)
 
+(** {1 Competitions}
+
+    Dance competitions. These are linked to a parent event, and can be SCR4T
+    competitions (giving points), as well as any other competition.
+*)
+
 (* Type definitions *)
 (* ************************************************************************* *)
 

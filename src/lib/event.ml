@@ -10,21 +10,31 @@ type status =
   | Setup
   | Registration
   | In_progress
-  | Finished
+  | Finished (**)
+(* see the mli for doc *)
 
 type t = {
   id : id;
+  (* unique id (among events) *)
   name : string;
+  (* main display name for the event *)
   short_name : string;
+  (* a short name; currently used when exporting events for the name *)
   start_date : Date.t;
   end_date : Date.t;
+  (* start and end dates for the event *)
   public : bool;
+  (* whether an event is public and can be seen by anonymous users
+     (logged-in users that have a position in the event can always see
+     the event regardless of this). *)
   status : status;
+  (* current status for the event *)
 }
 
 (* Common functions *)
 (* ************************************************************************* *)
 
+(* accessors functions *)
 let id { id; _ } = id
 let name { name; _ } = name
 let short_name { short_name; _ } = short_name
@@ -52,6 +62,9 @@ let print_compact fmt t =
 
 (* Private functions *)
 (* ************************************************************************* *)
+
+(* TODO: with the lib/db/api split of the code, this code may not need to
+   be "hidden" away anymore *)
 
 module Private = struct
 
