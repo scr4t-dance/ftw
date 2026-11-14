@@ -12,7 +12,8 @@
 (package
  (name ftw)
  (synopsis "Scoring system for dancing competitions")
- (description "TODO")
+ (description "Meta package to install all of the FTW packages")
+ (allow_empty)
  (depends
    (ftw-lib (= :version))
    (ftw-db  (= :version))
