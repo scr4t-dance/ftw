@@ -31,7 +31,7 @@ build:
 demo: build
 	dune exec -- ftw -vv --db=tests/demo.sqlite --user-db=tests/demo-users.sqlite
 
-tests: build
+test: build
 	@dune runtest \
 		|| (echo -e "\n\e[01;31m!!! TESTS FAILED !!!\e[0m\n-> run 'make promote' to update the tests result files\nRun 'make openapi' if tests fail"; \
 		    exit 1 )

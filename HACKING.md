@@ -26,7 +26,7 @@ Testing
 Automated integrated tests can be run using
 
 ```
-make tests
+make test
 ```
 
 After updating the code (or other parts of the project), it may be needed
