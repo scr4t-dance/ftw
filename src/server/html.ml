@@ -6,9 +6,14 @@
 
 module Hx = Dream_html.Hx
 module Aria = Dream_html.Aria
+module Form = Dream_html.Form
+
+type node = Dream_html.node
 
 let respond = Dream_html.respond
+let redirect = Dream_html.redirect
 
+let csrf_tag = Dream_html.csrf_tag
 let path_attr = Dream_html.path_attr
 
 

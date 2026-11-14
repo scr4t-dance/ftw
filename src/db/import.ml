@@ -393,7 +393,7 @@ class virtual importer (st : State.t) = object(self)
     let event =
       match find_opt t get_integer ["id"] with
       | None ->
-        Event.create ~st ~name ~short_name ~start_date ~end_date ~public ~status:Finished
+        Result.get_ok @@ Event.create ~st ~name ~short_name ~start_date ~end_date ~public ~status:Finished
       | Some id ->
         Event.Private.import ~st ~id ~name ~short_name ~start_date ~end_date ~public ~status:Finished;
         id

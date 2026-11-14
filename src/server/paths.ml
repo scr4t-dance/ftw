@@ -12,17 +12,22 @@ let render = snd
 
 module Page = struct
 
+  (* root things *)
   let%path index = "/index"
 
+  (* auth/user paths *)
+  let%path login = "/login"
+
+  (* events management *)
+  let%path events = "/events"
+  let%path event = "/event/%d"
+  let%path event_create = "/create/event"
 
 
 
   let%path dancers = "/dancers"
   let%path dancer = "/dancer/%d"
 
-  let%path events = "/events"
-  let%path event_create = "/create/event"
-  let%path event = "/event/%d"
   let%path event_distrib = "/event/%d/distrib"
   let%path event_bibs = "/event/%d/bibs"
   let%path event_promotions = "/event/%d/promotions"
@@ -36,7 +41,6 @@ module Page = struct
   let%path judge_artefacts = "/phase/%d/artefacts/%d"
   let%path judge_artefacts_styled = "/phase/%d/artefacts/%d?style=%s"
 
-  let%path login = "/login"
   let%path user = "user"
   let%path infos = "/infos"
 
@@ -49,6 +53,8 @@ module Htmx = struct
   let%path set_passwd = "/htmx/setpwd"
 
   let events = Dream_html.path "/htmx/events" "/htmx/events?before=%d"
+
+
 
   let%path event_reg = "/htmx/event/%d/reg"
   let%path event_start = "/htmx/event/%d/start"

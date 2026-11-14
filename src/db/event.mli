@@ -15,18 +15,18 @@ val list_before :
   st:State.t -> n:int -> Lib.Event.id option -> Lib.Event.id list res
 (** List events from one specific year *)
 
+val create : st:State.t ->
+  name:string -> short_name:string ->
+  start_date:Lib.Date.t -> end_date:Lib.Date.t ->
+  public:bool -> status:Lib.Event.status ->
+  Lib.Event.id res
+(** Create a new event. *)
+
 
 
 
 val list : st:State.t -> Lib.Event.t list
 (** List all events *)
-
-val create : st:State.t ->
-  name:string -> short_name:string ->
-  start_date:Lib.Date.t -> end_date:Lib.Date.t ->
-  public:bool -> status:Lib.Event.status ->
-  Lib.Event.id
-(** Create a new event. *)
 
 val update : st:State.t -> Lib.Event.t -> unit
 (** Update an event. *)

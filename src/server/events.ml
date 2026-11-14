@@ -46,9 +46,10 @@ let tr_of_ev = function
       ]
     ]
 
-let api =
+let api : Endpoint.t =
   let n = 10 in
-  Htmx.mk_get ~path:Paths.Htmx.events
+  Endpoint.htmx_get ()
+    ~path:Paths.Htmx.events
     ~query:(fun ~render ?user req st ->
         render @@
         let ev_id = Utils.int_query req "before" in
@@ -80,17 +81,17 @@ type page = {
   can_create : bool;
 }
 
-let page =
-  Page.mk
+let page : Endpoint.t =
+  Endpoint.get ()
     ~root:(Event []) ~path:Paths.Page.events
     ~query:(fun ~render ?user _req st ->
         let can_create = Api.Permission.check ~st ?user (Create_event) in
-        render @@ Ok {
+        render @@ Ok (Page {
           title = "Event List";
           body = {
             can_create;
           };
-        })
+        }))
     ~render:(fun { can_create; } ->
         [
           div [class_ "row"] [

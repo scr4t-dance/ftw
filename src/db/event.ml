@@ -61,6 +61,26 @@ let list_before ~st ~n = function
     ok @@ State.query_list_where ~st ~db ~conv:Id.conv ~p:Db.Ty.[int; int]
       {| SELECT id FROM events WHERE id < ? ORDER BY start_date DESC LIMIT ?|} id n
 
+let create ~st ~name ~short_name ~start_date ~end_date ~public ~status =
+  let m =
+    msg "@[<hv 2>event with@ name: %s@ short: %s@ start_date: %a@ end_date: %a@]"
+      name short_name Lib.Date.print start_date Lib.Date.print end_date
+  in
+  let@? () = __POS__ %> msg "creating %t" m in
+  State.insert ~st ~db ~ty:Db.Ty.[ text; text; text; text; int; int]
+    {| INSERT INTO events (name, short_name, start_date, end_date, public, status) VALUES (?,?,?,?,?,?) |}
+    name short_name (Date.to_string start_date) (Date.to_string end_date) (if public then 1 else 0) (status_to_enum status);
+  (* TODO: try and get the id of the new event from the insert statement above,
+     rather than using a new query. This probably needs to use the Cursor api from Sqlite3_utils. *)
+  let id =
+    State.query_one_where ~st ~db ~p:Db.Ty.[ text; text; text; text; ] ~conv:Id.conv
+      {| SELECT id FROM events WHERE name=? AND short_name = ? AND start_date=? AND end_date=? |}
+      name short_name (Date.to_string start_date) (Date.to_string end_date)
+  in
+  Logs.debug ~src:State.src (fun k->k "Event created with id %d" id);
+  ok id
+
+
 
 
 (* TODO: move this code to the new error handling *)
@@ -68,24 +88,6 @@ let list_before ~st ~n = function
 let list ~st =
   State.query_list ~st ~db ~conv
     {| SELECT * FROM events |}
-
-let create ~st ~name ~short_name ~start_date ~end_date ~public ~status : Lib.Event.id =
-  Logs.debug ~src:State.src (fun k->
-      k "@[<hv 2>Creating event with@ name: %s@ short: %s@ start_date: %a@ end_date: %a@]"
-        name short_name Lib.Date.print start_date Lib.Date.print end_date
-    );
-  State.insert ~st ~db ~ty:Db.Ty.[ text; text; text; text; int; int]
-    {| INSERT INTO events (name, short_name, start_date, end_date, public, status) VALUES (?,?,?,?,?,?) |}
-    name short_name (Date.to_string start_date) (Date.to_string end_date) (if public then 1 else 0) (status_to_enum status);
-  (* TODO: try and get the id of the new event from the insert statement above,
-     rather than using a new query *)
-  let id =
-    State.query_one_where ~st ~db ~p:Db.Ty.[ text; text; text; text; ] ~conv:Id.conv
-      {| SELECT id FROM events WHERE name=? AND short_name = ? AND start_date=? AND end_date=? |}
-      name short_name (Date.to_string start_date) (Date.to_string end_date)
-  in
-  Logs.debug ~src:State.src (fun k->k "Event created with id %d" id);
-  id
 
 let update ~st t =
   State.insert ~st ~db ~ty:Db.Ty.[ text; text; text; text; int; int; int]

@@ -28,7 +28,7 @@ build:
 # Tests, Docs & misc #
 ######################
 
-run: build
+demo: build
 	dune exec -- ftw -vv --db=tests/demo.sqlite --user-db=tests/demo-users.sqlite
 
 tests: build

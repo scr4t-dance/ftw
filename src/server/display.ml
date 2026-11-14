@@ -10,7 +10,7 @@ open! Dream_html.HTML
 (* ************************************************************************* *)
 
 let date d =
-  Format.asprintf "%02d/%02d/%d"
+  Format.asprintf "%02d/%02d/%04d"
     (Lib.Date.day d) (Lib.Date.month d) (Lib.Date.year d)
 
 let role r =

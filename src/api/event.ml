@@ -20,4 +20,11 @@ let list_before ~st ?user:_ ~n id_opt =
 (* Event setters *)
 (* ************************************************************************* *)
 
+let create ~st ?user ~name ~short_name ~start_date ~end_date ~public ~status () =
+  let* () = Permission.ensure ~st ?user Create_event in
+  let* id =
+    Db.Event.create ~st:(State.db st)
+      ~name ~short_name ~start_date ~end_date ~public ~status
+  in
+  ok id
 

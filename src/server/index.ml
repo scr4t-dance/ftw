@@ -11,13 +11,13 @@ open Dream_html.HTML
 type page_data = unit
 
 let page =
-  Page.mk
+  Endpoint.get ()
     ~root:Index ~path:Paths.Page.index
     ~query:(fun ~render ?user:_ _req _st ->
-        render @@ Ok {
+        render @@ Ok (Page {
           title = "FTW";
           body = ();
-        })
+        }))
     ~render:(fun (() : page_data) ->
         [
           p [] [txt "Hello World !"];

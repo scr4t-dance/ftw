@@ -14,3 +14,10 @@ val get :
 val list_before :
   st:State.t -> ?user:User.t ->
   n:int -> Lib.Event.id option -> Lib.Event.id list res
+
+val create :
+  st:State.t -> ?user:User.t ->
+  name:string -> short_name:string ->
+  start_date:Lib.Date.t -> end_date:Lib.Date.t ->
+  public:bool -> status:Lib.Event.status ->
+  unit -> Lib.Event.id res

@@ -139,7 +139,7 @@ let find ~st = function
       None
     end
 
-let authentificate ~st ~username ~pwd =
+let authenticate ~st ~username ~pwd =
   match find ~st (`Name username) with
   | None -> `User_not_found
   | Some user ->

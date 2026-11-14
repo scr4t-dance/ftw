@@ -189,6 +189,7 @@ let exec ~st () =
 
   (* Event & Comps *)
   let ev =
+    Result.get_ok @@
     Db.Event.create ~st ~name:"Spooky 4 Temps" ~short_name:"spooky"
       ~start_date:(Lib.Date.mk ~day:16 ~month:10 ~year:2026)
       ~end_date:(Lib.Date.mk ~day:18 ~month:10 ~year:2026)
