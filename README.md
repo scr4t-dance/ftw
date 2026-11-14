@@ -7,7 +7,7 @@ For The Win ! is a scoring software for dance competitions, and results archival
 Build & Install
 ---------------
 
-### Ocaml Installation
+### System dependencies
 
 To build Ftw backend, you will need a working OCaml and Opam installation. To install
 OCaml and Opam, you can follow the following instructions:
@@ -15,76 +15,35 @@ OCaml and Opam, you can follow the following instructions:
 - For Windows : https://ocaml.org/install#windows
 - For Linux, MacOS, and BSD: https://ocaml.org/install#linux_mac_bsd
 
-It is recommanded to use ocaml 5.0.0 (see issue #10).
-
-Once you have a working ocaml environment,
-run the following commands to create a switch and activate it.
+Opam works mainly by setting environment values. While in most cases the
+opam setup or initialization should prompt you to update your bash/shell scripts
+to automatically sets these values, if you ever need to manually set them,
+you can do so by running:
 ```
-opam switch create scrat_ftw_switch 5.0.0
 eval $(opam env)
 ```
 
-### NPM Installation
+### Configure & Build
 
-To build Ftw frontend, you will need a working NPM installation.
-
-To validate that NPM is correctly configured, you can run the following command and check that there are no errors.
+Once you have a working opam installation, you can install dependencies and
+build the project using the following commands:
 ```
-npm --version
-```
-
-### Dev Dependencies
-
-Here are some common and useful development dependencies (these are mainly useful for vscode, other setups may need different deps).
-
-```sh
-opam install ocaml-lsp-server ocamlformat
-```
-
-
-### Dependencies Installation
-
-Once you have a working OCaml and NPM installations, you'll need to install
-the OCaml dependencies, as well as the project's npm depencies.
-It can be done using the following command:
-```sh
-make configure
-```
-
-### Building
-
-Once all dependencies have been installed, you can build the project with the
-following command:
-
-```sh
+make conf
 make
 ```
 
-With this command, frontend code will be compacted in a production-ready form
-and stored in `src/frontend/build` (symlinked to `src/backend/static`).
-Ocaml code will be compiled and ready to be deployed.
+### Installation
 
-Run
----
+TODO: write this doc for installation
 
-### Deploy locally
+### Dev work
 
-you can run a test instance of the server using the following command:
-
-```sh
-make run
-```
-
-See `Running the server` and `Testing frontend` in [HACKING.md](HACKING.md) for more details.
+More information can be found in [HACKING.md](HACKING.md)
 
 
-### Deploy on a server
+Usage
+-----
 
-TODO
+TODO: write doc on using the system.
 
-Develop
--------
 
-See [HACKING.md](HACKING.md) to learn how to contribute, develop and test.
-Read the [documentation about concepts](doc/concepts.md) to know what should be developped.
-Then read how to [add a new concept](doc/coding_a_concept.md).
